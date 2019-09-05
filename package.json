@@ -2,8 +2,8 @@
   "name": "spk",
   "version": "1.0.0",
   "description": "The missing Bedrock CLI",
-  "main": "index.js",
-  "author": "Evan Louie <evan.louie@microsoft.com>",
+  "author": "Evan Louie <evan.louie@microsoft.com> (https://evanlouie.com)",
+  "contributors": [],
   "license": "MIT",
   "scripts": {
     "build": "tsc",
