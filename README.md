@@ -11,14 +11,23 @@
 
 ### Installation
 
-```
+```sh
 yarn install
 ```
 
 ### Running Tests
 
-```
+To run a one-time test of all tests:
+
+```sh
 yarn test
+```
+
+**Recommended**: To keep tests running in the background and constantly test
+newly created tests and code:
+
+```sh
+yarn test-watch
 ```
 
 ## Testing
