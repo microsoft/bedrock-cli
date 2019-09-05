@@ -1,0 +1,37 @@
+{
+  "name": "spk",
+  "version": "1.0.0",
+  "description": "The missing Bedrock CLI",
+  "main": "index.js",
+  "author": "Evan Louie <evan.louie@microsoft.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.18",
+    "husky": ">=1",
+    "jest": "^24.9.0",
+    "lint-staged": ">=8",
+    "prettier": "^1.18.2",
+    "ts-jest": "^24.0.2",
+    "tslint": "^5.19.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.6.2"
+  },
+  "prettier": {
+    "proseWrap": "always"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,css,json,yaml,md}": [
+      "prettier --write",
+      "git add"
+    ]
+  }
+}
