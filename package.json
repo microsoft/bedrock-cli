@@ -6,7 +6,7 @@
   "contributors": [],
   "license": "MIT",
   "scripts": {
-    "build": "webpack && pkg dist/spk.js && shx mv spk-* dist",
+    "build": "shx rm -rf dist && webpack && pkg dist/spk.js && shx mv spk-* dist",
     "test": "jest",
     "test-watch": "jest --watchAll"
   },
