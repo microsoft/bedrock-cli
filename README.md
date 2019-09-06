@@ -127,11 +127,15 @@ const incrementAge = (human: IHuman): IHuman => {
   return human;
 };
 const agedJack = incrementAge(jack);
-// NOTE: both agedJack AND jack are now age 21 as you modified the literal object passed to the function
+// NOTE: both agedJack AND jack are now age 21 as you modified the literal
+// object passed to the function
 
 // Do
 const jack = { name: "Jack", age: "20" };
 const incrementAge = (human: IHuman): IHuman => {
+  // We use use the `...` (pronounced "spread") operator to make copies of all
+  // the values in `human` and place them in agedHuman. We then overwrite the
+  // value of `age` with the new value.
   const agedHuman = { ...human, age: human.age + 1 };
   return agedHuman;
 };
