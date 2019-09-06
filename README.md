@@ -48,6 +48,10 @@ To run do a production build, just run:
 yarn build
 ```
 
+**NOTE**: For windows users, this requires you to run in CMD. It will fail in
+PowerShell as the script being run requires usage of the `&&` operator which
+PowerShell does not support.
+
 ## Testing
 
 We use a [TypeScript variant](https://github.com/kulshekhar/ts-jest) of
