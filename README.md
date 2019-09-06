@@ -30,6 +30,24 @@ newly created tests and code:
 yarn test-watch
 ```
 
+### Production Builds
+
+We use 2 main tools for creating distributable production builds:
+
+- [webpack](https://webpack.js.org/) - For compiling TypeScript code to a single
+  minified JS bundle.
+- [pkg](https://github.com/zeit/pkg) - For packaging the output of webpack to 3
+  standalone binaries targeting `win32`, `macos`, and `linux`. These binaries
+  contain their own self contained versions of Node and can be distributed as
+  standalone executables which can be run even if he host does not have Node
+  installed.
+
+To run do a production build, just run:
+
+```sh
+yarn build
+```
+
 ## Testing
 
 We use a [TypeScript variant](https://github.com/kulshekhar/ts-jest) of
