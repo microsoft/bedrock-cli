@@ -34,5 +34,8 @@
       "prettier --write",
       "git add"
     ]
+  },
+  "dependencies": {
+    "winston": "^3.2.1"
   }
 }
