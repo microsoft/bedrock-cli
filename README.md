@@ -6,8 +6,8 @@
 
 ### System Prerequisites
 
-- Node - >= LTS
-- [Yarn](https://yarnpkg.com/) - Stable
+- Node@>=LTS
+- [Yarn](https://yarnpkg.com/)@Stable
 
 ### Installation
 
