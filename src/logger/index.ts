@@ -19,18 +19,9 @@ export const logger = createLogger({
     // - Write all logs error (and below) to `error.log`.
     //
     new transports.File({ filename: "spk-error.log", level: "error" }),
-    new transports.File({ filename: "spk-combined.log" })
-  ]
-});
-
-//
-// If we're not in production then **ALSO** log to the `console`
-// with the colorized simple format.
-//
-if (process.env.NODE_ENV !== "production") {
-  logger.add(
+    new transports.File({ filename: "spk-combined.log" }),
     new transports.Console({
       format: format.combine(format.colorize(), format.simple())
     })
-  );
-}
+  ]
+});
