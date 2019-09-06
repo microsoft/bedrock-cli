@@ -32,7 +32,7 @@ yarn test-watch
 
 ### Production Builds
 
-We use 2 main tools for creating distributable production builds:
+We use two tools for creating distributable production builds:
 
 - [webpack](https://webpack.js.org/) - For compiling TypeScript code to a single
   minified JS bundle.
