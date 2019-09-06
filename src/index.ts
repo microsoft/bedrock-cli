@@ -11,6 +11,7 @@
  * - etc...
  */
 import commander from "commander";
+import { addCommand } from "./commands/add";
 import { shellCommand } from "./commands/shell";
 import { logger } from "./logger";
 
@@ -25,6 +26,7 @@ const command = new commander.Command()
 // Add decorators here
 ////////////////////////////////////////////////////////////////////////////////
 shellCommand(command);
+addCommand(command);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Catch-all for unknown commands
