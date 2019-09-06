@@ -6,7 +6,7 @@
   "contributors": [],
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
+    "build": "webpack && pkg dist/spk.js && shx mv spk-* dist",
     "test": "jest",
     "test-watch": "jest --watchAll"
   },
@@ -17,11 +17,16 @@
     "husky": ">=1",
     "jest": "^24.9.0",
     "lint-staged": ">=8",
+    "pkg": "^4.4.0",
     "prettier": "^1.18.2",
+    "shx": "^0.3.2",
     "ts-jest": "^24.0.2",
+    "ts-loader": "^6.0.4",
     "tslint": "^5.19.0",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.6.2"
+    "typescript": "^3.6.2",
+    "webpack": "^4.39.3",
+    "webpack-cli": "^3.3.8"
   },
   "prettier": {
     "proseWrap": "always"
