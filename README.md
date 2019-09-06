@@ -106,12 +106,20 @@ the the `...` (spread) operator.
 
 ### Try to be pure
 
-Write pure function whenever possible. Objects and Arrays are passed as pointers
-in JS, if a function takes in an object or an array with and wants to modify it,
-de-structure it and modify the new copy and return that copy. This will allow
-you to be more confident that async code is able to still evaluate the same data
-that you initially passed it even if the event loop caused your code to run out
-of order.
+Write pure function whenever possible. The _value_ of Objects and Arrays in JS
+are pointers, if a function takes in an object or an array, modifies it, and
+returns the the modified value, it has actually mutated the array/object that
+was passed as an argument (note this only applies to objects and arrays, all
+other types are pass-by-value). This is a style of coding you want to avoid when
+dealing with JS as multiple functions may take in the same object as an argument
+throughout your code and the ordering of the functions cannot be assured when
+dealing with async code.
+
+Instead, what we want to do is create copies of the information in your function
+and return a modified copy of the original using the `...` (spread) operator.
+This will allow you to be more confident that async code is able to still
+evaluate the same data that you initially passed it even if the event loop
+caused your code to run out of order.
 
 ```typescript
 interface IHuman {
@@ -121,7 +129,7 @@ interface IHuman {
 
 // Don't do
 // Objects and arrays are passed as pointers.
-const jack = { name: "Jack", age: "20" };
+const jack = { name: "Jack", age: 20 };
 const incrementAge = (human: IHuman): IHuman => {
   human.age = age + 1;
   return human;
@@ -131,7 +139,7 @@ const agedJack = incrementAge(jack);
 // object passed to the function
 
 // Do
-const jack = { name: "Jack", age: "20" };
+const jack = { name: "Jack", age: 20 };
 const incrementAge = (human: IHuman): IHuman => {
   // We use use the `...` (pronounced "spread") operator to make copies of all
   // the values in `human` and place them in agedHuman. We then overwrite the
