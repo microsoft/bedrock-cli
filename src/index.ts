@@ -12,28 +12,33 @@
  */
 import commander from "commander";
 import { addCommand } from "./commands/add";
+import { initCommand } from "./commands/init";
 import { shellCommand } from "./commands/shell";
-import { logger } from "./logger";
+import { enableVerboseLogging, logger } from "./logger";
 
 ////////////////////////////////////////////////////////////////////////////////
 // Instantiate core command object
 ////////////////////////////////////////////////////////////////////////////////
 const command = new commander.Command()
   .version((() => require("../package.json").version)())
-  .option("-v, --verbose", "verbose logging");
+  .option("-v, --verbose", "verbose logging")
+  .on("option:verbose", () => {
+    enableVerboseLogging();
+  });
 
 ////////////////////////////////////////////////////////////////////////////////
-// Add decorators here
+// Add commands/decorators here
 ////////////////////////////////////////////////////////////////////////////////
+initCommand(command);
 shellCommand(command);
 addCommand(command);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Catch-all for unknown commands
 ////////////////////////////////////////////////////////////////////////////////
-command.command("*").action(cmd => {
+command.on("command:*", cmd => {
   logger.error(`Unknown command "${cmd}"`);
-  cmd.outputHelp();
+  command.outputHelp();
 });
 
 ////////////////////////////////////////////////////////////////////////////////
