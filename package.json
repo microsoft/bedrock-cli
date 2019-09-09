@@ -6,14 +6,16 @@
   "contributors": [],
   "license": "MIT",
   "scripts": {
-    "build": "shx rm -rf dist && webpack && pkg dist/spk.js && shx mv spk-* dist",
+    "build": "shx rm -rf dist && webpack && pkg dist/spk.js && shx mv spk-{linux,macos,win.exe} dist",
     "test": "jest",
     "test-watch": "jest --watchAll"
   },
   "devDependencies": {
     "@types/jest": "^24.0.18",
+    "@types/js-yaml": "^3.12.1",
     "@types/node": "^12.7.4",
     "@types/shelljs": "^0.8.5",
+    "@types/uuid": "^3.4.5",
     "husky": ">=1",
     "jest": "^24.9.0",
     "lint-staged": ">=8",
@@ -44,7 +46,9 @@
   },
   "dependencies": {
     "commander": "^3.0.1",
+    "js-yaml": "^3.13.1",
     "shelljs": "^0.8.3",
+    "uuid": "^3.3.3",
     "winston": "^3.2.1"
   }
 }
