@@ -3,7 +3,7 @@ import os from "os";
 import path from "path";
 import shell from "shelljs";
 import uuid from "uuid/v4";
-import { disableVerboseLogging, enableVerboseLogging } from "../logger";
+import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { initialize } from "./init";
 
 beforeAll(() => {

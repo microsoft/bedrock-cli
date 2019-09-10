@@ -1,5 +1,5 @@
 import commander from "commander";
-import { logger } from "../logger";
+import { logger } from "../../logger";
 
 /**
  * A simple add command which will take in two numbers <a> and <b> and log the

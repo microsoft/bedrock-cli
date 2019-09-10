@@ -1,6 +1,7 @@
 # Custom
 dist
 package-lock.json
+.DS_Store
 
 # Logs
 logs

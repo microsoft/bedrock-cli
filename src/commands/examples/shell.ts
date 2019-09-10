@@ -1,7 +1,7 @@
 import commander from "commander";
 import fs from "fs";
 import shell from "shelljs";
-import { logger } from "../logger";
+import { logger } from "../../logger";
 
 /**
  * A simple Commander decorator which adds a `shell` command to run any `<cmd>`

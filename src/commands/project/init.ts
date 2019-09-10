@@ -4,15 +4,15 @@ import yaml from "js-yaml";
 import path from "path";
 import shell from "shelljs";
 import { promisify } from "util";
-import { logger } from "../logger";
-import { IBedrockFile, IMaintainersFile } from "../types";
+import { logger } from "../../logger";
+import { IBedrockFile, IMaintainersFile } from "../../types";
 
 /**
  * Adds the init command to the commander command object
  *
  * @param command Commander command object to decorate
  */
-export const initCommand = (command: commander.Command): void => {
+export const initCommandDecorator = (command: commander.Command): void => {
   command
     .command("init")
     .alias("i")
@@ -77,7 +77,9 @@ export const initialize = async (
     const packages = path.join(rootProject, packagesDir);
     const lsRet = shell.ls(packages);
     if (lsRet.code !== 0) {
-      throw new Error(`Error parsing listing files in ${packages}`);
+      throw new Error(
+        `Error listing files in ${packages}; Ensure this directory exists or specify a different one with the --packages-dir option.`
+      );
     }
 
     projectPaths = lsRet

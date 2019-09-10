@@ -8,41 +8,27 @@
  * - Number.isInteger()
  * - if (typeof var === 'boolean') {}
  * - if (typeof var === 'undefined') {}
+ * - if (typeof var === 'number') {}
  * - etc...
  */
-import commander from "commander";
-import { addCommand } from "./commands/add";
-import { initCommand } from "./commands/init";
-import { shellCommand } from "./commands/shell";
-import { enableVerboseLogging, logger } from "./logger";
+import { Command, executeCommand } from "./commands/command";
+import { projectCommand } from "./commands/project";
 
 ////////////////////////////////////////////////////////////////////////////////
 // Instantiate core command object
 ////////////////////////////////////////////////////////////////////////////////
-const command = new commander.Command()
-  .version((() => require("../package.json").version)())
-  .option("-v, --verbose", "verbose logging")
-  .on("option:verbose", () => {
-    enableVerboseLogging();
-  });
+const rootCommand = Command(
+  "spk",
+  "The missing Bedrock CLI",
+  [
+    c => {
+      c.version(require("../package.json").version);
+    }
+  ],
+  [projectCommand]
+);
 
 ////////////////////////////////////////////////////////////////////////////////
-// Add commands/decorators here
+// Main
 ////////////////////////////////////////////////////////////////////////////////
-initCommand(command);
-shellCommand(command);
-addCommand(command);
-
-////////////////////////////////////////////////////////////////////////////////
-// Catch-all for unknown commands
-////////////////////////////////////////////////////////////////////////////////
-command.on("command:*", cmd => {
-  logger.error(`Unknown command "${cmd}"`);
-  command.outputHelp();
-});
-
-////////////////////////////////////////////////////////////////////////////////
-// If no command passed (first 2 args in process.argv are the node executable
-// and the script called) output help
-////////////////////////////////////////////////////////////////////////////////
-process.argv.length <= 2 ? command.outputHelp() : command.parse(process.argv);
+executeCommand(rootCommand, [...process.argv]);
