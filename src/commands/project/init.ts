@@ -5,7 +5,11 @@ import path from "path";
 import shell from "shelljs";
 import { promisify } from "util";
 import { logger } from "../../logger";
-import { IBedrockFile, IMaintainersFile } from "../../types";
+import {
+  IAzurePipelinesYaml,
+  IBedrockFile,
+  IMaintainersFile
+} from "../../types";
 
 /**
  * Adds the init command to the commander command object
@@ -59,54 +63,75 @@ export const initCommandDecorator = (command: commander.Command): void => {
  * If opts.monoRepo == true, the root directly will be initialized as a mono-repo
  * If opts.monoRepo == true, all direct subdirectories under opts.packagesDir will be initialized as individual projects
  *
- * @param rootProject Project root directory which will get initialized
+ * @param rootProjectPath Project root directory which will get initialized
  * @param opts Extra options to pass to initialize
  */
 export const initialize = async (
-  rootProject: string,
+  rootProjectPath: string,
   opts?: { monoRepo: boolean; packagesDir?: string }
 ) => {
   const { monoRepo = false, packagesDir = "packages" } = opts || {};
+  const absProjectRoot = path.resolve(rootProjectPath);
   logger.info(
-    `Initializing project ${rootProject}${monoRepo ? " as a mono-repo" : ""}`
+    `Initializing project ${absProjectRoot} as a ${
+      monoRepo ? "mono-repository" : "standard service repository"
+    }`
   );
 
   // Get a list of the target paths to initialize
-  let projectPaths = [path.resolve(rootProject)];
+  let absPackagePaths = [absProjectRoot];
   if (monoRepo) {
-    const packages = path.join(rootProject, packagesDir);
-    const lsRet = shell.ls(packages);
-    if (lsRet.code !== 0) {
-      throw new Error(
-        `Error listing files in ${packages}; Ensure this directory exists or specify a different one with the --packages-dir option.`
-      );
-    }
-
-    projectPaths = lsRet
-      .map(p => path.join(rootProject, packagesDir, p))
-      .filter(out => typeof out === "string" && fs.statSync(out).isDirectory());
+    const absPackagesDir = path.join(absProjectRoot, packagesDir);
+    const filesAndFolders = await ls(absPackagesDir);
+    absPackagePaths = filesAndFolders
+      .map(fileOrFolder =>
+        path.resolve(path.join(absPackagesDir, fileOrFolder))
+      )
+      .filter(f => fs.statSync(f).isDirectory());
   }
 
   // Initialize all paths
-  for (const projectPath of projectPaths) {
-    await Promise.all([
-      generateBedrockFile(projectPath),
-      generateMaintainersFile(projectPath),
-      generateAzurePipelinesYaml(projectPath)
-    ]);
+  await generateBedrockFile(absProjectRoot, absPackagePaths);
+  await generateMaintainersFile(absProjectRoot, absPackagePaths);
+  for (const absPackagePath of absPackagePaths) {
+    await generateAzurePipelinesYaml(absProjectRoot, absPackagePath);
   }
 
   logger.info(`Project initialization complete!`);
 };
 
 /**
+ * Helper function for listing files/dirs in a path
+ *
+ * @param dir path-like string; what you would pass to ls in bash
+ */
+const ls = async (dir: string): Promise<string[]> => {
+  const lsRet = shell.ls(dir);
+  if (lsRet.code !== 0) {
+    logger.error(lsRet.stderr);
+    throw new Error(
+      `Error listing files in ${dir}; Ensure this directory exists or specify a different one with the --packages-dir option.`
+    );
+  }
+
+  // Returned object includes piping functions as well; strings represent the actual output of the function
+  const filesAndDirectories = lsRet.filter(out => typeof out === "string");
+
+  return filesAndDirectories;
+};
+
+/**
  * Writes out a default maintainers.yaml file
  *
- * @param targetPath Path to generate the maintainers.yaml file
+ * @param projectPath Path to generate the maintainers.yaml file
  */
-const generateMaintainersFile = async (targetPath: string = "") => {
-  const absPath = path.resolve(targetPath);
-  logger.info(`Generating maintainers.yaml file in ${absPath}`);
+const generateMaintainersFile = async (
+  projectPath: string,
+  packagePaths: string[]
+) => {
+  const absProjectPath = path.resolve(projectPath);
+  const absPackagePaths = packagePaths.map(p => path.resolve(p));
+  logger.info(`Generating maintainers.yaml file in ${absProjectPath}`);
 
   // Get default name/email from git host
   const [gitName, gitEmail] = await Promise.all(
@@ -130,17 +155,40 @@ const generateMaintainersFile = async (targetPath: string = "") => {
   );
 
   // Populate maintainers file
-  const maintainersFile: IMaintainersFile = {
-    maintainers: [
-      {
-        email: gitEmail,
-        name: gitName
+  const maintainersFile: IMaintainersFile = absPackagePaths.reduce<
+    IMaintainersFile
+  >(
+    (file, absPackagePath) => {
+      const relPathToPackageFromRoot = path.relative(
+        absProjectPath,
+        absPackagePath
+      );
+      // Root should use the value from reduce init
+      if (relPathToPackageFromRoot !== "") {
+        file.services["./" + relPathToPackageFromRoot] = {
+          maintainers: [{ email: "", name: "" }]
+        };
       }
-    ]
-  };
+
+      return file;
+    },
+    {
+      services: {
+        // initialize with the root containing the credentials of the caller
+        "./": {
+          maintainers: [
+            {
+              email: gitEmail,
+              name: gitName
+            }
+          ]
+        }
+      }
+    }
+  );
 
   // Check if a maintainer.yaml already exists; skip write if present
-  const maintainersFilePath = path.join(absPath, "maintainers.yaml");
+  const maintainersFilePath = path.join(absProjectPath, "maintainers.yaml");
   logger.debug(`Writing maintainers.yaml file to ${maintainersFilePath}`);
   if (fs.existsSync(maintainersFilePath)) {
     logger.warn(
@@ -161,17 +209,31 @@ const generateMaintainersFile = async (targetPath: string = "") => {
  *
  * @param targetPath Path to generate the the bedrock.yaml file in
  */
-const generateBedrockFile = async (targetPath: string = "") => {
-  const absPath = path.resolve(targetPath);
-  logger.info(`Generating bedrock.yaml file in ${absPath}`);
+const generateBedrockFile = async (
+  projectPath: string,
+  packagePaths: string[]
+) => {
+  const absProjectPath = path.resolve(projectPath);
+  const absPackagePaths = packagePaths.map(p => path.resolve(p));
+  logger.info(`Generating bedrock.yaml file in ${absProjectPath}`);
 
   // Populate bedrock file
-  const bedrockFile: IBedrockFile = {
-    helm: { chart: { git: "", branch: "", path: "" } }
-  };
+  const bedrockFile: IBedrockFile = absPackagePaths.reduce<IBedrockFile>(
+    (file, absPackagePath) => {
+      const relPathToPackageFromRoot = path.relative(
+        absProjectPath,
+        absPackagePath
+      );
+      file.services["./" + relPathToPackageFromRoot] = {
+        helm: { chart: { git: "", branch: "", path: "" } }
+      };
+      return file;
+    },
+    { services: {} }
+  );
 
   // Check if a bedrock.yaml already exists; skip write if present
-  const bedrockFilePath = path.join(absPath, "bedrock.yaml");
+  const bedrockFilePath = path.join(absProjectPath, "bedrock.yaml");
   logger.debug(`Writing bedrock.yaml file to ${bedrockFilePath}`);
   if (fs.existsSync(bedrockFilePath)) {
     logger.warn(
@@ -192,13 +254,18 @@ const generateBedrockFile = async (targetPath: string = "") => {
  *
  * @param targetPath Path to write the azure-pipelines.yaml file to
  */
-const generateAzurePipelinesYaml = async (targetPath: string = "") => {
-  const absTargetPath = path.resolve(targetPath);
-  logger.info(`Generating starter azure-pipelines.yaml in ${absTargetPath}`);
+const generateAzurePipelinesYaml = async (
+  projectRoot: string,
+  packagePath: string
+) => {
+  const absProjectRoot = path.resolve(projectRoot);
+  const absPackagePath = path.resolve(packagePath);
+
+  logger.info(`Generating starter azure-pipelines.yaml in ${absPackagePath}`);
 
   // Check if azure-pipelines.yaml already exists; if it does, skip generation
   const azurePipelinesYamlPath = path.join(
-    absTargetPath,
+    absPackagePath,
     "azure-pipelines.yaml"
   );
   logger.debug(
@@ -210,7 +277,7 @@ const generateAzurePipelinesYaml = async (targetPath: string = "") => {
     );
   } else {
     const starterYaml = await starterAzurePipelines({
-      relProjectPaths: [path.relative(process.cwd(), absTargetPath)]
+      relProjectPaths: [path.relative(absProjectRoot, absPackagePath)]
     });
     // Write
     await promisify(fs.writeFile)(azurePipelinesYamlPath, starterYaml, "utf8");
@@ -240,10 +307,12 @@ const starterAzurePipelines = async (opts: {
   const generateYamlScript = (lines: string[]): string => lines.join("\n");
 
   // Ensure any blank paths are turned into "./"
-  const cleanedPaths = relProjectPaths.map(p => (p === "" ? "./" : p));
+  const cleanedPaths = relProjectPaths
+    .map(p => (p === "" ? "./" : p))
+    .map(p => (p.startsWith("./") === false ? "./" + p : p));
 
   // based on https://github.com/andrebriggs/monorepo-example/blob/master/service-A/azure-pipelines.yml
-  const starter = {
+  const starter: IAzurePipelinesYaml = {
     trigger: {
       branches: { include: branches },
       paths: { include: cleanedPaths }
@@ -275,7 +344,7 @@ const starterAzurePipelines = async (opts: {
         return {
           displayName: "ACR Build and Publish",
           script: generateYamlScript([
-            `cd ${projectPath} #Hardcoded path. Need to make sure Build.DefinitionName matches directory. It's case sensitive`,
+            `cd ${projectPath} # Need to make sure Build.DefinitionName matches directory. It's case sensitive`,
             `echo "az acr build -r $(ACR_NAME) --image $(Build.DefinitionName):$(build.SourceBranchName)-$(build.BuildId) ."`,
             `az acr build -r $(ACR_NAME) --image $(Build.DefinitionName):$(build.SourceBranchName)-$(build.BuildId) .`
           ])
