@@ -45,9 +45,15 @@
     ]
   },
   "dependencies": {
+    "@types/cli-table": "^0.3.0",
+    "cli-table": "^0.3.1",
     "commander": "^3.0.1",
+    "fs": "0.0.1-security",
     "js-yaml": "^3.13.1",
+    "open": "^6.4.0",
+    "os": "^0.1.1",
     "shelljs": "^0.8.3",
+    "spektate": "^0.1.2",
     "uuid": "^3.3.3",
     "winston": "^3.2.1"
   }
