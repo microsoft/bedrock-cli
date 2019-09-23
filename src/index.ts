@@ -12,6 +12,7 @@
  * - etc...
  */
 import { Command, executeCommand } from "./commands/command";
+import { deploymentCommand } from "./commands/deployment";
 import { projectCommand } from "./commands/project";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -25,7 +26,7 @@ const rootCommand = Command(
       c.version(require("../package.json").version);
     }
   ],
-  [projectCommand]
+  [projectCommand, deploymentCommand]
 );
 
 ////////////////////////////////////////////////////////////////////////////////
