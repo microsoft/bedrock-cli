@@ -2,6 +2,10 @@ import commander from "commander";
 import { logger } from "../../logger";
 import { config, Helper } from "./helper";
 
+/**
+ * Adds the init command to the commander command object
+ * @param command Commander command object to decorate
+ */
 export const initCommandDecorator = (command: commander.Command): void => {
   command
     .command("init")

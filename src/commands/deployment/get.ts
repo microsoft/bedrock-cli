@@ -2,6 +2,10 @@ import commander from "commander";
 import { logger } from "../../logger";
 import { Helper, OUTPUT_FORMAT } from "./helper";
 
+/**
+ * Adds the get command to the commander command object
+ * @param command Commander command object to decorate
+ */
 export const getCommandDecorator = (command: commander.Command): void => {
   command
     .command("get")
@@ -52,6 +56,10 @@ export const getCommandDecorator = (command: commander.Command): void => {
     });
 };
 
+/**
+ * Processes the output format based on defaults
+ * @param outputFormat Output format specified by the user
+ */
 function processOutputFormat(outputFormat: string): OUTPUT_FORMAT {
   if (outputFormat && outputFormat.toLowerCase() === "wide") {
     return OUTPUT_FORMAT.WIDE;

@@ -11,13 +11,34 @@ let clusterPipeline: IPipeline;
 let srcPipeline: IPipeline;
 const fileLocation = os.homedir() + "/.Spektate";
 export let config: { [id: string]: string } = {};
+
+/**
+ * Output formats to display service details
+ */
 export enum OUTPUT_FORMAT {
+  /**
+   * Normal format
+   */
   NORMAL = 0,
+
+  /**
+   * Wide table format
+   */
   WIDE = 1,
+
+  /**
+   * JSON format
+   */
   JSON = 2
 }
 
+/**
+ * Helper functions for `deployment` commands
+ */
 export class Helper {
+  /**
+   * Initializes the pipelines assuming that the configuration has been loaded
+   */
   public static initializePipelines() {
     srcPipeline = new AzureDevOpsPipeline(
       config.AZURE_ORG,
@@ -39,6 +60,9 @@ export class Helper {
     );
   }
 
+  /**
+   * Performs verification of config values to make sure subsequent commands can be run
+   */
   public static verifyAppConfiguration = (callback?: () => void) => {
     if (
       config.STORAGE_TABLE_NAME === "" ||
@@ -67,12 +91,16 @@ export class Helper {
     }
   };
 
+  /**
+   * Loads configuration from a file
+   */
   public static configureAppFromFile = (callback?: () => void) => {
-    fs.readFile(fileLocation, (error, data) => {
+    fs.readFile(fileLocation, "utf8", (error, data) => {
       if (error) {
         logger.error(error);
+        throw error;
       }
-      const array = data.toString().split("\n");
+      const array = data.split(/\r?\n/);
       array.forEach((row: string) => {
         const key = row.split(/=(.+)/)[0];
         const value = row.split(/=(.+)/)[1];
@@ -85,6 +113,9 @@ export class Helper {
     });
   };
 
+  /**
+   * Writes configuration to a file
+   */
   public static writeConfigToFile = (configMap: any) => {
     let data = "";
     Object.keys(configMap).forEach(key => {
@@ -97,6 +128,9 @@ export class Helper {
     });
   };
 
+  /**
+   * Gets a list of deployments for the specified filters
+   */
   public static getDeployments = (
     outputFormat: OUTPUT_FORMAT,
     environment?: string,
@@ -128,6 +162,9 @@ export class Helper {
     );
   };
 
+  /**
+   * Prints deployments in a terminal table
+   */
   public static printDeployments = (
     deployments: Deployment[],
     outputFormat: OUTPUT_FORMAT
@@ -210,6 +247,9 @@ export class Helper {
     }
   };
 
+  /**
+   * Gets a status indicator icon
+   */
   public static getStatus = (status: string) => {
     if (status === "succeeded") {
       return "\u2713";
