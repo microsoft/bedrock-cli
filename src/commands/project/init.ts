@@ -2,8 +2,9 @@ import commander from "commander";
 import fs from "fs";
 import yaml from "js-yaml";
 import path from "path";
-import shell from "shelljs";
+import shelljs from "shelljs";
 import { promisify } from "util";
+import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
 import {
   IAzurePipelinesYaml,
@@ -106,7 +107,7 @@ export const initialize = async (
  * @param dir path-like string; what you would pass to ls in bash
  */
 const ls = async (dir: string): Promise<string[]> => {
-  const lsRet = shell.ls(dir);
+  const lsRet = shelljs.ls(dir);
   if (lsRet.code !== 0) {
     logger.error(lsRet.stderr);
     throw new Error(
@@ -135,22 +136,16 @@ const generateMaintainersFile = async (
 
   // Get default name/email from git host
   const [gitName, gitEmail] = await Promise.all(
-    ["name", "email"].map(field => {
-      return new Promise<string>(resolve => {
-        shell.exec(
-          `git config user.${field}`,
-          { silent: true },
-          (code, stdout) => {
-            if (code === 0) {
-              return resolve(stdout.trim());
-            }
-            logger.warn(
-              `Unable to parse git.${field} from host. Leaving blank value in maintainers.yaml file`
-            );
-            return resolve("");
-          }
+    ["name", "email"].map(async field => {
+      try {
+        const gitField = await exec("git", ["config", `user.${field}`]);
+        return gitField;
+      } catch (_) {
+        logger.warn(
+          `Unable to parse git.${field} from host. Leaving blank value in maintainers.yaml file`
         );
-      });
+        return "";
+      }
     })
   );
 
