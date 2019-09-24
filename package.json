@@ -47,7 +47,6 @@
   },
   "dependencies": {
     "cli-table": "^0.3.1",
-    "@types/mkdirp": "^0.5.2",
     "commander": "^3.0.1",
     "js-yaml": "^3.13.1",
     "shelljs": "^0.8.3",

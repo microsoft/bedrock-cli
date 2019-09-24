@@ -2,14 +2,11 @@ import commander from "commander";
 import fs from "fs";
 import yaml from "js-yaml";
 import path from "path";
-import shell from "shelljs";
-import mkdirp from "mkdirp";
+import shelljs from "shelljs";
 import { promisify } from "util";
 import { logger } from "../../logger";
 import { generateAzurePipelinesYaml } from "../../lib/fileutils";
 import { IBedrockFile, IMaintainersFile } from "../../types";
-
-// npm install @types/mkdirp
 
 /**
  * Adds the init command to the commander command object
@@ -85,14 +82,7 @@ export const addService = async (
 
   // Mkdir
   const newServiceDir = path.join(rootProjectPath, serviceName);
-
-  mkdirp(`${newServiceDir}`, function(err) {
-    if (err)
-      logger.error(
-        `Failed to verify or create new directory ${serviceName} err: ${err}`
-      );
-    else logger.info(`Directory ${serviceName} successfully created.`);
-  });
+  shelljs.mkdir("-p", newServiceDir);
 
   // Create azure pipelines yaml in directory
   await generateAzurePipelinesYaml(rootProjectPath, newServiceDir);
