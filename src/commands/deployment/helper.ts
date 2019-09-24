@@ -154,7 +154,7 @@ export class Helper {
       service,
       (deployments: Deployment[]) => {
         if (outputFormat === OUTPUT_FORMAT.JSON) {
-          logger.info(JSON.stringify(deployments));
+          logger.info(JSON.stringify(deployments, null, 2));
         } else {
           Helper.printDeployments(deployments, outputFormat);
         }
