@@ -11,8 +11,22 @@
 
 ### Installation
 
+Install the project dependencies with Yarn:
+
 ```sh
 yarn install
+```
+
+### Running The Code
+
+Install `ts-node` to make your development cycle easier:
+
+```sh
+yarn global add ts-node
+ts-node src/index.ts # this is the same as running `./spk` or 'node spk.js'
+
+# You can now do things like
+ts-node src/index.ts project init # same as running `./spk project init`
 ```
 
 ### Running Tests
@@ -59,6 +73,28 @@ the tests contained in them.
 By convention, we will store the test file in the same directory as the file its
 testing. When/if this becomes too burdensome, we can move them to a tests
 directory.
+
+## Adding/Removing/Modifying Project Dependencies
+
+> NEVER modify `dependencies` or `devDependencies` manually in package.json!
+
+### Adding a dependency
+
+```sh
+yarn add react # This will add react to both package.json and the yarn.lock lockfile
+```
+
+or
+
+```sh
+yarn add react@^16.9.0 # you can specify target semver's as well
+```
+
+### Removing a dependency
+
+```sh
+yarn remove react # Will remove react from both package.json and yarn.lock
+```
 
 ## Code Style Guide
 

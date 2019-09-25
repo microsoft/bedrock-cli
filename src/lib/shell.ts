@@ -13,7 +13,7 @@ import { logger } from "../logger";
  *    .catch(stderr => console.error(stderr))
  *
  * @param cmd Command to run on host
- * @param Arguments to pass to the command
+ * @param args Arguments to pass to the command
  * @param opts Options to pass to child_process.spawn()
  */
 export const exec = async (
