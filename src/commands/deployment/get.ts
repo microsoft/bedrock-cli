@@ -22,6 +22,10 @@ export const getCommandDecorator = (command: commander.Command): void => {
       "Get deployments for a particular commit Id from source repository"
     )
     .option(
+      "-d, --deployment-id <deployment-id>",
+      "Get deployments for a particular deployment Id from source repository"
+    )
+    .option(
       "-i, --image-tag <image-tag>",
       "Get deployments for a particular image tag"
     )
@@ -46,7 +50,8 @@ export const getCommandDecorator = (command: commander.Command): void => {
             opts.imageTag,
             opts.buildId,
             opts.commitId,
-            opts.service
+            opts.service,
+            opts.deploymentId
           );
         });
       } catch (err) {
