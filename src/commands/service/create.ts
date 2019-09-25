@@ -1,24 +1,18 @@
 import commander from "commander";
-import fs from "fs";
-import yaml from "js-yaml";
 import path from "path";
 import shelljs from "shelljs";
-import { promisify } from "util";
 import { logger } from "../../logger";
 import { generateAzurePipelinesYaml } from "../../lib/fileutils";
-import { IBedrockFile, IMaintainersFile } from "../../types";
 
 /**
  * Adds the init command to the commander command object
  *
  * @param command Commander command object to decorate
  */
-export const addServiceCommandDecorator = (
-  command: commander.Command
-): void => {
+export const createCommandDecorator = (command: commander.Command): void => {
   command
-    .command("add-service <service-name>")
-    // .alias("as")
+    .command("create <service-name>")
+    .alias("c")
     .description(
       "Add a new service into this initialized spk project repository"
     )
@@ -55,7 +49,7 @@ export const addServiceCommandDecorator = (
             `maintainerEmail must be of type 'string', ${typeof maintainerEmail} given.`
           );
         }
-        await addService(projectPath, serviceName, {
+        await createService(projectPath, serviceName, {
           maintainerName,
           maintainerEmail
         });
@@ -68,7 +62,14 @@ export const addServiceCommandDecorator = (
     });
 };
 
-export const addService = async (
+/**
+ * Create a service in a bedrock project directory.
+ *
+ * @param rootProjectPath
+ * @param serviceName
+ * @param opts
+ */
+export const createService = async (
   rootProjectPath: string,
   serviceName: string,
   opts?: { maintainerName: string; maintainerEmail: string }

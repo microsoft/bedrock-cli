@@ -1,14 +1,13 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import shell from "shelljs";
 import uuid from "uuid/v4";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
   logger
 } from "../../logger";
-import { addService } from "./add-service";
+import { createService } from "./create";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -30,7 +29,7 @@ describe("Adding a service to a repo directory", () => {
     );
 
     // addService call
-    await addService(randomTmpDir, serviceName);
+    await createService(randomTmpDir, serviceName);
 
     // Check temp test directory exists
     expect(fs.existsSync(randomTmpDir)).toBe(true);

@@ -14,6 +14,7 @@
 import { Command, executeCommand } from "./commands/command";
 import { deploymentCommand } from "./commands/deployment";
 import { projectCommand } from "./commands/project";
+import { serviceCommand } from "./commands/service";
 
 ////////////////////////////////////////////////////////////////////////////////
 // Instantiate core command object
@@ -26,7 +27,7 @@ const rootCommand = Command(
       c.version(require("../package.json").version);
     }
   ],
-  [projectCommand, deploymentCommand]
+  [deploymentCommand, projectCommand, serviceCommand]
 );
 
 ////////////////////////////////////////////////////////////////////////////////
