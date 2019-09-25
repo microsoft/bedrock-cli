@@ -15,20 +15,29 @@ import {
 const hostedUbuntuPool = "Hosted Ubuntu 1604";
 const hostedUbuntuPoolId = 224;
 
+/**
+ * Enum of Repository Provider types.
+ */
 export enum RepositoryTypes {
   Github = "github",
   Azure = "tfsgit"
 }
 
+/**
+ * Get an Azure DevOps Build API Client
+ * @param orgUrl An Azure DevOps Organization URL
+ * @param token A Personal Access Token (PAT) used to authenticate against DevOps.
+ * @returns BuildApi Client for Azure Devops
+ */
 export const getBuildApiClient = async (
   orgUrl: string,
-  token: string
+  personalAccessToken: string
 ): Promise<IBuildApi> => {
   return initBuildApiClient(
     getPersonalAccessTokenHandler,
     WebApi,
     orgUrl,
-    token
+    personalAccessToken
   );
 };
 
@@ -54,16 +63,29 @@ interface IPipeline {
   maximumConcurrentBuilds: number;
 }
 
+/**
+ * Interface that describes a Pipeline Configuration for an Azure DevOps
+ * backed git repository.
+ */
 export interface IAzureRepoPipelineConfig extends IPipeline {}
 
+/**
+ * Interface that describes a Pipeline Configuration for a GitHub backed
+ * git repository.
+ */
 export interface IGithubRepoPipelineConfig extends IPipeline {
   serviceConnectionId: string;
 }
 
+/**
+ * Generate a Build Definition given an Azure Repo Pipeline Configuration
+ * @param pipelineConfig Object conforming to IAzureRepoPipelineConfig that describes a high level pipeline configuration for repositories backed on Azure Repos
+ * @returns A BuildDefinition that can be consumed by a Build API Client
+ */
 export const definitionForAzureRepoPipeline = (
   pipelineConfig: IAzureRepoPipelineConfig
 ): BuildDefinition => {
-  const pipelineDefinition: BuildDefinition = {} as BuildDefinition;
+  const pipelineDefinition: BuildDefinition = {};
 
   pipelineDefinition.badgeEnabled = true;
   pipelineDefinition.triggers = [
@@ -104,6 +126,11 @@ export const definitionForAzureRepoPipeline = (
   return pipelineDefinition;
 };
 
+/**
+ * Generate a Build Definition given a GitHub Repo Pipeline Configuration
+ * @param pipelineConfig Object conforming to IGithubRepoPipelineConfig that describes a high level pipeline configuration for repositories backed on Github
+ * @returns A BuildDefinition that can be consumed by a Build API Client
+ */
 export const definitionForGithubRepoPipeline = (
   pipelineConfig: IGithubRepoPipelineConfig
 ): BuildDefinition => {
@@ -151,6 +178,13 @@ export const definitionForGithubRepoPipeline = (
   return pipelineDefinition;
 };
 
+/**
+ * Create a Pipeline with on Azure Devops.
+ * @param buildApi BuildApi Client for Azure Devops.
+ * @param azdoProject Azure DevOps Project within the authenticated Organization.
+ * @param definition A BuildDefinition that can be consumed by a Build API Client
+ * @returns The BuildDefinition that was created by the Build API Client
+ */
 export const createPipelineForDefinition = async (
   buildApi: IBuildApi,
   azdoProject: string,
