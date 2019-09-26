@@ -53,8 +53,6 @@ export const initCommandDecorator = (command: commander.Command): void => {
         if (
           opts.azureOrg &&
           opts.azureProject &&
-          opts.manifest &&
-          opts.githubManifestUsername &&
           opts.storageAccountKey &&
           opts.storageAccountName &&
           opts.storagePartitionKey &&

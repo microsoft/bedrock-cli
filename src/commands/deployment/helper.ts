@@ -73,10 +73,6 @@ export class Helper {
       config.STORAGE_ACCOUNT_NAME === undefined ||
       config.STORAGE_ACCOUNT_KEY === "" ||
       config.STORAGE_ACCOUNT_KEY === undefined ||
-      config.GITHUB_MANIFEST_USERNAME === "" ||
-      config.GITHUB_MANIFEST_USERNAME === undefined ||
-      config.MANIFEST === "" ||
-      config.MANIFEST === undefined ||
       config.AZURE_PROJECT === "" ||
       config.AZURE_PROJECT === undefined ||
       config.AZURE_ORG === "" ||
@@ -139,8 +135,8 @@ export class Helper {
     commitId?: string,
     service?: string,
     deploymentId?: string
-  ) => {
-    Deployment.getDeploymentsBasedOnFilters(
+  ): Promise<Deployment[]> => {
+    return Deployment.getDeploymentsBasedOnFilters(
       config.STORAGE_ACCOUNT_NAME,
       config.STORAGE_ACCOUNT_KEY,
       config.STORAGE_TABLE_NAME,
@@ -153,15 +149,15 @@ export class Helper {
       p1Id,
       commitId,
       service,
-      deploymentId,
-      (deployments: Deployment[]) => {
-        if (outputFormat === OUTPUT_FORMAT.JSON) {
-          logger.info(JSON.stringify(deployments, null, 2));
-        } else {
-          Helper.printDeployments(deployments, outputFormat);
-        }
+      deploymentId
+    ).then((deployments: Deployment[]) => {
+      if (outputFormat === OUTPUT_FORMAT.JSON) {
+        logger.info(JSON.stringify(deployments, null, 2));
+      } else {
+        Helper.printDeployments(deployments, outputFormat);
       }
-    );
+      return deployments;
+    });
   };
 
   /**
