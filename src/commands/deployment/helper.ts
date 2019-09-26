@@ -63,7 +63,7 @@ export class Helper {
   /**
    * Performs verification of config values to make sure subsequent commands can be run
    */
-  public static verifyAppConfiguration = (callback?: () => void) => {
+  public static verifyAppConfiguration = async (callback?: () => void) => {
     if (
       config.STORAGE_TABLE_NAME === "" ||
       config.STORAGE_TABLE_NAME === undefined ||
@@ -78,7 +78,7 @@ export class Helper {
       config.AZURE_ORG === "" ||
       config.AZURE_ORG === undefined
     ) {
-      Helper.configureAppFromFile(callback);
+      await Helper.configureAppFromFile(callback);
     } else {
       Helper.initializePipelines();
       if (callback) {
@@ -90,8 +90,8 @@ export class Helper {
   /**
    * Loads configuration from a file
    */
-  public static configureAppFromFile = (callback?: () => void) => {
-    fs.readFile(fileLocation, "utf8", (error, data) => {
+  public static configureAppFromFile = async (callback?: () => void) => {
+    await fs.readFile(fileLocation, "utf8", (error, data) => {
       if (error) {
         logger.error(error);
         throw error;
@@ -112,12 +112,12 @@ export class Helper {
   /**
    * Writes configuration to a file
    */
-  public static writeConfigToFile = (configMap: any) => {
+  public static writeConfigToFile = async (configMap: any) => {
     let data = "";
     Object.keys(configMap).forEach(key => {
       data += "\n" + key + "=" + configMap[key];
     });
-    fs.writeFile(fileLocation, data, (error: any) => {
+    await fs.writeFile(fileLocation, data, (error: any) => {
       if (error) {
         logger.error(error);
       }
@@ -258,4 +258,6 @@ export class Helper {
     }
     return "\u0445";
   };
+
+  public getModuleName = (): string => "Helper";
 }

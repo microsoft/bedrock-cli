@@ -1,0 +1,686 @@
+{
+  "data": [
+    {
+      "srcToDockerBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6053",
+        "author": "Samiya Akhtar",
+        "buildNumber": "20190830.3",
+        "finishTime": "2019-08-30T21:49:08.219Z",
+        "id": 6053,
+        "queueTime": "2019-08-30T21:47:28.556Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "c6263942a6b760bcd1e6984108f95ebac78d5dc2",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6053/sources",
+        "startTime": "2019-08-30T21:47:37.500Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-bedrock",
+          "username": "samiyaakhtar"
+        }
+      },
+      "hldToManifestBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6054",
+        "author": "GitHub",
+        "buildNumber": "20190830.3",
+        "finishTime": "2019-08-30T21:50:19.833Z",
+        "id": 6054,
+        "queueTime": "2019-08-30T21:49:08.048Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "a3dc9a7d47aca5135ca403fc3d8f5812c92d94de",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6054/sources",
+        "startTime": "2019-08-30T21:49:26.207Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-bedrock-hld",
+          "username": "samiyaakhtar"
+        }
+      },
+      "deploymentId": "12054c192b5d",
+      "dockerToHldRelease": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=182&_a=release-summary",
+        "finishTime": "2019-08-30T21:49:09.223Z",
+        "id": 182,
+        "queueTime": "2019-08-30T21:48:42.183Z",
+        "releaseName": "Release-174",
+        "startTime": "2019-08-30T21:48:49.583Z",
+        "status": "succeeded",
+        "imageVersion": "hello-bedrock-master-6053",
+        "registryURL": "hellorings.azurecr.io",
+        "registryResourceGroup": "bedrock-rings"
+      },
+      "commitId": "c626394",
+      "hldCommitId": "a3dc9a7",
+      "imageTag": "hello-bedrock-master-6053",
+      "timeStamp": "2019-09-10T20:22:14.432Z",
+      "manifestCommitId": "db26e17",
+      "environment": "dev",
+      "service": "hello-bedrock"
+    },
+    {
+      "srcToDockerBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6042",
+        "author": "GitHub",
+        "buildNumber": "20190830.2",
+        "finishTime": "2019-08-30T20:35:37.060Z",
+        "id": 6042,
+        "queueTime": "2019-08-30T20:33:51.676Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "a0bca78b1abb64611dcebebd2446c6a716232269",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6042/sources",
+        "startTime": "2019-08-30T20:34:01.178Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-spektate",
+          "username": "samiyaakhtar"
+        }
+      },
+      "hldToManifestBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6043",
+        "author": "GitHub",
+        "buildNumber": "20190830.1",
+        "finishTime": "2019-08-30T20:37:04.972Z",
+        "id": 6043,
+        "queueTime": "2019-08-30T20:35:44.032Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "316abbc3ee0cc5c3284cc93a95fca6ce2514fe4e",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6043/sources",
+        "startTime": "2019-08-30T20:35:53.160Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-spektate-hld",
+          "username": "samiyaakhtar"
+        }
+      },
+      "deploymentId": "16c50be1b221",
+      "dockerToHldRelease": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=178&_a=release-summary",
+        "finishTime": "2019-08-30T20:36:57.587Z",
+        "id": 178,
+        "queueTime": "2019-08-30T20:36:29.453Z",
+        "releaseName": "Release-5",
+        "startTime": "2019-08-30T20:36:40.570Z",
+        "status": "succeeded",
+        "imageVersion": "hello-spektate-master-6042",
+        "registryURL": "hellorings.azurecr.io",
+        "registryResourceGroup": "bedrock-rings"
+      },
+      "commitId": "a0bca78",
+      "hldCommitId": "316abbc",
+      "imageTag": "hello-spektate-master-6042",
+      "timeStamp": "2019-09-10T20:24:52.094Z",
+      "manifestCommitId": "0ede612",
+      "environment": "dev",
+      "service": "hello-spektate"
+    },
+    {
+      "srcToDockerBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=5977",
+        "author": "GitHub",
+        "buildNumber": "20190828.2",
+        "finishTime": "2019-08-28T20:24:47.845Z",
+        "id": 5977,
+        "queueTime": "2019-08-28T20:22:42.131Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "c6263942a6b760bcd1e6984108f95ebac78d5dc2",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/5977/sources",
+        "startTime": "2019-08-28T20:23:01.802Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-bedrock",
+          "username": "samiyaakhtar"
+        }
+      },
+      "hldToManifestBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=5978",
+        "author": "GitHub",
+        "buildNumber": "20190828.2",
+        "finishTime": "2019-08-28T20:25:50.860Z",
+        "id": 5978,
+        "queueTime": "2019-08-28T20:24:48.205Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "e4a27307fcb3c9738d515cccb99bb9af31ea258f",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/5978/sources",
+        "startTime": "2019-08-28T20:24:57.261Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-bedrock-hld",
+          "username": "samiyaakhtar"
+        }
+      },
+      "deploymentId": "1c22f054de4e",
+      "dockerToHldRelease": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=174&_a=release-summary",
+        "finishTime": "2019-08-28T20:24:49.510Z",
+        "id": 174,
+        "queueTime": "2019-08-28T20:24:20.787Z",
+        "releaseName": "Release-171",
+        "startTime": "2019-08-28T20:24:29.377Z",
+        "status": "succeeded",
+        "imageVersion": "hello-bedrock-master-5977",
+        "registryURL": "hellorings.azurecr.io",
+        "registryResourceGroup": "bedrock-rings"
+      },
+      "commitId": "c626394",
+      "hldCommitId": "e4a2730",
+      "imageTag": "hello-bedrock-master-5977",
+      "timeStamp": "2019-09-10T20:22:21.154Z",
+      "manifestCommitId": "2c21731",
+      "environment": "dev",
+      "service": "hello-bedrock"
+    },
+    {
+      "srcToDockerBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6074",
+        "author": "GitHub",
+        "buildNumber": "20190910.2",
+        "finishTime": "2019-09-10T20:23:39.097Z",
+        "id": 6074,
+        "queueTime": "2019-09-10T20:21:49.161Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "5b54eb4350cdeed191ef04770b291d616e28aea4",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6074/sources",
+        "startTime": "2019-09-10T20:22:08.245Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-bedrock",
+          "username": "samiyaakhtar"
+        }
+      },
+      "hldToManifestBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6076",
+        "author": "GitHub",
+        "buildNumber": "20190910.2",
+        "finishTime": "2019-09-10T20:25:46.839Z",
+        "id": 6076,
+        "queueTime": "2019-09-10T20:23:39.561Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "18abc7a9f622d6e81c881834e190d5f73242e1e8",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6076/sources",
+        "startTime": "2019-09-10T20:23:54.011Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-bedrock-hld",
+          "username": "samiyaakhtar"
+        }
+      },
+      "deploymentId": "25292b809224",
+      "dockerToHldRelease": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=184&_a=release-summary",
+        "finishTime": "2019-09-10T20:23:40.850Z",
+        "id": 184,
+        "queueTime": "2019-09-10T20:23:09.050Z",
+        "releaseName": "Release-176",
+        "startTime": "2019-09-10T20:23:20.057Z",
+        "status": "succeeded",
+        "imageVersion": "hello-bedrock-master-6074",
+        "registryURL": "hellorings.azurecr.io",
+        "registryResourceGroup": "bedrock-rings"
+      },
+      "commitId": "5b54eb4",
+      "hldCommitId": "18abc7a",
+      "imageTag": "hello-bedrock-master-6074",
+      "timeStamp": "2019-09-10T20:24:44.047Z",
+      "manifestCommitId": "e9bca18",
+      "environment": "dev",
+      "service": "hello-bedrock"
+    },
+    {
+      "srcToDockerBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6049",
+        "author": "Samiya Akhtar",
+        "buildNumber": "20190830.3",
+        "finishTime": "2019-08-30T21:44:34.659Z",
+        "id": 6049,
+        "queueTime": "2019-08-30T21:42:14.372Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "a0bca78b1abb64611dcebebd2446c6a716232269",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6049/sources",
+        "startTime": "2019-08-30T21:42:52.633Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-spektate",
+          "username": "samiyaakhtar"
+        }
+      },
+      "hldToManifestBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6052",
+        "author": "GitHub",
+        "buildNumber": "20190830.2",
+        "finishTime": "2019-08-30T21:46:09.960Z",
+        "id": 6052,
+        "queueTime": "2019-08-30T21:44:35.896Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "863d50f82a999c1ffd83ed640c5e2336192de71a",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6052/sources",
+        "startTime": "2019-08-30T21:44:45.866Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-spektate-hld",
+          "username": "samiyaakhtar"
+        }
+      },
+      "deploymentId": "809ba88498eb",
+      "dockerToHldRelease": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=181&_a=release-summary",
+        "finishTime": "2019-08-30T21:44:37.090Z",
+        "id": 181,
+        "queueTime": "2019-08-30T21:44:06.417Z",
+        "releaseName": "Release-6",
+        "startTime": "2019-08-30T21:44:16.527Z",
+        "status": "succeeded",
+        "imageVersion": "hello-spektate-master-6049",
+        "registryURL": "hellorings.azurecr.io",
+        "registryResourceGroup": "bedrock-rings"
+      },
+      "commitId": "a0bca78",
+      "hldCommitId": "863d50f",
+      "imageTag": "hello-spektate-master-6049",
+      "timeStamp": "2019-09-10T20:24:57.457Z",
+      "manifestCommitId": "7e538be",
+      "environment": "dev",
+      "service": "hello-spektate"
+    },
+    {
+      "srcToDockerBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6046",
+        "author": "Samiya Akhtar",
+        "buildNumber": "20190830.2",
+        "finishTime": "2019-08-30T21:06:54.508Z",
+        "id": 6046,
+        "queueTime": "2019-08-30T21:05:09.821Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "c6263942a6b760bcd1e6984108f95ebac78d5dc2",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6046/sources",
+        "startTime": "2019-08-30T21:05:19.047Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-bedrock",
+          "username": "samiyaakhtar"
+        }
+      },
+      "hldToManifestBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6047",
+        "author": "GitHub",
+        "buildNumber": "20190830.2",
+        "finishTime": "2019-08-30T21:08:06.750Z",
+        "id": 6047,
+        "queueTime": "2019-08-30T21:06:57.336Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "706685f804ebd48ce30e1320ac6412f3bd084651",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6047/sources",
+        "startTime": "2019-08-30T21:07:07.324Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-bedrock-hld",
+          "username": "samiyaakhtar"
+        }
+      },
+      "deploymentId": "7468ca0a24e1",
+      "dockerToHldRelease": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=180&_a=release-summary",
+        "finishTime": "2019-08-30T21:06:59.187Z",
+        "id": 180,
+        "queueTime": "2019-08-30T21:06:28.403Z",
+        "releaseName": "Release-173",
+        "startTime": "2019-08-30T21:06:39.947Z",
+        "status": "succeeded",
+        "imageVersion": "hello-bedrock-master-6046",
+        "registryURL": "hellorings.azurecr.io",
+        "registryResourceGroup": "bedrock-rings"
+      },
+      "commitId": "c626394",
+      "hldCommitId": "706685f",
+      "imageTag": "hello-bedrock-master-6046",
+      "timeStamp": "2019-09-10T20:23:36.641Z",
+      "manifestCommitId": "b3a3345",
+      "environment": "dev",
+      "service": "hello-bedrock"
+    },
+    {
+      "srcToDockerBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6044",
+        "author": "Samiya Akhtar",
+        "buildNumber": "20190830.1",
+        "finishTime": "2019-08-30T21:03:11.486Z",
+        "id": 6044,
+        "queueTime": "2019-08-30T21:01:12.295Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "c6263942a6b760bcd1e6984108f95ebac78d5dc2",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6044/sources",
+        "startTime": "2019-08-30T21:01:27.373Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-bedrock",
+          "username": "samiyaakhtar"
+        }
+      },
+      "hldToManifestBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6045",
+        "author": "GitHub",
+        "buildNumber": "20190830.1",
+        "finishTime": "2019-08-30T21:04:37.350Z",
+        "id": 6045,
+        "queueTime": "2019-08-30T21:03:26.885Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "bac890c158ff928fc3c0c9fdb58e498b88f7db76",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6045/sources",
+        "startTime": "2019-08-30T21:03:40.381Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-bedrock-hld",
+          "username": "samiyaakhtar"
+        }
+      },
+      "deploymentId": "4361eb34f7ff",
+      "dockerToHldRelease": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=179&_a=release-summary",
+        "finishTime": "2019-08-30T21:03:27.577Z",
+        "id": 179,
+        "queueTime": "2019-08-30T21:02:43.763Z",
+        "releaseName": "Release-172",
+        "startTime": "2019-08-30T21:03:05.337Z",
+        "status": "succeeded",
+        "imageVersion": "hello-bedrock-master-6044",
+        "registryURL": "hellorings.azurecr.io",
+        "registryResourceGroup": "bedrock-rings"
+      },
+      "commitId": "c626394",
+      "hldCommitId": "bac890c",
+      "imageTag": "hello-bedrock-master-6044",
+      "timeStamp": "2019-09-10T20:23:04.733Z",
+      "manifestCommitId": "1fdd7c4",
+      "environment": "dev",
+      "service": "hello-bedrock"
+    },
+    {
+      "srcToDockerBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6042",
+        "author": "GitHub",
+        "buildNumber": "20190830.2",
+        "finishTime": "2019-08-30T20:35:37.060Z",
+        "id": 6042,
+        "queueTime": "2019-08-30T20:33:51.676Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "a0bca78b1abb64611dcebebd2446c6a716232269",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6042/sources",
+        "startTime": "2019-08-30T20:34:01.178Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-spektate",
+          "username": "samiyaakhtar"
+        }
+      },
+      "hldToManifestBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6043",
+        "author": "GitHub",
+        "buildNumber": "20190830.1",
+        "finishTime": "2019-08-30T20:37:04.972Z",
+        "id": 6043,
+        "queueTime": "2019-08-30T20:35:44.032Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "316abbc3ee0cc5c3284cc93a95fca6ce2514fe4e",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6043/sources",
+        "startTime": "2019-08-30T20:35:53.160Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-spektate-hld",
+          "username": "samiyaakhtar"
+        }
+      },
+      "deploymentId": "ae28bf6b2731",
+      "dockerToHldRelease": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=177&_a=release-summary",
+        "finishTime": "2019-08-30T20:35:45.450Z",
+        "id": 177,
+        "queueTime": "2019-08-30T20:35:10.873Z",
+        "releaseName": "Release-4",
+        "startTime": "2019-08-30T20:35:22.530Z",
+        "status": "succeeded",
+        "imageVersion": "hello-spektate-master-6042",
+        "registryURL": "hellorings.azurecr.io",
+        "registryResourceGroup": "bedrock-rings"
+      },
+      "commitId": "a0bca78",
+      "hldCommitId": "316abbc",
+      "imageTag": "hello-spektate-master-6042",
+      "timeStamp": "2019-09-10T20:24:47.318Z",
+      "manifestCommitId": "0ede612",
+      "environment": "dev",
+      "service": "hello-spektate"
+    },
+    {
+      "srcToDockerBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6009",
+        "author": "Samiya Akhtar",
+        "buildNumber": "20190829.2",
+        "finishTime": "2019-08-29T20:40:48.297Z",
+        "id": 6009,
+        "queueTime": "2019-08-29T20:38:40.223Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "8028a158bd2b3a7df2e498fa59dfdf44476c5d4d",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6009/sources",
+        "startTime": "2019-08-29T20:38:59.683Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-spektate",
+          "username": "samiyaakhtar"
+        }
+      },
+      "hldToManifestBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6010",
+        "author": "GitHub",
+        "buildNumber": "20190829.4",
+        "finishTime": "2019-08-29T20:42:36.870Z",
+        "id": 6010,
+        "queueTime": "2019-08-29T20:40:52.868Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "0612e7a88a591ad9cd7dd4705bf50b8f0b713452",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6010/sources",
+        "startTime": "2019-08-29T20:41:05.416Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-spektate-hld",
+          "username": "samiyaakhtar"
+        }
+      },
+      "deploymentId": "2f1f9a30bdba",
+      "dockerToHldRelease": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=176&_a=release-summary",
+        "finishTime": "2019-08-29T20:40:54.993Z",
+        "id": 176,
+        "queueTime": "2019-08-29T20:40:16.413Z",
+        "releaseName": "Release-3",
+        "startTime": "2019-08-29T20:40:32.600Z",
+        "status": "succeeded",
+        "imageVersion": "hello-spektate-master-6009",
+        "registryURL": "hellorings.azurecr.io",
+        "registryResourceGroup": "bedrock-rings"
+      },
+      "commitId": "8028a15",
+      "hldCommitId": "0612e7a",
+      "imageTag": "hello-spektate-master-6009",
+      "timeStamp": "2019-09-10T20:24:32.934Z",
+      "manifestCommitId": "efeeebe",
+      "environment": "dev",
+      "service": "hello-spektate"
+    },
+    {
+      "srcToDockerBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=5975",
+        "author": "Samiya Akhtar",
+        "buildNumber": "20190828.1",
+        "finishTime": "2019-08-28T20:14:21.026Z",
+        "id": 5975,
+        "queueTime": "2019-08-28T20:12:31.554Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "65d30efae324a5b51a31b1e8fcbcabd5454c155d",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/5975/sources",
+        "startTime": "2019-08-28T20:12:41.761Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-bedrock",
+          "username": "samiyaakhtar"
+        }
+      },
+      "hldToManifestBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=5976",
+        "author": "GitHub",
+        "buildNumber": "20190828.1",
+        "finishTime": "2019-08-28T20:15:36.448Z",
+        "id": 5976,
+        "queueTime": "2019-08-28T20:14:28.385Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "51feb514b9db4dd038ab4e34ba59e830bd8cddcd",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/5976/sources",
+        "startTime": "2019-08-28T20:14:39.886Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-bedrock-hld",
+          "username": "samiyaakhtar"
+        }
+      },
+      "deploymentId": "33733a9f4573",
+      "dockerToHldRelease": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=173&_a=release-summary",
+        "finishTime": "2019-08-28T20:14:30.093Z",
+        "id": 173,
+        "queueTime": "2019-08-28T20:13:56.163Z",
+        "releaseName": "Release-170",
+        "startTime": "2019-08-28T20:14:08.787Z",
+        "status": "succeeded",
+        "imageVersion": "hello-bedrock-master-5975",
+        "registryURL": "hellorings.azurecr.io",
+        "registryResourceGroup": "bedrock-rings"
+      },
+      "commitId": "65d30ef",
+      "hldCommitId": "51feb51",
+      "imageTag": "hello-bedrock-master-5975",
+      "timeStamp": "2019-09-10T20:22:52.838Z",
+      "manifestCommitId": "e9fb7d4",
+      "environment": "dev",
+      "service": "hello-bedrock"
+    },
+    {
+      "deploymentId": "2ee13e28ef91",
+      "dockerToHldRelease": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=140&_a=release-summary",
+        "finishTime": "2019-07-31T21:27:58.977Z",
+        "id": 140,
+        "queueTime": "2019-07-31T21:26:54.757Z",
+        "releaseName": "Release-140",
+        "startTime": "2019-07-31T21:27:15.777Z",
+        "status": "succeeded",
+        "imageVersion": "hello-bedrock-master-5465",
+        "registryURL": "hellorings.azurecr.io",
+        "registryResourceGroup": "bedrock-rings"
+      },
+      "commitId": "b3d4243",
+      "hldCommitId": "0b22899",
+      "imageTag": "hello-bedrock-master-5465",
+      "timeStamp": "2019-09-10T20:22:40.757Z",
+      "manifestCommitId": "825efca",
+      "environment": "dev",
+      "service": "hello-bedrock"
+    },
+    {
+      "srcToDockerBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6006",
+        "author": "Samiya Akhtar",
+        "buildNumber": "20190829.1",
+        "finishTime": "2019-08-29T20:21:02.497Z",
+        "id": 6006,
+        "queueTime": "2019-08-29T20:19:03.147Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "8028a158bd2b3a7df2e498fa59dfdf44476c5d4d",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6006/sources",
+        "startTime": "2019-08-29T20:19:15.258Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-spektate",
+          "username": "samiyaakhtar"
+        }
+      },
+      "hldToManifestBuild": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6007",
+        "author": "GitHub",
+        "buildNumber": "20190829.3",
+        "finishTime": "2019-08-29T20:22:42.490Z",
+        "id": 6007,
+        "queueTime": "2019-08-29T20:21:08.844Z",
+        "result": "succeeded",
+        "sourceBranch": "refs/heads/master",
+        "sourceVersion": "e11ec65bd723e86d972402872da5b78d1b6da97a",
+        "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6007/sources",
+        "startTime": "2019-08-29T20:21:17.818Z",
+        "status": "completed",
+        "repository": {
+          "reponame": "hello-spektate-hld",
+          "username": "samiyaakhtar"
+        }
+      },
+      "deploymentId": "a6f3f3e0e5f5",
+      "dockerToHldRelease": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=175&_a=release-summary",
+        "finishTime": "2019-08-29T20:21:10.137Z",
+        "id": 175,
+        "queueTime": "2019-08-29T20:20:36.280Z",
+        "releaseName": "Release-2",
+        "startTime": "2019-08-29T20:20:49.630Z",
+        "status": "succeeded",
+        "imageVersion": "hello-spektate-master-6006",
+        "registryURL": "hellorings.azurecr.io",
+        "registryResourceGroup": "bedrock-rings"
+      },
+      "commitId": "8028a15",
+      "hldCommitId": "e11ec65",
+      "imageTag": "hello-spektate-master-6006",
+      "timeStamp": "2019-09-10T20:25:02.321Z",
+      "manifestCommitId": "d6e320f",
+      "environment": "dev",
+      "service": "hello-spektate"
+    },
+    {
+      "deploymentId": "856f4768fdbf",
+      "dockerToHldRelease": {
+        "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=141&_a=release-summary",
+        "finishTime": "2019-07-31T21:52:49.433Z",
+        "id": 141,
+        "queueTime": "2019-07-31T21:51:57.797Z",
+        "releaseName": "Release-141",
+        "startTime": "2019-07-31T21:52:09.300Z",
+        "status": "succeeded",
+        "imageVersion": "hello-bedrock-master-5471",
+        "registryURL": "hellorings.azurecr.io",
+        "registryResourceGroup": "bedrock-rings"
+      },
+      "commitId": "b3d4243",
+      "hldCommitId": "863db8d",
+      "imageTag": "hello-bedrock-master-5471",
+      "timeStamp": "2019-09-10T20:23:42.310Z",
+      "manifestCommitId": "b3f34c1",
+      "environment": "dev",
+      "service": "hello-bedrock"
+    }
+  ]
+}
