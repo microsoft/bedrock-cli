@@ -1,6 +1,34 @@
+import Table from "cli-table";
 import commander from "commander";
+import Deployment from "spektate/lib/Deployment";
 import { logger } from "../../logger";
-import { Helper, OUTPUT_FORMAT } from "./helper";
+import {
+  clusterPipeline,
+  config,
+  hldPipeline,
+  srcPipeline,
+  verifyAppConfiguration
+} from "./init";
+
+/**
+ * Output formats to display service details
+ */
+export enum OUTPUT_FORMAT {
+  /**
+   * Normal format
+   */
+  NORMAL = 0,
+
+  /**
+   * Wide table format
+   */
+  WIDE = 1,
+
+  /**
+   * JSON format
+   */
+  JSON = 2
+}
 
 /**
  * Adds the get command to the commander command object
@@ -43,8 +71,8 @@ export const getCommandDecorator = (command: commander.Command): void => {
     )
     .action(async opts => {
       try {
-        Helper.verifyAppConfiguration(() => {
-          Helper.getDeployments(
+        verifyAppConfiguration().then(() => {
+          getDeployments(
             processOutputFormat(opts.output),
             opts.env,
             opts.imageTag,
@@ -74,3 +102,167 @@ function processOutputFormat(outputFormat: string): OUTPUT_FORMAT {
 
   return OUTPUT_FORMAT.NORMAL;
 }
+
+/**
+ * Gets a list of deployments for the specified filters
+ * @param outputFormat output format: normal | wide | json
+ * @param environment release environment, such as Dev, Staging, Prod etc.
+ * @param imageTag docker image tag name
+ * @param p1Id identifier of the first build pipeline (src to ACR)
+ * @param commitId commit Id into the source repo
+ * @param service name of the service that was modified
+ * @param deploymentId unique identifier for the deployment
+ */
+export const getDeployments = (
+  outputFormat: OUTPUT_FORMAT,
+  environment?: string,
+  imageTag?: string,
+  p1Id?: string,
+  commitId?: string,
+  service?: string,
+  deploymentId?: string
+): Promise<Deployment[]> => {
+  return Deployment.getDeploymentsBasedOnFilters(
+    config.STORAGE_ACCOUNT_NAME,
+    config.STORAGE_ACCOUNT_KEY,
+    config.STORAGE_TABLE_NAME,
+    config.STORAGE_PARTITION_KEY,
+    srcPipeline,
+    hldPipeline,
+    clusterPipeline,
+    environment,
+    imageTag,
+    p1Id,
+    commitId,
+    service,
+    deploymentId
+  ).then((deployments: Deployment[]) => {
+    if (outputFormat === OUTPUT_FORMAT.JSON) {
+      logger.info(JSON.stringify(deployments, null, 2));
+    } else {
+      printDeployments(deployments, outputFormat);
+    }
+    return deployments;
+  });
+};
+
+/**
+ * Prints deployments in a terminal table
+ * @param deployments list of deployments to print in terminal
+ * @param outputFormat output format: normal | wide | json
+ */
+export const printDeployments = (
+  deployments: Deployment[],
+  outputFormat: OUTPUT_FORMAT
+) => {
+  if (deployments.length > 0) {
+    let row = [];
+    row.push("Start Time");
+    row.push("Service");
+    row.push("Deployment");
+    row.push("Commit");
+    row.push("Src to ACR");
+    row.push("Image Tag");
+    row.push("Result");
+    row.push("ACR to HLD");
+    row.push("Env");
+    row.push("Hld Commit");
+    row.push("Result");
+    row.push("HLD to Manifest");
+    row.push("Result");
+    if (outputFormat === OUTPUT_FORMAT.WIDE) {
+      row.push("Duration");
+      row.push("Status");
+      row.push("Manifest Commit");
+      row.push("End Time");
+    }
+    const table = new Table({
+      head: row,
+      chars: {
+        top: "",
+        "top-mid": "",
+        "top-left": "",
+        "top-right": "",
+        bottom: "",
+        "bottom-mid": "",
+        "bottom-left": "",
+        "bottom-right": "",
+        left: "",
+        "left-mid": "",
+        mid: "",
+        "mid-mid": "",
+        right: "",
+        "right-mid": "",
+        middle: " "
+      },
+      style: { "padding-left": 0, "padding-right": 0 }
+    });
+    deployments.forEach(deployment => {
+      row = [];
+      row.push(
+        deployment.srcToDockerBuild
+          ? deployment.srcToDockerBuild.startTime.toLocaleString()
+          : ""
+      );
+      row.push(deployment.service);
+      row.push(deployment.deploymentId);
+      row.push(deployment.commitId);
+      row.push(
+        deployment.srcToDockerBuild ? deployment.srcToDockerBuild.id : ""
+      );
+      row.push(deployment.imageTag);
+      row.push(
+        deployment.srcToDockerBuild
+          ? getStatus(deployment.srcToDockerBuild.result)
+          : ""
+      );
+      row.push(
+        deployment.dockerToHldRelease ? deployment.dockerToHldRelease.id : ""
+      );
+      row.push(deployment.environment.toUpperCase());
+      row.push(deployment.hldCommitId);
+      row.push(
+        deployment.dockerToHldRelease
+          ? getStatus(deployment.dockerToHldRelease.status)
+          : ""
+      );
+      row.push(
+        deployment.hldToManifestBuild ? deployment.hldToManifestBuild.id : ""
+      );
+      row.push(
+        deployment.hldToManifestBuild
+          ? getStatus(deployment.hldToManifestBuild.result)
+          : ""
+      );
+      if (outputFormat === OUTPUT_FORMAT.WIDE) {
+        row.push(deployment.duration() + " mins");
+        row.push(deployment.status());
+        row.push(deployment.manifestCommitId);
+        row.push(
+          deployment.hldToManifestBuild &&
+            deployment.hldToManifestBuild.finishTime &&
+            !isNaN(deployment.hldToManifestBuild.finishTime.getTime())
+            ? deployment.hldToManifestBuild.finishTime.toLocaleString()
+            : ""
+        );
+      }
+      table.push(row);
+    });
+
+    logger.info("\n" + table.toString());
+  } else {
+    logger.info("No deployments found for specified filters.");
+  }
+};
+
+/**
+ * Gets a status indicator icon
+ */
+const getStatus = (status: string) => {
+  if (status === "succeeded") {
+    return "\u2713";
+  } else if (!status) {
+    return "...";
+  }
+  return "\u0445";
+};

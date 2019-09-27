@@ -1,6 +1,15 @@
 import commander from "commander";
+import * as fs from "fs";
+import * as os from "os";
+import AzureDevOpsPipeline from "spektate/lib/pipeline/AzureDevOpsPipeline";
+import IPipeline from "spektate/lib/pipeline/Pipeline";
 import { logger } from "../../logger";
-import { config, Helper } from "./helper";
+
+export let config: { [id: string]: string } = {};
+const fileLocation = os.homedir() + "/.Spektate";
+export let hldPipeline: IPipeline;
+export let clusterPipeline: IPipeline;
+export let srcPipeline: IPipeline;
 
 /**
  * Adds the init command to the commander command object
@@ -68,7 +77,7 @@ export const initCommandDecorator = (command: commander.Command): void => {
           config.STORAGE_TABLE_NAME = opts.storageTableName;
           config.AZURE_PIPELINE_ACCESS_TOKEN = opts.azurePipelineAccessToken;
           config.MANIFEST_ACCESS_TOKEN = opts.manifestAccessToken;
-          Helper.writeConfigToFile(config);
+          writeConfigToFile(config);
         } else {
           logger.info(
             "You need to specify each of the config settings in order to run any command."
@@ -79,4 +88,93 @@ export const initCommandDecorator = (command: commander.Command): void => {
         logger.error(err);
       }
     });
+};
+
+/**
+ * Initializes the pipelines assuming that the configuration has been loaded
+ */
+export const initializePipelines = () => {
+  srcPipeline = new AzureDevOpsPipeline(
+    config.AZURE_ORG,
+    config.AZURE_PROJECT,
+    false,
+    config.AZURE_PIPELINE_ACCESS_TOKEN
+  );
+  hldPipeline = new AzureDevOpsPipeline(
+    config.AZURE_ORG,
+    config.AZURE_PROJECT,
+    true,
+    config.AZURE_PIPELINE_ACCESS_TOKEN
+  );
+  clusterPipeline = new AzureDevOpsPipeline(
+    config.AZURE_ORG,
+    config.AZURE_PROJECT,
+    false,
+    config.AZURE_PIPELINE_ACCESS_TOKEN
+  );
+};
+
+/**
+ * Performs verification of config values to make sure subsequent commands can be run
+ */
+export const verifyAppConfiguration = async (): Promise<void> => {
+  if (
+    config.STORAGE_TABLE_NAME === "" ||
+    config.STORAGE_TABLE_NAME === undefined ||
+    config.STORAGE_PARTITION_KEY === "" ||
+    config.STORAGE_PARTITION_KEY === undefined ||
+    config.STORAGE_ACCOUNT_NAME === "" ||
+    config.STORAGE_ACCOUNT_NAME === undefined ||
+    config.STORAGE_ACCOUNT_KEY === "" ||
+    config.STORAGE_ACCOUNT_KEY === undefined ||
+    config.AZURE_PROJECT === "" ||
+    config.AZURE_PROJECT === undefined ||
+    config.AZURE_ORG === "" ||
+    config.AZURE_ORG === undefined
+  ) {
+    return new Promise(async resolve => {
+      await configureAppFromFile();
+      resolve();
+    });
+  } else {
+    initializePipelines();
+  }
+};
+
+/**
+ * Loads configuration from a file
+ */
+export const configureAppFromFile = async (): Promise<void> => {
+  return new Promise(async (resolve, reject) => {
+    await fs.readFile(fileLocation, "utf8", (error, data) => {
+      if (error) {
+        logger.error(error);
+        reject();
+        throw error;
+      }
+      const array = data.split(/\r?\n/);
+      array.forEach((row: string) => {
+        const key = row.split(/=(.+)/)[0];
+        const value = row.split(/=(.+)/)[1];
+        config[key] = value;
+      });
+      initializePipelines();
+      resolve();
+    });
+  });
+};
+
+/**
+ * Writes configuration to a file
+ */
+export const writeConfigToFile = async (configMap: any) => {
+  let data = "";
+  Object.keys(configMap).forEach(key => {
+    data += "\n" + key + "=" + configMap[key];
+  });
+  await fs.writeFile(fileLocation, data, (error: any) => {
+    if (error) {
+      logger.error(error);
+    }
+  });
 };

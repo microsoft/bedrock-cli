@@ -3,7 +3,7 @@ import {
   enableVerboseLogging,
   logger
 } from "../../logger";
-import { config, Helper } from "./helper";
+import { config, verifyAppConfiguration, writeConfigToFile } from "./init";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -22,9 +22,9 @@ describe("Initializing a project to use service introspection for the first time
     testConfig.STORAGE_ACCOUNT_NAME = "storaceAccountName";
     testConfig.STORAGE_PARTITION_KEY = "partitionKey";
     testConfig.STORAGE_TABLE_NAME = "storageTableName";
-    await Helper.writeConfigToFile(testConfig);
+    await writeConfigToFile(testConfig);
 
-    await Helper.verifyAppConfiguration(() => {
+    await verifyAppConfiguration().then(() => {
       expect(config.AZURE_ORG).toBe("testOrg");
       expect(config.AZURE_PROJECT).toBe("testProject");
       expect(config.STORAGE_ACCOUNT_KEY).toBe("storageAccountKey");

@@ -4,12 +4,12 @@ import {
   enableVerboseLogging,
   logger
 } from "../../logger";
-import { Helper, OUTPUT_FORMAT } from "./helper";
+import * as Get from "./get";
 
 // tslint:disable-next-line: no-var-requires
 const data = require("./mocks/data.json");
 const fakeDeployments = data;
-jest.spyOn(Helper, "getDeployments").mockImplementation(
+jest.spyOn(Get, "getDeployments").mockImplementation(
   (outputFormat: any): Promise<Deployment[]> => {
     return new Promise<Deployment[]>(resolve => {
       const mockedDeps: Deployment[] = [];
@@ -37,19 +37,17 @@ jest.spyOn(Helper, "getDeployments").mockImplementation(
 );
 
 beforeAll(() => {
-  jest.mock("./helper");
   enableVerboseLogging();
 });
 
 afterAll(() => {
-  jest.unmock("./helper");
   disableVerboseLogging();
 });
 
 let deployments: Deployment[];
 describe("Get deployments", () => {
   test("get some basic deployments", async () => {
-    deployments = await Helper.getDeployments(OUTPUT_FORMAT.WIDE);
+    deployments = await Get.getDeployments(Get.OUTPUT_FORMAT.WIDE);
     expect(deployments).not.toBeUndefined();
     expect(deployments.length).not.toBeUndefined();
     logger.info("Got " + deployments.length + " deployments");
