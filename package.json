@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "build": "shx rm -rf dist && webpack && pkg dist/spk.js && shx mv spk-{linux,macos,win.exe} dist",
-    "test": "jest",
+    "test": "jest --coverage --coverageReporters=cobertura",
     "test-watch": "jest --watchAll"
   },
   "devDependencies": {
@@ -20,6 +20,7 @@
     "husky": ">=1",
     "jest": "^24.9.0",
     "lint-staged": ">=8",
+    "nyc": "^14.1.1",
     "pkg": "^4.4.0",
     "prettier": "^1.18.2",
     "shx": "^0.3.2",

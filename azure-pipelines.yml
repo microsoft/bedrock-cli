@@ -1,0 +1,40 @@
+trigger:
+- master
+
+pr:
+- master
+
+strategy:
+  matrix:
+    node_8_x:
+      node_version: 8.x
+    node_10_x:
+      node_version: 10.x
+    node_12_x:
+      node_version: 12.x
+  maxParallel: 3
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: "$(node_version)"
+  displayName: 'Install Node.js'
+
+- script: |
+    yarn
+    yarn build
+  displayName: 'YARN BUILD'
+
+- script: |
+    yarn test
+  displayName: 'YARN TEST'
+
+- task: PublishCodeCoverageResults@1
+  inputs: 
+    codeCoverageTool: Cobertura
+    summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/*coverage.xml'
+    reportDirectory: '$(System.DefaultWorkingDirectory)/**/coverage'
+    
