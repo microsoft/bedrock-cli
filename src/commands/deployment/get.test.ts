@@ -55,6 +55,18 @@ describe("Get deployments", () => {
   });
 });
 
+describe("Watch get deployments", () => {
+  test("watch get deployments", async () => {
+    jest.useFakeTimers();
+    Get.watchGetDeployments(Get.OUTPUT_FORMAT.WIDE);
+    expect(Get.getDeployments).toBeCalled();
+    jest.advanceTimersByTime(6000);
+    expect(Get.getDeployments).toBeCalledTimes(2);
+
+    jest.clearAllTimers();
+  });
+});
+
 describe("Introspect deployments", () => {
   test("verify basic fields are defined", () => {
     deployments.forEach((deployment: Deployment) => {

@@ -69,18 +69,31 @@ export const getCommandDecorator = (command: commander.Command): void => {
       "-o, --output <output-format>",
       "Get output in one of these forms: normal, wide, JSON"
     )
+    .option("-w, --watch", "Watch the deployments for a live view")
     .action(async opts => {
       try {
         verifyAppConfiguration().then(() => {
-          getDeployments(
-            processOutputFormat(opts.output),
-            opts.env,
-            opts.imageTag,
-            opts.buildId,
-            opts.commitId,
-            opts.service,
-            opts.deploymentId
-          );
+          if (opts.watch) {
+            watchGetDeployments(
+              processOutputFormat(opts.output),
+              opts.env,
+              opts.imageTag,
+              opts.buildId,
+              opts.commitId,
+              opts.service,
+              opts.deploymentId
+            );
+          } else {
+            getDeployments(
+              processOutputFormat(opts.output),
+              opts.env,
+              opts.imageTag,
+              opts.buildId,
+              opts.commitId,
+              opts.service,
+              opts.deploymentId
+            );
+          }
         });
       } catch (err) {
         logger.error(`Error occurred while getting deployment(s)`);
@@ -144,6 +157,39 @@ export const getDeployments = (
     }
     return deployments;
   });
+};
+
+/**
+ * Gets a list of deployments for the specified filters every 5 seconds
+ * @param outputFormat output format: normal | wide | json
+ * @param environment release environment, such as Dev, Staging, Prod etc.
+ * @param imageTag docker image tag name
+ * @param p1Id identifier of the first build pipeline (src to ACR)
+ * @param commitId commit Id into the source repo
+ * @param service name of the service that was modified
+ * @param deploymentId unique identifier for the deployment
+ */
+export const watchGetDeployments = (
+  outputFormat: OUTPUT_FORMAT,
+  environment?: string,
+  imageTag?: string,
+  p1Id?: string,
+  commitId?: string,
+  service?: string,
+  deploymentId?: string
+): void => {
+  const timeInterval = 5000;
+  setInterval(() => {
+    getDeployments(
+      outputFormat,
+      environment,
+      imageTag,
+      p1Id,
+      commitId,
+      service,
+      deploymentId
+    );
+  }, timeInterval);
 };
 
 /**
