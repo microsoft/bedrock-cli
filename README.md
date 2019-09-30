@@ -1,4 +1,5 @@
 # SPK
+[![Build Status](https://dev.azure.com/epicstuff/bedrock/_apis/build/status/CatalystCode.spk?branchName=master)](https://dev.azure.com/epicstuff/bedrock/_build/latest?definitionId=128&branchName=master)
 
 > This missing Bedrock CLI
 
