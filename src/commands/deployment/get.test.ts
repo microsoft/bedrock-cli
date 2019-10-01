@@ -1,3 +1,4 @@
+import Table from "cli-table";
 import Deployment from "spektate/lib/Deployment";
 import {
   disableVerboseLogging,
@@ -51,7 +52,7 @@ describe("Get deployments", () => {
     expect(deployments).not.toBeUndefined();
     expect(deployments.length).not.toBeUndefined();
     logger.info("Got " + deployments.length + " deployments");
-    expect(deployments).toHaveLength(13);
+    expect(deployments).toHaveLength(10);
   });
 });
 
@@ -86,6 +87,52 @@ describe("Introspect deployments", () => {
           dep.dockerToHldRelease != null ||
           dep.hldToManifestBuild != null
       ).toBeTruthy();
+    });
+  });
+});
+
+describe("Print deployments", () => {
+  test("verify print deployments", () => {
+    const table = Get.printDeployments(
+      deployments,
+      Get.processOutputFormat("json")
+    );
+    expect(table).not.toBeUndefined();
+    const deployment = [
+      "",
+      "hello-bedrock",
+      "7468ca0a24e1",
+      "c626394",
+      6046,
+      "hello-bedrock-master-6046",
+      "✓",
+      180,
+      "DEV",
+      "706685f",
+      "✓",
+      6047,
+      "✓"
+    ];
+    table!.forEach((field, index, array) => {
+      if (field[2] === deployment[2]) {
+        for (let i = 1; i < field.length; i++) {
+          expect(field[i]).toEqual(deployment[i]);
+        }
+        expect(field).toHaveLength(13);
+      }
+    });
+  });
+});
+
+describe("Output formats", () => {
+  test("verify wide output", () => {
+    const table = Get.printDeployments(
+      deployments,
+      Get.processOutputFormat("wide")
+    );
+    expect(table).not.toBeUndefined();
+    table!.forEach((field, index, array) => {
+      expect(field).toHaveLength(17);
     });
   });
 });

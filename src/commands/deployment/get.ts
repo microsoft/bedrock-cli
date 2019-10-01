@@ -106,7 +106,7 @@ export const getCommandDecorator = (command: commander.Command): void => {
  * Processes the output format based on defaults
  * @param outputFormat Output format specified by the user
  */
-function processOutputFormat(outputFormat: string): OUTPUT_FORMAT {
+export const processOutputFormat = (outputFormat: string): OUTPUT_FORMAT => {
   if (outputFormat && outputFormat.toLowerCase() === "wide") {
     return OUTPUT_FORMAT.WIDE;
   } else if (outputFormat && outputFormat.toLowerCase() === "json") {
@@ -114,7 +114,7 @@ function processOutputFormat(outputFormat: string): OUTPUT_FORMAT {
   }
 
   return OUTPUT_FORMAT.NORMAL;
-}
+};
 
 /**
  * Gets a list of deployments for the specified filters
@@ -200,7 +200,7 @@ export const watchGetDeployments = (
 export const printDeployments = (
   deployments: Deployment[],
   outputFormat: OUTPUT_FORMAT
-) => {
+): Table | undefined => {
   if (deployments.length > 0) {
     let row = [];
     row.push("Start Time");
@@ -291,7 +291,7 @@ export const printDeployments = (
         row.push(
           deployment.hldToManifestBuild &&
             deployment.hldToManifestBuild.finishTime &&
-            !isNaN(deployment.hldToManifestBuild.finishTime.getTime())
+            !isNaN(new Date(deployment.hldToManifestBuild.finishTime).getTime())
             ? deployment.hldToManifestBuild.finishTime.toLocaleString()
             : ""
         );
@@ -300,8 +300,10 @@ export const printDeployments = (
     });
 
     logger.info("\n" + table.toString());
+    return table;
   } else {
     logger.info("No deployments found for specified filters.");
+    return undefined;
   }
 };
 
