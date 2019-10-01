@@ -2,7 +2,7 @@ import fs from "fs";
 import mockFs from "mock-fs";
 
 import yaml from "js-yaml";
-import { MockFactory } from "../test/mockFactory";
+import { createTestMaintainersYaml } from "../test/mockFactory";
 
 import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
 import { IMaintainersFile, IUser } from "../types";
@@ -19,7 +19,7 @@ afterAll(() => {
 describe("Adding a new service", () => {
   beforeAll(() => {
     mockFs({
-      "maintainers.yml": MockFactory.createTestMaintainersYaml() as any
+      "maintainers.yml": createTestMaintainersYaml() as any
     });
   });
 
@@ -45,9 +45,7 @@ describe("Adding a new service", () => {
       newUser
     ]);
 
-    const defaultMaintainersFileObject = MockFactory.createTestMaintainersYaml(
-      false
-    );
+    const defaultMaintainersFileObject = createTestMaintainersYaml(false);
 
     const expected: IMaintainersFile = {
       services: {
