@@ -61,15 +61,9 @@ export const createCommandDecorator = (command: commander.Command): void => {
             `maintainerEmail must be of type 'string', ${typeof maintainerEmail} given.`
           );
         }
-<<<<<<< HEAD
-        await createService(projectPath, serviceName, {
-          maintainerEmail,
-          maintainerName
-=======
         await createService(projectPath, serviceName, packagesDir, {
           maintainerName,
           maintainerEmail
->>>>>>> maintainers.yaml being updated when creating/adding service
         });
       } catch (err) {
         logger.error(

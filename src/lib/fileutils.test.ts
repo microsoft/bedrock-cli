@@ -1,14 +1,11 @@
 import fs from "fs";
-import os from "os";
-import path from "path";
-import uuid from "uuid/v4";
+import mockFs from "mock-fs";
+
 import yaml from "js-yaml";
-import { promisify } from "util";
+import { MockFactory } from "../test/mockFactory";
 
-import cpFile from "cp-file";
-
-import { IMaintainersFile, IUser } from "../types";
 import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
+import { IMaintainersFile, IUser } from "../types";
 import { addNewServiceToMaintainersFile } from "./fileutils";
 
 beforeAll(() => {
@@ -19,79 +16,52 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
-describe("Adding a new maintainer to existing maintainers file", () => {
-  test("Existing maintainer, existing service", async () => {
-    // Create random directory to initialize
-    const randomTmpDir = path.join(os.tmpdir(), uuid());
-    fs.mkdirSync(randomTmpDir);
+describe("Adding a new service", () => {
+  beforeAll(() => {
+    mockFs({
+      "maintainers.yml": MockFactory.createTestMaintainersYaml() as any
+    });
+  });
 
-    const maintainerFilePath = path.join(randomTmpDir, "maintainers.yaml");
-    console.log(maintainerFilePath);
-    // TODO: figure out this path for the file...
-    // await cpFile(
-    //   process.cwd() + "/src/lib/maintainers.yaml",
-    //   maintainerFilePath
-    // );
-    // logger.info("File copied");
+  afterAll(() => {
+    mockFs.restore();
+  });
 
-    // Create starting existing maintainers file.
-    await writeSampleMaintainersFileToDir(maintainerFilePath);
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
+  it("should update existing maintainers.yml with new service maintainers", async () => {
+    const maintainersFilePath = "maintainers.yml";
+
+    const servicePath = "packages/my-new-service";
     const newUser = {
       email: "hello@example.com",
       name: "testUser"
-    } as IUser;
+    };
 
-    await addNewServiceToMaintainersFile(
-      maintainerFilePath,
-      "packages/my-new-service",
-      [newUser]
+    const writeSpy = jest.spyOn(fs, "writeFileSync");
+    await addNewServiceToMaintainersFile(maintainersFilePath, servicePath, [
+      newUser
+    ]);
+
+    const defaultMaintainersFileObject = MockFactory.createTestMaintainersYaml(
+      false
     );
 
-    const actualUpdatedMaintainersFile = yaml.safeLoad(
-      fs.readFileSync(maintainerFilePath, "utf8")
-    ) as IMaintainersFile;
+    const expected: IMaintainersFile = {
+      services: {
+        ...((defaultMaintainersFileObject as any) as IMaintainersFile).services,
+        ["./" + servicePath]: {
+          maintainers: [newUser]
+        }
+      }
+    };
 
-    const expected = await yaml.safeLoad(`
-      services:
-        ./:
-          maintainers:
-            - email: somegithubemailg@users.noreply.github.com
-              name: my name
-        ./packages/service1:
-          maintainers:
-            - email: ""
-              name: ""
-        ./packages/my-new-service:
-          maintainers:
-            - email: hello@example.com
-              name: testUser
-  `);
-
-    expect(actualUpdatedMaintainersFile).toEqual(expected);
-
-    // assert that this file is now updated with the new service..
-    // 1. write to file
-    // 1. read it back, yaml parse then compare to expected content
+    expect(writeSpy).toBeCalledWith(
+      maintainersFilePath,
+      yaml.safeDump(expected),
+      "utf8"
+    );
   });
 });
-
-const writeSampleMaintainersFileToDir = async (maintainersFilePath: string) => {
-  await promisify(fs.writeFile)(
-    maintainersFilePath,
-    yaml.safeDump(
-      yaml.safeLoad(`
-      services:
-        ./:
-          maintainers:
-          - email: somegithubemailg@users.noreply.github.com
-            name: my name
-        ./packages/service1:
-          maintainers:
-          - email: ""
-            name: ""
-    `)
-    ),
-    "utf8"
-  );
-};

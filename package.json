@@ -50,12 +50,14 @@
     ]
   },
   "dependencies": {
+    "@types/mock-fs": "^3.6.30",
     "azure-devops-node-api": "^9.0.1",
     "cli-table": "^0.3.1",
     "commander": "^3.0.1",
     "cp-file": "^7.0.0",
     "js-yaml": "^3.13.1",
     "node-emoji": "^1.10.0",
+    "mock-fs": "^4.10.1",
     "shelljs": "^0.8.3",
     "spektate": "^0.1.5",
     "uuid": "^3.3.3",

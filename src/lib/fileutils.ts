@@ -119,7 +119,16 @@ const starterAzurePipelines = async (opts: {
   return yaml.safeDump(starter, { lineWidth: Number.MAX_SAFE_INTEGER });
 };
 
-export const addNewServiceToMaintainersFile = async (
+/**
+ * Update maintainers.yml with new service
+ *
+ * TODO: support for contributors(?)
+ *
+ * @param maintainersFilePath
+ * @param newServicePath
+ * @param serviceMaintainers
+ */
+export const addNewServiceToMaintainersFile = (
   maintainersFilePath: string,
   newServicePath: string,
   serviceMaintainers: IUser[]
@@ -132,11 +141,6 @@ export const addNewServiceToMaintainersFile = async (
     maintainers: serviceMaintainers
   };
 
-  // Write changes out to
-  logger.info("updating maintainers.yaml");
-  await promisify(fs.writeFile)(
-    maintainersFilePath,
-    yaml.safeDump(maintainersFile),
-    "utf8"
-  );
+  logger.info("Updating maintainers.yaml");
+  fs.writeFileSync(maintainersFilePath, yaml.safeDump(maintainersFile), "utf8");
 };
