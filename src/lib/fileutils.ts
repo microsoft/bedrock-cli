@@ -1,9 +1,10 @@
 import fs from "fs";
 import yaml from "js-yaml";
+
 import path from "path";
 import { promisify } from "util";
 import { logger } from "../logger";
-import { IAzurePipelinesYaml, IBedrockFile, IMaintainersFile } from "../types";
+import { IAzurePipelinesYaml, IUser, IMaintainersFile } from "../types";
 
 /**
  * Writes out the starter azure-pipelines.yaml file to `targetPath`
@@ -116,4 +117,29 @@ const starterAzurePipelines = async (opts: {
   // tslint:enable: object-literal-sort-keys
 
   return yaml.safeDump(starter, { lineWidth: Number.MAX_SAFE_INTEGER });
+};
+
+export const addMaintainerToFile = async (
+  pathToFile: string,
+  newServicePath: string,
+  name: string,
+  email: string
+) => {
+  const maintainersFile = yaml.safeLoad(
+    fs.readFileSync(pathToFile, "utf8")
+  ) as IMaintainersFile;
+  logger.info(`maintainersFile: ${maintainersFile}`);
+  console.log(maintainersFile);
+
+  const maintainerList = [{ name, email }];
+
+  maintainersFile.services[newServicePath] = { maintainers: maintainerList };
+  console.log(maintainersFile.services["./packages/service1"]);
+
+  // console.log(maintainersFile.services[0].relativeDirectory)
+  // maintainersFile.service.forEach(service: array) => {
+  //   console.log(service)
+  // });
+
+  console.log(JSON.stringify(maintainersFile, null, 2));
 };
