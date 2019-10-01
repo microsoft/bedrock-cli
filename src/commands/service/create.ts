@@ -119,14 +119,14 @@ export const createService = async (
     name: "testUser"
   } as IUser;
 
-  // const newServiceRelativeDir = path.join(".", packagesDir, "serviceName");
-  // logger.info(`newServiceRelativeDir: ${newServiceRelativeDir}`);
-  const newServiceRelPath = path.relative(rootProjectPath, newServiceDir);
-  logger.info(`newServiceRelPath: ${newServiceRelPath}`);
+  const newServiceRelativeDir = path.join(".", packagesDir, "serviceName");
+  logger.info(`newServiceRelativeDir: ${newServiceRelativeDir}`);
+  // const newServiceRelPath = path.relative(rootProjectPath, newServiceDir);
+  // logger.info(`newServiceRelPath: ${newServiceRelPath}`);
 
   await addNewServiceToMaintainersFile(
     path.join(rootProjectPath, "maintainers.yaml"),
-    newServiceRelPath,
+    newServiceRelativeDir,
     [newUser]
   );
 

@@ -44,7 +44,7 @@ describe("Adding a new maintainer to existing maintainers file", () => {
 
     await addNewServiceToMaintainersFile(
       maintainerFilePath,
-      "./packages/my-new-service",
+      "packages/my-new-service",
       [newUser]
     );
 

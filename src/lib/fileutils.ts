@@ -128,7 +128,7 @@ export const addNewServiceToMaintainersFile = async (
     fs.readFileSync(maintainersFilePath, "utf8")
   ) as IMaintainersFile;
 
-  maintainersFile.services[newServicePath] = {
+  maintainersFile.services["./" + newServicePath] = {
     maintainers: serviceMaintainers
   };
 
