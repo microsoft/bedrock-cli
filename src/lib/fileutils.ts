@@ -4,7 +4,7 @@ import yaml from "js-yaml";
 import path from "path";
 import { promisify } from "util";
 import { logger } from "../logger";
-import { IAzurePipelinesYaml, IUser, IMaintainersFile } from "../types";
+import { IAzurePipelinesYaml, IMaintainersFile, IUser } from "../types";
 
 /**
  * Writes out the starter azure-pipelines.yaml file to `targetPath`
@@ -119,27 +119,24 @@ const starterAzurePipelines = async (opts: {
   return yaml.safeDump(starter, { lineWidth: Number.MAX_SAFE_INTEGER });
 };
 
-export const addMaintainerToFile = async (
-  pathToFile: string,
+export const addNewServiceToMaintainersFile = async (
+  maintainersFilePath: string,
   newServicePath: string,
-  name: string,
-  email: string
+  serviceMaintainers: IUser[]
 ) => {
   const maintainersFile = yaml.safeLoad(
-    fs.readFileSync(pathToFile, "utf8")
+    fs.readFileSync(maintainersFilePath, "utf8")
   ) as IMaintainersFile;
-  logger.info(`maintainersFile: ${maintainersFile}`);
-  console.log(maintainersFile);
 
-  const maintainerList = [{ name, email }];
+  maintainersFile.services[newServicePath] = {
+    maintainers: serviceMaintainers
+  };
 
-  maintainersFile.services[newServicePath] = { maintainers: maintainerList };
-  console.log(maintainersFile.services["./packages/service1"]);
-
-  // console.log(maintainersFile.services[0].relativeDirectory)
-  // maintainersFile.service.forEach(service: array) => {
-  //   console.log(service)
-  // });
-
-  console.log(JSON.stringify(maintainersFile, null, 2));
+  // Write changes out to
+  logger.info("updating maintainers.yaml");
+  await promisify(fs.writeFile)(
+    maintainersFilePath,
+    yaml.safeDump(maintainersFile),
+    "utf8"
+  );
 };

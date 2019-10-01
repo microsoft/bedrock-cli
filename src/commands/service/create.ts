@@ -1,8 +1,13 @@
 import commander from "commander";
 import path from "path";
 import shelljs from "shelljs";
-import { generateAzurePipelinesYaml } from "../../lib/fileutils";
 import { logger } from "../../logger";
+
+import {
+  addNewServiceToMaintainersFile,
+  generateAzurePipelinesYaml
+} from "../../lib/fileutils";
+import { IUser } from "../../types";
 
 /**
  * Adds the init command to the commander command object
@@ -17,6 +22,11 @@ export const createCommandDecorator = (command: commander.Command): void => {
       "Add a new service into this initialized spk project repository"
     )
     .option(
+      "-d, --packages-dir <dir>",
+      "The directory containing the mono-repo packages.",
+      ""
+    )
+    .option(
       "-m, --maintainer-name <maintainer-name>",
       "The name of the primary maintainer for this service",
       "maintainer name"
@@ -27,16 +37,18 @@ export const createCommandDecorator = (command: commander.Command): void => {
       "maintainer email"
     )
     .action(async (serviceName, opts) => {
-      const {
-        maintainerName = "maintainer name",
-        maintainerEmail = "maintainer email"
-      } = opts;
+      const { packagesDir, maintainerName, maintainerEmail } = opts;
       const projectPath = process.cwd();
       try {
         // Type check all parsed command line args here.
         if (typeof serviceName !== "string") {
           throw new Error(
             `serviceName must be of type 'string', ${typeof serviceName} given.`
+          );
+        }
+        if (typeof packagesDir !== "string") {
+          throw new Error(
+            `packagesDir must be of type 'string', ${typeof packagesDir} given.`
           );
         }
         if (typeof maintainerName !== "string") {
@@ -49,9 +61,15 @@ export const createCommandDecorator = (command: commander.Command): void => {
             `maintainerEmail must be of type 'string', ${typeof maintainerEmail} given.`
           );
         }
+<<<<<<< HEAD
         await createService(projectPath, serviceName, {
           maintainerEmail,
           maintainerName
+=======
+        await createService(projectPath, serviceName, packagesDir, {
+          maintainerName,
+          maintainerEmail
+>>>>>>> maintainers.yaml being updated when creating/adding service
         });
       } catch (err) {
         logger.error(
@@ -72,23 +90,47 @@ export const createCommandDecorator = (command: commander.Command): void => {
 export const createService = async (
   rootProjectPath: string,
   serviceName: string,
+  packagesDir: string,
   opts?: { maintainerName: string; maintainerEmail: string }
 ) => {
-  const { maintainerName = "name", maintainerEmail = "email" } = opts || {};
+  const { maintainerName, maintainerEmail } = opts || {};
 
-  logger.info(`Adding Service: ${serviceName}, to Project: ${rootProjectPath}`);
+  logger.info(
+    `Adding Service: ${serviceName}, to Project: ${rootProjectPath} under directory: ${packagesDir}`
+  );
   logger.info(
     `MaintainerName: ${maintainerName}, MaintainerEmail: ${maintainerEmail}`
   );
 
+  // TODO: consider if there is a '/packages' directory to place all services under.
+  const newServiceDir = path.join(rootProjectPath, packagesDir, serviceName);
+
   // Mkdir
-  const newServiceDir = path.join(rootProjectPath, serviceName);
   shelljs.mkdir("-p", newServiceDir);
 
   // Create azure pipelines yaml in directory
   await generateAzurePipelinesYaml(rootProjectPath, newServiceDir);
 
+  // Create .gitignore file in directory
+
   // add maintainers to file in parent repo file
+  const newUser = {
+    email: "hello@example.com",
+    name: "testUser"
+  } as IUser;
+
+  // const newServiceRelativeDir = path.join(".", packagesDir, "serviceName");
+  // logger.info(`newServiceRelativeDir: ${newServiceRelativeDir}`);
+  const newServiceRelPath = path.relative(rootProjectPath, newServiceDir);
+  logger.info(`newServiceRelPath: ${newServiceRelPath}`);
+
+  await addNewServiceToMaintainersFile(
+    path.join(rootProjectPath, "maintainers.yaml"),
+    newServiceRelPath,
+    [newUser]
+  );
 
   // Add relevant bedrock info to parent bedrock.yaml
+
+  // If requested, create new git branch, commit, and push
 };
