@@ -222,6 +222,8 @@ export const printDeployments = (
       row.push("Manifest Commit");
       row.push("End Time");
     }
+
+    // tslint:disable: object-literal-sort-keys
     const table = new Table({
       head: row,
       chars: {
@@ -243,6 +245,8 @@ export const printDeployments = (
       },
       style: { "padding-left": 0, "padding-right": 0 }
     });
+    // tslint:enable: object-literal-sort-keys
+
     deployments.forEach(deployment => {
       row = [];
       row.push(

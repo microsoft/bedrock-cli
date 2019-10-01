@@ -68,6 +68,7 @@ const starterAzurePipelines = async (opts: {
     .map(p => (p.startsWith("./") === false ? "./" + p : p));
 
   // based on https://github.com/andrebriggs/monorepo-example/blob/master/service-A/azure-pipelines.yml
+  // tslint:disable: object-literal-sort-keys
   const starter: IAzurePipelinesYaml = {
     trigger: {
       branches: { include: branches },
@@ -112,6 +113,7 @@ const starterAzurePipelines = async (opts: {
       }
     ]
   };
+  // tslint:enable: object-literal-sort-keys
 
   return yaml.safeDump(starter, { lineWidth: Number.MAX_SAFE_INTEGER });
 };

@@ -1,8 +1,8 @@
 import commander from "commander";
 import path from "path";
 import shelljs from "shelljs";
-import { logger } from "../../logger";
 import { generateAzurePipelinesYaml } from "../../lib/fileutils";
+import { logger } from "../../logger";
 
 /**
  * Adds the init command to the commander command object
@@ -50,8 +50,8 @@ export const createCommandDecorator = (command: commander.Command): void => {
           );
         }
         await createService(projectPath, serviceName, {
-          maintainerName,
-          maintainerEmail
+          maintainerEmail,
+          maintainerName
         });
       } catch (err) {
         logger.error(

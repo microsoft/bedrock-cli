@@ -1,8 +1,8 @@
 trigger:
-- master
+  - master
 
 pr:
-- master
+  - master
 
 strategy:
   matrix:
@@ -15,30 +15,37 @@ strategy:
   maxParallel: 3
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: "ubuntu-latest"
 
 steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: "$(node_version)"
-  displayName: 'Install Node.js'
+  - task: NodeTool@0
+    inputs:
+      versionSpec: "$(node_version)"
+    displayName: "Install Node.js"
 
-- script: |
-    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-  displayName: 'Install az-cli'
+  - script: |
+      curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+    displayName: "Install az-cli"
 
-- script: |
-    yarn
-    yarn build
-  displayName: 'YARN BUILD'
+  - script: |
+      yarn
+      yarn build
+    displayName: "YARN INSTALL"
 
-- script: |
-    yarn test
-  displayName: 'YARN TEST'
+  - script: |
+      yarn lint
+    displayName: "YARN LINT"
 
-- task: PublishCodeCoverageResults@1
-  inputs: 
-    codeCoverageTool: Cobertura
-    summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/*coverage.xml'
-    reportDirectory: '$(System.DefaultWorkingDirectory)/**/coverage'
-    
+  - script: |
+      yarn build
+    displayName: "YARN BUILD"
+
+  - script: |
+      yarn test
+    displayName: "YARN TEST"
+
+  - task: PublishCodeCoverageResults@1
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: "$(System.DefaultWorkingDirectory)/**/*coverage.xml"
+      reportDirectory: "$(System.DefaultWorkingDirectory)/**/coverage"

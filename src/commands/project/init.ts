@@ -4,9 +4,9 @@ import yaml from "js-yaml";
 import path from "path";
 import shelljs from "shelljs";
 import { promisify } from "util";
+import { generateAzurePipelinesYaml } from "../../lib/fileutils";
 import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
-import { generateAzurePipelinesYaml } from "../../lib/fileutils";
 import { IBedrockFile, IMaintainersFile } from "../../types";
 
 /**

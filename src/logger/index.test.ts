@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import uuid from "uuid/v4";
-import { enableVerboseLogging, logger, disableVerboseLogging } from ".";
+import { disableVerboseLogging, enableVerboseLogging, logger } from ".";
 
 const logFile = path.join(process.cwd(), "spk.log");
 

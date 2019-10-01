@@ -67,6 +67,7 @@ interface IPipeline {
  * Interface that describes a Pipeline Configuration for an Azure DevOps
  * backed git repository.
  */
+// tslint:disable-next-line: no-empty-interface
 export interface IAzureRepoPipelineConfig extends IPipeline {}
 
 /**

@@ -21,9 +21,10 @@ jobs:
       - name: install az cli
         run: |
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-      - name: yarn install, build, and test
+      - name: yarn install, lint, build, and test
         run: |
           yarn
+          yarn lint
           yarn build
           yarn test
         env:
