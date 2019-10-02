@@ -16,6 +16,7 @@
     "@types/cli-table": "^0.3.0",
     "@types/jest": "^24.0.18",
     "@types/js-yaml": "^3.12.1",
+    "@types/mock-fs": "^3.6.30",
     "@types/node": "^12.7.4",
     "@types/node-emoji": "^1.8.1",
     "@types/shelljs": "^0.8.5",
@@ -50,7 +51,6 @@
     ]
   },
   "dependencies": {
-    "@types/mock-fs": "^3.6.30",
     "azure-devops-node-api": "^9.0.1",
     "cli-table": "^0.3.1",
     "commander": "^3.0.1",
