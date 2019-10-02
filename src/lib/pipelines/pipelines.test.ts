@@ -2,9 +2,9 @@ jest.mock("./pipelines");
 
 import {
   createPipelineForDefinition,
-  initBuildApiClient,
   IAzureRepoPipelineConfig,
   IGithubRepoPipelineConfig,
+  initBuildApiClient,
   RepositoryTypes
 } from "./pipelines";
 
