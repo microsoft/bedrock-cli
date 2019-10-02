@@ -1,5 +1,4 @@
 import fs from "fs";
-import yaml from "js-yaml";
 import os from "os";
 import path from "path";
 import { promisify } from "util";
@@ -9,7 +8,10 @@ import {
   enableVerboseLogging,
   logger
 } from "../../logger";
-import { IMaintainersFile } from "../../types";
+import {
+  createTestBedrockYaml,
+  createTestMaintainersYaml
+} from "../../test/mockFactory";
 import { createService } from "./create";
 
 beforeAll(() => {
@@ -24,15 +26,20 @@ describe("Adding a service to a repo directory", () => {
   test("New directory is created under root directory with required service files.", async () => {
     // Create random directory to initialize
     const randomTmpDir = path.join(os.tmpdir(), uuid());
+
     fs.mkdirSync(randomTmpDir);
+
+    logger.debug(randomTmpDir);
 
     await writeSampleMaintainersFileToDir(
       path.join(randomTmpDir, "maintainers.yaml")
     );
+    await writeSampleBedrockFileToDir(path.join(randomTmpDir, "bedrock.yaml"));
 
     const packageDir = "";
 
     const serviceName = uuid();
+
     logger.info(
       `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
     );
@@ -64,9 +71,12 @@ describe("Adding a service to a repo directory", () => {
     const randomTmpDir = path.join(os.tmpdir(), uuid());
     fs.mkdirSync(randomTmpDir);
 
+    logger.debug(randomTmpDir);
+
     await writeSampleMaintainersFileToDir(
       path.join(randomTmpDir, "maintainers.yaml")
     );
+    await writeSampleBedrockFileToDir(path.join(randomTmpDir, "bedrock.yaml"));
 
     const packageDir = "packages";
 
@@ -99,29 +109,17 @@ describe("Adding a service to a repo directory", () => {
 });
 
 const writeSampleMaintainersFileToDir = async (maintainersFilePath: string) => {
-  const content: IMaintainersFile = {
-    services: {
-      "./": {
-        maintainers: [
-          {
-            email: "somegithubemailg@users.noreply.github.com",
-            name: "my name"
-          }
-        ]
-      },
-      "./packages/service1": {
-        maintainers: [
-          {
-            email: "hello@users.noreply.github.com",
-            name: "testUser"
-          }
-        ]
-      }
-    }
-  };
   await promisify(fs.writeFile)(
     maintainersFilePath,
-    yaml.safeDump(content),
+    createTestMaintainersYaml(),
+    "utf8"
+  );
+};
+
+const writeSampleBedrockFileToDir = async (bedrockFilePath: string) => {
+  await promisify(fs.writeFile)(
+    bedrockFilePath,
+    createTestBedrockYaml(),
     "utf8"
   );
 };

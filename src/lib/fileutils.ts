@@ -4,7 +4,13 @@ import yaml from "js-yaml";
 import path from "path";
 import { promisify } from "util";
 import { logger } from "../logger";
-import { IAzurePipelinesYaml, IMaintainersFile, IUser } from "../types";
+import {
+  IAzurePipelinesYaml,
+  IBedrockFile,
+  IMaintainersFile,
+  IUser,
+  IHelmConfig
+} from "../types";
 
 /**
  * Writes out the starter azure-pipelines.yaml file to `targetPath`
@@ -170,4 +176,32 @@ export const generateGitIgnoreFile = (
 
   logger.info(`Writing .gitignore file to ${gitIgnoreFilePath}`);
   fs.writeFileSync(gitIgnoreFilePath, content, "utf8");
+}
+
+/**
+ * Update bedrock.yml with new service
+ *
+ * @param bedrockFilePath
+ * @param newServicePath
+ */
+export const addNewServiceToBedrockFile = (
+  bedrockFilePath: string,
+  newServicePath: string,
+  helmConfig: IHelmConfig
+) => {
+  logger.warn("hello!");
+
+  const bedrockFile = yaml.safeLoad(
+    fs.readFileSync(bedrockFilePath, "utf8")
+  ) as IBedrockFile;
+
+  logger.warn("hello!");
+  logger.debug(bedrockFile);
+
+  bedrockFile.services["./" + newServicePath] = {
+    helm: helmConfig
+  };
+
+  logger.info("Updating bedrock.yaml");
+  fs.writeFileSync(bedrockFilePath, yaml.safeDump(bedrockFile), "utf8");
 };

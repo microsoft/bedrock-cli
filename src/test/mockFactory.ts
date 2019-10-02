@@ -1,5 +1,5 @@
 import yaml from "js-yaml";
-import { IMaintainersFile } from "../types";
+import { IBedrockFile, IHelmConfig, IMaintainersFile } from "../types";
 
 export const createTestMaintainersYaml = (
   asString = true
@@ -21,6 +21,49 @@ export const createTestMaintainersYaml = (
             name: "testUser"
           }
         ]
+      }
+    }
+  };
+
+  return asString ? yaml.dump(data) : data;
+};
+
+export const createTestBedrockYaml = (
+  asString = true
+): IBedrockFile | string => {
+  const service1HelmConfig: IHelmConfig = {
+    chart: {
+      branch: "master",
+      git: "https://github.com/catalystcode/spk-demo-repo.git",
+      path: ""
+    }
+  };
+
+  const service2HelmConfig: IHelmConfig = {
+    chart: {
+      branch: "master",
+      git: "https://github.com/catalystcode/spk-demo-repo.git",
+      path: "/service1"
+    }
+  };
+
+  const zookeeperHelmConfig: IHelmConfig = {
+    chart: {
+      chart: "zookeeper",
+      repository: "https://kubernetes-charts-incubator.storage.googleapis.com/"
+    }
+  };
+
+  const data: IBedrockFile = {
+    services: {
+      "./": {
+        helm: service1HelmConfig
+      },
+      "./packages/service1": {
+        helm: service2HelmConfig
+      },
+      "./zookeeper": {
+        helm: zookeeperHelmConfig
       }
     }
   };

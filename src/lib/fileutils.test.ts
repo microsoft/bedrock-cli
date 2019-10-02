@@ -2,13 +2,17 @@ import fs from "fs";
 import mockFs from "mock-fs";
 
 import yaml from "js-yaml";
-import { createTestMaintainersYaml } from "../test/mockFactory";
+import {
+  createTestBedrockYaml,
+  createTestMaintainersYaml
+} from "../test/mockFactory";
 
 import path from "path";
 
-import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
-import { IMaintainersFile, IUser } from "../types";
+import { disableVerboseLogging, enableVerboseLogging } from "../logger";
+import { IBedrockFile, IHelmConfig, IMaintainersFile } from "../types";
 import {
+  addNewServiceToBedrockFile,
   addNewServiceToMaintainersFile,
   generateGitIgnoreFile
 } from "./fileutils";
@@ -21,10 +25,10 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
-describe("Adding a new service", () => {
+describe("Adding a new service to a Maintainer file", () => {
   beforeAll(() => {
     mockFs({
-      "maintainers.yml": createTestMaintainersYaml() as any
+      "maintainers.yaml": createTestMaintainersYaml() as any
     });
   });
 
@@ -37,7 +41,7 @@ describe("Adding a new service", () => {
   });
 
   it("should update existing maintainers.yml with new service maintainers", async () => {
-    const maintainersFilePath = "maintainers.yml";
+    const maintainersFilePath = "maintainers.yaml";
 
     const servicePath = "packages/my-new-service";
     const newUser = {
@@ -46,9 +50,7 @@ describe("Adding a new service", () => {
     };
 
     const writeSpy = jest.spyOn(fs, "writeFileSync");
-    await addNewServiceToMaintainersFile(maintainersFilePath, servicePath, [
-      newUser
-    ]);
+    addNewServiceToMaintainersFile(maintainersFilePath, servicePath, [newUser]);
 
     const defaultMaintainersFileObject = createTestMaintainersYaml(false);
 
@@ -102,5 +104,53 @@ describe("generating service gitignore file", () => {
     const expedtedGitIgnoreFilePath = `${absTargetPath}/.gitignore`;
 
     expect(writeSpy).toBeCalledWith(expedtedGitIgnoreFilePath, content, "utf8");
+  });
+});
+
+describe("Adding a new service to a Bedrock file", () => {
+  beforeAll(() => {
+    mockFs({
+      "bedrock.yaml": createTestBedrockYaml() as any
+    });
+  });
+
+  afterAll(() => {
+    mockFs.restore();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should update existing bedrock.yml with a new service and its helm chart config", async () => {
+    const bedrockFilePath = "bedrock.yaml";
+
+    const servicePath = "packages/my-new-service";
+    const helmConfig: IHelmConfig = {
+      chart: {
+        chart: "somehelmchart",
+        repository: "somehelmrepository"
+      }
+    };
+
+    const writeSpy = jest.spyOn(fs, "writeFileSync");
+    addNewServiceToBedrockFile(bedrockFilePath, servicePath, helmConfig);
+
+    const defaultBedrockFileObject = createTestBedrockYaml(false);
+
+    const expected: IBedrockFile = {
+      services: {
+        ...((defaultBedrockFileObject as any) as IBedrockFile).services,
+        ["./" + servicePath]: {
+          helm: helmConfig
+        }
+      }
+    };
+
+    expect(writeSpy).toBeCalledWith(
+      bedrockFilePath,
+      yaml.safeDump(expected),
+      "utf8"
+    );
   });
 });

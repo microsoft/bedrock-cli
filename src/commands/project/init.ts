@@ -10,7 +10,7 @@ import {
 } from "../../lib/fileutils";
 import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
-import { IBedrockFile, IMaintainersFile } from "../../types";
+import { IBedrockFile, IMaintainersFile, IHelmConfig } from "../../types";
 
 /**
  * Adds the init command to the commander command object
@@ -223,8 +223,17 @@ const generateBedrockFile = async (
         absProjectPath,
         absPackagePath
       );
+
+      const helm: IHelmConfig = {
+        chart: {
+          branch: "",
+          git: "",
+          path: ""
+        }
+      };
+
       file.services["./" + relPathToPackageFromRoot] = {
-        helm: { chart: { git: "", branch: "", path: "" } }
+        helm
       };
       return file;
     },
