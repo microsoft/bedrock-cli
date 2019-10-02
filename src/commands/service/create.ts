@@ -62,8 +62,8 @@ export const createCommandDecorator = (command: commander.Command): void => {
           );
         }
         await createService(projectPath, serviceName, packagesDir, {
-          maintainerName,
-          maintainerEmail
+          maintainerEmail,
+          maintainerName
         });
       } catch (err) {
         logger.error(
@@ -85,7 +85,7 @@ export const createService = async (
   rootProjectPath: string,
   serviceName: string,
   packagesDir: string,
-  opts?: { maintainerName: string; maintainerEmail: string }
+  opts?: { maintainerEmail: string; maintainerName: string }
 ) => {
   const { maintainerName, maintainerEmail } = opts || {};
 
