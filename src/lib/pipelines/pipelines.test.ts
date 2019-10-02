@@ -1,6 +1,8 @@
+jest.mock("./pipelines");
+
 import {
-  definitionForAzureRepoPipeline,
-  definitionForGithubRepoPipeline,
+  createPipelineForDefinition,
+  initBuildApiClient,
   IAzureRepoPipelineConfig,
   IGithubRepoPipelineConfig,
   RepositoryTypes
@@ -14,6 +16,8 @@ import {
 
 describe("It builds an azure repo pipeline definition", () => {
   let sampleAzureConfig: IAzureRepoPipelineConfig;
+
+  const { definitionForAzureRepoPipeline } = jest.requireActual("./pipelines");
 
   beforeEach(() => {
     sampleAzureConfig = {
@@ -49,6 +53,8 @@ describe("It builds an azure repo pipeline definition", () => {
 
 describe("It builds a github repo pipeline definition", () => {
   let sampleGithubConfig: IGithubRepoPipelineConfig;
+
+  const { definitionForGithubRepoPipeline } = jest.requireActual("./pipelines");
 
   beforeEach(() => {
     sampleGithubConfig = {

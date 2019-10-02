@@ -2,6 +2,7 @@ import { getPersonalAccessTokenHandler, WebApi } from "azure-devops-node-api";
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
 import {
   AgentPoolQueue,
+  Build,
   BuildDefinition,
   BuildRepository,
   ContinuousIntegrationTrigger,
@@ -41,7 +42,7 @@ export const getBuildApiClient = async (
   );
 };
 
-const initBuildApiClient = async (
+export const initBuildApiClient = async (
   tokenHandler: (n: string) => any,
   webapi: typeof WebApi,
   orgUrl: string,
@@ -94,7 +95,8 @@ export const definitionForAzureRepoPipeline = (
       batchChanges: false,
       branchFilters: pipelineConfig.branchFilters,
       maxConcurrentBuildsPerBranch: pipelineConfig.maximumConcurrentBuilds,
-      type: DefinitionTriggerType.ContinuousIntegration
+      settingsSourceType: 2,
+      triggerType: DefinitionTriggerType.ContinuousIntegration
     } as ContinuousIntegrationTrigger
   ];
 
@@ -143,7 +145,8 @@ export const definitionForGithubRepoPipeline = (
       batchChanges: false,
       branchFilters: pipelineConfig.branchFilters,
       maxConcurrentBuildsPerBranch: pipelineConfig.maximumConcurrentBuilds,
-      type: DefinitionTriggerType.ContinuousIntegration
+      settingsSourceType: 2,
+      triggerType: DefinitionTriggerType.ContinuousIntegration
     } as ContinuousIntegrationTrigger
   ];
 
@@ -191,5 +194,34 @@ export const createPipelineForDefinition = async (
   azdoProject: string,
   definition: BuildDefinition
 ): Promise<BuildDefinition> => {
-  return buildApi.createDefinition(definition, azdoProject);
+  try {
+    return await buildApi.createDefinition(definition, azdoProject);
+  } catch (e) {
+    throw new Error("Error creating definition");
+  }
+};
+
+/**
+ * Queue a build on a pipeline.
+ * @param buildApi BuildApi Client for Azure Devops
+ * @param azdoProject Azure DevOps Project within the authenticated Organization.
+ * @param definitionId A Build Definition ID.
+ * @returns Build object that was created by the Build API Clients
+ */
+export const queueBuild = async (
+  buildApi: IBuildApi,
+  azdoProject: string,
+  definitionId: number
+): Promise<Build> => {
+  const buildReference = {
+    definition: {
+      id: definitionId
+    }
+  } as Build;
+
+  try {
+    return await buildApi.queueBuild(buildReference, azdoProject);
+  } catch (e) {
+    throw new Error("Error queueing build");
+  }
 };
