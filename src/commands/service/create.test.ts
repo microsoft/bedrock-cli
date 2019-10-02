@@ -1,15 +1,15 @@
 import fs from "fs";
+import yaml from "js-yaml";
 import os from "os";
 import path from "path";
+import { promisify } from "util";
 import uuid from "uuid/v4";
-import yaml from "js-yaml";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
   logger
 } from "../../logger";
 import { createService } from "./create";
-import { promisify } from "util";
 
 beforeAll(() => {
   enableVerboseLogging();
