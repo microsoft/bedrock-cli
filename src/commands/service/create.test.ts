@@ -9,6 +9,7 @@ import {
   enableVerboseLogging,
   logger
 } from "../../logger";
+import { IMaintainersFile } from "../../types";
 import { createService } from "./create";
 
 beforeAll(() => {
@@ -98,7 +99,7 @@ describe("Adding a service to a repo directory", () => {
 });
 
 const writeSampleMaintainersFileToDir = async (maintainersFilePath: string) => {
-  const content = {
+  const content: IMaintainersFile = {
     services: {
       "./": {
         maintainers: [
