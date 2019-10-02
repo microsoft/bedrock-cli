@@ -13,6 +13,7 @@
  */
 import { Command, executeCommand } from "./commands/command";
 import { deploymentCommand } from "./commands/deployment";
+import { infraCommand } from "./commands/infra";
 import { projectCommand } from "./commands/project";
 import { serviceCommand } from "./commands/service";
 
@@ -27,7 +28,7 @@ const rootCommand = Command(
       c.version(require("../package.json").version);
     }
   ],
-  [deploymentCommand, projectCommand, serviceCommand]
+  [deploymentCommand, projectCommand, serviceCommand, infraCommand]
 );
 
 ////////////////////////////////////////////////////////////////////////////////
