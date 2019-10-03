@@ -13,7 +13,7 @@ beforeAll(async () => {
   enableVerboseLogging();
   // Remove once check for Bedrock source is integrated with `spk infra init`
   if (!fs.existsSync(".bedrock")) {
-    const cloneBedrock = await exec("git", [
+    await exec("git", [
       "clone",
       "https://github.com/microsoft/bedrock.git",
       ".bedrock"
@@ -24,6 +24,10 @@ beforeAll(async () => {
 });
 afterAll(() => {
   disableVerboseLogging();
+  // Remove .bedrock after testing
+  if (fs.existsSync(".bedrock")) {
+    exec("rm", ["-rf", ".bedrock"]);
+  }
   jest.setTimeout(5000);
 });
 
