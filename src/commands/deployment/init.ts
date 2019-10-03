@@ -1,8 +1,14 @@
 import commander from "commander";
 import * as fs from "fs";
 import * as os from "os";
+import { resolve } from "path";
 import AzureDevOpsPipeline from "spektate/lib/pipeline/AzureDevOpsPipeline";
 import IPipeline from "spektate/lib/pipeline/Pipeline";
+import { setSecret } from "../../lib/azure/keyvault";
+import {
+  createStorageAccountIfNotExists,
+  getStorageAccountKey
+} from "../../lib/azure/storage";
 import { logger } from "../../logger";
 
 export let config: { [id: string]: string } = {};
@@ -57,6 +63,18 @@ export const initCommandDecorator = (command: commander.Command): void => {
       "-t, --storage-table-name <storage-table-name>",
       "Name of the table in storage"
     )
+    .option(
+      "-l, --storage-location <storage-location>",
+      "Azure location for Storage account and resource group when they do not exist"
+    )
+    .option(
+      "-r, --storage-resource-group-name <storage-resource-group-name>",
+      "Name of the resource group for the storage account"
+    )
+    .option(
+      "-v, --key-vault-name <key-vault-name>",
+      "Name of the Azure key vault"
+    )
     .action(async opts => {
       try {
         if (
@@ -65,7 +83,10 @@ export const initCommandDecorator = (command: commander.Command): void => {
           opts.storageAccountKey &&
           opts.storageAccountName &&
           opts.storagePartitionKey &&
-          opts.storageTableName
+          opts.storageTableName &&
+          opts.storageResourceGroupName &&
+          opts.storageLocation &&
+          opts.keyVaultName
         ) {
           config.AZURE_ORG = opts.azureOrg;
           config.AZURE_PROJECT = opts.azureProject;
@@ -77,7 +98,16 @@ export const initCommandDecorator = (command: commander.Command): void => {
           config.STORAGE_TABLE_NAME = opts.storageTableName;
           config.AZURE_PIPELINE_ACCESS_TOKEN = opts.azurePipelineAccessToken;
           config.MANIFEST_ACCESS_TOKEN = opts.manifestAccessToken;
+          config.STORAGE_LOCATION = opts.storageLocation;
+          config.STORAGE_RESOURCE_GROUP_NAME = opts.storageResourceGroupName;
+          config.KEY_VAULT_NAME = opts.keyVaultName;
           writeConfigToFile(config);
+          await initialize(
+            config.STORAGE_RESOURCE_GROUP_NAME,
+            config.STORAGE_ACCOUNT_NAME,
+            config.STORAGE_LOCATION,
+            config.KEY_VAULT_NAME
+          );
         } else {
           logger.info(
             "You need to specify each of the config settings in order to run any command."
@@ -88,6 +118,45 @@ export const initCommandDecorator = (command: commander.Command): void => {
         logger.error(err);
       }
     });
+};
+
+/**
+ * Creates the Storage account `accountName` in resource group `resourceGroup`, sets storage account access key in keyvalut, and updates pipelines (acr-hld, hld->manifests)
+ *
+ * @param resourceGroup Name of Azure reesource group
+ * @param accountName The Azure storage account name
+ * @param location The Azure storage account location
+ */
+export const initialize = async (
+  resourceGroup: string,
+  accountName: string,
+  location: string,
+  keyVaultName: string
+) => {
+  logger.info(
+    `init called with ${resourceGroup}, ${accountName}, ${location}, and ${keyVaultName}`
+  );
+  await createStorageAccountIfNotExists(resourceGroup, accountName, location);
+  logger.info(
+    `Storage account ${accountName} in ${resourceGroup} initialization is complete.`
+  );
+
+  const key = await getStorageAccountKey(resourceGroup, accountName);
+
+  if (key === undefined) {
+    const errorMessage: string = `Storage account ${accountName} access keys in resource group ${resourceGroup}is not available`;
+    logger.error(errorMessage);
+    throw new Error(errorMessage);
+  }
+
+  logger.debug(
+    `Calling setSecret with storage account primary key ${key} and ${keyVaultName}`
+  );
+  await setSecret(keyVaultName, `${accountName}Key`, key!);
+
+  // TODO: Update acr -> hld pipeline
+
+  // TODO: Update hld -> manifest pipeline
 };
 
 /**
@@ -130,11 +199,17 @@ export const verifyAppConfiguration = async (): Promise<void> => {
     config.AZURE_PROJECT === "" ||
     config.AZURE_PROJECT === undefined ||
     config.AZURE_ORG === "" ||
-    config.AZURE_ORG === undefined
+    config.AZURE_ORG === undefined ||
+    config.STORAGE_LOCATION === "" ||
+    config.STORAGE_LOCATION === undefined ||
+    config.STORAGE_RESOURCE_GROUP_NAME === "" ||
+    config.STORAGE_RESOURCE_GROUP_NAME === undefined ||
+    config.KEY_VAULT_NAME === "" ||
+    config.KEY_VAULT_NAME === undefined
   ) {
-    return new Promise(async resolve => {
+    return new Promise(async resolvePromise => {
       await configureAppFromFile();
-      resolve();
+      resolvePromise();
     });
   } else {
     initializePipelines();
@@ -145,7 +220,7 @@ export const verifyAppConfiguration = async (): Promise<void> => {
  * Loads configuration from a file
  */
 export const configureAppFromFile = async (): Promise<void> => {
-  return new Promise(async (resolve, reject) => {
+  return new Promise(async (resolvePromise, reject) => {
     await fs.readFile(fileLocation, "utf8", (error, data) => {
       if (error) {
         logger.error(error);
@@ -159,7 +234,7 @@ export const configureAppFromFile = async (): Promise<void> => {
         config[key] = value;
       });
       initializePipelines();
-      resolve();
+      resolvePromise();
     });
   });
 };
