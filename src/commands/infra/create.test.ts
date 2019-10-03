@@ -1,6 +1,7 @@
 import child_process from "child_process";
 import fs, { chmod } from "fs";
 import path from "path";
+import shell from "shelljs";
 import { exec } from "../../lib/shell";
 import {
   disableVerboseLogging,
@@ -26,7 +27,7 @@ afterAll(() => {
   disableVerboseLogging();
   // Remove .bedrock after testing
   if (fs.existsSync(".bedrock")) {
-    exec("rm", ["-rf", ".bedrock"]);
+    shell.rm("-rf", ".bedrock");
   }
   jest.setTimeout(5000);
 });
