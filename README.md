@@ -4,6 +4,36 @@
 
 > This missing Bedrock CLI
 
+## Initialize
+
+In order to start using spk, you need to specify configuration in a yaml file.
+Please refer to the config file located [here](./spk-config.yaml) and follow the
+same format.
+
+If you would like to specify private keys or access tokens that should **not be
+stored in raw text**, follow the steps below.
+
+```yaml
+---
+account_name: "someHardcodedValue"
+table_name: "anotherNonPrivateKey"
+key: "${env:ACCESS_KEY}"
+partition_key: "canBeStoredInRawTextKey"
+```
+
+You may refer to environment variables in your shell if you specify them in the
+format "env:{VARIABLE_NAME}". `spk` will be able to use them from your current
+shell. Make sure that if you open a new shell window, these variables will have
+to be set again, otherwise, `spk` will throw an error on trying to use them.
+
+A recommended approach is to have a `.env` file in your folder (make sure it's
+gitignored!) with all variables and their values. By default, the `spk` tool
+should be able to load these into your local env and use them to replace the
+placeholders in the config file you pass in.
+
+Run the `spk init -f <filename>` command, and then you should be all set to
+start using the `spk` tool!
+
 ## Getting Started
 
 ### System Prerequisites

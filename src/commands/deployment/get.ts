@@ -1,15 +1,13 @@
 import Table from "cli-table";
 import commander from "commander";
 import Deployment from "spektate/lib/Deployment";
+import AzureDevOpsPipeline from "spektate/lib/pipeline/AzureDevOpsPipeline";
+import IPipeline from "spektate/lib/pipeline/Pipeline";
 import { logger } from "../../logger";
-import {
-  clusterPipeline,
-  config,
-  hldPipeline,
-  srcPipeline,
-  verifyAppConfiguration
-} from "./init";
-
+import { config } from "../init";
+export let hldPipeline: IPipeline;
+export let clusterPipeline: IPipeline;
+export let srcPipeline: IPipeline;
 /**
  * Output formats to display service details
  */
@@ -72,29 +70,28 @@ export const getCommandDecorator = (command: commander.Command): void => {
     .option("-w, --watch", "Watch the deployments for a live view")
     .action(async opts => {
       try {
-        verifyAppConfiguration().then(() => {
-          if (opts.watch) {
-            watchGetDeployments(
-              processOutputFormat(opts.output),
-              opts.env,
-              opts.imageTag,
-              opts.buildId,
-              opts.commitId,
-              opts.service,
-              opts.deploymentId
-            );
-          } else {
-            getDeployments(
-              processOutputFormat(opts.output),
-              opts.env,
-              opts.imageTag,
-              opts.buildId,
-              opts.commitId,
-              opts.service,
-              opts.deploymentId
-            );
-          }
-        });
+        initialize();
+        if (opts.watch) {
+          watchGetDeployments(
+            processOutputFormat(opts.output),
+            opts.env,
+            opts.imageTag,
+            opts.buildId,
+            opts.commitId,
+            opts.service,
+            opts.deploymentId
+          );
+        } else {
+          getDeployments(
+            processOutputFormat(opts.output),
+            opts.env,
+            opts.imageTag,
+            opts.buildId,
+            opts.commitId,
+            opts.service,
+            opts.deploymentId
+          );
+        }
       } catch (err) {
         logger.error(`Error occurred while getting deployment(s)`);
         logger.error(err);
@@ -136,10 +133,10 @@ export const getDeployments = (
   deploymentId?: string
 ): Promise<Deployment[]> => {
   return Deployment.getDeploymentsBasedOnFilters(
-    config.STORAGE_ACCOUNT_NAME,
-    config.STORAGE_ACCOUNT_KEY,
-    config.STORAGE_TABLE_NAME,
-    config.STORAGE_PARTITION_KEY,
+    config.deployment!.storage!.account_name!,
+    config.deployment!.storage!.key!,
+    config.deployment!.storage!.table_name!,
+    config.deployment!.storage!.partition_key!,
     srcPipeline,
     hldPipeline,
     clusterPipeline,
@@ -157,6 +154,46 @@ export const getDeployments = (
     }
     return deployments;
   });
+};
+
+/**
+ * Initializes the pipelines assuming that the configuration has been loaded
+ */
+const initialize = () => {
+  if (
+    !config.deployment ||
+    !config.deployment.pipeline ||
+    !config.deployment.storage ||
+    !config.deployment.pipeline.org ||
+    !config.deployment.pipeline.project ||
+    !config.deployment.storage.account_name ||
+    !config.deployment.storage.table_name ||
+    !config.deployment.storage.key ||
+    !config.deployment.storage.partition_key
+  ) {
+    logger.error("You need to run `spk init` to initialize.");
+    process.exit(1);
+    return;
+  }
+
+  srcPipeline = new AzureDevOpsPipeline(
+    config.deployment.pipeline.org,
+    config.deployment.pipeline.project,
+    false,
+    config.deployment.pipeline.access_token
+  );
+  hldPipeline = new AzureDevOpsPipeline(
+    config.deployment.pipeline.org,
+    config.deployment.pipeline.project,
+    true,
+    config.deployment.pipeline.access_token
+  );
+  clusterPipeline = new AzureDevOpsPipeline(
+    config.deployment.pipeline.org,
+    config.deployment.pipeline.project,
+    false,
+    config.deployment.pipeline.access_token
+  );
 };
 
 /**

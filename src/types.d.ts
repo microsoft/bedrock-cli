@@ -72,3 +72,41 @@ export interface IAzurePipelinesYaml {
     script?: string;
   }>;
 }
+
+export interface IConfigYaml {
+  infra?: {
+    terraform_check?: boolean;
+    git_check?: boolean;
+    helm_check?: boolean;
+    az_cli_check?: boolean;
+    env_var_check?: boolean;
+    terraform?: string;
+    helm?: string;
+    git?: string;
+    bedrock?: {
+      source?: string;
+      tag?: string;
+      repo_type?: string;
+      private_repo_key?: string;
+    };
+    azure?: {
+      // TBD
+    };
+  };
+  deployment?: {
+    storage?: {
+      account_name?: string;
+      table_name?: string;
+      key?: string;
+      partition_key?: string;
+    };
+    pipeline?: {
+      org?: string;
+      project?: string;
+      access_token?: string;
+    };
+  };
+  services?: {
+    // TBD
+  };
+}

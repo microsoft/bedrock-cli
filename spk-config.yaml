@@ -1,0 +1,45 @@
+infra:
+  terraform_check: true
+  git_check: true
+  helm_check: true
+  az_cli_check: true
+  env_var_check: true
+  terraform: "v0.12.6"
+  helm: "v2.14.3"
+  git: "2.17.1"
+  bedrock:
+    # Releases are through tags / branches
+    source: "git@github.com:microsoft/bedrock.git"
+    tag:
+    repo_type: "Public"
+    private_repo_key:
+  azure:
+    az_cli:
+      azure_cli: "2.0.70"
+      Extensions:
+        aks_preview: "0.4.14"
+        # Support for Key vault / AzDO var groups / .env
+    az_auth:
+      service_principal_id: "client-id"
+      service_principal_secret: "client-secret"
+      subscription_id: "subscription-id"
+      tenant_id: "tenant-id"
+    az_backend:
+      resource_group_name: "StorageAccount-ResourceGroup"
+      storage_account_name: "abcd1234"
+      container_name: "tf-state"
+      key: "prod.terraform.tf-state"
+deployment:
+  storage:
+    account_name: "storagename"
+    table_name: "deployments"
+    partition_key: "partitionname"
+    key: "private-access-key"
+  pipeline:
+    org: "epicstuff"
+    project: "hellobedrock"
+    access_token: "test-token"
+services:
+  project_name:
+  PAT:
+  Devops_org:
