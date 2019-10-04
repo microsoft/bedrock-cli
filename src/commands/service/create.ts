@@ -5,7 +5,8 @@ import { logger } from "../../logger";
 
 import {
   addNewServiceToMaintainersFile,
-  generateAzurePipelinesYaml
+  generateAzurePipelinesYaml,
+  generateGitIgnoreFile
 } from "../../lib/fileutils";
 import { IUser } from "../../types";
 
@@ -98,6 +99,7 @@ export const createService = async (
 
   // TODO: consider if there is a '/packages' directory to place all services under.
   const newServiceDir = path.join(rootProjectPath, packagesDir, serviceName);
+  logger.info(`servicePath: ${newServiceDir}`);
 
   // Mkdir
   shelljs.mkdir("-p", newServiceDir);
@@ -105,7 +107,8 @@ export const createService = async (
   // Create azure pipelines yaml in directory
   await generateAzurePipelinesYaml(rootProjectPath, newServiceDir);
 
-  // Create .gitignore file in directory
+  // Create empty .gitignore file in directory
+  generateGitIgnoreFile(newServiceDir, "");
 
   // add maintainers to file in parent repo file
   const newUser = {
@@ -115,10 +118,8 @@ export const createService = async (
 
   const newServiceRelativeDir = path.join(".", packagesDir, "serviceName");
   logger.info(`newServiceRelativeDir: ${newServiceRelativeDir}`);
-  // const newServiceRelPath = path.relative(rootProjectPath, newServiceDir);
-  // logger.info(`newServiceRelPath: ${newServiceRelPath}`);
 
-  await addNewServiceToMaintainersFile(
+  addNewServiceToMaintainersFile(
     path.join(rootProjectPath, "maintainers.yaml"),
     newServiceRelativeDir,
     [newUser]

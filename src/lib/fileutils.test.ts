@@ -4,9 +4,14 @@ import mockFs from "mock-fs";
 import yaml from "js-yaml";
 import { createTestMaintainersYaml } from "../test/mockFactory";
 
+import path from "path";
+
 import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
 import { IMaintainersFile, IUser } from "../types";
-import { addNewServiceToMaintainersFile } from "./fileutils";
+import {
+  addNewServiceToMaintainersFile,
+  generateGitIgnoreFile
+} from "./fileutils";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -61,5 +66,41 @@ describe("Adding a new service", () => {
       yaml.safeDump(expected),
       "utf8"
     );
+  });
+});
+
+describe("generating service gitignore file", () => {
+  const targetDirectory = "my-new-service";
+
+  beforeEach(() => {
+    mockFs({
+      "my-new-service": {}
+    });
+  });
+  afterEach(() => {
+    mockFs.restore();
+  });
+
+  const content = "hello world";
+
+  it("should not do anything if file exist", async () => {
+    const mockFsOptions = {
+      [`${targetDirectory}/.gitignore`]: "foobar"
+    };
+    mockFs(mockFsOptions);
+
+    const writeSpy = jest.spyOn(fs, "writeFileSync");
+    generateGitIgnoreFile(targetDirectory, content);
+    expect(writeSpy).not.toBeCalled();
+  });
+
+  it("should generate the file if one does not exist", async () => {
+    const writeSpy = jest.spyOn(fs, "writeFileSync");
+    generateGitIgnoreFile(targetDirectory, content);
+
+    const absTargetPath = path.resolve(targetDirectory);
+    const expedtedGitIgnoreFilePath = `${absTargetPath}/.gitignore`;
+
+    expect(writeSpy).toBeCalledWith(expedtedGitIgnoreFilePath, content, "utf8");
   });
 });

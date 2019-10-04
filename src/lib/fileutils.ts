@@ -144,3 +144,30 @@ export const addNewServiceToMaintainersFile = (
   logger.info("Updating maintainers.yaml");
   fs.writeFileSync(maintainersFilePath, yaml.safeDump(maintainersFile), "utf8");
 };
+
+/**
+ * Writes out a default .gitignore file if one doesn't exist
+ *
+ * @param targetDirectory directory to generate the .gitignore file
+ * @param content content of file
+ */
+export const generateGitIgnoreFile = (
+  targetDirectory: string,
+  content: string
+) => {
+  const absTargetPath = path.resolve(targetDirectory);
+  logger.info(`Generating starter .gitignore in ${absTargetPath}`);
+
+  const gitIgnoreFilePath = path.join(absTargetPath, ".gitignore");
+
+  if (fs.existsSync(gitIgnoreFilePath)) {
+    logger.warn(
+      `Existing .gitignore found at ${gitIgnoreFilePath}, skipping generation`
+    );
+
+    return;
+  }
+
+  logger.info(`Writing .gitignore file to ${gitIgnoreFilePath}`);
+  fs.writeFileSync(gitIgnoreFilePath, content, "utf8");
+};

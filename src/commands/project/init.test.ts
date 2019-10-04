@@ -76,6 +76,9 @@ describe("Initializing a blank mono-repo", () => {
     for (const subProjectDir of randomSubProjectDirs) {
       const filepath = path.join(subProjectDir, "azure-pipelines.yaml");
       expect(fs.existsSync(filepath)).toBe(true);
+
+      const gitIgnoreFilePath = path.join(subProjectDir, ".gitignore");
+      expect(fs.existsSync(gitIgnoreFilePath)).toBe(true);
     }
 
     // azure-pipelines.yaml should not be in the root

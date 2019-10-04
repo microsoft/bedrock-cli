@@ -4,7 +4,10 @@ import yaml from "js-yaml";
 import path from "path";
 import shelljs from "shelljs";
 import { promisify } from "util";
-import { generateAzurePipelinesYaml } from "../../lib/fileutils";
+import {
+  generateAzurePipelinesYaml,
+  generateGitIgnoreFile
+} from "../../lib/fileutils";
 import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
 import { IBedrockFile, IMaintainersFile } from "../../types";
@@ -91,8 +94,12 @@ export const initialize = async (
   // Initialize all paths
   await generateBedrockFile(absProjectRoot, absPackagePaths);
   await generateMaintainersFile(absProjectRoot, absPackagePaths);
+
+  const gitIgnoreFileContent = "spk.log";
+
   for (const absPackagePath of absPackagePaths) {
     await generateAzurePipelinesYaml(absProjectRoot, absPackagePath);
+    generateGitIgnoreFile(absPackagePath, gitIgnoreFileContent);
   }
 
   logger.info(`Project initialization complete!`);
