@@ -63,7 +63,6 @@ export const createCommandDecorator = (command: commander.Command): void => {
       "The email of the primary maintainer for this service.",
       "maintainer email"
     )
-    // TODO: support chart/repository configuration for helm charts.
     .action(async (serviceName, opts) => {
       const {
         helmChartChart,

@@ -26,10 +26,7 @@ describe("Adding a service to a repo directory", () => {
   test("New directory is created under root directory with required service files.", async () => {
     // Create random directory to initialize
     const randomTmpDir = path.join(os.tmpdir(), uuid());
-
     fs.mkdirSync(randomTmpDir);
-
-    logger.debug(randomTmpDir);
 
     await writeSampleMaintainersFileToDir(
       path.join(randomTmpDir, "maintainers.yaml")
@@ -70,8 +67,6 @@ describe("Adding a service to a repo directory", () => {
     // Create random directory to initialize
     const randomTmpDir = path.join(os.tmpdir(), uuid());
     fs.mkdirSync(randomTmpDir);
-
-    logger.debug(randomTmpDir);
 
     await writeSampleMaintainersFileToDir(
       path.join(randomTmpDir, "maintainers.yaml")
