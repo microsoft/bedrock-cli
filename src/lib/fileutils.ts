@@ -7,9 +7,9 @@ import { logger } from "../logger";
 import {
   IAzurePipelinesYaml,
   IBedrockFile,
+  IHelmConfig,
   IMaintainersFile,
-  IUser,
-  IHelmConfig
+  IUser
 } from "../types";
 
 /**
@@ -176,7 +176,7 @@ export const generateGitIgnoreFile = (
 
   logger.info(`Writing .gitignore file to ${gitIgnoreFilePath}`);
   fs.writeFileSync(gitIgnoreFilePath, content, "utf8");
-}
+};
 
 /**
  * Update bedrock.yml with new service

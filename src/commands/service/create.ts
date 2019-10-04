@@ -9,7 +9,7 @@ import {
   generateAzurePipelinesYaml,
   generateGitIgnoreFile
 } from "../../lib/fileutils";
-import { IUser, IHelmConfig } from "../../types";
+import { IHelmConfig, IUser } from "../../types";
 
 /**
  * Adds the init command to the commander command object

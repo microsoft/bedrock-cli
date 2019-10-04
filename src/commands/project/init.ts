@@ -10,7 +10,7 @@ import {
 } from "../../lib/fileutils";
 import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
-import { IBedrockFile, IMaintainersFile, IHelmConfig } from "../../types";
+import { IBedrockFile, IHelmConfig, IMaintainersFile } from "../../types";
 
 /**
  * Adds the init command to the commander command object
