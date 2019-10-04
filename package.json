@@ -11,7 +11,7 @@
     "lint-fix": "tslint --fix 'src/**/*.ts{,x}'",
     "test": "jest --coverage --coverageReporters=cobertura --coverageReporters=html",
     "test-watch": "jest --watchAll",
-    "postinstall": "cd node_modules/azure-devops-node-api && git apply ../../patches/001-azure-devops-node.patch",
+    "postinstall": "cd node_modules/azure-devops-node-api && git apply ../../patches/001-azure-devops-node.patch || true",
     "test-coverage-html": "jest --coverage --coverageReporters=html"
   },
   "devDependencies": {
