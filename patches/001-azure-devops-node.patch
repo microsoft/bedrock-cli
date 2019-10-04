@@ -1,0 +1,11 @@
+--- WebApi.js	2019-09-12 17:26:28.000000000 -0700
++++ WebApi.js	2019-10-03 22:58:02.000000000 -0700
+@@ -145,7 +145,7 @@
+             }
+         }
+         else {
+-            const nodeApiVersion = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf8')).version;
++            const nodeApiVersion = require('./package.json').version;
+             const osName = os.platform();
+             const osVersion = os.release();
+             if (requestSettings) {

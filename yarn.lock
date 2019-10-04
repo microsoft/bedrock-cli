@@ -1098,7 +1098,7 @@ axios@^0.19.0:
     follow-redirects "1.5.10"
     is-buffer "^2.0.2"
 
-azure-devops-node-api@^9.0.1:
+azure-devops-node-api@9.0.1:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/azure-devops-node-api/-/azure-devops-node-api-9.0.1.tgz#ba6dce7f274db01589a653cdbdf43e71e9f9b527"
   integrity sha512-0veE4EWHObJxzwgHlydG65BjNMuLPkR1nzcQ2K51PIho1/F4llpKt3pelC30Vbex5zA9iVgQ9YZGlkkvOBSksw==
