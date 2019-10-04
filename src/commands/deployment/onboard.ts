@@ -18,7 +18,7 @@ export const onboardCommandDecorator = (command: commander.Command): void => {
       "Onboard to use the service introspection tool. This will create a storage account in your subscription. "
     )
     .option(
-      "-n, --storage-account-name <storage-account-name",
+      "-n, --storage-account-name <storage-account-name>",
       "Account name for the storage table"
     )
     .option(
@@ -30,7 +30,7 @@ export const onboardCommandDecorator = (command: commander.Command): void => {
       "Name of the resource group for the storage account"
     )
     .option(
-      "-v, --key-vault-name <key-vault-name>",
+      "-k, --key-vault-name <key-vault-name>",
       "Name of the Azure key vault"
     )
     .action(async opts => {
