@@ -29,7 +29,6 @@ steps:
 
   - script: |
       yarn
-      yarn build
     displayName: "YARN INSTALL"
 
   - script: |
