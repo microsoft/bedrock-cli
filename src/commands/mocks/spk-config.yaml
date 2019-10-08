@@ -29,6 +29,10 @@ deployment:
   storage:
     account_name: "${env:test_name}"
     key: "${env:test_key}"
+  pipeline:
+    org: "orgname"
+    project: "project-name"
+    access_token: ""
 services:
   project_name:
   PAT:

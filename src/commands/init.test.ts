@@ -67,18 +67,26 @@ describe("Initializing a project with a non-existent file", () => {
 
 describe("Writing to default config location", () => {
   test("Default config location exists", async () => {
-    const filename = path.resolve(mockFileName);
-    const defaultFileName = path.resolve(defaultFileLocation);
-    await writeConfigToDefaultLocation(filename);
-    const readFile = (fileName: string) =>
-      util.promisify(fs.readFile)(fileName, "utf-8");
+    try {
+      const filename = path.resolve(mockFileName);
+      process.env.test_name = "testStorageName";
+      process.env.test_key = "testStorageKey";
+      loadConfiguration(filename);
+      config.deployment!.pipeline!.access_token = "unit_test_token";
 
-    await readFile(defaultFileName).then(async data1 => {
-      await readFile(filename).then(data2 => {
-        expect(data1).toEqual(data2);
-      });
-    });
+      await writeConfigToDefaultLocation();
+      loadConfiguration(defaultFileLocation);
 
+      expect(config.deployment!).toBeDefined();
+      expect(config.deployment!.pipeline!).toBeDefined();
+      expect(config.deployment!.pipeline!.access_token!).toBe(
+        "unit_test_token"
+      );
+    } catch (e) {
+      logger.error(e);
+      // Make sure execution does not get here:
+      expect(true).toBeFalsy();
+    }
     logger.info("Able to write to default config location");
   });
 });

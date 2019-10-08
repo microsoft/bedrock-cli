@@ -6,7 +6,7 @@ import * as os from "os";
 import { logger } from "../logger";
 import { IConfigYaml } from "../types";
 
-export const defaultFileLocation = os.homedir() + "/.spk-config.yaml";
+export const defaultFileLocation = os.homedir() + "/.spk/config.yaml";
 export let config: IConfigYaml = {};
 
 /**
@@ -28,7 +28,9 @@ export const initCommandDecorator = (command: commander.Command): void => {
           return;
         }
         loadConfiguration(opts.file);
-        await writeConfigToDefaultLocation(opts.file);
+
+        await writeConfigToDefaultLocation();
+
         logger.info("Successfully initialized the spk tool!");
       } catch (err) {
         logger.error(`Error occurred while initializing`);
@@ -107,12 +109,19 @@ export const readYamlFile = <T>(fileLocation: string): T => {
 };
 
 /**
- * Writes configuration to a file
+ * Writes the global config object to default location
  */
-export const writeConfigToDefaultLocation = async (fileName: string) => {
-  if (fileName !== defaultFileLocation) {
-    await fs
-      .createReadStream(fileName)
-      .pipe(fs.createWriteStream(defaultFileLocation));
+export const writeConfigToDefaultLocation = async () => {
+  try {
+    const data = yaml.safeDump(config);
+    const defaultDir = os.homedir() + "/.spk";
+    if (!fs.existsSync(defaultDir)) {
+      fs.mkdirSync(defaultDir);
+    }
+    fs.writeFileSync(defaultFileLocation, data);
+  } catch (err) {
+    logger.error(
+      `Error occurred while writing config to default location ${err}`
+    );
   }
 };
