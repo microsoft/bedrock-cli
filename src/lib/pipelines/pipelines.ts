@@ -13,6 +13,8 @@ import {
   YamlProcess
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 
+import { logger } from "../../logger";
+
 const hostedUbuntuPool = "Hosted Ubuntu 1604";
 const hostedUbuntuPoolId = 224;
 
@@ -194,9 +196,12 @@ export const createPipelineForDefinition = async (
   azdoProject: string,
   definition: BuildDefinition
 ): Promise<BuildDefinition> => {
+  logger.info("Creating pipeline for definition");
+
   try {
     return await buildApi.createDefinition(definition, azdoProject);
   } catch (e) {
+    logger.error(e);
     throw new Error("Error creating definition");
   }
 };
@@ -222,6 +227,7 @@ export const queueBuild = async (
   try {
     return await buildApi.queueBuild(buildReference, azdoProject);
   } catch (e) {
+    logger.error(e);
     throw new Error("Error queueing build");
   }
 };

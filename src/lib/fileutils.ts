@@ -89,34 +89,34 @@ const starterAzurePipelines = async (opts: {
     },
     steps: [
       {
-        displayName: "Run a multi-line script",
         script: generateYamlScript([
           `printenv | sort`,
           `pwd`,
           `ls -la`,
           `echo "The name of this service is: $(BUILD.BUILDNUMBER)"`
-        ])
+        ]),
+        displayName: "Run a multi-line script"
       },
       {
-        displayName: "Azure Login",
         script: generateYamlScript([
           `echo "az login --service-principal --username $(SP_APP_ID) --password $(SP_PASS) --tenant $(SP_TENANT)"`,
           `az login --service-principal --username "$(SP_APP_ID)" --password "$(SP_PASS)" --tenant "$(SP_TENANT)"`
-        ])
+        ]),
+        displayName: "Azure Login"
       },
       ...cleanedPaths.map(projectPath => {
         return {
-          displayName: "ACR Build and Publish",
           script: generateYamlScript([
             `cd ${projectPath} # Need to make sure Build.DefinitionName matches directory. It's case sensitive`,
             `echo "az acr build -r $(ACR_NAME) --image $(Build.DefinitionName):$(build.SourceBranchName)-$(build.BuildId) ."`,
             `az acr build -r $(ACR_NAME) --image $(Build.DefinitionName):$(build.SourceBranchName)-$(build.BuildId) .`
-          ])
+          ]),
+          displayName: "ACR Build and Publish"
         };
       }),
       {
-        displayName: "Run a one-line script",
-        script: generateYamlScript([`echo Hello, world!`])
+        script: generateYamlScript([`echo Hello, world!`]),
+        displayName: "Run a one-line script"
       }
     ]
   };
