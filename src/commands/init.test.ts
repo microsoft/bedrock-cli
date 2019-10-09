@@ -24,11 +24,11 @@ describe("Initializing a project to use spk with a config file", () => {
     process.env.test_key = "my_storage_key";
     const filename = path.resolve(mockFileName);
     loadConfiguration(filename);
-    expect(config.deployment!).toBeDefined();
-    expect(config.deployment!.storage!.account_name).toBe(
+    expect(config.introspection!).toBeDefined();
+    expect(config.introspection!.azure!.account_name).toBe(
       process.env.test_name
     );
-    expect(config.deployment!.storage!.key).toBe(process.env.test_key);
+    expect(config.introspection!.azure!.key).toBe(process.env.test_key);
     logger.info("Able to initialize a basic config file");
   });
 });
@@ -72,16 +72,13 @@ describe("Writing to default config location", () => {
       process.env.test_name = "testStorageName";
       process.env.test_key = "testStorageKey";
       loadConfiguration(filename);
-      config.deployment!.pipeline!.access_token = "unit_test_token";
+      config.azure_devops!.access_token = "unit_test_token";
 
       await writeConfigToDefaultLocation();
       loadConfiguration(defaultFileLocation);
 
-      expect(config.deployment!).toBeDefined();
-      expect(config.deployment!.pipeline!).toBeDefined();
-      expect(config.deployment!.pipeline!.access_token!).toBe(
-        "unit_test_token"
-      );
+      expect(config.azure_devops!).toBeDefined();
+      expect(config.azure_devops!.access_token!).toBe("unit_test_token");
     } catch (e) {
       logger.error(e);
       // Make sure execution does not get here:

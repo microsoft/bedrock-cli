@@ -9,7 +9,7 @@ import {
 } from "@azure/arm-storage/esm/models";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { azureSubscriptionId } from "../../config";
+import { config } from "../../commands/init";
 import { logger } from "../../logger";
 import { getManagementCredentials } from "./azurecredentials";
 
@@ -22,7 +22,10 @@ import { getManagementCredentials } from "./azurecredentials";
  */
 const getStorageClient = async (): Promise<StorageManagementClient> => {
   const creds = await getManagementCredentials();
-  return new StorageManagementClient(creds, azureSubscriptionId);
+  return new StorageManagementClient(
+    creds,
+    config.introspection!.azure!.subscription_id!
+  );
 };
 
 /**

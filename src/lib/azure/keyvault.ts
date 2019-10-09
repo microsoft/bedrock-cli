@@ -19,7 +19,7 @@ export const setSecret = async (
   const messageWithNoValue = `secret ${secretName} in key vault ${keyVaultName}`;
   try {
     const credentials = await getCredentials();
-    const client = new SecretsClient(url, credentials);
+    const client = new SecretsClient(url, credentials!);
 
     // Create a secret
     logger.info(`Setting ${messageWithNoValue}`);
@@ -48,7 +48,7 @@ export const getSecret = async (
   const message = `secret ${secretName} from key vault ${keyVaultName}`;
   try {
     const credentials = await getCredentials();
-    const client = new SecretsClient(url, credentials);
+    const client = new SecretsClient(url, credentials!);
 
     // Get the secret
     logger.info(`Getting ${message}`);

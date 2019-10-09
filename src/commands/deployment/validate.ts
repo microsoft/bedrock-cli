@@ -24,33 +24,33 @@ export const validateCommandDecorator = (command: commander.Command): void => {
 export const isValidConfig = (): boolean => {
   const missingConfig = [];
 
-  if (!config.deployment) {
-    missingConfig.push("deployment");
+  if (!config.introspection) {
+    missingConfig.push("introspection");
   } else {
-    if (!config.deployment.storage) {
-      missingConfig.push("config.deployment.storage");
+    if (!config.introspection.azure) {
+      missingConfig.push("config.introspection.azure");
     } else {
-      if (!config.deployment.storage.account_name) {
-        missingConfig.push("config.deployment.storage.account_name");
+      if (!config.introspection.azure.account_name) {
+        missingConfig.push("config.introspection.azure.account_name");
       }
-      if (!config.deployment.storage.key) {
-        missingConfig.push("config.deployment.storage.key");
+      if (!config.introspection.azure.key) {
+        missingConfig.push("config.introspection.azure.key");
       }
-      if (!config.deployment.storage.partition_key) {
-        missingConfig.push("config.deployment.storage.partition_key");
+      if (!config.introspection.azure.partition_key) {
+        missingConfig.push("config.introspection.azure.partition_key");
       }
-      if (!config.deployment.storage.table_name) {
-        missingConfig.push("config.deployment.storage.table_name");
+      if (!config.introspection.azure.table_name) {
+        missingConfig.push("config.introspection.azure.table_name");
       }
     }
-    if (!config.deployment.pipeline) {
-      missingConfig.push("config.deployment.pipeline");
+    if (!config.azure_devops) {
+      missingConfig.push("config.azure_devops");
     } else {
-      if (!config.deployment.pipeline.org) {
-        missingConfig.push("config.deployment.pipeline.org");
+      if (!config.azure_devops.org) {
+        missingConfig.push("config.azure_devops.org");
       }
-      if (!config.deployment.pipeline.project) {
-        missingConfig.push("config.deployment.pipeline.project");
+      if (!config.azure_devops.project) {
+        missingConfig.push("config.azure_devops.project");
       }
     }
   }

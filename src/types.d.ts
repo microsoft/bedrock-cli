@@ -76,39 +76,43 @@ export interface IAzurePipelinesYaml {
 }
 
 export interface IConfigYaml {
+  azure_cli?: {
+    version?: string;
+    Extensions?: {
+      aks_preview?: string;
+    };
+  };
+  azure_devops?: {
+    org?: string;
+    project?: string;
+    hld_repository?: string;
+    manifest_repository?: string;
+    access_token?: string;
+  };
+
   infra?: {
-    terraform_check?: boolean;
-    git_check?: boolean;
-    helm_check?: boolean;
-    az_cli_check?: boolean;
-    env_var_check?: boolean;
+    checks?: {
+      [toolName: string]: boolean;
+    };
     terraform?: string;
     helm?: string;
     git?: string;
     bedrock?: {
       source?: string;
       tag?: string;
-      repo_type?: string;
-      private_repo_key?: string;
-    };
-    azure?: {
-      // TBD
-    };
-  };
-  deployment?: {
-    storage?: {
-      account_name?: string;
-      table_name?: string;
-      key?: string;
-      partition_key?: string;
-    };
-    pipeline?: {
-      org?: string;
-      project?: string;
       access_token?: string;
     };
   };
-  services?: {
-    // TBD
+  introspection?: {
+    azure?: {
+      account_name?: string;
+      table_name?: string;
+      partition_key?: string;
+      key?: string;
+      service_principal_id?: string;
+      service_principal_secret?: string;
+      subscription_id?: string;
+      tenant_id?: string;
+    };
   };
 }

@@ -19,7 +19,7 @@ describe("Validate deployment configuration", () => {
 
 describe("Validate missing deployment configuration", () => {
   test("no deployment configuration", async () => {
-    config.deployment = undefined;
+    config.introspection = undefined;
     const isValid = isValidConfig();
 
     expect(isValid).toBe(false);
@@ -28,7 +28,7 @@ describe("Validate missing deployment configuration", () => {
 
 describe("Validate missing deployment.storage configuration", () => {
   test("missing deployment.storage", async () => {
-    config.deployment!.storage = undefined;
+    config.introspection!.azure = undefined;
     const isValid = isValidConfig();
 
     expect(isValid).toBe(false);
@@ -37,7 +37,7 @@ describe("Validate missing deployment.storage configuration", () => {
 
 describe("Validate missing deployment.storage configuration", () => {
   test("missing deployment.storage.account_name configuration", async () => {
-    config.deployment!.storage!.account_name = undefined;
+    config.introspection!.azure!.account_name = undefined;
     const isValid = isValidConfig();
 
     expect(isValid).toBe(false);
@@ -46,7 +46,7 @@ describe("Validate missing deployment.storage configuration", () => {
 
 describe("Validate missing deployment.storage configuration", () => {
   test("missing deployment.storage.table_name configuration", async () => {
-    config.deployment!.storage!.table_name = undefined;
+    config.introspection!.azure!.table_name = undefined;
     const isValid = isValidConfig();
 
     expect(isValid).toBe(false);
@@ -55,7 +55,7 @@ describe("Validate missing deployment.storage configuration", () => {
 
 describe("Validate missing deployment.storage configuration", () => {
   test("missing deployment.storage.partition_key configuration", async () => {
-    config.deployment!.storage!.partition_key = undefined;
+    config.introspection!.azure!.partition_key = undefined;
     const isValid = isValidConfig();
 
     expect(isValid).toBe(false);
@@ -64,7 +64,7 @@ describe("Validate missing deployment.storage configuration", () => {
 
 describe("Validate missing deployment.storage configuration", () => {
   test("missing deployment.storage.key configuration", async () => {
-    config.deployment!.storage!.key = undefined;
+    config.introspection!.azure!.key = undefined;
     const isValid = isValidConfig();
 
     expect(isValid).toBe(false);
@@ -73,7 +73,7 @@ describe("Validate missing deployment.storage configuration", () => {
 
 describe("Validate missing deployment.pipeline configuration", () => {
   test("missing deployment.pipeline configuration", async () => {
-    config.deployment!.pipeline = undefined;
+    config.azure_devops = undefined;
     const isValid = isValidConfig();
 
     expect(isValid).toBe(false);
@@ -82,7 +82,7 @@ describe("Validate missing deployment.pipeline configuration", () => {
 
 describe("Validate missing deployment.pipeline configuration", () => {
   test("missing deployment.pipeline.org configuration", async () => {
-    config.deployment!.pipeline!.org = undefined;
+    config.azure_devops!.org = undefined;
     const isValid = isValidConfig();
 
     expect(isValid).toBe(false);
@@ -91,7 +91,7 @@ describe("Validate missing deployment.pipeline configuration", () => {
 
 describe("Validate missing deployment.pipeline configuration", () => {
   test("missing deployment.pipeline.project configuration", async () => {
-    config.deployment!.pipeline!.project = undefined;
+    config.azure_devops!.project = undefined;
     const isValid = isValidConfig();
 
     expect(isValid).toBe(false);

@@ -133,10 +133,10 @@ export const getDeployments = (
   deploymentId?: string
 ): Promise<Deployment[]> => {
   return Deployment.getDeploymentsBasedOnFilters(
-    config.deployment!.storage!.account_name!,
-    config.deployment!.storage!.key!,
-    config.deployment!.storage!.table_name!,
-    config.deployment!.storage!.partition_key!,
+    config.introspection!.azure!.account_name!,
+    config.introspection!.azure!.key!,
+    config.introspection!.azure!.table_name!,
+    config.introspection!.azure!.partition_key!,
     srcPipeline,
     hldPipeline,
     clusterPipeline,
@@ -161,15 +161,15 @@ export const getDeployments = (
  */
 const initialize = () => {
   if (
-    !config.deployment ||
-    !config.deployment.pipeline ||
-    !config.deployment.storage ||
-    !config.deployment.pipeline.org ||
-    !config.deployment.pipeline.project ||
-    !config.deployment.storage.account_name ||
-    !config.deployment.storage.table_name ||
-    !config.deployment.storage.key ||
-    !config.deployment.storage.partition_key
+    !config.introspection ||
+    !config.azure_devops ||
+    !config.introspection.azure ||
+    !config.azure_devops.org ||
+    !config.azure_devops.project ||
+    !config.introspection.azure.account_name ||
+    !config.introspection.azure.table_name ||
+    !config.introspection.azure.key ||
+    !config.introspection.azure.partition_key
   ) {
     logger.error("You need to run `spk init` to initialize.");
     process.exit(1);
@@ -177,22 +177,22 @@ const initialize = () => {
   }
 
   srcPipeline = new AzureDevOpsPipeline(
-    config.deployment.pipeline.org,
-    config.deployment.pipeline.project,
+    config.azure_devops.org,
+    config.azure_devops.project,
     false,
-    config.deployment.pipeline.access_token
+    config.azure_devops.access_token
   );
   hldPipeline = new AzureDevOpsPipeline(
-    config.deployment.pipeline.org,
-    config.deployment.pipeline.project,
+    config.azure_devops.org,
+    config.azure_devops.project,
     true,
-    config.deployment.pipeline.access_token
+    config.azure_devops.access_token
   );
   clusterPipeline = new AzureDevOpsPipeline(
-    config.deployment.pipeline.org,
-    config.deployment.pipeline.project,
+    config.azure_devops.org,
+    config.azure_devops.project,
     false,
-    config.deployment.pipeline.access_token
+    config.azure_devops.access_token
   );
 };
 
