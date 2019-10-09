@@ -20,8 +20,8 @@ afterAll(() => {
 const mockFileName = "src/commands/mocks/spk-config.yaml";
 describe("Initializing a project to use spk with a config file", () => {
   test("init command basic file test", async () => {
-    process.env.test_name = "testStorageName";
-    process.env.test_key = "testStorageKey";
+    process.env.test_name = "my_storage_account";
+    process.env.test_key = "my_storage_key";
     const filename = path.resolve(mockFileName);
     loadConfiguration(filename);
     expect(config.deployment!).toBeDefined();
