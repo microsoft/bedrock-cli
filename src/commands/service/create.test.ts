@@ -42,7 +42,7 @@ describe("Adding a service to a repo directory", () => {
     );
 
     // addService call
-    await createService(randomTmpDir, serviceName, packageDir);
+    await createService(randomTmpDir, serviceName, packageDir, false);
 
     // Check temp test directory exists
     expect(fs.existsSync(randomTmpDir)).toBe(true);
@@ -81,7 +81,7 @@ describe("Adding a service to a repo directory", () => {
     );
 
     // addService call
-    await createService(randomTmpDir, serviceName, "packages");
+    await createService(randomTmpDir, serviceName, "packages", false);
 
     // Check temp test directory exists
     expect(fs.existsSync(randomTmpDir)).toBe(true);

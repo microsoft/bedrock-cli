@@ -189,14 +189,9 @@ export const addNewServiceToBedrockFile = (
   newServicePath: string,
   helmConfig: IHelmConfig
 ) => {
-  logger.warn("hello!");
-
   const bedrockFile = yaml.safeLoad(
     fs.readFileSync(bedrockFilePath, "utf8")
   ) as IBedrockFile;
-
-  logger.warn("hello!");
-  logger.debug(bedrockFile);
 
   bedrockFile.services["./" + newServicePath] = {
     helm: helmConfig

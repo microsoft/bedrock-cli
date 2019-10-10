@@ -9,10 +9,19 @@ import {
   generateAzurePipelinesYaml,
   generateGitIgnoreFile
 } from "../../lib/fileutils";
+import {
+  checkoutBranch,
+  commitDir,
+  deleteBranch,
+  getCurrentBranch,
+  getOriginUrl,
+  getPullRequestLink,
+  pushBranch
+} from "../../lib/gitutils";
 import { IHelmConfig, IUser } from "../../types";
 
 /**
- * Adds the init command to the commander command object
+ * Adds the create command to the service command object
  *
  * @param command Commander command object to decorate
  */
@@ -63,6 +72,11 @@ export const createCommandDecorator = (command: commander.Command): void => {
       "The email of the primary maintainer for this service.",
       "maintainer email"
     )
+    .option(
+      "--git-push",
+      "SPK CLI will try to commit and push these changes to a new origin/branch named after the service.",
+      false
+    )
     .action(async (serviceName, opts) => {
       const {
         helmChartChart,
@@ -72,7 +86,8 @@ export const createCommandDecorator = (command: commander.Command): void => {
         helmConfigGit,
         packagesDir,
         maintainerName,
-        maintainerEmail
+        maintainerEmail,
+        gitPush
       } = opts;
       const projectPath = process.cwd();
 
@@ -123,7 +138,12 @@ export const createCommandDecorator = (command: commander.Command): void => {
             `maintainerEmail must be of type 'string', ${typeof maintainerEmail} given.`
           );
         }
-        await createService(projectPath, serviceName, packagesDir, {
+        if (typeof gitPush !== "boolean") {
+          throw new Error(
+            `gitPush must be of type 'boolean', ${typeof gitPush} given.`
+          );
+        }
+        await createService(projectPath, serviceName, packagesDir, gitPush, {
           helmChartChart,
           helmChartRepository,
           helmConfigBranch,
@@ -152,6 +172,7 @@ export const createService = async (
   rootProjectPath: string,
   serviceName: string,
   packagesDir: string,
+  gitPush: boolean,
   opts?: {
     helmChartChart: string;
     helmChartRepository: string;
@@ -241,4 +262,63 @@ export const createService = async (
   );
 
   // If requested, create new git branch, commit, and push
+  if (gitPush) {
+    try {
+      const currentBranch = await getCurrentBranch();
+      try {
+        await checkoutBranch(serviceName, true);
+        try {
+          await commitDir(newServiceDir, serviceName);
+          try {
+            await pushBranch(serviceName);
+
+            try {
+              const pullRequestLink = await getPullRequestLink(
+                currentBranch,
+                serviceName,
+                await getOriginUrl()
+              );
+              logger.info(`Link to create PR: ${pullRequestLink}`);
+            } catch (e) {
+              logger.error(
+                `Could not create link for Pull Request. It will need to be done manually. ${e}`
+              );
+            }
+
+            // Clean up
+            try {
+              await checkoutBranch(currentBranch, false);
+              try {
+                await deleteBranch(serviceName);
+              } catch (e) {
+                logger.error(
+                  `Cannot delete new branch ${serviceName}. Cleanup will need to be done manually. ${e}`
+                );
+              }
+            } catch (e) {
+              logger.error(
+                `Cannot checkout original branch ${currentBranch}. Clean up will need to be done manually. ${e}`
+              );
+            }
+          } catch (e) {
+            logger.error(
+              `Cannot push branch ${serviceName}. Changes will have to be manually commited. ${e}`
+            );
+          }
+        } catch (e) {
+          logger.error(
+            `Cannot commit changes in ${newServiceDir} to branch ${serviceName}. Changes will have to be manually commited. ${e}`
+          );
+        }
+      } catch (e) {
+        logger.error(
+          `Cannot create and checkout new branch ${serviceName}. Changes will have to be manually commited. ${e}`
+        );
+      }
+    } catch (e) {
+      logger.error(
+        `Cannot fetch current branch. Changes will have to be manually commited. ${e}`
+      );
+    }
+  }
 };
