@@ -2,10 +2,10 @@
 
 Command used to generate, deploy, and update Bedrock infrastructure.
 
-#### `spk infra init`
+#### `spk infra validate`
 
 Initializes the environment to deploy Bedrock infrastructure. The
-`spk infra init` will do the following:
+`spk infra validate` will do the following:
 
 - Install prerequisites (e.g. terraform, git, helm, az cli) if not already
   installed.

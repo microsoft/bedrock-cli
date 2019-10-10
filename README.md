@@ -49,6 +49,7 @@ Install the project dependencies with Yarn:
 ```sh
 yarn install
 ```
+
 ### Running the linter
 
 ```sh
@@ -56,11 +57,10 @@ yarn lint
 ```
 
 To run the tslint autofixer:
- 
- 
+
 ```sh
  yarn lint-fix
- ```
+```
 
 ### Running The Code
 
