@@ -23,7 +23,7 @@ import { getManagementCredentials } from "./azurecredentials";
 const getStorageClient = async (): Promise<StorageManagementClient> => {
   const creds = await getManagementCredentials();
   return new StorageManagementClient(
-    creds,
+    creds!,
     config.introspection!.azure!.subscription_id!
   );
 };
@@ -47,16 +47,21 @@ export const createStorageAccountIfNotExists = async (
     const accounts: StorageAccountsListByResourceGroupResponse = await client.storageAccounts.listByResourceGroup(
       resourceGroup
     );
+
     let exists = false;
 
-    logger.debug(
-      `${accounts.length} storage accounts found in ${resourceGroup}`
-    );
-    for (const account of accounts) {
-      logger.debug(`Found ${account.name} so far`);
-      if (account.name === accountName) {
-        exists = true;
-        break;
+    if (accounts === undefined || accounts === null) {
+      logger.debug(`No storage accounts found in ${resourceGroup}`);
+    } else {
+      logger.debug(
+        `${accounts.length} storage accounts found in ${resourceGroup}`
+      );
+      for (const account of accounts) {
+        logger.debug(`Found ${account.name} so far`);
+        if (account.name === accountName) {
+          exists = true;
+          break;
+        }
       }
     }
 
@@ -69,7 +74,9 @@ export const createStorageAccountIfNotExists = async (
     // Storage account does not exist so create it.
     await createStorageAccount(resourceGroup, accountName, location);
   } catch (err) {
+    logger.error(`Error occurred while checking and creating ${message}`);
     logger.error(err);
+    throw err;
   }
 };
 
@@ -124,7 +131,7 @@ export const createStorageAccount = async (
   } catch (err) {
     logger.error(`Error occurred while creating ${message}`);
     logger.error(err);
-    throw new Error(err);
+    throw err;
   }
 };
 
@@ -163,7 +170,7 @@ export const getStorageAccountKey = async (
       `Error occurred while getting the access keys for storage account ${accountName}`
     );
     logger.error(err);
-    throw new Error(err);
+    throw err;
   }
 };
 
@@ -195,6 +202,6 @@ export const createResourceGroupIfNotExists = async (
   } catch (err) {
     logger.error(`Error occurred while creating ${message}`);
     logger.error(err);
-    throw new Error(err);
+    throw err;
   }
 };

@@ -9,23 +9,27 @@ import { logger } from "../../logger";
 export const getCredentials = async (): Promise<
   ClientSecretCredential | undefined
 > => {
-  if (verifyConfigDefined()) {
-    return new ClientSecretCredential(
-      config.introspection!.azure!.tenant_id!,
-      config.introspection!.azure!.service_principal_id!,
-      config.introspection!.azure!.service_principal_secret!
-    );
+  if (!verifyConfigDefined()) {
+    return undefined;
   }
 
-  return undefined;
+  return new ClientSecretCredential(
+    config.introspection!.azure!.tenant_id!,
+    config.introspection!.azure!.service_principal_id!,
+    config.introspection!.azure!.service_principal_secret!
+  );
 };
 
 /**
  * Create an instance of `ApplicationTokenCredentials` and returns for Azure Control/Management plane activities
  */
 export const getManagementCredentials = async (): Promise<
-  msRestNodeAuth.ApplicationTokenCredentials
+  msRestNodeAuth.ApplicationTokenCredentials | undefined
 > => {
+  if (!verifyConfigDefined()) {
+    return undefined;
+  }
+
   return msRestNodeAuth.loginWithServicePrincipalSecret(
     config.introspection!.azure!.service_principal_id!,
     config.introspection!.azure!.service_principal_secret!,

@@ -11,6 +11,8 @@
  * - if (typeof var === 'number') {}
  * - etc...
  */
+// fetch module is required for @azure/ms-rest-nodeauth in lib/azure
+import "isomorphic-fetch";
 import { Command, executeCommand } from "./commands/command";
 import { deploymentCommand } from "./commands/deployment";
 import { infraCommand } from "./commands/infra";
