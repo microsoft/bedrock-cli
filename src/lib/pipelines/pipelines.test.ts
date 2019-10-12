@@ -15,26 +15,30 @@ import {
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 
 describe("It builds an azure repo pipeline definition", () => {
-  let sampleAzureConfig: IAzureRepoPipelineConfig;
-
   const { definitionForAzureRepoPipeline } = jest.requireActual("./pipelines");
 
-  beforeEach(() => {
-    sampleAzureConfig = {
+  test("pipeline definition is well-formed", () => {
+    const sampleAzureConfig = {
       branchFilters: ["master"],
       maximumConcurrentBuilds: 1,
       pipelineName: "samplePipeline",
       repositoryName: "myRepoName",
       repositoryUrl: "myRepoUrl",
+      variables: {
+        foo: {
+          allowOverride: false,
+          isSecret: true,
+          value: "bar"
+        }
+      },
       yamlFileBranch: "master",
       yamlFilePath: "path/to/azure-pipelines.yml"
-    };
-  });
+    } as IAzureRepoPipelineConfig;
 
-  test("pipeline definition is well-formed", () => {
     const definition: BuildDefinition = definitionForAzureRepoPipeline(
       sampleAzureConfig
     );
+
     expect(definition.name).toBe(sampleAzureConfig.pipelineName);
 
     const repository = definition.repository as BuildRepository;
@@ -48,31 +52,39 @@ describe("It builds an azure repo pipeline definition", () => {
 
     const process = definition.process as YamlProcess;
     expect(process.yamlFilename).toBe(sampleAzureConfig.yamlFilePath);
+
+    const variables = definition.variables!;
+    // tslint:disable-next-line
+    expect(variables["foo"].value).toBe("bar");
   });
 });
 
 describe("It builds a github repo pipeline definition", () => {
-  let sampleGithubConfig: IGithubRepoPipelineConfig;
-
   const { definitionForGithubRepoPipeline } = jest.requireActual("./pipelines");
 
-  beforeEach(() => {
-    sampleGithubConfig = {
+  test("pipeline definition is well-formed", () => {
+    const sampleGithubConfig = {
       branchFilters: ["master"],
       maximumConcurrentBuilds: 1,
       pipelineName: "samplePipeline",
       repositoryName: "myRepoName",
       repositoryUrl: "myRepoUrl",
-      serviceConnectionId: "foobar",
+      serviceConnectionId: "foo",
+      variables: {
+        foo: {
+          allowOverride: false,
+          isSecret: true,
+          value: "bar"
+        }
+      },
       yamlFileBranch: "master",
       yamlFilePath: "path/to/azure-pipelines.yml"
-    };
-  });
+    } as IGithubRepoPipelineConfig;
 
-  test("pipeline definition is well-formed", () => {
     const definition: BuildDefinition = definitionForGithubRepoPipeline(
       sampleGithubConfig
     );
+
     expect(definition.name).toBe(sampleGithubConfig.pipelineName);
 
     const repository = definition.repository as BuildRepository;
@@ -83,12 +95,17 @@ describe("It builds a github repo pipeline definition", () => {
     expect(repository.type).toBe(RepositoryTypes.Github);
     expect(repository.url).toBe(sampleGithubConfig.repositoryUrl);
 
-    const properties = repository.properties!;
-    expect(properties.connectedServiceId).toBe(
+    expect(repository.properties).toBeDefined();
+
+    expect(repository.properties!.connectedServiceId).toBe(
       sampleGithubConfig.serviceConnectionId
     );
 
     const process = definition.process as YamlProcess;
     expect(process.yamlFilename).toBe(sampleGithubConfig.yamlFilePath);
+
+    const variables = definition.variables!;
+    // tslint:disable-next-line
+    expect(variables["foo"].value).toBe("bar");
   });
 });

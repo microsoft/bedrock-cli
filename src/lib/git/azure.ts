@@ -56,8 +56,7 @@ export const GitAPI = async (opts: IAzureDevOpsOpts = {}) => {
     const {
       personalAccessToken = config.azure_devops &&
         config.azure_devops.access_token,
-      orgUrl = config.azure_devops && config.azure_devops.org,
-      serverUrl = config.azure_devops
+      orgUrl = config.azure_devops && config.azure_devops.org
     } = opts;
 
     // PAT and devops URL are required

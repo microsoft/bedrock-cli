@@ -15,6 +15,7 @@
 import "isomorphic-fetch";
 import { Command, executeCommand } from "./commands/command";
 import { deploymentCommand } from "./commands/deployment";
+import { hldCommand } from "./commands/hld";
 import { infraCommand } from "./commands/infra";
 import { initCommandDecorator } from "./commands/init";
 import { projectCommand } from "./commands/project";
@@ -32,7 +33,7 @@ const rootCommand = Command(
     },
     initCommandDecorator
   ],
-  [deploymentCommand, projectCommand, serviceCommand, infraCommand]
+  [deploymentCommand, projectCommand, serviceCommand, infraCommand, hldCommand]
 );
 
 ////////////////////////////////////////////////////////////////////////////////

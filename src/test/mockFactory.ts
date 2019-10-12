@@ -1,5 +1,10 @@
 import yaml from "js-yaml";
-import { IBedrockFile, IHelmConfig, IMaintainersFile } from "../types";
+import {
+  IAzurePipelinesYaml,
+  IBedrockFile,
+  IHelmConfig,
+  IMaintainersFile
+} from "../types";
 
 export const createTestMaintainersYaml = (
   asString = true
@@ -70,4 +75,66 @@ export const createTestBedrockYaml = (
   };
 
   return asString ? yaml.dump(data) : data;
+};
+
+export const createTestHldAzurePipelinesYaml = (
+  asString = true
+): IAzurePipelinesYaml | string => {
+  // tslint:disable: object-literal-sort-keys
+  const data: IAzurePipelinesYaml = {
+    trigger: {
+      branches: {
+        include: ["master"]
+      }
+    },
+    pool: {
+      vmImage: "Ubuntu-16.04"
+    },
+    steps: [
+      {
+        checkout: "self",
+        persistCredentials: true,
+        clean: true
+      },
+      {
+        bash: "curl $BEDROCK_BUILD_SCRIPT > build.sh\nchmod +x ./build.sh",
+        displayName: "Download Bedrock orchestration script",
+        env: {
+          BEDROCK_BUILD_SCRIPT:
+            "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh"
+        }
+      },
+      {
+        task: "ShellScript@2",
+        displayName: "Validate fabrikate definitions",
+        inputs: {
+          scriptPath: "build.sh"
+        },
+        condition: `eq(variables['Build.Reason'], 'PullRequest')`,
+        env: {
+          VERIFY_ONLY: 1
+        }
+      },
+      {
+        task: "ShellScript@2",
+        displayName:
+          "Transform fabrikate definitions and publish to YAML manifests to repo",
+        inputs: {
+          scriptPath: "build.sh"
+        },
+        condition: `ne(variables['Build.Reason'], 'PullRequest')`,
+        env: {
+          ACCESS_TOKEN_SECRET: "$(ACCESS_TOKEN)",
+          COMMIT_MESSAGE: "$(Build.SourceVersionMessage)",
+          REPO: "$(MANIFEST_REPO)",
+          BRANCH_NAME: "$(Build.SourceBranchName)"
+        }
+      }
+    ]
+  };
+  // tslint:enable: object-literal-sort-keys
+
+  return asString
+    ? yaml.safeDump(data, { lineWidth: Number.MAX_SAFE_INTEGER })
+    : data;
 };

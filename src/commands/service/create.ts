@@ -6,18 +6,10 @@ import { logger } from "../../logger";
 import {
   addNewServiceToBedrockFile,
   addNewServiceToMaintainersFile,
-  generateAzurePipelinesYaml,
-  generateGitIgnoreFile
+  generateGitIgnoreFile,
+  generateStarterAzurePipelinesYaml
 } from "../../lib/fileutils";
-import {
-  checkoutBranch,
-  commitDir,
-  deleteBranch,
-  getCurrentBranch,
-  getOriginUrl,
-  getPullRequestLink,
-  pushBranch
-} from "../../lib/gitutils";
+import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import { IHelmConfig, IUser } from "../../types";
 
 /**
@@ -215,7 +207,7 @@ export const createService = async (
   shelljs.mkdir("-p", newServiceDir);
 
   // Create azure pipelines yaml in directory
-  await generateAzurePipelinesYaml(rootProjectPath, newServiceDir);
+  await generateStarterAzurePipelinesYaml(rootProjectPath, newServiceDir);
 
   // Create empty .gitignore file in directory
   generateGitIgnoreFile(newServiceDir, "");
@@ -263,62 +255,6 @@ export const createService = async (
 
   // If requested, create new git branch, commit, and push
   if (gitPush) {
-    try {
-      const currentBranch = await getCurrentBranch();
-      try {
-        await checkoutBranch(serviceName, true);
-        try {
-          await commitDir(newServiceDir, serviceName);
-          try {
-            await pushBranch(serviceName);
-
-            try {
-              const pullRequestLink = await getPullRequestLink(
-                currentBranch,
-                serviceName,
-                await getOriginUrl()
-              );
-              logger.info(`Link to create PR: ${pullRequestLink}`);
-            } catch (e) {
-              logger.error(
-                `Could not create link for Pull Request. It will need to be done manually. ${e}`
-              );
-            }
-
-            // Clean up
-            try {
-              await checkoutBranch(currentBranch, false);
-              try {
-                await deleteBranch(serviceName);
-              } catch (e) {
-                logger.error(
-                  `Cannot delete new branch ${serviceName}. Cleanup will need to be done manually. ${e}`
-                );
-              }
-            } catch (e) {
-              logger.error(
-                `Cannot checkout original branch ${currentBranch}. Clean up will need to be done manually. ${e}`
-              );
-            }
-          } catch (e) {
-            logger.error(
-              `Cannot push branch ${serviceName}. Changes will have to be manually commited. ${e}`
-            );
-          }
-        } catch (e) {
-          logger.error(
-            `Cannot commit changes in ${newServiceDir} to branch ${serviceName}. Changes will have to be manually commited. ${e}`
-          );
-        }
-      } catch (e) {
-        logger.error(
-          `Cannot create and checkout new branch ${serviceName}. Changes will have to be manually commited. ${e}`
-        );
-      }
-    } catch (e) {
-      logger.error(
-        `Cannot fetch current branch. Changes will have to be manually commited. ${e}`
-      );
-    }
+    await checkoutCommitPushCreatePRLink(serviceName, newServiceDir);
   }
 };

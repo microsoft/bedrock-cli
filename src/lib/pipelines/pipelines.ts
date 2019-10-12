@@ -4,6 +4,7 @@ import {
   AgentPoolQueue,
   Build,
   BuildDefinition,
+  BuildDefinitionVariable,
   BuildRepository,
   ContinuousIntegrationTrigger,
   DefinitionQuality,
@@ -64,6 +65,9 @@ interface IPipeline {
   yamlFilePath: string;
   branchFilters: string[];
   maximumConcurrentBuilds: number;
+  variables?: {
+    [key: string]: BuildDefinitionVariable;
+  };
 }
 
 /**
@@ -128,6 +132,10 @@ export const definitionForAzureRepoPipeline = (
     yamlFilename: pipelineConfig.yamlFilePath
   } as YamlProcess;
 
+  if (pipelineConfig.variables) {
+    pipelineDefinition.variables = pipelineConfig.variables;
+  }
+
   return pipelineDefinition;
 };
 
@@ -180,6 +188,10 @@ export const definitionForGithubRepoPipeline = (
   pipelineDefinition.process = {
     yamlFilename: pipelineConfig.yamlFilePath
   } as YamlProcess;
+
+  if (pipelineConfig.variables) {
+    pipelineDefinition.variables = pipelineConfig.variables;
+  }
 
   return pipelineDefinition;
 };

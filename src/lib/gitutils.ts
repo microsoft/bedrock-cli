@@ -130,3 +130,66 @@ export const getPullRequestLink = async (
     );
   }
 };
+
+export const checkoutCommitPushCreatePRLink = async (
+  newBranchName: string,
+  directory: string
+) => {
+  try {
+    const currentBranch = await getCurrentBranch();
+    try {
+      await checkoutBranch(newBranchName, true);
+      try {
+        await commitDir(directory, newBranchName);
+        try {
+          await pushBranch(newBranchName);
+
+          try {
+            const pullRequestLink = await getPullRequestLink(
+              currentBranch,
+              newBranchName,
+              await getOriginUrl()
+            );
+            logger.info(`Link to create PR: ${pullRequestLink}`);
+          } catch (e) {
+            logger.error(
+              `Could not create link for Pull Request. It will need to be done manually. ${e}`
+            );
+          }
+
+          // Clean up
+          try {
+            await checkoutBranch(currentBranch, false);
+            try {
+              await deleteBranch(newBranchName);
+            } catch (e) {
+              logger.error(
+                `Cannot delete new branch ${newBranchName}. Cleanup will need to be done manually. ${e}`
+              );
+            }
+          } catch (e) {
+            logger.error(
+              `Cannot checkout original branch ${currentBranch}. Clean up will need to be done manually. ${e}`
+            );
+          }
+        } catch (e) {
+          logger.error(
+            `Cannot push branch ${newBranchName}. Changes will have to be manually commited. ${e}`
+          );
+        }
+      } catch (e) {
+        logger.error(
+          `Cannot commit changes in ${directory} to branch ${newBranchName}. Changes will have to be manually commited. ${e}`
+        );
+      }
+    } catch (e) {
+      logger.error(
+        `Cannot create and checkout new branch ${newBranchName}. Changes will have to be manually commited. ${e}`
+      );
+    }
+  } catch (e) {
+    logger.error(
+      `Cannot fetch current branch. Changes will have to be manually commited. ${e}`
+    );
+  }
+};

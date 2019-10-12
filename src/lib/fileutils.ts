@@ -17,7 +17,7 @@ import {
  *
  * @param targetPath Path to write the azure-pipelines.yaml file to
  */
-export const generateAzurePipelinesYaml = async (
+export const generateStarterAzurePipelinesYaml = async (
   projectRoot: string,
   packagePath: string
 ) => {
@@ -47,6 +47,9 @@ export const generateAzurePipelinesYaml = async (
   }
 };
 
+// Helper to concat list of script commands to a multi line string
+const generateYamlScript = (lines: string[]): string => lines.join("\n");
+
 /**
  * Returns a starter azure-pipelines.yaml string
  * Starter azure-pipelines.yaml based on: https://github.com/andrebriggs/monorepo-example/blob/master/service-A/azure-pipelines.yml
@@ -65,9 +68,6 @@ const starterAzurePipelines = async (opts: {
     branches = ["master"],
     varGroups = []
   } = opts;
-
-  // Helper to concat list of script commands to a multi line string
-  const generateYamlScript = (lines: string[]): string => lines.join("\n");
 
   // Ensure any blank paths are turned into "./"
   const cleanedPaths = relProjectPaths
@@ -123,6 +123,100 @@ const starterAzurePipelines = async (opts: {
   // tslint:enable: object-literal-sort-keys
 
   return yaml.safeDump(starter, { lineWidth: Number.MAX_SAFE_INTEGER });
+};
+
+/**
+ * Writes out the hld azure-pipelines.yaml file to `targetPath`
+ *
+ * @param hldRepoDirectory Path to write the azure-pipelines.yaml file to
+ */
+export const generateHldAzurePipelinesYaml = (targetDirectory: string) => {
+  const absTargetPath = path.resolve(targetDirectory);
+  logger.info(`Generating hld azure-pipelines.yaml in ${absTargetPath}`);
+
+  const azurePipelinesYamlPath = path.join(
+    absTargetPath,
+    "azure-pipelines.yaml"
+  );
+
+  if (fs.existsSync(azurePipelinesYamlPath)) {
+    logger.warn(
+      `Existing azure-pipelines.yaml found at ${azurePipelinesYamlPath}, skipping generation`
+    );
+
+    return;
+  }
+  const hldYaml = manifestGenerationPipelineYaml();
+  logger.info(`Writing azure-pipelines.yaml file to ${azurePipelinesYamlPath}`);
+  fs.writeFileSync(azurePipelinesYamlPath, hldYaml, "utf8");
+};
+
+/**
+ * Returns a the Manifest Generation Pipeline as defined here: https://github.com/microsoft/bedrock/blob/master/gitops/azure-devops/ManifestGeneration.md#add-azure-pipelines-build-yaml
+ */
+const manifestGenerationPipelineYaml = () => {
+  // based on https://github.com/microsoft/bedrock/blob/master/gitops/azure-devops/ManifestGeneration.md#add-azure-pipelines-build-yaml
+  // tslint:disable: object-literal-sort-keys
+  // tslint:disable: no-empty
+  const pipelineyaml: IAzurePipelinesYaml = {
+    trigger: {
+      branches: {
+        include: ["master"]
+      }
+    },
+    pool: {
+      vmImage: "Ubuntu-16.04"
+    },
+    steps: [
+      {
+        checkout: "self",
+        persistCredentials: true,
+        clean: true
+      },
+      {
+        bash: generateYamlScript([
+          // TODO: Double check this script, it's turning it tnto a list with a '-'.
+          `curl $BEDROCK_BUILD_SCRIPT > build.sh`,
+          `chmod +x ./build.sh`
+        ]),
+        displayName: "Download Bedrock orchestration script",
+        env: {
+          BEDROCK_BUILD_SCRIPT:
+            "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh"
+        }
+      },
+      {
+        task: "ShellScript@2",
+        displayName: "Validate fabrikate definitions",
+        inputs: {
+          scriptPath: "build.sh"
+        },
+        condition: `eq(variables['Build.Reason'], 'PullRequest')`,
+        env: {
+          VERIFY_ONLY: 1
+        }
+      },
+      {
+        task: "ShellScript@2",
+        displayName:
+          "Transform fabrikate definitions and publish to YAML manifests to repo",
+        inputs: {
+          scriptPath: "build.sh"
+        },
+        condition: `ne(variables['Build.Reason'], 'PullRequest')`,
+        env: {
+          ACCESS_TOKEN_SECRET: "$(ACCESS_TOKEN)",
+          COMMIT_MESSAGE: "$(Build.SourceVersionMessage)",
+          REPO: "$(MANIFEST_REPO)",
+          BRANCH_NAME: "$(Build.SourceBranchName)"
+        }
+      }
+    ]
+  };
+  // tslint:enable: object-literal-sort-keys
+  // tslint:enable: no-empty
+
+  return yaml.safeDump(pipelineyaml, { lineWidth: Number.MAX_SAFE_INTEGER });
 };
 
 /**
