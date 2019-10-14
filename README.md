@@ -90,13 +90,18 @@ yarn test-watch
 ```
 
 ### Running the Debugger
+
 To debug on [Visual Studio Code](https://code.visualstudio.com/):
+
 1. On the top menu select Debug > Start Debugging
 2. It will prompt you to create a `launch.json` file for the go language,
    proceed to create it.
-3. Add the settings found below to the `launch.json` file. Change the `args` with the command and options that you want to debug. In this case, it will debug `deployment get`.
+3. Add the settings found below to the `launch.json` file. Change the `args`
+   with the command and options that you want to debug. In this case, it will
+   debug `deployment get`.
 
 Sample `launch.json`:
+
 ```
 {
     // Use IntelliSense to learn about possible attributes.
