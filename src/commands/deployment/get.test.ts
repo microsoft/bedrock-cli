@@ -62,7 +62,7 @@ describe("Watch get deployments", () => {
     Get.watchGetDeployments(Get.OUTPUT_FORMAT.WIDE);
     expect(Get.getDeployments).toBeCalled();
     jest.advanceTimersByTime(6000);
-    expect(Get.getDeployments).toBeCalledTimes(2);
+    expect(Get.getDeployments).toBeCalledTimes(3);
 
     jest.clearAllTimers();
   });

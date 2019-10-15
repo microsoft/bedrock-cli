@@ -216,6 +216,18 @@ export const watchGetDeployments = (
   deploymentId?: string
 ): void => {
   const timeInterval = 5000;
+
+  // Call get deployments once, and then set the timer.
+  getDeployments(
+    outputFormat,
+    environment,
+    imageTag,
+    p1Id,
+    commitId,
+    service,
+    deploymentId
+  );
+
   setInterval(() => {
     getDeployments(
       outputFormat,
