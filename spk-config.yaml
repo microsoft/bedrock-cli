@@ -6,11 +6,12 @@ azure_cli:
 
 # Azure DevOps Configuration
 azure_devops: # Should this live under the `spk` configuration?
-  org: "my-az-do-org"
-  project: "my-mono-repo-project"
+  access_token: "access-token" # This is your Personal Access Token with permission to modify and access this private repo. Ex. "${env:AZDO_PERSONAL_ACCESS_TOKEN}". Leave this empty if project is public
   hld_repository: "my-hld-repository"
   manifest_repository: "my-manifest-repository"
-  access_token: "access-token" # This is your Personal Access Token with permission to modify and access this private repo. Ex. "${env:AZDO_PERSONAL_ACCESS_TOKEN}". Leave this empty if project is public
+  org: "my-az-do-org"
+  project: "my-mono-repo-project"
+  server_url:
 
 infra:
   terraform: "v0.12.6"

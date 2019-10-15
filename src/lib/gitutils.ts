@@ -10,7 +10,6 @@ export const getCurrentBranch = async () => {
     const branch = await exec("git", ["rev-parse", "--abbrev-ref", "HEAD"]);
     return branch;
   } catch (_) {
-    logger.error("Unable to determine current branch: " + _);
     throw Error("Unable to determine current branch: " + _);
   }
 };

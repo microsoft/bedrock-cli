@@ -1,5 +1,4 @@
-import child_process from "child_process";
-import fs, { chmod } from "fs";
+import fs from "fs";
 import path from "path";
 import shell from "shelljs";
 import { exec } from "../../lib/shell";
@@ -10,8 +9,13 @@ import {
 } from "../../logger";
 import { templateInit, validateInit } from "./create";
 
-beforeAll(async () => {
+beforeAll(() => {
   enableVerboseLogging();
+  // Increasing time for Terraform Init
+  jest.setTimeout(99000);
+});
+
+beforeEach(async () => {
   // Remove once check for Bedrock source is integrated with `spk infra init`
   if (!fs.existsSync(".bedrock")) {
     await exec("git", [
@@ -20,9 +24,8 @@ beforeAll(async () => {
       ".bedrock"
     ]);
   }
-  // Increasing time for Terraform Init
-  jest.setTimeout(99000);
 });
+
 afterAll(() => {
   disableVerboseLogging();
   // Remove .bedrock after testing
@@ -44,6 +47,7 @@ describe("Validating Bedrock source repo path", () => {
     expect(test1).toBe(true);
   });
 });
+
 describe("Validating Bedrock source repo path with invalid test", () => {
   test("Static bedrock path to spk root is passed that is invalid", async () => {
     // Pass an invalid static path to Bedrock source
@@ -53,6 +57,7 @@ describe("Validating Bedrock source repo path with invalid test", () => {
     expect(test2).toBe(false);
   });
 });
+
 describe("Validating Bedrock environment template with Terraform init", () => {
   test("Pass a Bedrock Environment to run a terraform init on the directory", async () => {
     // Pass a Bedrock template to run terraform init

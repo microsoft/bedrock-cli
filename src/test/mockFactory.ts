@@ -55,6 +55,7 @@ export const createTestBedrockYaml = (
   };
 
   const data: IBedrockFile = {
+    rings: {},
     services: {
       "./": {
         helm: service1HelmConfig

@@ -1,9 +1,8 @@
 import commander from "commander";
 import fs from "fs";
-import yaml from "js-yaml";
 import path from "path";
 import shelljs from "shelljs";
-import { promisify } from "util";
+import * as config from "../../config";
 import {
   generateAzurePipelinesYaml,
   generateGitIgnoreFile
@@ -34,22 +33,34 @@ export const initCommandDecorator = (command: commander.Command): void => {
       "The directory containing the mono-repo packages. This is a noop if `-m` not set.",
       "packages"
     )
+    .option(
+      "-r, --default-ring <branch-name>",
+      "Specify a default ring; this corresponds to a default branch which you wish to push initial revisions to"
+    )
     .action(async opts => {
-      const { monoRepo = false, packagesDir = "packages" } = opts;
+      const { monoRepo = false, packagesDir = "packages", defaultRing } = opts;
       const projectPath = process.cwd();
       try {
         // Type check all parsed command line args here.
         if (typeof monoRepo !== "boolean") {
           throw new Error(
-            `monoRepo must be of type boolean, ${typeof monoRepo} given.`
+            `--mono-repo must be of type boolean, ${typeof monoRepo} given`
           );
         }
         if (typeof packagesDir !== "string") {
           throw new Error(
-            `packagesDir must be of type 'string', ${typeof packagesDir} given.`
+            `--packages-dir must be of type 'string', ${typeof packagesDir} given`
           );
         }
-        await initialize(projectPath, { monoRepo, packagesDir });
+        if (
+          typeof defaultRing !== "string" &&
+          typeof defaultRing !== "undefined"
+        ) {
+          throw new Error(
+            `--default-ring must be of type 'string', '${defaultRing}' of type '${typeof defaultRing}' given`
+          );
+        }
+        await initialize(projectPath, { monoRepo, packagesDir, defaultRing });
       } catch (err) {
         logger.error(
           `Error occurred while initializing project ${projectPath}`
@@ -69,9 +80,10 @@ export const initCommandDecorator = (command: commander.Command): void => {
  */
 export const initialize = async (
   rootProjectPath: string,
-  opts?: { monoRepo: boolean; packagesDir?: string }
+  opts?: { monoRepo: boolean; packagesDir?: string; defaultRing?: string }
 ) => {
-  const { monoRepo = false, packagesDir = "packages" } = opts || {};
+  const { monoRepo = false, packagesDir = "packages", defaultRing } =
+    opts || {};
   const absProjectRoot = path.resolve(rootProjectPath);
   logger.info(
     `Initializing project ${absProjectRoot} as a ${
@@ -92,7 +104,11 @@ export const initialize = async (
   }
 
   // Initialize all paths
-  await generateBedrockFile(absProjectRoot, absPackagePaths);
+  await generateBedrockFile(
+    absProjectRoot,
+    absPackagePaths,
+    defaultRing ? [defaultRing] : []
+  );
   await generateMaintainersFile(absProjectRoot, absPackagePaths);
 
   const gitIgnoreFileContent = "spk.log";
@@ -195,11 +211,7 @@ const generateMaintainersFile = async (
     );
   } else {
     // Write out
-    await promisify(fs.writeFile)(
-      maintainersFilePath,
-      yaml.safeDump(maintainersFile),
-      "utf8"
-    );
+    config.write(maintainersFile, absProjectPath);
   }
 };
 
@@ -210,7 +222,8 @@ const generateMaintainersFile = async (
  */
 const generateBedrockFile = async (
   projectPath: string,
-  packagePaths: string[]
+  packagePaths: string[],
+  defaultRings: string[] = []
 ) => {
   const absProjectPath = path.resolve(projectPath);
   const absPackagePaths = packagePaths.map(p => path.resolve(p));
@@ -237,7 +250,16 @@ const generateBedrockFile = async (
       };
       return file;
     },
-    { services: {} }
+    {
+      rings: defaultRings.reduce<{ [ring: string]: { default: boolean } }>(
+        (defaults, ring) => {
+          defaults[ring] = { default: true };
+          return defaults;
+        },
+        {}
+      ),
+      services: {}
+    }
   );
 
   // Check if a bedrock.yaml already exists; skip write if present
@@ -249,10 +271,6 @@ const generateBedrockFile = async (
     );
   } else {
     // Write out
-    await promisify(fs.writeFile)(
-      bedrockFilePath,
-      yaml.safeDump(bedrockFile),
-      "utf8"
-    );
+    config.write(bedrockFile, absProjectPath);
   }
 };

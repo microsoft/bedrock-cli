@@ -139,6 +139,7 @@ describe("Adding a new service to a Bedrock file", () => {
     const defaultBedrockFileObject = createTestBedrockYaml(false);
 
     const expected: IBedrockFile = {
+      rings: {},
       services: {
         ...((defaultBedrockFileObject as any) as IBedrockFile).services,
         ["./" + servicePath]: {
