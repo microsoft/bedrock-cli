@@ -113,6 +113,7 @@ export interface IConfigYaml {
       service_principal_secret?: string;
       subscription_id?: string;
       tenant_id?: string;
+      resource_group?: string;
     };
   };
 }

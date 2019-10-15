@@ -20,12 +20,110 @@ import { getManagementCredentials } from "./azurecredentials";
  * @param name The Azure storage account name
  * @param location The Azure storage account location
  */
-const getStorageClient = async (): Promise<StorageManagementClient> => {
+export const getStorageClient = async (): Promise<StorageManagementClient> => {
   const creds = await getManagementCredentials();
   return new StorageManagementClient(
     creds!,
     config.introspection!.azure!.subscription_id!
   );
+};
+
+/**
+ * Checks if the given storage account and key exist in Azure storage
+ * @param resourceGroup The resource group where the storage account is
+ * @param accountName The storage account name
+ * @param key The storage account access key
+ */
+export const storageAccountExists = async (
+  resourceGroup: string,
+  accountName: string,
+  key: string
+): Promise<boolean> => {
+  try {
+    logger.info(`Validating storage account ${accountName}.`);
+    const client = await getStorageClient();
+    const isNameAvailable = await isStorageAccountNameAvailable(
+      accountName,
+      client
+    );
+
+    if (isNameAvailable) {
+      logger.error(`Storage account ${accountName} does not exist.`);
+      return false;
+    }
+
+    const storageAccountKeys = await getStorageAccountKeys(
+      accountName,
+      resourceGroup,
+      client
+    );
+
+    if (typeof storageAccountKeys !== "undefined") {
+      for (const storageKey of storageAccountKeys) {
+        if (storageKey === key) {
+          logger.info(
+            `Storage account validation for ${accountName} succeeded.`
+          );
+          return true;
+        }
+      }
+    }
+
+    logger.error(
+      `Storage account ${accountName} access keys is not valid or does not exist.`
+    );
+
+    return false;
+  } catch (error) {
+    logger.error(error);
+    throw error;
+  }
+};
+
+/**
+ * Checks if the given storage account name already exists
+ * @param accountName The storage account name
+ * @param client The Azure storage client
+ */
+export const isStorageAccountNameAvailable = async (
+  accountName: string,
+  client: StorageManagementClient
+): Promise<boolean> => {
+  logger.verbose(`Check if storage account name ${accountName} exists`);
+
+  const nameAvailabilityResult = await client.storageAccounts.checkNameAvailability(
+    accountName
+  );
+
+  return nameAvailabilityResult.nameAvailable!;
+};
+
+/**
+ * Gets the access keys for the given storage account
+ * @param accountName The storage account name
+ * @param resourceGroup The resource group where the storage account is
+ * @param client The Azure storage client
+ */
+export const getStorageAccountKeys = async (
+  accountName: string,
+  resourceGroup: string,
+  client: StorageManagementClient
+): Promise<string[]> => {
+  const storageAccountKeys: string[] = [];
+
+  logger.verbose(`Get storage account keys for ${accountName}`);
+  const keysResponse = await client.storageAccounts.listKeys(
+    resourceGroup,
+    accountName
+  );
+
+  if (typeof keysResponse.keys !== "undefined") {
+    for (const storageKey of keysResponse.keys) {
+      storageAccountKeys.push(storageKey.value!);
+    }
+  }
+
+  return storageAccountKeys;
 };
 
 /**
