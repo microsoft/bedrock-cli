@@ -1,0 +1,34 @@
+parameters:
+  GitHubConnection: "" # defaults for any parameters that aren't specified
+  releaseNotesSource: inline
+  addChangeLog: true
+  isPreRelease: false
+  isDraft: false
+  tagSource: "gitTag"
+  action: create
+
+jobs:
+  - job: Create_Github_Release
+    timeoutInMinutes: 30 # timeout on job if deploy is not completed in 30 minutes
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+      - checkout: none # we already have the artifacts built, don't need the code
+      - download: current
+
+      - task: GitHubRelease@1
+        displayName: "GitHub release (create)"
+        inputs:
+          action: ${{ parameters.action }}
+          gitHubConnection: ${{ parameters.GitHubConnection }}
+          repositoryName: "$(Build.Repository.Name)"
+          releaseNotesSource: ${{ parameters.releaseNotesSource }}
+          target: $(Build.SourceVersion)
+          assets: |
+            $(Agent.BuildDirectory)/dist/spk-linux
+            $(Agent.BuildDirectory)/dist/spk-macos
+            $(Agent.BuildDirectory)/dist/spk-win.exe
+          tagSource: ${{ parameters.tagSource }}
+          isDraft: ${{ parameters.isDraft }}
+          isPreRelease: ${{ parameters.isPrelease }}
+          addChangeLog: ${{ parameters.addChangeLog }}

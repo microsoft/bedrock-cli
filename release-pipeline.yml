@@ -1,0 +1,26 @@
+trigger:
+  tags:
+    include:
+      - v*
+
+pr: none # disable CI build for PR
+
+stages:
+  - stage: package_build
+    jobs:
+      - template: azure-pipelines/templates/build-artifacts.yml
+        parameters:
+          name: Linux
+          pool:
+            vmImage: ubuntu-16.04
+
+  - stage: github_release
+    dependsOn: package_build
+    jobs:
+      - template: azure-pipelines/templates/create-github-release.yml
+        parameters:
+          GitHubConnection: "spk"
+          releaseNotesSource: inline # blank for now, can switch to a file
+          tagSource: "gitTag" # or "userSpecifiedTag"
+          isDraft: true
+          addChangeLog: true
