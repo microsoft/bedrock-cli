@@ -37,35 +37,26 @@ export const getCommandDecorator = (command: commander.Command): void => {
     .command("get")
     .alias("g")
     .description(
-      "Get deployment(s) for a service, release environment, build Id, commit Id, or image tag."
+      "Get the list of deployments and filter with these options: service name, environment, build ID, commit ID, container image tag."
     )
     .option(
       "-b, --build-id <build-id>",
-      "Get deployments for a particular build Id from source repository"
+      "Filter by the build ID of the source repository"
     )
     .option(
       "-c, --commit-id <commit-id>",
-      "Get deployments for a particular commit Id from source repository"
+      "Filter by a commit ID from the source repository"
     )
     .option(
       "-d, --deployment-id <deployment-id>",
-      "Get deployments for a particular deployment Id from source repository"
+      "Filter by the deployment ID of the source repository"
     )
-    .option(
-      "-i, --image-tag <image-tag>",
-      "Get deployments for a particular image tag"
-    )
-    .option(
-      "-e, --env <environment>",
-      "Get deployments for a particular environment"
-    )
-    .option(
-      "-s, --service <service-name>",
-      "Get deployments for a particular service"
-    )
+    .option("-i, --image-tag <image-tag>", "Filter by a container image tag")
+    .option("-e, --env <environment>", "Filter by environment name")
+    .option("-s, --service <service-name>", "Filter by service name")
     .option(
       "-o, --output <output-format>",
-      "Get output in one of these forms: normal, wide, JSON"
+      "Output the information one of the following: normal, wide, JSON"
     )
     .option("-w, --watch", "Watch the deployments for a live view")
     .action(async opts => {

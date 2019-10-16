@@ -14,18 +14,18 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
     .command("scaffold")
     .alias("s")
     .description("Create initial scaffolding for cluster deployment.")
-    .option("-n, --name <name>", "Name for the cluster scaffolding")
+    .option("-n, --name <name>", "Cluster name for scaffolding")
     .option(
       "-s, --source <cluster definition github repo>",
-      "The source URL for the repository containing the terraform deployment"
+      "Source URL for the repository containing the terraform deployment"
     )
     .option(
       "-v, --version <repository version>",
-      "A version or tag for the repository so a fixed version is referenced"
+      "Version or tag for the repository so a fixed version is referenced"
     )
     .option(
       "-t, --template <path to variables.tf> ",
-      "The location of the variables.tf for the terraform deployment"
+      "Location of the variables.tf for the terraform deployment"
     )
     .action(async opts => {
       try {

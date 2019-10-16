@@ -28,11 +28,11 @@ export const createCommandDecorator = (command: commander.Command): void => {
     )
     .option(
       "--resource-group <rg_name>",
-      "Name of resource group to deploy Bedrock Environment to"
+      "Resource group name to deploy Bedrock Environment to"
     )
     .option(
       "--cluster-name <cluster-name>",
-      "Name of the AKS cluster to deploy in environment",
+      "AKS cluster name to deploy in environment",
       "spk-AKScluster"
     )
     .option(

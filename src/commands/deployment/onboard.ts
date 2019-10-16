@@ -15,7 +15,7 @@ export const onboardCommandDecorator = (command: commander.Command): void => {
     .command("onboard")
     .alias("o")
     .description(
-      "Onboard to use the service introspection tool. This will create a storage account in your subscription. "
+      "Onboard to use the service introspection tool. This will create a storage account if it does not exist in your Azure subscription in the give resource group."
     )
     .option(
       "-n, --storage-account-name <storage-account-name>",
@@ -23,7 +23,7 @@ export const onboardCommandDecorator = (command: commander.Command): void => {
     )
     .option(
       "-l, --storage-location <storage-location>",
-      "Azure location for Storage account and resource group when they do not exist"
+      "Azure location for the storage account and resource group when they do not exist"
     )
     .option(
       "-r, --storage-resource-group-name <storage-resource-group-name>",
