@@ -14,7 +14,6 @@ jobs:
     pool:
       vmImage: ubuntu-16.04
     steps:
-      - checkout: none # we already have the artifacts built, don't need the code
       - download: current
 
       - task: GitHubRelease@1
