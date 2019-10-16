@@ -23,6 +23,9 @@ infra:
     access_token: "" # This is your Personal Access Token with permission to modify and access this private repo. Ex. "${env:BEDROCK_PERSONAL_ACCESS_TOKEN}". Leave this empty if project is public
 
 introspection:
+  dashboard:
+    image: "samiyaakhtar/spektate:prod"
+    name: "spektate"
   azure: # This is the storage account for the service introspection tool
     account_name: "${env:test_name}"
     table_name: "table-name"
