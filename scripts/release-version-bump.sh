@@ -5,7 +5,7 @@ set -e
 RELEASE_TYPE=$1
 
 if [[ -z "${RELEASE_TYPE}" ]]; then
-  echo "release type is not set.  Please pass in either major, minor or patch"
+  echo "Release type is not set.  Please pass in either [major, minor or patch] or any commands supported here https://yarnpkg.com/lang/en/docs/cli/version/#toc-commands"
   return 1
 fi
 
