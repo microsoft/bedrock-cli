@@ -81,12 +81,6 @@ export interface IAzurePipelinesYaml {
 }
 
 export interface IConfigYaml {
-  azure_cli?: {
-    version?: string;
-    Extensions?: {
-      aks_preview?: string;
-    };
-  };
   azure_devops?: {
     org?: string;
     project?: string;
@@ -102,11 +96,7 @@ export interface IConfigYaml {
     terraform?: string;
     helm?: string;
     git?: string;
-    bedrock?: {
-      source?: string;
-      tag?: string;
-      access_token?: string;
-    };
+    az?: string;
   };
   introspection?: {
     dashboard?: {
