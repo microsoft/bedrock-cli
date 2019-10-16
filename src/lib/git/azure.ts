@@ -6,7 +6,7 @@ import AZGitInterfaces, {
 import { exec } from "child_process";
 import { promisify } from "util";
 import { IAzureDevOpsOpts, PullRequest } from ".";
-import { Config } from "../../commands/init";
+import { Config } from "../../config";
 import { logger } from "../../logger";
 import { azdoUrl } from "../azdoutil";
 

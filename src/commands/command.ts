@@ -1,6 +1,5 @@
 import commander from "commander";
 import { enableVerboseLogging, logger } from "../logger";
-import { loadConfiguration } from "./init";
 
 /**
  * General interface to encapsulate a sub-command.
@@ -107,10 +106,15 @@ export const executeCommand = (cmd: ICommand, argv: string[]): void => {
   if (targetCommandName && targetCommand) {
     // If command is a sub-command, it needs to load configuration before
     // sub-command can be executed.
-    loadConfiguration();
     executeCommand(targetCommand, decrementArgv(argv));
   } else {
-    argv.length <= 2 ? cmd.command.outputHelp() : cmd.command.parse(argv);
+    // Top level try/catch. If an error occurs, log it and exit with code 1
+    try {
+      argv.length <= 2 ? cmd.command.outputHelp() : cmd.command.parse(argv);
+    } catch (err) {
+      logger.error(err);
+      process.exit(1);
+    }
   }
 };
 

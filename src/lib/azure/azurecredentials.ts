@@ -1,6 +1,6 @@
 import { ClientSecretCredential } from "@azure/identity";
 import * as msRestNodeAuth from "@azure/ms-rest-nodeauth";
-import { config } from "../../commands/init";
+import { Config } from "../../config";
 import { logger } from "../../logger";
 
 /**
@@ -12,6 +12,7 @@ export const getCredentials = async (): Promise<
   if (!verifyConfigDefined()) {
     return undefined;
   }
+  const config = Config();
 
   return new ClientSecretCredential(
     config.introspection!.azure!.tenant_id!,
@@ -29,6 +30,7 @@ export const getManagementCredentials = async (): Promise<
   if (!verifyConfigDefined()) {
     return undefined;
   }
+  const config = Config();
 
   return msRestNodeAuth.loginWithServicePrincipalSecret(
     config.introspection!.azure!.service_principal_id!,
@@ -38,6 +40,7 @@ export const getManagementCredentials = async (): Promise<
 };
 
 const verifyConfigDefined = (): boolean => {
+  const config = Config();
   if (
     config.introspection &&
     config.introspection.azure &&

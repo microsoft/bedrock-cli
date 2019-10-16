@@ -1,7 +1,15 @@
+import dotenv from "dotenv";
 import fs from "fs";
 import yaml from "js-yaml";
+import * as os from "os";
 import path from "path";
-import { IBedrockFile, IMaintainersFile } from "./types";
+import { logger } from "./logger";
+import { IBedrockFile, IConfigYaml, IMaintainersFile } from "./types";
+
+////////////////////////////////////////////////////////////////////////////////
+// State
+////////////////////////////////////////////////////////////////////////////////
+let spkConfig: IConfigYaml = {}; // DANGEROUS! this var is globally retrievable and mutable via Config()
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
@@ -26,18 +34,70 @@ const readYaml = <T>(
   throw new Error(`Unable to locate '${yamlFilename}' at '${filepath}'`);
 };
 
+/**
+ * Reads yaml file and loads any references to env vars from process.env
+ * Throws an exception if any env variable references are not defined in
+ * current shell.
+ *
+ * @param configYaml configuration in object form
+ *
+ * @returns The original object passed with the values referencing environment variables being swapped to their literal value
+ */
+const loadConfigurationFromLocalEnv = <T>(configObj: T): T => {
+  const iterate = (obj: any) => {
+    if (obj != null && obj !== undefined) {
+      for (const [key, value] of Object.entries(obj)) {
+        const regexp = /\${env:([a-zA-Z_$][a-zA-Z_$0-9]+)}/g;
+        const match = regexp.exec(value as any);
+        if (match && match.length >= 2) {
+          const matchValue = match[1];
+          if (process.env[matchValue]) {
+            obj[key] = process.env[matchValue];
+          } else {
+            logger.error(`Env variable needs to be defined for ${matchValue}`);
+            throw new Error(
+              `Environment variable needs to be defined for ${matchValue} since it's referenced in the config file.`
+            );
+          }
+        }
+        if (typeof obj[key] === "object") {
+          iterate(obj[key]);
+        }
+      }
+    }
+  };
+
+  iterate(configObj);
+  return configObj;
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // Exported
 ////////////////////////////////////////////////////////////////////////////////
 /**
+ * Returns the global spk-config from the host user
+ */
+export const Config = (): IConfigYaml => {
+  // Only load the config if it hasn't been loaded before (ie; its empty)
+  if (Object.keys(spkConfig).length === 0) {
+    try {
+      loadConfiguration();
+    } catch (err) {
+      logger.warn(err);
+    }
+  }
+  return spkConfig;
+};
+
+/**
  * Returns the current bedrock.yaml file for the project
  */
-export const bedrock = async () => readYaml<IBedrockFile>("bedrock.yaml");
+export const Bedrock = async () => readYaml<IBedrockFile>("bedrock.yaml");
 
 /**
  * Returns the current maintainers.yaml file for the project
  */
-export const maintainers = async () =>
+export const Maintainers = async () =>
   readYaml<IMaintainersFile>("maintainers.yaml");
 
 /**
@@ -59,5 +119,29 @@ export const write = (
       path.join(parentDirectory, "maintainers.yaml"),
       asYaml
     );
+  }
+};
+
+/**
+ * Fetches the absolute default path of the spk global config
+ */
+export const defaultFileLocation = () =>
+  path.join(os.homedir(), ".spk", "config.yaml");
+
+/**
+ * Loads configuration from a given filename, if provided, otherwise
+ * uses the default file location ~/.spk-config.yaml
+ *
+ * @param filename file to load configuration from
+ */
+export const loadConfiguration = (filename: string = defaultFileLocation()) => {
+  try {
+    fs.statSync(filename);
+    dotenv.config();
+    const data = readYaml<IConfigYaml>(filename, "/");
+    spkConfig = loadConfigurationFromLocalEnv(data);
+  } catch (err) {
+    logger.error(`An error occurred while loading configuration\n ${err}`);
+    throw err;
   }
 };

@@ -1,13 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as util from "util";
+import { Config, defaultFileLocation, loadConfiguration } from "../config";
 import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
-import {
-  config,
-  defaultFileLocation,
-  loadConfiguration,
-  writeConfigToDefaultLocation
-} from "./init";
+import { writeConfigToDefaultLocation } from "./init";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -24,11 +20,11 @@ describe("Initializing a project to use spk with a config file", () => {
     process.env.test_key = "my_storage_key";
     const filename = path.resolve(mockFileName);
     loadConfiguration(filename);
-    expect(config.introspection!).toBeDefined();
-    expect(config.introspection!.azure!.account_name).toBe(
+    expect(Config().introspection!).toBeDefined();
+    expect(Config().introspection!.azure!.account_name).toBe(
       process.env.test_name
     );
-    expect(config.introspection!.azure!.key).toBe(process.env.test_key);
+    expect(Config().introspection!.azure!.key).toBe(process.env.test_key);
     logger.info("Able to initialize a basic config file");
   });
 });
@@ -72,13 +68,13 @@ describe("Writing to default config location", () => {
       process.env.test_name = "testStorageName";
       process.env.test_key = "testStorageKey";
       loadConfiguration(filename);
-      config.azure_devops!.access_token = "unit_test_token";
+      Config().azure_devops!.access_token = "unit_test_token";
 
       await writeConfigToDefaultLocation();
-      loadConfiguration(defaultFileLocation);
+      loadConfiguration(defaultFileLocation());
 
-      expect(config.azure_devops!).toBeDefined();
-      expect(config.azure_devops!.access_token!).toBe("unit_test_token");
+      expect(Config().azure_devops!).toBeDefined();
+      expect(Config().azure_devops!.access_token!).toBe("unit_test_token");
     } catch (e) {
       logger.error(e);
       // Make sure execution does not get here:

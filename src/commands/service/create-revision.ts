@@ -1,6 +1,6 @@
 import commander from "commander";
 import { join } from "path";
-import { bedrock } from "../../config";
+import { Bedrock } from "../../config";
 import { createPullRequest } from "../../lib/git/azure";
 import { getCurrentBranch, getOriginUrl } from "../../lib/gitutils";
 import { logger } from "../../logger";
@@ -45,10 +45,10 @@ export const createServiceRevisionCommandDecorator = (
         // Give defaults
         ////////////////////////////////////////////////////////////////////////
         // default pull request against initial ring
-        const bedrockConfig = await bedrock();
+        const bedrockConfig = await Bedrock();
         const defaultRings = Object.entries(bedrockConfig.rings || {})
           .map(([branch, config]) => ({ branch, ...config }))
-          .filter(ring => ring.default);
+          .filter(ring => ring.isDefault);
         if (defaultRings.length === 0) {
           throw new Error(
             `No default rings specified in ${join(__dirname, "bedrock.yaml")}`

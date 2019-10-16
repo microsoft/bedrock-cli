@@ -251,9 +251,9 @@ const generateBedrockFile = async (
       return file;
     },
     {
-      rings: defaultRings.reduce<{ [ring: string]: { default: boolean } }>(
+      rings: defaultRings.reduce<{ [ring: string]: { isDefault: boolean } }>(
         (defaults, ring) => {
-          defaults[ring] = { default: true };
+          defaults[ring] = { isDefault: true };
           return defaults;
         },
         {}

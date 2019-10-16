@@ -3,6 +3,7 @@ dist
 package-lock.json
 .DS_Store
 .bedrock
+.idea
 
 # Logs
 logs

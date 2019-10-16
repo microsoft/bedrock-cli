@@ -1,12 +1,17 @@
 import child_process from "child_process";
 import * as path from "path";
-import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
-import { config, loadConfiguration } from "../init";
+import { promisify } from "util";
+import { Config, loadConfiguration } from "../../config";
+import {
+  disableVerboseLogging,
+  enableVerboseLogging,
+  logger
+} from "../../logger";
 import {
   validateAzure,
   validateEnvVariables,
   validatePrereqs
-} from "./vaildate";
+} from "./validate";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -37,16 +42,18 @@ describe("Validating executable prerequisites in spk-config", () => {
     loadConfiguration(filename);
     const fakeBinaries: string[] = ["ydawgie"];
     await validatePrereqs(fakeBinaries, true);
-    expect(config.infra!).toBeDefined();
-    expect(config.infra!.checks!).toBeDefined();
-    expect(config.infra!.checks!.ydawgie!).toBe(false);
+    expect(Config().infra!).toBeDefined();
+    expect(Config().infra!.checks!).toBeDefined();
+    expect(Config().infra!.checks!.ydawgie!).toBe(false);
   });
 });
 
 describe("Validating Azure authentication", () => {
   test("Validate that a logged out user produces a force fail", async () => {
     // Produce an error that requires user to login
-    child_process.exec("az logout");
+    await promisify(child_process.exec)("az logout").catch(err => {
+      logger.warn(err);
+    });
     const value = await validateAzure(false);
     expect(value).toBe(false);
   });
@@ -61,9 +68,9 @@ describe("Validating Azure login in spk-config", () => {
     process.env.test_key = "my_storage_key";
     loadConfiguration(filename);
     await validateAzure(true);
-    expect(config.infra!).toBeDefined();
-    expect(config.infra!.checks!).toBeDefined();
-    expect(config.infra!.checks!.az_login_check!).toBe(false);
+    expect(Config().infra!).toBeDefined();
+    expect(Config().infra!.checks!).toBeDefined();
+    expect(Config().infra!.checks!.az_login_check!).toBe(false);
   });
 });
 
@@ -87,8 +94,8 @@ describe("Validating environment variables in spk-config", () => {
     process.env.test_key = "my_storage_key";
     loadConfiguration(filename);
     await validateEnvVariables(variables, true);
-    expect(config.infra!).toBeDefined();
-    expect(config.infra!.checks!).toBeDefined();
-    expect(config.infra!.checks!.env_var_check!).toBe(false);
+    expect(Config().infra!).toBeDefined();
+    expect(Config().infra!.checks!).toBeDefined();
+    expect(Config().infra!.checks!.env_var_check!).toBe(false);
   });
 });

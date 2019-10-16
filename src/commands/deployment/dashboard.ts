@@ -1,10 +1,9 @@
 import commander from "commander";
 import open = require("open");
-import { env } from "shelljs";
+import { Config } from "../../config";
 import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
-import { validatePrereqs } from "../infra/vaildate";
-import { config } from "../init";
+import { validatePrereqs } from "../infra/validate";
 
 /**
  * Adds the onboard command to the commander command object
@@ -17,6 +16,7 @@ export const dashboardCommandDecorator = (command: commander.Command): void => {
     .description("Launch the service introspection dashboard")
     .option("-p, --port <port>", "Port to launch the dashboard on", 4040)
     .action(async opts => {
+      const config = Config();
       if (
         !config.introspection ||
         !config.azure_devops ||
@@ -44,6 +44,7 @@ export const launchDashboard = async (port: number): Promise<string> => {
     if (!(await validatePrereqs(["docker"], false))) {
       return "";
     }
+    const config = Config();
     const dockerRepository = config.introspection!.dashboard!.image!;
     logger.info("Pulling dashboard docker image");
     await exec("docker", ["pull", dockerRepository]);
@@ -65,6 +66,7 @@ export const launchDashboard = async (port: number): Promise<string> => {
 };
 
 const getEnvVars = (): string[] => {
+  const config = Config();
   const envVars = [];
   envVars.push("-e");
   envVars.push("REACT_APP_PIPELINE_ORG=" + config.azure_devops!.org!);

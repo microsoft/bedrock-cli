@@ -2,14 +2,14 @@
 // Mocks
 ////////////////////////////////////////////////////////////////////////////////
 jest.mock("azure-devops-node-api");
-jest.mock("../../commands/init");
+jest.mock("../../config");
 
 ////////////////////////////////////////////////////////////////////////////////
 // Imports
 ////////////////////////////////////////////////////////////////////////////////
 import { WebApi } from "azure-devops-node-api";
 import uuid from "uuid/v4";
-import { Config } from "../../commands/init";
+import { Config } from "../../config";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { createPullRequest, GitAPI } from "./azure";
 

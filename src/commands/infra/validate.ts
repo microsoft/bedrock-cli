@@ -2,8 +2,8 @@ import child_process from "child_process";
 import commander from "commander";
 import emoji from "node-emoji";
 import { promisify } from "util";
+import { Config } from "../../config";
 import { logger } from "../../logger";
-import { config } from "../init";
 
 const binaries: string[] = ["terraform", "git", "az", "helm"];
 const envVar: string[] = [
@@ -62,6 +62,7 @@ export const validatePrereqs = async (
   executables: string[],
   globalInit: boolean
 ): Promise<boolean> => {
+  const config = Config();
   if (!config.infra) {
     config.infra = {};
   }
@@ -92,6 +93,7 @@ export const validatePrereqs = async (
  * Validates that user is logged into Azure CLI
  */
 export const validateAzure = async (globalInit: boolean): Promise<boolean> => {
+  const config = Config();
   // Validate authentication with Azure
   if (!config.infra) {
     config.infra = {};
@@ -125,6 +127,8 @@ export const validateEnvVariables = async (
   variables: string[],
   globalInit: boolean
 ): Promise<boolean> => {
+  const config = Config();
+
   if (!config.infra) {
     config.infra = {};
   }

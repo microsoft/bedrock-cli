@@ -43,7 +43,7 @@ export interface IHelmConfig {
 export interface IBedrockFile {
   rings?: {
     [branchName: string]: {
-      default: boolean; // indicates the branch is a default branch to PR against when creating a service revision
+      isDefault: boolean; // indicates the branch is a default branch to PR against when creating a service revision
     };
   };
   services: {

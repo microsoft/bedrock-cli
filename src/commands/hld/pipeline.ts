@@ -1,10 +1,10 @@
-import commander from "commander";
-
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
-import { logger } from "../../logger";
-
-import { config, loadConfiguration } from "../init";
-
+import {
+  BuildDefinition,
+  BuildDefinitionVariable
+} from "azure-devops-node-api/interfaces/BuildInterfaces";
+import commander from "commander";
+import { Config } from "../../config";
 import {
   createPipelineForDefinition,
   definitionForAzureRepoPipeline,
@@ -12,11 +12,7 @@ import {
   IAzureRepoPipelineConfig,
   queueBuild
 } from "../../lib/pipelines/pipelines";
-
-import {
-  BuildDefinition,
-  BuildDefinitionVariable
-} from "azure-devops-node-api/interfaces/BuildInterfaces";
+import { logger } from "../../logger";
 
 export const installHldToManifestPipelineDecorator = (
   command: commander.Command
@@ -28,7 +24,7 @@ export const installHldToManifestPipelineDecorator = (
       "Install the manifest generation pipeline to your Azure DevOps instance"
     )
     .action(async () => {
-      loadConfiguration();
+      const config = Config();
 
       if (!config) {
         logger.error("Config failed to load");

@@ -1,7 +1,7 @@
 import { Command } from "../command";
 import { createCommandDecorator } from "./create";
 import { scaffoldCommandDecorator } from "./scaffold";
-import { validateCommandDecorator } from "./vaildate";
+import { validateCommandDecorator } from "./validate";
 
 export const infraCommand = Command(
   "infra",

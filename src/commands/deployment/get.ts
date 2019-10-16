@@ -3,8 +3,8 @@ import commander from "commander";
 import Deployment from "spektate/lib/Deployment";
 import AzureDevOpsPipeline from "spektate/lib/pipeline/AzureDevOpsPipeline";
 import IPipeline from "spektate/lib/pipeline/Pipeline";
+import { Config } from "../../config";
 import { logger } from "../../logger";
-import { config } from "../init";
 export let hldPipeline: IPipeline;
 export let clusterPipeline: IPipeline;
 export let srcPipeline: IPipeline;
@@ -123,6 +123,7 @@ export const getDeployments = (
   service?: string,
   deploymentId?: string
 ): Promise<Deployment[]> => {
+  const config = Config();
   return Deployment.getDeploymentsBasedOnFilters(
     config.introspection!.azure!.account_name!,
     config.introspection!.azure!.key!,
@@ -151,6 +152,8 @@ export const getDeployments = (
  * Initializes the pipelines assuming that the configuration has been loaded
  */
 const initialize = () => {
+  const config = Config();
+
   if (
     !config.introspection ||
     !config.azure_devops ||

@@ -1,12 +1,12 @@
 import * as path from "path";
+import { Config, loadConfiguration } from "../../config";
 import { exec } from "../../lib/shell";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
   logger
 } from "../../logger";
-import { validatePrereqs } from "../infra/vaildate";
-import { config, loadConfiguration } from "./../init";
+import { validatePrereqs } from "../infra/validate";
 import { launchDashboard } from "./dashboard";
 
 beforeAll(() => {
@@ -31,7 +31,7 @@ describe("Validate dashboard container pull", () => {
         const dockerId = await exec("docker", [
           "images",
           "-q",
-          config.introspection!.dashboard!.image!
+          Config().introspection!.dashboard!.image!
         ]);
         expect(dockerId).toBeDefined();
         expect(dashboardContainerId).not.toBe("");
