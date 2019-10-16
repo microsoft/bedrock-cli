@@ -9,6 +9,7 @@ if [[ -z "${RELEASE_TYPE}" ]]; then
   return 1
 fi
 
+REMOTE=${2:-origin}
 
 RELEASE_BRANCH=$(whoami)/release
 
@@ -23,6 +24,6 @@ yarn config set version-git-tag false
 # Commit message template
 yarn config set version-git-message "release: ${RELEASE_TYPE} bump to v%s"
 
-# Bump version following prerelease format => 1.0.0-0 becomes 1.0.0-1
+# Bump version following the specified release type format
 yarn version "--${RELEASE_TYPE}"
-git push origin ${RELEASE_BRANCH}
+git push ${REMOTE} ${RELEASE_BRANCH}

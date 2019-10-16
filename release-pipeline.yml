@@ -23,3 +23,4 @@ stages:
           releaseNotesSource: inline # blank for now, can switch to a file
           tagSource: "gitTag" # or "userSpecifiedTag"
           addChangeLog: true
+          isDraft: true

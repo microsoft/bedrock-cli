@@ -2,6 +2,8 @@
 
 set -e
 
+REMOTE=${1:-origin}
+
 ### Tag a commit for release
 git checkout master
 git pull
@@ -14,4 +16,4 @@ TAG="v${PACKAGE_VERSION}"
 echo "Tagging commit ${COMMIT} with tag ${TAG}"
 
 git tag ${TAG}
-git push origin ${TAG}
+git push ${REMOTE} ${TAG}

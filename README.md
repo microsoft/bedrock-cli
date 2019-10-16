@@ -377,3 +377,7 @@ try {
   throw err;
 }
 ```
+
+## Cutting new release
+
+See [release doc](docs/RELEASE.md)
