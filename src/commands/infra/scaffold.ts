@@ -1,7 +1,7 @@
 import commander from "commander";
 import fs, { chmod } from "fs";
+import fsextra, { readdir } from "fs-extra";
 import path from "path";
-import { promisify } from "util";
 import { logger } from "../../logger";
 
 /**
@@ -29,14 +29,17 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
     )
     .action(async opts => {
       try {
-        if (opts.name && opts.source && opts.template) {
+        if (opts.name && opts.source && opts.version && opts.template) {
           logger.info("All required options are configured for scaffolding.");
         } else {
           logger.warn(
             "You must specify each of the variables 'name', 'source', 'version', 'template' in order to scaffold out a deployment."
           );
         }
-        await validateVariablesTf(opts.template);
+
+        await copyTfTemplate(opts.template, opts.name);
+        await validateVariablesTf(path.join(opts.template, "variables.tf"));
+        await renameTfvars(opts.name);
         await scaffoldInit(opts.name, opts.source, opts.version, opts.template);
       } catch (err) {
         logger.error("Error occurred while generating scaffold");
@@ -60,8 +63,53 @@ export const validateVariablesTf = async (
       );
       return false;
     }
+    logger.info(
+      `Terraform variables.tf file found. Attempting to generate definition JSON/HCL file...`
+    );
   } catch (_) {
-    logger.error(`Unable to Validate Infra Init.`);
+    logger.error(`Unable to validate Terraform variables.tf.`);
+    return false;
+  }
+  return true;
+};
+
+/**
+ * Rename any .tfvars file by appending ".backup"
+ *
+ * @param dir path to template directory
+ */
+export const renameTfvars = async (dir: string): Promise<void> => {
+  try {
+    const tfFiles = fs.readdirSync(dir);
+    tfFiles.forEach(file => {
+      if (file.indexOf(".tfvars") !== -1) {
+        fs.renameSync(path.join(dir, file), path.join(dir, file + ".backup"));
+      }
+    });
+  } catch (err) {
+    logger.error(`Unable to rename .tfvars files.`);
+    logger.error(err);
+  }
+};
+
+/**
+ * Copies the Terraform environment template
+ *
+ * @param templatePath path so the directory of Terraform templates
+ * @param envName name of destination directory
+ */
+export const copyTfTemplate = async (
+  templatePath: string,
+  envName: string
+): Promise<boolean> => {
+  try {
+    await fsextra.copy(templatePath, envName);
+    logger.info(`Terraform template files copied.`);
+  } catch (err) {
+    logger.error(
+      `Unable to find Terraform environment. Please check template path.`
+    );
+    logger.error(err);
     return false;
   }
   return true;
@@ -122,6 +170,7 @@ export const parseVariablesTf = (data: string) => {
 export const generateClusterDefinition = (
   name: string,
   source: string,
+  template: string,
   version: string,
   vartfData: string
 ) => {
@@ -129,6 +178,7 @@ export const generateClusterDefinition = (
   const def: { [name: string]: string | null | any } = {
     name,
     source,
+    template,
     version
   };
   if (Object.keys(fields).length > 0) {
@@ -154,12 +204,13 @@ export const scaffoldInit = async (
   name: string,
   bedrockSource: string,
   bedrockVersion: string,
-  tfVariableFile: string
+  template: string
 ): Promise<boolean> => {
   try {
+    const tfVariableFile = path.join(name, "variables.tf");
     // Identify which environment the user selected
     if (fs.existsSync(tfVariableFile)) {
-      logger.info(`variable.tf file found : ${tfVariableFile}`);
+      logger.info(`variables.tf file found : ${tfVariableFile}`);
       const data: string = fs.readFileSync(tfVariableFile, "utf8");
       if (data) {
         const baseDef: {
@@ -167,29 +218,25 @@ export const scaffoldInit = async (
         } = generateClusterDefinition(
           name,
           bedrockSource,
+          template,
           bedrockVersion,
           data
         );
         if (baseDef) {
           fs.mkdir(name, (e: any) => {
-            if (e) {
-              logger.error(`Unable to create directory: ${name}`);
-              return false;
-            } else {
-              const confPath: string = path.format({
-                base: "definition.json",
-                dir: name,
-                root: "/ignored"
-              });
-              fs.writeFileSync(confPath, JSON.stringify(baseDef, null, 2));
-              return true;
-            }
+            const confPath: string = path.format({
+              base: "definition.json",
+              dir: name,
+              root: "/ignored"
+            });
+            fs.writeFileSync(confPath, JSON.stringify(baseDef, null, 2));
+            return true;
           });
         } else {
-          logger.error("Unable to generate cluster definition");
+          logger.error(`Unable to generate cluster definition.`);
         }
       } else {
-        logger.error(`Unable to read variable file: ${tfVariableFile}`);
+        logger.error(`Unable to read variable file: ${tfVariableFile}.`);
       }
     }
   } catch (_) {

@@ -55,6 +55,7 @@ describe("Validate generation of sample scaffold definition", () => {
     const def = generateClusterDefinition(
       "test-scaffold",
       "https://github.com/microsoft/bedrock",
+      "cluster/environments/azure-simple",
       "v1.0.0",
       sampleVarTf
     );

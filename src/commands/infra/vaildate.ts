@@ -18,7 +18,7 @@ const envVar: string[] = [
  *
  * @param command Commander command object to decorate
  */
-export const infraValidateCommand = (command: commander.Command): void => {
+export const validateCommandDecorator = (command: commander.Command): void => {
   command
     .command("validate")
     .alias("v")

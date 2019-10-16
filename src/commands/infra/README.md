@@ -25,8 +25,7 @@ Initializes the environment to deploy Bedrock infrastructure.
 
 It will do the following:
 
-- Install prerequisites (e.g. terraform, git, helm, az cli) if not already
-  installed.
+- Verifies if prerequisites (e.g. terraform, git, helm, az cli) are installed
 - Verifies that user is logged into Azure via CLI
 - Check for environment variables (e.g. ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID,
   ARM_CLIENT_SECRET, ARM_TENANT_ID)
@@ -60,6 +59,8 @@ It will do the following:
 Usage:
 spk infra scaffold|s [options]
 
+> `spk infra scaffold --name discovery-service --source https://github.com/microsoft/bedrock --version "0.0.1" --template /microsoft/bedrock/cluster/environments/azure-simple`
+
 Options:
   -n, --name <name>                              Cluster name for scaffolding
   -s, --source <cluster definition github repo>  Source URL for the repository containing the terraform deployment
@@ -71,7 +72,7 @@ Options:
 #### scaffold sample
 
 ```
-spk infra scaffold --name discovery-service --source https://github.com/microsoft/bedrock --version "0.0.1" --template .bedrock/cluster/environments/azure-simple/variables.tf
+spk infra scaffold --name discovery-service --source https://github.com/microsoft/bedrock --version "0.0.1" --template /microsoft/bedrock/cluster/environments/azure-simple
 ```
 
 Output:
@@ -80,6 +81,7 @@ Output:
 {
   "name": "discovery-service",
   "source": "https://github.com/microsoft/bedrock",
+    "template": "bedrock/cluster/environments/azure-simple",
   "version": "0.0.1",
   "variables": {
     "agent_vm_count": "3",
