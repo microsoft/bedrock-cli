@@ -1,11 +1,12 @@
 parameters:
   GitHubConnection: "" # defaults for any parameters that aren't specified
-  releaseNotesSource: inline
+  releaseNotesFilePath: ""
   addChangeLog: true
   isPreRelease: false
   isDraft: false
   tagSource: "gitTag"
   action: create
+  target: $(Build.SourceVersion)
 
 jobs:
   - job: Create_Github_Release
@@ -17,13 +18,13 @@ jobs:
       - download: current
 
       - task: GitHubRelease@1
-        displayName: "GitHub release (create)"
+        displayName: "GitHub release ${{ parameters.action }}"
         inputs:
           action: ${{ parameters.action }}
           gitHubConnection: ${{ parameters.GitHubConnection }}
           repositoryName: "$(Build.Repository.Name)"
-          releaseNotesSource: ${{ parameters.releaseNotesSource }}
-          target: $(Build.SourceVersion)
+          releaseNotesFilePath: ${{ parameters.releaseNotesFilePath }}
+          target: ${{ parameters.target }}
           assets: |
             $(Agent.BuildDirectory)/dist/spk-linux
             $(Agent.BuildDirectory)/dist/spk-macos

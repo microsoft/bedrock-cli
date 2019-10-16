@@ -20,7 +20,7 @@ stages:
       - template: azure-pipelines/templates/create-github-release.yml
         parameters:
           GitHubConnection: "spk"
-          releaseNotesSource: inline # blank for now, can switch to a file
+          releaseNotesFilePath: "CHANGELOG.md"
           tagSource: "gitTag" # or "userSpecifiedTag"
           addChangeLog: true
           isDraft: true

@@ -16,6 +16,8 @@ Instruction on how to cut a new release.
    ./scripts/release-version-bump minor origin
    ```
 
+1. Update `CHANGELOG.md` as needed and push to branch.
+
 1. Create PR
 
 ### Create GitHub Release
