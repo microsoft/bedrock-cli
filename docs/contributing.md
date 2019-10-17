@@ -111,7 +111,7 @@ yarn build
 
 ### Cutting new release
 
-See [release doc](docs/RELEASE.md)
+See [release doc](./RELEASE.md)
 
 ### IDE Configuration
 
