@@ -4,7 +4,6 @@ import {
   createPipelineForDefinition,
   IAzureRepoPipelineConfig,
   IGithubRepoPipelineConfig,
-  initBuildApiClient,
   RepositoryTypes
 } from "./pipelines";
 

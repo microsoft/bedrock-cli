@@ -16,8 +16,7 @@ import {
 } from "./pipelines";
 
 const token = process.env.PERSONAL_ACCESS_TOKEN || "some-super-secret-token";
-const orgurl =
-  process.env.AZURE_DEVOPS_ORG_URL || "full-url-to-azure-devops-org";
+const orgName = process.env.AZURE_DEVOPS_ORG_NAME || "name-of-azure-devops-org";
 const project = process.env.AZURE_DEVOPS_PROJECT || "my-devops-project";
 const azdoRepoUrl = process.env.AZURE_GIT_REPO || "my-devops-git-url";
 const azdoRepoName = process.env.AZURE_REPO_NAME || "azdo-test";
@@ -28,7 +27,7 @@ const pipelineYamlPath =
 
 if (
   !token ||
-  !orgurl ||
+  !orgName ||
   !project ||
   !azdoRepoUrl ||
   !azdoRepoName ||
@@ -40,7 +39,7 @@ if (
 }
 
 const start = async () => {
-  const buildApi = await getBuildApiClient(orgurl, token);
+  const buildApi = await getBuildApiClient(orgName, token);
 
   const definition = definitionForAzureRepoPipeline({
     branchFilters: ["master"],

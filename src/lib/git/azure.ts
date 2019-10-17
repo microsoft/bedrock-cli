@@ -8,6 +8,7 @@ import { promisify } from "util";
 import { IAzureDevOpsOpts, PullRequest } from ".";
 import { Config } from "../../commands/init";
 import { logger } from "../../logger";
+import { azdoUrl } from "../azdoutil";
 
 ////////////////////////////////////////////////////////////////////////////////
 // State
@@ -56,7 +57,7 @@ export const GitAPI = async (opts: IAzureDevOpsOpts = {}) => {
     const {
       personalAccessToken = config.azure_devops &&
         config.azure_devops.access_token,
-      orgUrl = config.azure_devops && config.azure_devops.org
+      orgName = config.azure_devops && config.azure_devops.org
     } = opts;
 
     // PAT and devops URL are required
@@ -66,7 +67,7 @@ export const GitAPI = async (opts: IAzureDevOpsOpts = {}) => {
       );
     }
 
-    if (typeof orgUrl === "undefined") {
+    if (typeof orgName === "undefined") {
       throw Error(
         `Unable to parse Azure DevOps Organization URL (azure_devops.devops_org_url) from spk config`
       );
@@ -78,10 +79,10 @@ export const GitAPI = async (opts: IAzureDevOpsOpts = {}) => {
       .map((char, i, arr) => (i > arr.length - 5 ? char : "*"))
       .join("");
     logger.info(
-      `Attempting to authenticate with Azure DevOps organization '${orgUrl}' using PAT '${obfuscatedPAT}'`
+      `Attempting to authenticate with Azure DevOps organization '${orgName}' using PAT '${obfuscatedPAT}'`
     );
     const authHandler = azdo.getPersonalAccessTokenHandler(personalAccessToken);
-    const connection = new azdo.WebApi(orgUrl, authHandler);
+    const connection = new azdo.WebApi(azdoUrl(orgName), authHandler);
 
     // Instantiate the git API
     try {

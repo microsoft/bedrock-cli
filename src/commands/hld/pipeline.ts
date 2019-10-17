@@ -42,14 +42,14 @@ export const installHldToManifestPipelineDecorator = (
         return;
       }
 
-      const orgUrl = config.azure_devops.org!;
+      const orgName = config.azure_devops.org!;
       const pat = config.azure_devops.access_token!;
       const hldRepo = config.azure_devops.manifest_repository!;
       const project = config.azure_devops.project!;
       const manifestRepo = config.azure_devops.manifest_repository!;
       const hldRepoName = "HLD";
 
-      if (!orgUrl || !pat || !hldRepo || !project || !manifestRepo) {
+      if (!orgName || !pat || !hldRepo || !project || !manifestRepo) {
         logger.error("Azure DevOps config section not complete ");
         process.exit(1);
         return;
@@ -57,7 +57,7 @@ export const installHldToManifestPipelineDecorator = (
 
       try {
         await installHldToManifestPipeline(
-          orgUrl,
+          orgName,
           pat,
           hldRepoName,
           hldRepo,
