@@ -1,5 +1,6 @@
 import commander from "commander";
 import open = require("open");
+import { env } from "shelljs";
 import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
 import { validatePrereqs } from "../infra/vaildate";
@@ -14,7 +15,8 @@ export const dashboardCommandDecorator = (command: commander.Command): void => {
     .command("dashboard")
     .alias("d")
     .description("Launch the service introspection dashboard")
-    .action(async () => {
+    .option("-p, --port <port>", "Port to launch the dashboard on", 4040)
+    .action(async opts => {
       if (
         !config.introspection ||
         !config.azure_devops ||
@@ -31,9 +33,8 @@ export const dashboardCommandDecorator = (command: commander.Command): void => {
         );
         return;
       }
-      const port = 1010;
-      if (await launchDashboard(port)) {
-        await open("http://localhost:" + port);
+      if (await launchDashboard(opts.port)) {
+        await open("http://localhost:" + opts.port);
       }
     });
 };
@@ -51,21 +52,7 @@ export const launchDashboard = async (port: number): Promise<string> => {
       "run",
       "-d",
       "--rm",
-      "-e",
-      "REACT_APP_PIPELINE_ORG=" + config.azure_devops!.org!,
-      "-e",
-      "REACT_APP_PIPELINE_PROJECT=" + config.azure_devops!.project!,
-      "-e",
-      "REACT_APP_STORAGE_ACCOUNT_NAME=" +
-        config.introspection!.azure!.account_name!,
-      "-e",
-      "REACT_APP_STORAGE_PARTITION_KEY=" +
-        config.introspection!.azure!.partition_key!,
-      "-e",
-      "REACT_APP_STORAGE_TABLE_NAME=" +
-        config.introspection!.azure!.table_name!,
-      "-e",
-      "REACT_APP_STORAGE_ACCESS_KEY=" + config.introspection!.azure!.key!,
+      ...getEnvVars(),
       "-p",
       port + ":80",
       dockerRepository
@@ -75,4 +62,38 @@ export const launchDashboard = async (port: number): Promise<string> => {
     logger.error(`Error occurred while launching dashboard ${err}`);
     return "";
   }
+};
+
+const getEnvVars = (): string[] => {
+  const envVars = [];
+  envVars.push("-e");
+  envVars.push("REACT_APP_PIPELINE_ORG=" + config.azure_devops!.org!);
+  envVars.push("-e");
+  envVars.push("REACT_APP_PIPELINE_PROJECT=" + config.azure_devops!.project!);
+  envVars.push("-e");
+  envVars.push(
+    "REACT_APP_STORAGE_ACCOUNT_NAME=" +
+      config.introspection!.azure!.account_name!
+  );
+  envVars.push("-e");
+  envVars.push(
+    "REACT_APP_STORAGE_PARTITION_KEY=" +
+      config.introspection!.azure!.partition_key!
+  );
+  envVars.push("-e");
+  envVars.push(
+    "REACT_APP_STORAGE_TABLE_NAME=" + config.introspection!.azure!.table_name!
+  );
+  envVars.push("-e");
+  envVars.push(
+    "REACT_APP_STORAGE_ACCESS_KEY=" + config.introspection!.azure!.key!
+  );
+  if (config.azure_devops!.access_token) {
+    envVars.push("-e");
+    envVars.push(
+      "REACT_APP_PIPELINE_ACCESS_TOKEN=" + config.azure_devops!.access_token
+    );
+  }
+
+  return envVars;
 };
