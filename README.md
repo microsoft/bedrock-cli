@@ -21,23 +21,32 @@ refer to:
 ## CLI
 
 ```
-Usage:
-spk [options] [command]
+Usage: spk [options] [command]
+
+The missing Bedrock CLI
+
+Options:
+  -v, --verbose     Enable verbose logging
+  -V, --version     output the version number
+  -h, --help        output usage information
 
 Commands:
-  init|i [options]  Initialize the spk tool for the first time
+  init|i [options]  Initialize the spk tool for the first time.
   deployment        Introspect your deployments
   project           Initialize and manage your Bedrock project.
   service           Create and manage services for a Bedrock project.
-  infra             Deploy and modify your Bedrock infrastructure.
-
+  infra             Manage and modify your Bedrock infrastructure.
+  hld               Commands for initalizing and managing a bedrock HLD repository.
 ```
 
 ## `spk` commands docs
 
 - [spk deployment](./docs/service-introspection.md)
-- [spk service](./docs/service-management.md)
+- [spk hld](./docs/hld-management.md)
 - [spk infra](./docs/cloud-infra-management.md)
+- [spk init](./docs/init.md)
+- [spk project](./docs/project-management.md)
+- [spk service](./docs/service-management.md)
 
 ## Getting Started
 

@@ -23,8 +23,8 @@ export const initCommandDecorator = (command: commander.Command): void => {
   command
     .command("init")
     .alias("i")
-    .description("Initialize the spk tool for the first time")
-    .option("-f, --file <config-file-path>", "Path to the config file")
+    .description("Initialize the spk tool for the first time.")
+    .option("-f, --file <config-file-path>", "Path to the config file.")
     .action(async opts => {
       try {
         if (!opts.file) {

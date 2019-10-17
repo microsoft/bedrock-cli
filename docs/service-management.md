@@ -5,13 +5,17 @@ Create and manage services for a Bedrock project.
 Usage:
 
 ```
-spk service [options] [command]
+spk service [command] [options]
 ```
 
 Commands:
 
-- [create](#create)
-- [create-pipeline](#create-pipeline)
+- [Service Management](#service-management)
+  - [Prerequisites](#prerequisites)
+  - [Commands](#commands)
+    - [create](#create)
+    - [create-pipeline](#create-pipeline)
+    - [create-revision](#create-revision)
 
 Global options:
 
@@ -67,4 +71,24 @@ Options:
   -d, --devops-project <devops-project>                Azure DevOps Project
   -l, --project-path <project-path>                    Path to Bedrock Project
   -h, --help                                           output usage information
+```
+
+### create-revision
+
+Generate a PR in Azure DevOps against default ring branches
+
+```
+Usage: service create-revision|cr [options]
+
+Create pull requests against the branches marked as `isDefault` in your bedrock config
+
+Options:
+  -s, --source-branch <source>     Source branch to create the pull request from; defaults to the current branch
+  -t, --title <title>              Title of the pull request; not required
+  -d, --description <description>  Description of the pull request; not required
+  --remote-url <remote-url>        The remote host to create the pull request in; defaults to the URL for 'origin'
+  --personal-access-token <pat>    Personal access token associated with your Azure DevOps token; falls back to azure_devops.access_token in your spk config
+  --org-name <organization-name>   Your Azure DevOps organization name; falls back to azure_devops.org in your spk config
+
+  -h, --help                       output usage information
 ```
