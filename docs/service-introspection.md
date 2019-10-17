@@ -48,7 +48,8 @@ introspection:
 
 ### validate
 
-Validate the [requirements](#requirements)
+Validate the [requirements](#requirements) and the onboard
+[prerequisites](#prerequisites)
 
 ```
 Usage:
@@ -86,7 +87,7 @@ Onboard to use the service introspection tool. This will create a storage
 account if it does not already exist in your subscription in the given
 `resource-group`.
 
-Prerequisites:
+#### Prerequisites
 
 1. Service principal with owner access.
    [Create a service principal with owner access.](#service-principal)

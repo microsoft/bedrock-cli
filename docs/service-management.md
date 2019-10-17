@@ -1,0 +1,70 @@
+# Service Management
+
+Create and manage services for a Bedrock project.
+
+Usage:
+
+```
+spk service [options] [command]
+```
+
+Commands:
+
+- [create](#create)
+- [create-pipeline](#create-pipeline)
+
+Global options:
+
+```
+  -v, --verbose        Enable verbose logging
+  -h, --help           Usage information
+```
+
+## Prerequisites
+
+## Commands
+
+### create
+
+Add a new service into this initialized spk project repository
+
+```
+Usage:
+spk service create|c [options] <service-name>
+
+Options:
+  -c, --helm-chart-chart <helm-chart>            bedrock helm chart name. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  -r, --helm-chart-repository <helm-repository>  bedrock helm chart repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  -b, --helm-config-branch <helm-branch>         bedrock custom helm chart configuration branch. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  -p, --helm-config-path <helm-path>             bedrock custom helm chart configuration path. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  -g, --helm-config-git <helm-git>               bedrock helm chart configuration git repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  -d, --packages-dir <dir>                       The directory containing the mono-repo packages. (default: "")
+  -m, --maintainer-name <maintainer-name>        The name of the primary maintainer for this service. (default: "maintainer name")
+  -e, --maintainer-email <maintainer-email>      The email of the primary maintainer for this service. (default: "maintainer email")
+  --git-push                                     SPK CLI will try to commit and push these changes to a new origin/branch named after the service. (default: false)
+  -h, --help                                     output usage information
+```
+
+**NOTE:**
+
+`--helm-chart-*` and `--helm-config-*` settings are exclusive. **You may only
+use one.**
+
+### create-pipeline
+
+Configure Azure DevOps for a bedrock managed service
+
+```
+Usage:
+spk service create-pipeline|p [options] <service-name>
+
+Options:
+  -n, --pipeline-name <pipeline-name>                  Name of the pipeline to be created
+  -p, --personal-access-token <personal-access-token>  Personal Access Token
+  -o, --org-url <org-url>                              Organization URL for Azure DevOps
+  -r, --repo-name <repo-name>                          Repository Name in Azure DevOps
+  -u, --repo-url <repo-url>                            Repository URL
+  -d, --devops-project <devops-project>                Azure DevOps Project
+  -l, --project-path <project-path>                    Path to Bedrock Project
+  -h, --help                                           output usage information
+```

@@ -15,7 +15,21 @@ Commands:
 
 ## Prerequisites
 
-Prerequisites are installed via the [`validate` command](#validate).
+### Environment variables
+
+Specify values for the following environment variables:
+
+```
+ARM_SUBSCRIPTION_ID
+ARM_CLIENT_ID
+ARM_CLIENT_SECRET
+ARM_TENANT_ID
+```
+
+Instructions on how to specify environment variables can be found
+[here](../README.md).
+
+Other prerequisites are installed via the [`validate` command](#validate).
 
 ## Commands
 
