@@ -294,3 +294,31 @@ export const addNewServiceToBedrockFile = (
   logger.info("Updating bedrock.yaml");
   fs.writeFileSync(bedrockFilePath, yaml.safeDump(bedrockFile), "utf8");
 };
+
+/**
+ * Writes out a default Dockerfile if one doesn't exist
+ *
+ * @param targetDirectory directory to generate the Dockerfile
+ * @param content content of file
+ */
+export const generateDockerfile = (targetDirectory: string) => {
+  const absTargetPath = path.resolve(targetDirectory);
+  logger.info(`Generating starter Dockerfile in ${absTargetPath}`);
+
+  const dockerfilePath = path.join(absTargetPath, "Dockerfile");
+
+  if (fs.existsSync(dockerfilePath)) {
+    logger.warn(
+      `Existing Dockerfile found at ${dockerfilePath}, skipping generation.`
+    );
+
+    return;
+  }
+
+  logger.info(`Writing Dockerfile to ${dockerfilePath}`);
+  fs.writeFileSync(
+    dockerfilePath,
+    "FROM alpine\nRUN echo 'hello world'",
+    "utf8"
+  );
+};

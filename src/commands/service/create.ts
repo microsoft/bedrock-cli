@@ -6,6 +6,7 @@ import { logger } from "../../logger";
 import {
   addNewServiceToBedrockFile,
   addNewServiceToMaintainersFile,
+  generateDockerfile,
   generateGitIgnoreFile,
   generateStarterAzurePipelinesYaml
 } from "../../lib/fileutils";
@@ -211,6 +212,9 @@ export const createService = async (
 
   // Create empty .gitignore file in directory
   generateGitIgnoreFile(newServiceDir, "");
+
+  // Create simple Dockerfile in directory
+  generateDockerfile(newServiceDir);
 
   // add maintainers to file in parent repo file
   const newUser = {

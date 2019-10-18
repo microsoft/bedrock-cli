@@ -27,7 +27,8 @@ describe("Initializing a blank standard repo", () => {
     const filepaths = [
       "bedrock.yaml",
       "maintainers.yaml",
-      "azure-pipelines.yaml"
+      "azure-pipelines.yaml",
+      "Dockerfile"
     ].map(filename => path.join(randomTmpDir, filename));
 
     for (const filepath of filepaths) {
@@ -79,11 +80,16 @@ describe("Initializing a blank mono-repo", () => {
 
       const gitIgnoreFilePath = path.join(subProjectDir, ".gitignore");
       expect(fs.existsSync(gitIgnoreFilePath)).toBe(true);
+
+      const dockerfilePath = path.join(subProjectDir, "Dockerfile");
+      expect(fs.existsSync(dockerfilePath)).toBe(true);
     }
 
     // azure-pipelines.yaml should not be in the root
     expect(fs.existsSync(path.join(randomTmpDir, "azure-pipelines.yaml"))).toBe(
       false
     );
+
+    expect(fs.existsSync(path.join(randomTmpDir, "Dockerfile"))).toBe(false);
   });
 });

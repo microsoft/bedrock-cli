@@ -52,7 +52,7 @@ describe("Adding a service to a repo directory", () => {
     expect(fs.existsSync(serviceDirPath)).toBe(true);
 
     // Verify new azure-pipelines created
-    const filepaths = ["azure-pipelines.yaml"].map(filename =>
+    const filepaths = ["azure-pipelines.yaml", "Dockerfile"].map(filename =>
       path.join(serviceDirPath, filename)
     );
 
@@ -90,8 +90,8 @@ describe("Adding a service to a repo directory", () => {
     const serviceDirPath = path.join(randomTmpDir, packageDir, serviceName);
     expect(fs.existsSync(serviceDirPath)).toBe(true);
 
-    // Verify new azure-pipelines created
-    const filepaths = ["azure-pipelines.yaml"].map(filename =>
+    // Verify new azure-pipelines and Dockerfile created
+    const filepaths = ["azure-pipelines.yaml", "Dockerfile"].map(filename =>
       path.join(serviceDirPath, filename)
     );
 

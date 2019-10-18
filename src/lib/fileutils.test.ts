@@ -15,6 +15,7 @@ import { IBedrockFile, IHelmConfig, IMaintainersFile } from "../types";
 import {
   addNewServiceToBedrockFile,
   addNewServiceToMaintainersFile,
+  generateDockerfile,
   generateGitIgnoreFile,
   generateHldAzurePipelinesYaml
 } from "./fileutils";
@@ -193,6 +194,44 @@ describe("Adding a new service to a Bedrock file", () => {
     expect(writeSpy).toBeCalledWith(
       bedrockFilePath,
       yaml.safeDump(expected),
+      "utf8"
+    );
+  });
+});
+
+describe("generating service Dockerfile", () => {
+  const targetDirectory = "my-new-service";
+
+  beforeEach(() => {
+    mockFs({
+      "my-new-service": {}
+    });
+  });
+  afterEach(() => {
+    mockFs.restore();
+  });
+
+  it("should not do anything if file exist", async () => {
+    const mockFsOptions = {
+      [`${targetDirectory}/Dockerfile`]: "hello!!!!"
+    };
+    mockFs(mockFsOptions);
+
+    const writeSpy = jest.spyOn(fs, "writeFileSync");
+    generateDockerfile(targetDirectory);
+    expect(writeSpy).not.toBeCalled();
+  });
+
+  it("should generate the file if one does not exist", async () => {
+    const writeSpy = jest.spyOn(fs, "writeFileSync");
+    generateDockerfile(targetDirectory);
+
+    const absTargetPath = path.resolve(targetDirectory);
+    const expectedGitIgnoreFilePath = `${absTargetPath}/Dockerfile`;
+
+    expect(writeSpy).toBeCalledWith(
+      expectedGitIgnoreFilePath,
+      "FROM alpine\nRUN echo 'hello world'",
       "utf8"
     );
   });
