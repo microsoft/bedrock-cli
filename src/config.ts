@@ -19,19 +19,14 @@ let spkConfig: IConfigYaml = {}; // DANGEROUS! this var is globally retrievable 
  *
  * @throws {Error} when the file does not exist
  *
- * @param yamlFilename filename of the yaml file
- * @param parentDir the parent directory containing the yaml file
+ * @param filepath filepath of the yaml file
  */
-const readYaml = <T>(
-  yamlFilename: string,
-  parentDir: string = process.cwd()
-): T => {
-  const filepath = path.join(parentDir, yamlFilename);
+const readYaml = <T>(filepath: string): T => {
   if (fs.existsSync(filepath)) {
     const contents = fs.readFileSync(filepath, "utf8");
     return yaml.safeLoad(contents) as T;
   }
-  throw new Error(`Unable to locate '${yamlFilename}' at '${filepath}'`);
+  throw new Error(`Unable to load file '${filepath}'`);
 };
 
 /**
@@ -92,13 +87,14 @@ export const Config = (): IConfigYaml => {
 /**
  * Returns the current bedrock.yaml file for the project
  */
-export const Bedrock = async () => readYaml<IBedrockFile>("bedrock.yaml");
+export const Bedrock = async () =>
+  readYaml<IBedrockFile>(path.join(process.cwd(), "bedrock.yaml"));
 
 /**
  * Returns the current maintainers.yaml file for the project
  */
 export const Maintainers = async () =>
-  readYaml<IMaintainersFile>("maintainers.yaml");
+  readYaml<IMaintainersFile>(path.join(process.cwd(), "maintainers.yaml"));
 
 /**
  * Helper to write out a bedrock.yaml or maintainers.yaml file to the project root
@@ -132,13 +128,13 @@ export const defaultFileLocation = () =>
  * Loads configuration from a given filename, if provided, otherwise
  * uses the default file location ~/.spk-config.yaml
  *
- * @param filename file to load configuration from
+ * @param filepath file to load configuration from
  */
-export const loadConfiguration = (filename: string = defaultFileLocation()) => {
+export const loadConfiguration = (filepath: string = defaultFileLocation()) => {
   try {
-    fs.statSync(filename);
+    fs.statSync(filepath);
     dotenv.config();
-    const data = readYaml<IConfigYaml>(filename, "/");
+    const data = readYaml<IConfigYaml>(filepath);
     spkConfig = loadConfigurationFromLocalEnv(data);
   } catch (err) {
     logger.error(`An error occurred while loading configuration\n ${err}`);
