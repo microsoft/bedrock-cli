@@ -27,6 +27,7 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
       "-t, --template <path to variables.tf> ",
       "Location of the variables.tf for the terraform deployment"
     )
+    .option("--hcl", "Generates cluster definition HCL file")
     .action(async opts => {
       try {
         if (opts.name && opts.source && opts.version && opts.template) {
@@ -36,11 +37,23 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
             "You must specify each of the variables 'name', 'source', 'version', 'template' in order to scaffold out a deployment."
           );
         }
-
         await copyTfTemplate(opts.template, opts.name);
         await validateVariablesTf(path.join(opts.template, "variables.tf"));
         await renameTfvars(opts.name);
-        await scaffoldInit(opts.name, opts.source, opts.version, opts.template);
+        if (opts.hcl) {
+          logger.info("Generating HCL cluster definition file.");
+          await scaffoldHcl(
+            opts.name,
+            path.join(opts.template, "variables.tf")
+          );
+        } else {
+          await scaffoldJson(
+            opts.name,
+            opts.source,
+            opts.version,
+            opts.template
+          );
+        }
       } catch (err) {
         logger.error("Error occurred while generating scaffold");
         logger.error(err);
@@ -141,7 +154,7 @@ export const parseVariablesTf = (data: string) => {
   const blocks = data.split(splitRegex);
   // iterate through each 'block' and extract the variable name and any possible
   // default value.  if no default value found, null is used in it's place
-  const fields: { [name: string]: string | null } = {};
+  const fields: { [name: string]: string | "" } = {};
   const fieldSplitRegex = /\"\s{0,}\{/;
   const defaultRegex = /default\s{0,}=\s{0,}(.*)/;
   blocks.forEach((b, idx) => {
@@ -160,7 +173,7 @@ export const parseVariablesTf = (data: string) => {
         }
         fields[elt[0]] = value;
       } else {
-        fields[elt[0]] = null;
+        fields[elt[0]] = "";
       }
     }
   });
@@ -200,7 +213,7 @@ export const generateClusterDefinition = (
  * @param bedrockVersion The version of the repo used
  * @param tfVariableFile Path to the variable file to parse
  */
-export const scaffoldInit = async (
+export const scaffoldJson = async (
   name: string,
   bedrockSource: string,
   bedrockVersion: string,
@@ -243,4 +256,47 @@ export const scaffoldInit = async (
     logger.warn("Unable to create scaffold");
   }
   return false;
+};
+
+export const generateHclClusterDefinition = (vartfData: string) => {
+  const data: string = fs.readFileSync(vartfData, "utf8");
+  const fields: { [name: string]: string | "" | any } = parseVariablesTf(data);
+  const def: { [name: string]: string | "" | any } = {};
+  def.inputs = fields;
+  return def;
+};
+
+/**
+ * This function creates a primary base Terragrunt HCL definition for
+ * generating cluster definitions from.
+ *
+ * @param name Name of the cluster definition
+ * @param vartfData Path to the variable.tf file to parse
+ */
+export const scaffoldHcl = async (
+  dirName: string,
+  vartfData: string
+): Promise<boolean> => {
+  try {
+    const def = generateHclClusterDefinition(vartfData);
+    const confPath: string = path.format({
+      base: "terragrunt.hcl",
+      dir: dirName,
+      root: "/ignored"
+    });
+    const hcl = JSON.stringify(def, null, 2)
+      .replace(/\"([^(\")"]+)\":/g, "$1:")
+      .replace(new RegExp(":", "g"), " =")
+      .replace(new RegExp(",", "g"), " ")
+      .replace("{", "")
+      .replace(/\}([^}]*)$/, "$1")
+      .replace(/(^[ \t]*\n)/gm, "")
+      .trim();
+    fs.writeFileSync(confPath, hcl);
+  } catch (err) {
+    logger.error("Failed to create HCL file.");
+    logger.error(err);
+    return false;
+  }
+  return true;
 };
