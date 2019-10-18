@@ -56,7 +56,7 @@ Initialize the HLD repository by creating an `azure-pipelines.yaml` file, if one
 does not already exist.
 
 ```
-Usage: hld init|i [options]
+Usage: spk hld init|i [options]
 
 Initialize your hld repository. Will add the azure-pipelines yaml files to your working directory/repository if it does not already exist.
 
@@ -76,7 +76,7 @@ invoke "manifest generation"
 and configuration into Kubernetes yaml.
 
 ```
-Usage: hld install-manifest-pipeline|m [options]
+Usage: spk hld install-manifest-pipeline|m [options]
 
 Install the manifest generation pipeline to your Azure DevOps instance
 
