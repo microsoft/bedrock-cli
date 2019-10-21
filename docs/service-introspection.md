@@ -6,6 +6,12 @@ Service Introspection shows information about Bedrock deployments:
 - Time the service was changed or errored
 - Deployment state of the service is
 
+**Important**: This tool will not be useful to you until you go through the
+steps to onboard your pipelines to start using Spektate. There's an onboarding
+guide located [here](./service-introspection-onboarding.md). If you've already
+onboarded the pipelines to start sending data to Spektate storage, you may skip
+the onboarding guide and read about how to use this tool below.
+
 Usage:
 
 ```
@@ -17,6 +23,7 @@ Commands:
 - [validate](#validate)
 - [get](#get)
 - [onboard](#onboard)
+- [dashboard](#dashboard)
 
 Global options:
 
@@ -79,6 +86,22 @@ Options:
   -o, --output <output-format>         Output the information one of the following: normal, wide, JSON
   -w, --watch                          Watch the deployments for a live view
   -h, --help                           Usage information
+```
+
+### dashboard
+
+This command launches the Service Introspection Dashboard for your current
+configuration. It requires `docker` to be installed on your machine in order to
+work.
+
+```
+Usage: deployment dashboard|d [options]
+
+Launch the service introspection dashboard
+
+Options:
+  -p, --port <port>  Port to launch the dashboard on (default: 4040)
+  -h, --help         output usage information
 ```
 
 ### onboard
