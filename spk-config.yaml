@@ -29,3 +29,4 @@ introspection:
     service_principal_secret: "service-principal-secret"
     subscription_id: "subscription-id"
     tenant_id: "tenant-id"
+    resource_group: "resource-group-name"
