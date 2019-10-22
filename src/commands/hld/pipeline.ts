@@ -40,7 +40,7 @@ export const installHldToManifestPipelineDecorator = (
 
       const orgName = config.azure_devops.org!;
       const pat = config.azure_devops.access_token!;
-      const hldRepo = config.azure_devops.manifest_repository!;
+      const hldRepo = config.azure_devops.hld_repository!;
       const project = config.azure_devops.project!;
       const manifestRepo = config.azure_devops.manifest_repository!;
       const hldRepoName = "HLD";
