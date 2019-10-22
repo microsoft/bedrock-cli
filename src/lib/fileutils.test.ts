@@ -1,23 +1,40 @@
-import fs, { write } from "fs";
-import mockFs from "mock-fs";
-
+////////////////////////////////////////////////////////////////////////////////
+// !!NOTE!!
+// This test suite uses mock-fs to mock out the the file system
+// console.log CANNOT be reliably called in this suite
+// - https://github.com/facebook/jest/issues/5792
+// - https://github.com/tschaub/mock-fs/issues/234
+//
+// Workaround: The global logger object in `src/logger` does work, so use that
+// to debug
+////////////////////////////////////////////////////////////////////////////////
+import fs from "fs";
 import yaml from "js-yaml";
+import mockFs from "mock-fs";
+import os from "os";
+import path from "path";
+import shelljs from "shelljs";
+import uuid from "uuid/v4";
+import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
 import {
   createTestBedrockYaml,
   createTestHldAzurePipelinesYaml,
   createTestMaintainersYaml
 } from "../test/mockFactory";
-
-import path from "path";
-
-import { disableVerboseLogging, enableVerboseLogging } from "../logger";
-import { IBedrockFile, IHelmConfig, IMaintainersFile } from "../types";
+import {
+  IAzurePipelinesYaml,
+  IBedrockFile,
+  IHelmConfig,
+  IMaintainersFile
+} from "../types";
 import {
   addNewServiceToBedrockFile,
   addNewServiceToMaintainersFile,
   generateDockerfile,
   generateGitIgnoreFile,
-  generateHldAzurePipelinesYaml
+  generateHldAzurePipelinesYaml,
+  generateStarterAzurePipelinesYaml,
+  starterAzurePipelines
 } from "./fileutils";
 
 beforeAll(() => {
@@ -234,5 +251,75 @@ describe("generating service Dockerfile", () => {
       "FROM alpine\nRUN echo 'hello world'",
       "utf8"
     );
+  });
+});
+
+describe("starterAzurePipelines", () => {
+  // Create a random workspace dir before every test
+  let randomDirPath = "";
+  beforeEach(() => {
+    randomDirPath = path.join(os.tmpdir(), uuid());
+    shelljs.mkdir("-p", randomDirPath);
+  });
+
+  test("that the value of the file is the same after (de)serialization", async () => {
+    const branches = ["qa", "prod"];
+    const variableGroups = ["foo", "bar"];
+    const vmImage = "gentoo";
+    const starter = await starterAzurePipelines({
+      branches,
+      relProjectPaths: [path.join("packages", "a"), path.join("packages", "b")],
+      variableGroups,
+      vmImage
+    });
+    const serializedYaml = yaml.safeDump(starter, {
+      lineWidth: Number.MAX_SAFE_INTEGER
+    });
+    const pipelinesPath = path.join(randomDirPath, "azure-pipelines.yaml");
+    fs.writeFileSync(pipelinesPath, serializedYaml);
+    const deserializedYaml = yaml.safeLoad(
+      fs.readFileSync(pipelinesPath, "utf8")
+    );
+
+    // should be equal to the initial value
+    expect(deserializedYaml).toStrictEqual(starter);
+
+    // trigger.branches.include should include 'qa' and 'prod'
+    for (const branch of branches) {
+      expect(starter.trigger!.branches!.include!.includes(branch));
+    }
+
+    // variables should include all groups
+    for (const group of variableGroups) {
+      expect(starter.variables!.includes({ group }));
+    }
+
+    // pool.vmImage should be 'gentoo'
+    expect(starter.pool!.vmImage).toBe(vmImage);
+  });
+
+  test("that all services receive an azure-pipelines.yaml and the correct paths have been inserted", async () => {
+    // Create service directories
+    const servicePaths = ["a", "b", "c"].map(serviceDir => {
+      const servicePath = path.join(randomDirPath, "packages", serviceDir);
+      shelljs.mkdir("-p", servicePath);
+      return servicePath;
+    });
+
+    for (const servicePath of servicePaths) {
+      await generateStarterAzurePipelinesYaml(randomDirPath, servicePath);
+
+      // file should exist
+      expect(fs.existsSync(servicePath)).toBe(true);
+
+      // pipeline triggers should include the relative path to the service
+      const azureYaml: IAzurePipelinesYaml = yaml.safeLoad(
+        fs.readFileSync(path.join(servicePath, "azure-pipelines.yaml"), "utf8")
+      );
+      const hasCorrectIncludes = azureYaml.trigger!.paths!.include!.includes(
+        "./" + path.relative(randomDirPath, servicePath)
+      );
+      expect(hasCorrectIncludes).toBe(true);
+    }
   });
 });

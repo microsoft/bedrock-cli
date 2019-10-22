@@ -1,6 +1,5 @@
 import fs from "fs";
 import yaml from "js-yaml";
-
 import path from "path";
 import { promisify } from "util";
 import { logger } from "../logger";
@@ -43,7 +42,11 @@ export const generateStarterAzurePipelinesYaml = async (
       relProjectPaths: [path.relative(absProjectRoot, absPackagePath)]
     });
     // Write
-    await promisify(fs.writeFile)(azurePipelinesYamlPath, starterYaml, "utf8");
+    await promisify(fs.writeFile)(
+      azurePipelinesYamlPath,
+      yaml.safeDump(starterYaml, { lineWidth: Number.MAX_SAFE_INTEGER }),
+      "utf8"
+    );
   }
 };
 
@@ -56,17 +59,17 @@ const generateYamlScript = (lines: string[]): string => lines.join("\n");
  *
  * @param opts Template options to pass to the the starter yaml
  */
-const starterAzurePipelines = async (opts: {
+export const starterAzurePipelines = async (opts: {
   relProjectPaths?: string[];
   vmImage?: string;
   branches?: string[];
-  varGroups?: string[];
-}) => {
+  variableGroups?: string[];
+}): Promise<IAzurePipelinesYaml> => {
   const {
     relProjectPaths = ["."],
     vmImage = "ubuntu-latest",
     branches = ["master"],
-    varGroups = []
+    variableGroups = []
   } = opts;
 
   // Ensure any blank paths are turned into "./"
@@ -81,9 +84,7 @@ const starterAzurePipelines = async (opts: {
       branches: { include: branches },
       paths: { include: cleanedPaths }
     },
-    variables: {
-      group: varGroups
-    },
+    variables: [...variableGroups.map(group => ({ group }))],
     pool: {
       vmImage
     },
@@ -122,7 +123,7 @@ const starterAzurePipelines = async (opts: {
   };
   // tslint:enable: object-literal-sort-keys
 
-  return yaml.safeDump(starter, { lineWidth: Number.MAX_SAFE_INTEGER });
+  return starter;
 };
 
 /**
@@ -158,7 +159,7 @@ const manifestGenerationPipelineYaml = () => {
   // based on https://github.com/microsoft/bedrock/blob/master/gitops/azure-devops/ManifestGeneration.md#add-azure-pipelines-build-yaml
   // tslint:disable: object-literal-sort-keys
   // tslint:disable: no-empty
-  const pipelineyaml: IAzurePipelinesYaml = {
+  const pipelineYaml: IAzurePipelinesYaml = {
     trigger: {
       branches: {
         include: ["master"]
@@ -216,7 +217,7 @@ const manifestGenerationPipelineYaml = () => {
   // tslint:enable: object-literal-sort-keys
   // tslint:enable: no-empty
 
-  return yaml.safeDump(pipelineyaml, { lineWidth: Number.MAX_SAFE_INTEGER });
+  return yaml.safeDump(pipelineYaml, { lineWidth: Number.MAX_SAFE_INTEGER });
 };
 
 /**

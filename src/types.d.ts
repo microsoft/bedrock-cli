@@ -70,9 +70,7 @@ export interface IAzurePipelinesYaml {
       exclude?: string[];
     };
   };
-  variables?: {
-    group?: string[];
-  };
+  variables?: Array<{ group: string } | { name: string; value: string }>;
   pool?: {
     vmImage?: string;
   };

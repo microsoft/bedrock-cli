@@ -13,7 +13,6 @@ import {
   DefinitionType,
   YamlProcess
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
-
 import { logger } from "../../logger";
 import { azdoUrl } from "../azdoutil";
 

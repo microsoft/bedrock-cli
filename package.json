@@ -21,7 +21,7 @@
     "@types/jest": "^24.0.18",
     "@types/jest-when": "^2.7.0",
     "@types/js-yaml": "^3.12.1",
-    "@types/mock-fs": "^3.6.30",
+    "@types/mock-fs": "^4.10.0",
     "@types/node": "^12.7.8",
     "@types/node-emoji": "^1.8.1",
     "@types/shelljs": "^0.8.5",
@@ -30,7 +30,7 @@
     "jest": "^24.9.0",
     "jest-when": "^2.7.0",
     "lint-staged": ">=8",
-    "mock-fs": "^4.10.1",
+    "mock-fs": "^4.10.2",
     "nyc": "^14.1.1",
     "pkg": "^4.4.0",
     "prettier": "^1.18.2",
@@ -38,11 +38,11 @@
     "ts-jest": "^24.0.2",
     "ts-loader": "^6.0.4",
     "ts-node": "^8.4.1",
-    "tslint": "^5.19.0",
+    "tslint": "^5.20.0",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.6.2",
-    "webpack": "^4.39.3",
-    "webpack-cli": "^3.3.8"
+    "typescript": "^3.6.4",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9"
   },
   "prettier": {
     "proseWrap": "always"
@@ -60,7 +60,7 @@
   },
   "dependencies": {
     "@azure/arm-storage": "^10.1.0",
-    "@azure/keyvault-secrets": "^4.0.0-preview.5",
+    "@azure/keyvault-secrets": "4.0.0-preview.5",
     "@azure/ms-rest-nodeauth": "^3.0.0",
     "@types/fs-extra": "^8.0.0",
     "@types/git-url-parse": "^9.0.0",
@@ -72,7 +72,6 @@
     "git-url-parse": "^11.1.2",
     "isomorphic-fetch": "^2.2.1",
     "js-yaml": "^3.13.1",
-    "mock-fs": "^4.10.1",
     "node-emoji": "^1.10.0",
     "open": "^6.4.0",
     "shelljs": "^0.8.3",
