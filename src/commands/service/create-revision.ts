@@ -1,6 +1,6 @@
 import commander from "commander";
 import { join } from "path";
-import { Bedrock } from "../../config";
+import { Bedrock, Config } from "../../config";
 import { createPullRequest } from "../../lib/git/azure";
 import { getCurrentBranch, getOriginUrl } from "../../lib/gitutils";
 import { logger } from "../../logger";
@@ -38,7 +38,11 @@ export const createServiceRevisionCommandDecorator = (
     .option("")
     .action(async opts => {
       try {
-        const { orgName, personalAccessToken } = opts;
+        const { azure_devops } = Config();
+        const {
+          orgName = azure_devops && azure_devops.org,
+          personalAccessToken = azure_devops && azure_devops.access_token
+        } = opts;
         let { description, remoteUrl, sourceBranch, title } = opts;
 
         ////////////////////////////////////////////////////////////////////////

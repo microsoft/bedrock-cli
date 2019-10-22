@@ -5,7 +5,7 @@ import { exec } from "./shell";
 /**
  * Gets the current working branch.
  */
-export const getCurrentBranch = async () => {
+export const getCurrentBranch = async (): Promise<string> => {
   try {
     const branch = await exec("git", ["rev-parse", "--abbrev-ref", "HEAD"]);
     return branch;
@@ -23,7 +23,7 @@ export const getCurrentBranch = async () => {
 export const checkoutBranch = async (
   branchName: string,
   createNewBranch: boolean
-) => {
+): Promise<void> => {
   try {
     if (createNewBranch) {
       await exec("git", ["checkout", "-b", `${branchName}`]);
@@ -31,7 +31,7 @@ export const checkoutBranch = async (
       await exec("git", ["checkout", `${branchName}`]);
     }
   } catch (_) {
-    throw new Error(`Unable to checkout git branch ${branchName}: ` + _);
+    throw Error(`Unable to checkout git branch ${branchName}: ` + _);
   }
 };
 
@@ -40,11 +40,11 @@ export const checkoutBranch = async (
  *
  * @param branchName
  */
-export const deleteBranch = async (branchName: string) => {
+export const deleteBranch = async (branchName: string): Promise<void> => {
   try {
     await exec("git", ["branch", "-D", `${branchName}`]);
   } catch (_) {
-    throw new Error(`Unable to delete git branch ${branchName}: ` + _);
+    throw Error(`Unable to delete git branch ${branchName}: ` + _);
   }
 };
 
@@ -54,12 +54,15 @@ export const deleteBranch = async (branchName: string) => {
  * @param directory
  * @param branchName
  */
-export const commitDir = async (directory: string, branchName: string) => {
+export const commitDir = async (
+  directory: string,
+  branchName: string
+): Promise<void> => {
   try {
     await exec("git", ["add", `${directory}`]);
     await exec("git", ["commit", "-m", `Adding new service: ${branchName}`]);
   } catch (_) {
-    throw new Error(
+    throw Error(
       `Unable to commit changes in ${directory} to git branch ${branchName}: ` +
         _
     );
@@ -71,18 +74,18 @@ export const commitDir = async (directory: string, branchName: string) => {
  *
  * @param branchName
  */
-export const pushBranch = async (branchName: string) => {
+export const pushBranch = async (branchName: string): Promise<void> => {
   try {
     await exec("git", ["push", "-u", "origin", `${branchName}`]);
   } catch (_) {
-    throw new Error(`Unable to push git branch ${branchName}: ` + _);
+    throw Error(`Unable to push git branch ${branchName}: ` + _);
   }
 };
 
 /**
  * Gets the origin url.
  */
-export const getOriginUrl = async () => {
+export const getOriginUrl = async (): Promise<string> => {
   try {
     const originUrl = await exec("git", [
       "config",
@@ -92,9 +95,8 @@ export const getOriginUrl = async () => {
     logger.debug(`Got git origin url ${originUrl}`);
     return originUrl;
   } catch (_) {
-    throw new Error(`Unable to get git origin URL.: ` + _);
+    throw Error(`Unable to get git origin URL.: ` + _);
   }
-  return "";
 };
 
 /**
@@ -109,7 +111,7 @@ export const getPullRequestLink = async (
   baseBranch: string,
   newBranch: string,
   originUrl: string
-) => {
+): Promise<string> => {
   try {
     const gitComponents = GitUrlParse(originUrl);
     if (gitComponents.resource.includes("dev.azure.com")) {
@@ -125,7 +127,7 @@ export const getPullRequestLink = async (
       return "Could not determine origin repository, or it is not a supported provider. Please check for the newly pushed branch and open a PR manually.";
     }
   } catch (_) {
-    throw new Error(
+    throw Error(
       `"Could not determine git provider, or it is not a supported type.": ` + _
     );
   }
@@ -134,7 +136,7 @@ export const getPullRequestLink = async (
 export const checkoutCommitPushCreatePRLink = async (
   newBranchName: string,
   directory: string
-) => {
+): Promise<void> => {
   try {
     const currentBranch = await getCurrentBranch();
     try {
