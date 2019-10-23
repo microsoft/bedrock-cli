@@ -101,6 +101,7 @@ Launch the service introspection dashboard
 
 Options:
   -p, --port <port>  Port to launch the dashboard on (default: 4040)
+  -r, --remove-all   Removes previously launched instances of the dashboard (default: false)
   -h, --help         output usage information
 ```
 

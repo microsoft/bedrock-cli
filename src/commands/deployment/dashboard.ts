@@ -15,6 +15,11 @@ export const dashboardCommandDecorator = (command: commander.Command): void => {
     .alias("d")
     .description("Launch the service introspection dashboard")
     .option("-p, --port <port>", "Port to launch the dashboard on", 4040)
+    .option(
+      "-r, --remove-all",
+      "Removes previously launched instances of the dashboard",
+      false
+    )
     .action(async opts => {
       const config = Config();
       if (
@@ -33,17 +38,53 @@ export const dashboardCommandDecorator = (command: commander.Command): void => {
         );
         return;
       }
-      if (await launchDashboard(opts.port)) {
+      if (await launchDashboard(opts.port, opts.removeAll)) {
         await open("http://localhost:" + opts.port);
       }
     });
 };
 
-export const launchDashboard = async (port: number): Promise<string> => {
+/**
+ * Cleans previously launched spk dashboard docker containers
+ */
+export const cleanDashboarContainers = async () => {
+  const config = Config();
+
+  let dockerOutput = await exec("docker", [
+    "ps",
+    "-a",
+    "-q",
+    "--filter",
+    "ancestor=" + config.introspection!.dashboard!.image!,
+    '--format="{{.ID}}"'
+  ]);
+  if (dockerOutput.length > 0) {
+    dockerOutput = dockerOutput.replace(/\n/g, " ");
+    dockerOutput = dockerOutput.replace(/"/g, "");
+    const containerIds = dockerOutput.split(" ");
+    const args = ["kill", ...containerIds];
+
+    await exec("docker", args);
+  }
+};
+
+/**
+ * Launches an instance of the spk dashboard
+ * @param port the port number to launch the dashboard
+ */
+export const launchDashboard = async (
+  port: number,
+  removeAll: boolean
+): Promise<string> => {
   try {
     if (!(await validatePrereqs(["docker"], false))) {
       return "";
     }
+    // Clean previous dashboard containers
+    if (removeAll) {
+      await cleanDashboarContainers();
+    }
+
     const config = Config();
     const dockerRepository = config.introspection!.dashboard!.image!;
     logger.info("Pulling dashboard docker image");
