@@ -37,6 +37,7 @@ Commands:
   service           Create and manage services for a Bedrock project.
   infra             Manage and modify your Bedrock infrastructure.
   hld               Commands for initalizing and managing a bedrock HLD repository.
+  variable-group    Creates Variable Group in Azure DevOps project.
 ```
 
 ## `spk` commands docs
@@ -47,6 +48,7 @@ Commands:
 - [spk init](./docs/init.md)
 - [spk project](./docs/project-management.md)
 - [spk service](./docs/service-management.md)
+- [spk variable group](./docs/variable-group.md)
 
 ## Getting Started
 

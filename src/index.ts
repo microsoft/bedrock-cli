@@ -20,6 +20,7 @@ import { infraCommand } from "./commands/infra";
 import { initCommandDecorator } from "./commands/init";
 import { projectCommand } from "./commands/project";
 import { serviceCommand } from "./commands/service";
+import { variableGroupCommand } from "./commands/variable-group";
 
 ////////////////////////////////////////////////////////////////////////////////
 // Instantiate core command object
@@ -33,7 +34,14 @@ const rootCommand = Command(
     },
     initCommandDecorator
   ],
-  [deploymentCommand, projectCommand, serviceCommand, infraCommand, hldCommand]
+  [
+    deploymentCommand,
+    projectCommand,
+    serviceCommand,
+    infraCommand,
+    hldCommand,
+    variableGroupCommand
+  ]
 );
 
 ////////////////////////////////////////////////////////////////////////////////

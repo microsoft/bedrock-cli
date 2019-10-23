@@ -21,7 +21,7 @@ let spkConfig: IConfigYaml = {}; // DANGEROUS! this var is globally retrievable 
  *
  * @param filepath filepath of the yaml file
  */
-const readYaml = <T>(filepath: string): T => {
+export const readYaml = <T>(filepath: string): T => {
   if (fs.existsSync(filepath)) {
     const contents = fs.readFileSync(filepath, "utf8");
     return yaml.safeLoad(contents) as T;

@@ -1,3 +1,5 @@
+import { AzureKeyVaultVariableValue } from "azure-devops-node-api/interfaces/TaskAgentInterfaces";
+
 /**
  * Maintainers file
  */
@@ -95,6 +97,30 @@ export interface IAzurePipelinesYaml {
     script?: string;
     task?: string;
   }>;
+}
+
+export interface IServiceEndpointData {
+  name: string;
+  subscription_id: string;
+  subscription_name: string;
+  service_principal_id: string;
+  service_principal_secret: string;
+  tenant_id: string;
+}
+
+export interface IVariableGroupData {
+  name: string;
+  description: string;
+  type: string;
+  variables: [
+    {
+      [key: string]: AzureKeyVaultVariableValue;
+    }
+  ];
+  key_vault_provider?: {
+    name: string;
+    service_endpoint: IServiceEndpointData;
+  };
 }
 
 export interface IConfigYaml {
