@@ -56,20 +56,21 @@ use one.**
 
 ### create-pipeline
 
-Configure Azure DevOps for a bedrock managed service
+Configure Azure DevOps for a bedrock managed service.
 
 ```
-Usage:
-spk service create-pipeline|p [options] <service-name>
+Usage: service create-pipeline|p [options] <service-name>
+
+Configure Azure DevOps for a bedrock managed service
 
 Options:
   -n, --pipeline-name <pipeline-name>                  Name of the pipeline to be created
   -p, --personal-access-token <personal-access-token>  Personal Access Token
-  -o, --org-url <org-url>                              Organization URL for Azure DevOps
+  -o, --org-name <org-name>                            Organization Name for Azure DevOps
   -r, --repo-name <repo-name>                          Repository Name in Azure DevOps
   -u, --repo-url <repo-url>                            Repository URL
   -d, --devops-project <devops-project>                Azure DevOps Project
-  -l, --project-path <project-path>                    Path to Bedrock Project
+  -l, --packages-dir <packages-dir>                    The monorepository directory containing this service definition. ie. '--packages-dir packages' if my-service is located under ./packages/my-service.
   -h, --help                                           output usage information
 ```
 
