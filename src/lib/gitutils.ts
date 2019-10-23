@@ -100,6 +100,46 @@ export const getOriginUrl = async (): Promise<string> => {
 };
 
 /**
+ * Will return the name of the repository
+ * Currently only AzDo and Github are supported.
+ * @param originUrl
+ */
+export const getRepositoryName = (originUrl: string) => {
+  const gitComponents = GitUrlParse(originUrl);
+  if (gitComponents.resource.includes("dev.azure.com")) {
+    logger.debug("azure devops repo found.");
+    return gitComponents.name;
+  } else if (gitComponents.resource === "github.com") {
+    logger.debug("github repo found.");
+    return gitComponents.name;
+  } else {
+    throw Error(
+      "Could not determine origin repository, or it is not a supported type."
+    );
+  }
+};
+
+/**
+ * Will return the URL of the repository
+ * Currently only AzDo and Github are supported.
+ * @param originUrl
+ */
+export const getRepositoryUrl = (originUrl: string) => {
+  const gitComponents = GitUrlParse(originUrl);
+  if (gitComponents.resource.includes("dev.azure.com")) {
+    logger.debug("azure devops repo found.");
+    return `https://dev.azure.com/${gitComponents.organization}/${gitComponents.owner}/_git/${gitComponents.name}`;
+  } else if (gitComponents.resource === "github.com") {
+    logger.debug("github repo found.");
+    return `https://github.com/${gitComponents.organization}/${gitComponents.name}`;
+  } else {
+    throw Error(
+      "Could not determine origin repository, or it is not a supported type."
+    );
+  }
+};
+
+/**
  * Will create a link to create a PR for a given origin, base branch, and new branch.
  * Currently only AzDo and Github are supported.
  *

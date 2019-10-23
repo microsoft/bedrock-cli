@@ -6,6 +6,8 @@ import {
   getCurrentBranch,
   getOriginUrl,
   getPullRequestLink,
+  getRepositoryName,
+  getRepositoryUrl,
   pushBranch
 } from "../lib/gitutils";
 import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
@@ -219,6 +221,96 @@ describe("getOriginUrl", () => {
     }
 
     expect(error).not.toBeUndefined();
+  });
+});
+
+describe("getRepositoryName", () => {
+  it("returns the repository name for an AzDo HTTP origin url.", async () => {
+    const originUrl =
+      "https://user@dev.azure.com/myorg/spk-test-project/_git/new-repo";
+    const repositoryName = getRepositoryName(originUrl);
+
+    expect(repositoryName).toEqual(`new-repo`);
+  });
+
+  it("returns the repository name for an AzDo SSH origin url.", async () => {
+    const originUrl =
+      "git@ssh.dev.azure.com:v3/mitarng/spk-test-project/new-repo";
+    const repositoryName = getRepositoryName(originUrl);
+
+    expect(repositoryName).toEqual(`new-repo`);
+  });
+
+  it("returns the repository name for a GitHub HTTP origin url.", async () => {
+    const originUrl = "https://github.com/CatalystCode/spk.git";
+    const repositoryName = getRepositoryName(originUrl);
+
+    expect(repositoryName).toEqual(`spk`);
+  });
+
+  it("returns the repository name for a GitHub SSH origin url.", async () => {
+    const originUrl = "git@github.com:CatalystCode/spk.git";
+    const repositoryName = getRepositoryName(originUrl);
+
+    expect(repositoryName).toEqual(`spk`);
+  });
+
+  it("Returns a help message for unknown or unsupported git providers.", async () => {
+    const originUrl = "git@bitbucket.com:org/spk.git";
+    let threwError = false;
+    try {
+      getRepositoryName(originUrl);
+    } catch (e) {
+      threwError = true;
+    }
+    expect(threwError).toEqual(true);
+  });
+});
+
+describe("getRepositoryUrl", () => {
+  it("return a proper repo url for an AzDo HTTP origin url.", async () => {
+    const originUrl =
+      "https://user@dev.azure.com/myorg/spk-test-project/_git/new-repo";
+    const repositoryUrl = getRepositoryUrl(originUrl);
+
+    expect(repositoryUrl).toEqual(
+      `https://dev.azure.com/myorg/spk-test-project/_git/new-repo`
+    );
+  });
+
+  it("return a proper repo url for an AzDo SSH origin url.", async () => {
+    const originUrl =
+      "git@ssh.dev.azure.com:v3/mitarng/spk-test-project/new-repo";
+    const repositoryUrl = getRepositoryUrl(originUrl);
+
+    expect(repositoryUrl).toEqual(
+      `https://dev.azure.com/mitarng/spk-test-project/_git/new-repo`
+    );
+  });
+
+  it("return a proper repo url for a GitHub HTTP origin url.", async () => {
+    const originUrl = "https://github.com/CatalystCode/spk.git";
+    const repositoryUrl = getRepositoryUrl(originUrl);
+
+    expect(repositoryUrl).toEqual(`https://github.com/CatalystCode/spk`);
+  });
+
+  it("return a proper repo url for a GitHub SSH origin url.", async () => {
+    const originUrl = "git@github.com:CatalystCode/spk.git";
+    const repositoryUrl = getRepositoryUrl(originUrl);
+
+    expect(repositoryUrl).toEqual(`https://github.com/CatalystCode/spk`);
+  });
+
+  it("Returns a help message for unknown or unsupported git providers.", async () => {
+    const originUrl = "git@bitbucket.com:org/spk.git";
+    let threwError = false;
+    try {
+      getRepositoryUrl(originUrl);
+    } catch (e) {
+      threwError = true;
+    }
+    expect(threwError).toEqual(true);
   });
 });
 

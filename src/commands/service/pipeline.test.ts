@@ -31,6 +31,7 @@ describe("create pipeline tests", () => {
       "wao",
       "amazing",
       "meow",
+      ".",
       exitFn
     );
 
@@ -49,6 +50,7 @@ describe("create pipeline tests", () => {
       "wao",
       "amazing",
       "meow",
+      ".",
       exitFn
     );
 
@@ -70,6 +72,7 @@ describe("create pipeline tests", () => {
       "wao",
       "amazing",
       "meow",
+      ".",
       exitFn
     );
 
@@ -90,6 +93,7 @@ describe("create pipeline tests", () => {
       "wao",
       "amazing",
       "meow",
+      ".",
       exitFn
     );
 
