@@ -13,8 +13,11 @@ export const validateCommandDecorator = (command: commander.Command): void => {
     .alias("v")
     .description("Validate the configuration and storage account are correct.")
     .action(async () => {
-      await isValidConfig();
-      await isValidStorageAccount();
+      const isValid = await isValidConfig();
+
+      if (isValid) {
+        await isValidStorageAccount();
+      }
     });
 };
 
