@@ -77,6 +77,38 @@ export const createTestBedrockYaml = (
   return asString ? yaml.dump(data) : data;
 };
 
+export const createTestHldLifecyclePipelineYaml = (
+  asString = true
+): IAzurePipelinesYaml | string => {
+  // tslint:disable: object-literal-sort-keys
+  const data: IAzurePipelinesYaml = {
+    trigger: {
+      branches: {
+        include: ["master"]
+      }
+    },
+    pool: {
+      vmImage: "Ubuntu-16.04"
+    },
+    steps: [
+      {
+        checkout: "self",
+        persistCredentials: true,
+        clean: true
+      },
+      {
+        bash: `echo "hello world. this is where lifecycle management will be implemented."`,
+        displayName: "hello world"
+      }
+    ]
+  };
+  // tslint:enable: object-literal-sort-keys
+
+  return asString
+    ? yaml.safeDump(data, { lineWidth: Number.MAX_SAFE_INTEGER })
+    : data;
+};
+
 export const createTestHldAzurePipelinesYaml = (
   asString = true
 ): IAzurePipelinesYaml | string => {

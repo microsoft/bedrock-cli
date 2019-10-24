@@ -19,6 +19,7 @@ import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
 import {
   createTestBedrockYaml,
   createTestHldAzurePipelinesYaml,
+  createTestHldLifecyclePipelineYaml,
   createTestMaintainersYaml
 } from "../test/mockFactory";
 import {
@@ -33,6 +34,7 @@ import {
   generateDockerfile,
   generateGitIgnoreFile,
   generateHldAzurePipelinesYaml,
+  generateHldLifecyclePipelineYaml,
   generateStarterAzurePipelinesYaml,
   starterAzurePipelines
 } from "./fileutils";
@@ -47,6 +49,43 @@ afterAll(() => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+});
+
+describe("generateHldLifecyclePipelineYaml", () => {
+  const targetDirectory = "app-repository";
+  const writeSpy = jest.spyOn(fs, "writeFileSync");
+
+  beforeEach(() => {
+    mockFs({
+      "app-repository": {}
+    });
+  });
+
+  afterEach(() => {
+    mockFs.restore();
+  });
+
+  it("should not do anything if hld-lifecycle.yaml exists", async () => {
+    const mockFsOptions = {
+      [`${targetDirectory}/hld-lifecycle.yaml`]: "existing pipeline"
+    };
+    mockFs(mockFsOptions);
+
+    generateHldLifecyclePipelineYaml(targetDirectory);
+    expect(writeSpy).not.toBeCalled();
+  });
+
+  it("should generate the hld-lifecycle.yaml if one does not exist", async () => {
+    const expectedFilePath = `${targetDirectory}/hld-lifecycle.yaml`;
+
+    generateHldLifecyclePipelineYaml(targetDirectory);
+    expect(writeSpy).toBeCalledWith(
+      expectedFilePath,
+      createTestHldLifecyclePipelineYaml(),
+      "utf8"
+    );
+    expect(writeSpy).toBeCalled();
+  });
 });
 
 describe("generateHldAzurePipelinesYaml", () => {

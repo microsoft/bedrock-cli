@@ -6,6 +6,7 @@ import * as config from "../../config";
 import {
   generateDockerfile,
   generateGitIgnoreFile,
+  generateHldLifecyclePipelineYaml,
   generateStarterAzurePipelinesYaml
 } from "../../lib/fileutils";
 import { exec } from "../../lib/shell";
@@ -109,6 +110,7 @@ export const initialize = async (
     defaultRing ? [defaultRing] : []
   );
   await generateMaintainersFile(absProjectRoot, absPackagePaths);
+  await generateHldLifecyclePipelineYaml(absProjectRoot);
 
   const gitIgnoreFileContent = "spk.log";
 

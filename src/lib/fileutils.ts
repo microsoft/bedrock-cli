@@ -11,10 +11,32 @@ import {
   IUser
 } from "../types";
 
+export const generateHldLifecyclePipelineYaml = async (projectRoot: string) => {
+  logger.info(
+    `Generating hld lifecycle pipeline hld-lifecycle.yaml in ${projectRoot}`
+  );
+
+  const azurePipelinesYamlPath = path.join(projectRoot, "hld-lifecycle.yaml");
+
+  if (fs.existsSync(azurePipelinesYamlPath)) {
+    logger.warn(
+      `Existing hld-lifecycle.yaml found at ${azurePipelinesYamlPath}, skipping generation`
+    );
+
+    return;
+  }
+
+  const hldYaml = hldLifecyclePipelineYaml();
+  logger.info(`Writing hld-lifecycle.yaml file to ${azurePipelinesYamlPath}`);
+  fs.writeFileSync(azurePipelinesYamlPath, hldYaml, "utf8");
+};
+
 /**
- * Writes out the starter azure-pipelines.yaml file to `targetPath`
+ * Writes out a starter azure-pipelines.yaml
+ * One pipeline should exist for each service.
  *
- * @param targetPath Path to write the azure-pipelines.yaml file to
+ * @param projectRoot Path to the root of the project (where the bedrock.yaml file exists)
+ * @param packagePath Path to the packages directory
  */
 export const generateStarterAzurePipelinesYaml = async (
   projectRoot: string,
@@ -22,20 +44,23 @@ export const generateStarterAzurePipelinesYaml = async (
 ) => {
   const absProjectRoot = path.resolve(projectRoot);
   const absPackagePath = path.resolve(packagePath);
+  const azurePipelineFileName = `azure-pipelines.yaml`;
 
-  logger.info(`Generating starter azure-pipelines.yaml in ${absPackagePath}`);
+  logger.info(
+    `Generating starter ${azurePipelineFileName} in ${absPackagePath}`
+  );
 
   // Check if azure-pipelines.yaml already exists; if it does, skip generation
   const azurePipelinesYamlPath = path.join(
     absPackagePath,
-    "azure-pipelines.yaml"
+    azurePipelineFileName
   );
   logger.debug(
-    `Writing azure-pipelines.yaml file to ${azurePipelinesYamlPath}`
+    `Writing ${azurePipelineFileName} file to ${azurePipelinesYamlPath}`
   );
   if (fs.existsSync(azurePipelinesYamlPath)) {
     logger.warn(
-      `Existing azure-pipelines.yaml found at ${azurePipelinesYamlPath}, skipping generation`
+      `Existing ${azurePipelineFileName} found at ${azurePipelinesYamlPath}, skipping generation`
     );
   } else {
     const starterYaml = await starterAzurePipelines({
@@ -218,6 +243,39 @@ const manifestGenerationPipelineYaml = () => {
   // tslint:enable: no-empty
 
   return yaml.safeDump(pipelineYaml, { lineWidth: Number.MAX_SAFE_INTEGER });
+};
+
+const hldLifecyclePipelineYaml = () => {
+  // based on https://github.com/microsoft/bedrock/blob/master/gitops/azure-devops/ManifestGeneration.md#add-azure-pipelines-build-yaml
+  // tslint:disable: object-literal-sort-keys
+  // tslint:disable: no-empty
+  const pipelineyaml: IAzurePipelinesYaml = {
+    trigger: {
+      branches: {
+        include: ["master"]
+      }
+    },
+    pool: {
+      vmImage: "Ubuntu-16.04"
+    },
+    steps: [
+      {
+        checkout: "self",
+        persistCredentials: true,
+        clean: true
+      },
+      {
+        bash: generateYamlScript([
+          `echo "hello world. this is where lifecycle management will be implemented."`
+        ]),
+        displayName: "hello world"
+      }
+    ]
+  };
+  // tslint:enable: object-literal-sort-keys
+  // tslint:enable: no-empty
+
+  return yaml.safeDump(pipelineyaml, { lineWidth: Number.MAX_SAFE_INTEGER });
 };
 
 /**

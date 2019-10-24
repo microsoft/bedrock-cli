@@ -3,7 +3,11 @@ import os from "os";
 import path from "path";
 import shell from "shelljs";
 import uuid from "uuid/v4";
-import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
+import {
+  disableVerboseLogging,
+  enableVerboseLogging,
+  logger
+} from "../../logger";
 import { initialize } from "./init";
 
 beforeAll(() => {
@@ -15,7 +19,7 @@ afterAll(() => {
 });
 
 describe("Initializing a blank standard repo", () => {
-  test("bedrock.yaml, maintainers.yaml, and azure-pipelines.yaml gets generated in the project root on init for standard repository", async () => {
+  test("all standard files get generated in the project root on init for standard repository", async () => {
     // Create random directory to initialize
     const randomTmpDir = path.join(os.tmpdir(), uuid());
     fs.mkdirSync(randomTmpDir);
@@ -28,17 +32,19 @@ describe("Initializing a blank standard repo", () => {
       "bedrock.yaml",
       "maintainers.yaml",
       "azure-pipelines.yaml",
+      "hld-lifecycle.yaml",
       "Dockerfile"
     ].map(filename => path.join(randomTmpDir, filename));
 
     for (const filepath of filepaths) {
+      logger.info(filepath);
       expect(fs.existsSync(filepath)).toBe(true);
     }
   });
 });
 
 describe("Initializing a blank mono-repo", () => {
-  test("bedrock.yaml and maintainers.yaml get generated in the project root and azure-pipelines.yaml gets generated in all package directories in a mono-repo", async () => {
+  test("all standard files get generated in the project root and azure-pipelines.yaml gets generated in all package directories in a mono-repo", async () => {
     const randomTmpDir = path.join(os.tmpdir(), uuid());
     fs.mkdirSync(randomTmpDir);
 
@@ -61,7 +67,11 @@ describe("Initializing a blank mono-repo", () => {
     });
 
     // root should have bedrock.yaml and maintainers.yaml and should not be in the the package dirs
-    for (const file of ["bedrock.yaml", "maintainers.yaml"]) {
+    for (const file of [
+      "bedrock.yaml",
+      "maintainers.yaml",
+      "hld-lifecycle.yaml"
+    ]) {
       const filepath = path.join(randomTmpDir, file);
       // Should be in package dir
       expect(fs.existsSync(filepath)).toBe(true);
