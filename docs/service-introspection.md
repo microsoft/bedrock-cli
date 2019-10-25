@@ -6,11 +6,11 @@ Service Introspection shows information about Bedrock deployments:
 - Time the service was changed or errored
 - Deployment state of the service is
 
-**Important**: This tool will not be useful to you until you go through the
-steps to onboard your pipelines to start using Spektate. There's an onboarding
-guide located [here](./service-introspection-onboarding.md). If you've already
-onboarded the pipelines to start sending data to Spektate storage, you may skip
-the onboarding guide and read about how to use this tool below.
+**Important:**
+
+To use service introspection, begin with the steps on
+[Service Introspection: Getting Started](./service-introspection-onboarding.md).
+This will walk you through setting up a Bedrock GitOps pipeline workflow.
 
 Usage:
 
@@ -24,6 +24,7 @@ Commands:
 - [get](#get)
 - [onboard](#onboard)
 - [dashboard](#dashboard)
+- [variable-group](variable-group.md)
 
 Global options:
 
