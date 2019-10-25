@@ -23,6 +23,7 @@ introspection:
     table_name: "storage-account-table-name" # Must be defined to run spk deployment commands
     partition_key: "storage-account-table-partition-key" # Must be defined to run spk deployment commands
     key: "storage-access-key" # Must be defined to run spk deployment commands. Use ${env:INTROSPECTION_STORAGE_ACCESS_KEY} and set it in .env file
+    source_repo_access_token: "source_repo_access_token" # Optional. Required only when source repository is private (in order to render the author column in dashboard)
 
     # Following 5 fields are needed only if using spk to onboard to use introspection tool
     service_principal_id: "service-principal-id"

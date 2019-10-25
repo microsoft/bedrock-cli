@@ -149,6 +149,7 @@ export interface IConfigYaml {
       table_name?: string;
       partition_key?: string;
       key?: string;
+      source_repo_access_token?: string;
       service_principal_id?: string;
       service_principal_secret?: string;
       subscription_id?: string;

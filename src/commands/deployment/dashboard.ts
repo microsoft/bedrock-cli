@@ -137,6 +137,13 @@ const getEnvVars = (): string[] => {
       "REACT_APP_PIPELINE_ACCESS_TOKEN=" + config.azure_devops!.access_token
     );
   }
+  if (config.introspection!.azure!.source_repo_access_token) {
+    envVars.push("-e");
+    envVars.push(
+      "REACT_APP_SOURCE_REPO_ACCESS_TOKEN=" +
+        config.introspection!.azure!.source_repo_access_token
+    );
+  }
 
   return envVars;
 };
