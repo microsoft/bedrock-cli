@@ -7,7 +7,7 @@ import {
   logger
 } from "../../logger";
 import { validatePrereqs } from "../infra/validate";
-import { launchDashboard } from "./dashboard";
+import { getEnvVars, launchDashboard } from "./dashboard";
 
 beforeAll(() => {
   process.env.test_name = "my_storage_account";
@@ -71,4 +71,21 @@ describe("Validate dashboard clean up", () => {
       logger.error(err);
     }
   }, 30000);
+});
+
+describe("Fallback to azure devops access token", () => {
+  test("Has repo_access_token specified", () => {
+    Config().introspection!.azure!.source_repo_access_token = "test_token";
+    const envVars = getEnvVars().toString();
+    const expectedEnvVars =
+      "-e,REACT_APP_PIPELINE_ORG=https://dev.azure.com/bhnook,-e,REACT_APP_PIPELINE_PROJECT=fabrikam,-e,REACT_APP_STORAGE_ACCOUNT_NAME=my_storage_account,-e,REACT_APP_STORAGE_PARTITION_KEY=partition-key,-e,REACT_APP_STORAGE_TABLE_NAME=table-name,-e,REACT_APP_STORAGE_ACCESS_KEY=my_storage_key,-e,REACT_APP_PIPELINE_ACCESS_TOKEN=hpe3a9oiswgcodtfdpzfiek3saxbrh5if1fp673xihgc5ap467a,-e,REACT_APP_SOURCE_REPO_ACCESS_TOKEN=test_token";
+    expect(envVars).toBe(expectedEnvVars);
+  });
+  test("No repo_access_token was specified", () => {
+    Config().introspection!.azure!.source_repo_access_token = undefined;
+    const envVars = getEnvVars().toString();
+    const expectedEnvVars =
+      "-e,REACT_APP_PIPELINE_ORG=https://dev.azure.com/bhnook,-e,REACT_APP_PIPELINE_PROJECT=fabrikam,-e,REACT_APP_STORAGE_ACCOUNT_NAME=my_storage_account,-e,REACT_APP_STORAGE_PARTITION_KEY=partition-key,-e,REACT_APP_STORAGE_TABLE_NAME=table-name,-e,REACT_APP_STORAGE_ACCESS_KEY=my_storage_key,-e,REACT_APP_PIPELINE_ACCESS_TOKEN=hpe3a9oiswgcodtfdpzfiek3saxbrh5if1fp673xihgc5ap467a,-e,REACT_APP_SOURCE_REPO_ACCESS_TOKEN=hpe3a9oiswgcodtfdpzfiek3saxbrh5if1fp673xihgc5ap467a";
+    expect(envVars).toBe(expectedEnvVars);
+  });
 });
