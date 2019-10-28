@@ -33,8 +33,9 @@ Global options:
 Add a new service into this initialized spk project repository
 
 ```
-Usage:
-spk service create|c [options] <service-name>
+Usage: service create|c [options] <service-name>
+
+Add a new service into this initialized spk project repository
 
 Options:
   -c, --helm-chart-chart <helm-chart>            bedrock helm chart name. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
@@ -61,7 +62,7 @@ Configure Azure DevOps for a bedrock managed service.
 ```
 Usage: service create-pipeline|p [options] <service-name>
 
-Configure Azure DevOps for a bedrock managed service
+Configure Azure DevOps for a bedrock managed service.
 
 Options:
   -n, --pipeline-name <pipeline-name>                  Name of the pipeline to be created
@@ -70,7 +71,7 @@ Options:
   -r, --repo-name <repo-name>                          Repository Name in Azure DevOps
   -u, --repo-url <repo-url>                            Repository URL
   -d, --devops-project <devops-project>                Azure DevOps Project
-  -l, --packages-dir <packages-dir>                    The monorepository directory containing this service definition. ie. '--packages-dir packages' if my-service is located under ./packages/my-service.
+  -l, --packages-dir <packages-dir>                    The mono-repository directory containing this service definition. ie. '--packages-dir packages' if my-service is located under ./packages/my-service. Omitting this option implies this is a not a mono-repository.
   -h, --help                                           output usage information
 ```
 

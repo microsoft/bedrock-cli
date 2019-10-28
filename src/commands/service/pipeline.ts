@@ -1,5 +1,6 @@
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
-import commander = require("commander");
+import { BuildDefinition } from "azure-devops-node-api/interfaces/BuildInterfaces";
+import commander from "commander";
 import path from "path";
 import { Config } from "../../config";
 import {
@@ -15,15 +16,13 @@ import {
 } from "../../lib/pipelines/pipelines";
 import { logger } from "../../logger";
 
-import { BuildDefinition } from "azure-devops-node-api/interfaces/BuildInterfaces";
-
 export const createPipelineCommandDecorator = (
   command: commander.Command
 ): void => {
   command
     .command("create-pipeline <service-name>")
     .alias("p")
-    .description("Configure Azure DevOps for a bedrock managed service")
+    .description("Configure Azure DevOps for a bedrock managed service.")
     .option(
       "-n, --pipeline-name <pipeline-name>",
       "Name of the pipeline to be created"
@@ -38,7 +37,7 @@ export const createPipelineCommandDecorator = (
     .option("-d, --devops-project <devops-project>", "Azure DevOps Project")
     .option(
       "-l, --packages-dir <packages-dir>",
-      "The monorepository directory containing this service definition. ie. '--packages-dir packages' if my-service is located under ./packages/my-service."
+      "The mono-repository directory containing this service definition. ie. '--packages-dir packages' if my-service is located under ./packages/my-service. Omitting this option implies this is a not a mono-repository."
     )
     .action(async (serviceName, opts) => {
       const gitOriginUrl = await getOriginUrl();
@@ -49,7 +48,7 @@ export const createPipelineCommandDecorator = (
         personalAccessToken = azure_devops && azure_devops.access_token,
         devopsProject = azure_devops && azure_devops.project,
         pipelineName = serviceName + "-pipeline",
-        packagesDir = "./",
+        packagesDir, // allow to be undefined in the case of a mono-repo
         repoName = getRepositoryName(gitOriginUrl),
         repoUrl = getRepositoryUrl(gitOriginUrl)
       } = opts;
@@ -98,12 +97,6 @@ export const createPipelineCommandDecorator = (
             `--devops-project must be of type 'string', ${typeof devopsProject} given.`
           );
         }
-
-        if (typeof packagesDir !== "string") {
-          throw new Error(
-            `--packages-dir must be of type 'string', ${typeof packagesDir} given.`
-          );
-        }
       } catch (err) {
         logger.error(`Error occurred validating inputs for ${serviceName}`);
         logger.error(err);
@@ -123,7 +116,7 @@ export const createPipelineCommandDecorator = (
           process.exit
         );
       } catch (err) {
-        logger.error(`Error occured installing pipeline for ${serviceName}`);
+        logger.error(`Error occurred installing pipeline for ${serviceName}`);
         logger.error(err);
         process.exit(1);
       }
@@ -132,27 +125,30 @@ export const createPipelineCommandDecorator = (
 
 /**
  * Install a pipeline for the service in an azure devops org.
- * @param serviceName
+ *
+ * @param serviceName Name of the service this pipeline belongs to; this is only used when `packagesDir` is defined as a means to locate the azure-pipelines.yaml file
  * @param orgName
  * @param personalAccessToken
  * @param pipelineName
- * @param repoName
- * @param repoUrl
+ * @param repositoryName
+ * @param repositoryUrl
  * @param project
+ * @param packagesDir The directory containing the services for a mono-repo. If undefined; implies that we are operating on a standard service repository
+ * @param exitFn
  */
 export const installPipeline = async (
   serviceName: string,
   orgName: string,
   personalAccessToken: string,
   pipelineName: string,
-  repoName: string,
-  repoUrl: string,
+  repositoryName: string,
+  repositoryUrl: string,
   project: string,
-  packagesDir: string,
+  packagesDir: string | undefined,
   exitFn: (status: number) => void
 ) => {
-  let devopsClient;
-  let builtDefinition;
+  let devopsClient: IBuildApi | undefined;
+  let builtDefinition: BuildDefinition | undefined;
 
   try {
     devopsClient = await getBuildApiClient(orgName, personalAccessToken);
@@ -166,16 +162,23 @@ export const installPipeline = async (
     branchFilters: ["master"],
     maximumConcurrentBuilds: 1,
     /* tslint:disable-next-line object-literal-shorthand */
-    pipelineName: pipelineName,
-    repositoryName: repoName,
-    repositoryUrl: repoUrl,
+    pipelineName,
+    repositoryName,
+    repositoryUrl,
     yamlFileBranch: "master",
-    yamlFilePath: path.join(packagesDir, serviceName, "azure-pipelines.yaml") // This may not work if we're using a non-mono repository and azure-pipelines.yaml is in the root directory.
+    yamlFilePath: packagesDir // if a packages dir is supplied, its a mono-repo
+      ? path.join(packagesDir, serviceName, "azure-pipelines.yaml") // if a packages dir is supplied, its a mono-repo; concat <packages-dir>/<service-name>
+      : "azure-pipelines.yaml" // if no packages dir, its a standard repo; so the azure-pipelines.yaml is in the root
   });
 
   try {
+    logger.debug(
+      `Creating pipeline for project '${project}' with definition '${JSON.stringify(
+        definition
+      )}'`
+    );
     builtDefinition = await createPipelineForDefinition(
-      devopsClient as IBuildApi,
+      devopsClient,
       project,
       definition
     );
@@ -184,16 +187,18 @@ export const installPipeline = async (
     logger.error(err);
     return exitFn(1);
   }
+  if (typeof builtDefinition.id === "undefined") {
+    const builtDefnString = JSON.stringify(builtDefinition);
+    throw Error(
+      `Invalid BuildDefinition created, parameter 'id' is missing from ${builtDefnString}`
+    );
+  }
 
   logger.info(`Created pipeline for ${pipelineName}`);
-  logger.info(`Pipeline ID: ${(builtDefinition as BuildDefinition).id}`);
+  logger.info(`Pipeline ID: ${builtDefinition.id}`);
 
   try {
-    await queueBuild(
-      devopsClient as IBuildApi,
-      project,
-      (builtDefinition as BuildDefinition).id as number
-    );
+    await queueBuild(devopsClient, project, builtDefinition.id);
   } catch (err) {
     logger.error(`Error occurred when queueing build for ${pipelineName}`);
     logger.error(err);

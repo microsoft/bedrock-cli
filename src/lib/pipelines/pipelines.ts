@@ -212,10 +212,23 @@ export const createPipelineForDefinition = async (
   logger.info("Creating pipeline for definition");
 
   try {
-    return await buildApi.createDefinition(definition, azdoProject);
+    logger.debug(
+      `Creating BuildDefinition based on ${JSON.stringify(definition)}`
+    );
+    const createdDefn = await buildApi.createDefinition(
+      definition,
+      azdoProject
+    );
+    // type definition for createDefinition is wrong. It will resolve a `null` if an error occurs in azdo
+    if (!createdDefn) {
+      throw Error(
+        `Error creating BuildDefinition; buildApi.createDefinition() returned an invalid value of ${createdDefn}`
+      );
+    }
+    return createdDefn;
   } catch (e) {
     logger.error(e);
-    throw new Error("Error creating definition");
+    throw Error("Error creating definition");
   }
 };
 
@@ -231,16 +244,16 @@ export const queueBuild = async (
   azdoProject: string,
   definitionId: number
 ): Promise<Build> => {
-  const buildReference = {
+  const buildReference: Build = {
     definition: {
       id: definitionId
     }
-  } as Build;
+  };
 
   try {
     return await buildApi.queueBuild(buildReference, azdoProject);
   } catch (e) {
     logger.error(e);
-    throw new Error("Error queueing build");
+    throw Error("Error queueing build");
   }
 };

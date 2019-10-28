@@ -63,7 +63,7 @@ export const installHldToManifestPipelineDecorator = (
         );
       } catch (err) {
         logger.error(
-          `Error occured installing pipeline for HLD to Manifest pipeline`
+          `Error occurred installing pipeline for HLD to Manifest pipeline`
         );
         logger.error(err);
         process.exit(1);

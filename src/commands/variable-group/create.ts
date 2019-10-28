@@ -1,6 +1,7 @@
 import { VariableGroup } from "azure-devops-node-api/interfaces/ReleaseInterfaces";
 import commander from "commander";
 import fs from "fs";
+import path from "path";
 import { readYaml } from "../../config";
 import { IAzureDevOpsOpts } from "../../lib/git";
 import {
@@ -102,11 +103,13 @@ export const create = async (
   filepath: string,
   accessOpts: IAzureDevOpsOpts
 ) => {
-  logger.info("Creating variale group");
+  logger.info(
+    `Creating Variable Group from group definition '${path.resolve(filepath)}'`
+  );
   try {
     fs.statSync(filepath);
     const data = readYaml<IVariableGroupData>(filepath);
-    logger.debug(`Varible Group Yaml data: ${JSON.stringify(data)}`);
+    logger.debug(`Variable Group Yaml data: ${JSON.stringify(data)}`);
 
     // validate variable group type
 
@@ -118,7 +121,7 @@ export const create = async (
       variableGroup = await addVariableGroup(data, accessOpts);
     } else {
       throw new Error(
-        `Varible Group type "${data.type}" is not supported. Only "Vsts" and "AzureKeyVault" are valid types and case sensitive.`
+        `Variable Group type "${data.type}" is not supported. Only "Vsts" and "AzureKeyVault" are valid types and case sensitive.`
       );
     }
   } catch (err) {

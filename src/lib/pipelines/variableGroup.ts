@@ -17,7 +17,9 @@ import { createServiceEndpointIfNotExists } from "./serviceEndpoint";
 let taskApi: ITaskAgentApi | undefined; // keep track of the gitApi so it can be reused
 
 /**
- * Creates AzDo `azure-devops-node-api.WebApi.ITaskAgentApi` with `orgUrl` and `token and returns `ITaskAgentApi`
+ * Creates AzDo `azure-devops-node-api.WebApi.ITaskAgentApi` with `orgUrl` and
+ * `token and returns `ITaskAgentApi`
+ *
  * @param opts optionally override spk config with Azure DevOps access options
  * @returns new `ITaskAgentApi` object
  */
@@ -40,7 +42,9 @@ export const TaskApi = async (
 };
 
 /**
- * Adds Variable group `groupConfig` in Azure DevOps project and returns `VariableGroup` object
+ * Adds Variable group `groupConfig` in Azure DevOps project and returns
+ * `VariableGroup` object
+ *
  * @param variableGroupData with required variables
  * @param opts optionally override spk config with Azure DevOps access options
  * @returns newly created `VariableGroup` object
@@ -63,7 +67,7 @@ export const addVariableGroup = async (
     // map variables from configuration
     const variablesMap = await buildVariablesMap(variableGroupData.variables!);
 
-    // create variable group parameterts
+    // create variable group parameters
     const params: VariableGroupParameters = {
       description: variableGroupData.description,
       name: variableGroupData.name,
@@ -79,7 +83,9 @@ export const addVariableGroup = async (
 };
 
 /**
- * * Adds Variable group `groupConfig` with Key Valut maopping in Azure DevOps project and returns `VariableGroup` object
+ * Adds Variable group `groupConfig` with Key Value mapping in Azure DevOps
+ * project and returns `VariableGroup` object
+ *
  * @param variableGroupData with required variables
  * @param opts optionally override spk config with Azure DevOps access options
  * @returns newly created `VariableGroup` object
@@ -122,10 +128,10 @@ export const addVariableGroupWithKeyVaultMap = async (
       vault: variableGroupData.key_vault_provider!.name
     };
 
-    // map variables as secrets from inout
+    // map variables as secrets from input
     const secretsMap = await buildVariablesMap(variableGroupData.variables!);
 
-    // creating variable group parameterts
+    // creating variable group parameters
     const params: VariableGroupParameters = {
       description: variableGroupData.description,
       name: variableGroupData.name,
@@ -142,28 +148,35 @@ export const addVariableGroupWithKeyVaultMap = async (
 };
 
 /**
- * * Adds Variable group with `VariableGroupParameters` data and returns `VariableGroup` object.
+ * Adds Variable group with `VariableGroupParameters` data and returns
+ * `VariableGroup` object.
  *
- * @param variableGroupdata The Variable group data
+ * @param variableGroupData The Variable group data
  * @param accessToAllPipelines Whether the variable group should be accessible by all pipelines
  * @param opts optionally override spk config with Azure DevOps access options
  * @returns newly created `VariableGroup` object
  */
 export const doAddVariableGroup = async (
-  variableGroupdata: VariableGroupParameters,
+  variableGroupData: VariableGroupParameters,
   accessToAllPipelines: boolean,
   opts: IAzureDevOpsOpts = {}
 ): Promise<VariableGroup> => {
-  const message: string = `Variable Group ${variableGroupdata.name}`;
+  const message: string = `Variable Group ${variableGroupData.name}`;
   const config = Config();
   const { project = config.azure_devops && config.azure_devops.project } = opts;
+  if (typeof project !== "string") {
+    throw Error(
+      `Azure DevOps Project not defined; ensure that azure_devops.project is set`
+    );
+  }
   try {
     logger.debug(
-      `Creating new Variable Group ${JSON.stringify(variableGroupdata)}`
+      `Creating new Variable Group ${JSON.stringify(variableGroupData)}`
     );
+    logger.info(`Attempting to create Variable Group in project '${project}'`);
     const taskClient: ITaskAgentApi = await TaskApi(opts);
     const group: VariableGroup = await taskClient.addVariableGroup(
-      variableGroupdata,
+      variableGroupData,
       project!
     );
     logger.debug(`Created new Variable Group: ${JSON.stringify(group)}`);
@@ -181,11 +194,12 @@ export const doAddVariableGroup = async (
 };
 
 /**
- * * Enables authorization for all pipelines to access Variable group with `variableGroup` data and returns `true` if successful
+ * Enables authorization for all pipelines to access Variable group with
+ * `variableGroup` data and returns `true` if successful
  *
  * @param variableGroup The Variable group object
  * @param opts optionally override spk config with Azure DevOps access options
- * @returns `true` if successfull; otherwise `false`
+ * @returns `true` if successful; otherwise `false`
  */
 export const authorizeAccessToAllPipelines = async (
   variableGroup: VariableGroup,
@@ -239,7 +253,7 @@ export const authorizeAccessToAllPipelines = async (
 };
 
 /**
- * * Key/value interface for variables
+ * Key/value interface for variables
  *
  */
 export interface IVariablesMap {
@@ -247,7 +261,8 @@ export interface IVariablesMap {
 }
 
 /**
- * * Creates `IVariablesMap` object from variables key/value apirs
+ * Creates `IVariablesMap` object from variables key/value pairs
+ *
  * @param variableGroup The Variable group object
  * @returns `IVariablesMap[]` with Varibale Group variables
  */

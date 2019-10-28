@@ -1,8 +1,6 @@
 import commander from "commander";
 import path from "path";
 import shelljs from "shelljs";
-import { logger } from "../../logger";
-
 import {
   addNewServiceToBedrockFile,
   addNewServiceToMaintainersFile,
@@ -11,6 +9,7 @@ import {
   generateStarterAzurePipelinesYaml
 } from "../../lib/fileutils";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
+import { logger } from "../../logger";
 import { IHelmConfig, IUser } from "../../types";
 
 /**
