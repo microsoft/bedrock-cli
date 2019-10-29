@@ -74,6 +74,26 @@ export interface IAzurePipelinesYaml {
   pool?: {
     vmImage?: string;
   };
+  stages?: Array<{
+    // Stages are in public preview and must be enabled to use. https://docs.microsoft.com/en-us/azure/devops/pipelines/process/stages?view=azure-devops&tabs=yaml
+    stage: string;
+    dependsOn?: string;
+    condition?: string;
+    jobs: Array<{
+      job: string;
+      pool: {
+        vmImage: string;
+      };
+      steps?: Array<{
+        script?: string;
+        displayName?: string;
+        env?: {
+          ACCESS_TOKEN_SECRET?: string;
+          REPO?: string;
+        };
+      }>;
+    }>;
+  }>;
   steps?: Array<{
     bash?: string;
     clean?: boolean;
