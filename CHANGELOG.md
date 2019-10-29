@@ -2,10 +2,22 @@
 
 ## [Unreleased]
 
+- Service management `reconcile` features
+- Service Infrastructure `generate` features
+- Multi-stage pipeline support in service management and introspection
+
+## [0.2.0] - 2019-10-29
+
+### Added
+
 - Service Infrastructure `scaffold` features
 - Service Management `service create-revision`, `service create-pipeline` and
   `hld` features
 - Service introspection `onboarding`, `validate`, `variable-groups` features
+
+### Changed
+
+- Service introspection manual setup instructions
 
 ## [0.1.0] - 2019-10-21
 
