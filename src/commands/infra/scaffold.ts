@@ -27,7 +27,6 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
       "-t, --template <path to variables.tf> ",
       "Location of the variables.tf for the terraform deployment"
     )
-    .option("--hcl", "Generates cluster definition HCL file")
     .action(async opts => {
       try {
         if (opts.name && opts.source && opts.version && opts.template) {
@@ -39,21 +38,8 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
         }
         await copyTfTemplate(opts.template, opts.name);
         await validateVariablesTf(path.join(opts.template, "variables.tf"));
+        await scaffold(opts.name, opts.source, opts.version, opts.template);
         await renameTfvars(opts.name);
-        if (opts.hcl) {
-          logger.info("Generating HCL cluster definition file.");
-          await scaffoldHcl(
-            opts.name,
-            path.join(opts.template, "variables.tf")
-          );
-        } else {
-          await scaffoldJson(
-            opts.name,
-            opts.source,
-            opts.version,
-            opts.template
-          );
-        }
       } catch (err) {
         logger.error("Error occurred while generating scaffold");
         logger.error(err);
@@ -64,7 +50,7 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
 /**
  * Checks if working variables.tf is present
  *
- * @param templatePath Path the variables.tf file
+ * @param templatePath Path to the variables.tf file
  */
 export const validateVariablesTf = async (
   templatePath: string
@@ -77,7 +63,7 @@ export const validateVariablesTf = async (
       return false;
     }
     logger.info(
-      `Terraform variables.tf file found. Attempting to generate definition JSON/HCL file...`
+      `Terraform variables.tf file found. Attempting to generate definition.json file.`
     );
   } catch (_) {
     logger.error(`Unable to validate Terraform variables.tf.`);
@@ -87,7 +73,24 @@ export const validateVariablesTf = async (
 };
 
 /**
- * Rename any .tfvars file by appending ".backup"
+ * Checks if backend.tfvars is present
+ *
+ * @param dir Path to the backend.tfvars file
+ */
+export const validateBackendTfvars = async (name: string): Promise<boolean> => {
+  const backendConfig = path.join(name, "backend.tfvars");
+  logger.info(backendConfig);
+  if (fs.existsSync(backendConfig)) {
+    logger.info(`A remote backend configuration was found : ${backendConfig}`);
+    return true;
+  } else {
+    logger.info(`No remote backend configuration was found.`);
+    return false;
+  }
+};
+
+/**
+ * Renames any .tfvars file by appending ".backup"
  *
  * @param dir path to template directory
  */
@@ -95,7 +98,7 @@ export const renameTfvars = async (dir: string): Promise<void> => {
   try {
     const tfFiles = fs.readdirSync(dir);
     tfFiles.forEach(file => {
-      if (file.indexOf(".tfvars") !== -1) {
+      if (file.substr(file.lastIndexOf(".") + 1) === "tfvars") {
         fs.renameSync(path.join(dir, file), path.join(dir, file + ".backup"));
       }
     });
@@ -157,7 +160,7 @@ export const parseVariablesTf = (data: string) => {
   const fields: { [name: string]: string | "" } = {};
   const fieldSplitRegex = /\"\s{0,}\{/;
   const defaultRegex = /default\s{0,}=\s{0,}(.*)/;
-  blocks.forEach((b, idx) => {
+  blocks.forEach(b => {
     b = b.trim();
     const elt = b.split(fieldSplitRegex);
     elt[0] = elt[0].trim().replace('"', "");
@@ -180,11 +183,39 @@ export const parseVariablesTf = (data: string) => {
   return fields;
 };
 
-export const generateClusterDefinition = (
+/**
+ * Parses and reformats the backend.tfvars
+ *
+ * @param backendTfvarData path to the directory of backend.tfvars
+ */
+export const parseBackendTfvars = (backendData: string) => {
+  const backend: { [name: string]: string | "" } = {};
+  const block = backendData.replace(/\=/g, ":").split("\n");
+  block.forEach(b => {
+    const elt = b.split(":");
+    if (elt[0].length > 0) {
+      backend[elt[0]] = elt[1].replace(/\"/g, "");
+    }
+  });
+  return backend;
+};
+
+/**
+ * Generates cluster definition as definition.json
+ *
+ * @param name name of destination directory
+ * @param source git url of source repo
+ * @param template name of Terraform environment
+ * @param version a tag/branch/release of source repo
+ * @param backendTfvars path to directory that contains backend.tfvars
+ * @param vartfData path to the variables.tf file
+ */
+export const generateClusterDefinition = async (
   name: string,
   source: string,
   template: string,
   version: string,
+  backendData: string,
   vartfData: string
 ) => {
   const fields: { [name: string]: string | null } = parseVariablesTf(vartfData);
@@ -194,6 +225,10 @@ export const generateClusterDefinition = (
     template,
     version
   };
+  if (backendData !== "") {
+    const backend = parseBackendTfvars(backendData);
+    def.backend = backend;
+  }
   if (Object.keys(fields).length > 0) {
     const fieldDict: { [name: string]: string | null } = {};
     Object.keys(fields).forEach(key => {
@@ -213,7 +248,7 @@ export const generateClusterDefinition = (
  * @param bedrockVersion The version of the repo used
  * @param tfVariableFile Path to the variable file to parse
  */
-export const scaffoldJson = async (
+export const scaffold = async (
   name: string,
   bedrockSource: string,
   bedrockVersion: string,
@@ -221,18 +256,25 @@ export const scaffoldJson = async (
 ): Promise<boolean> => {
   try {
     const tfVariableFile = path.join(name, "variables.tf");
+    const backendTfvarsFile = path.join(name, "backend.tfvars");
+    const backendBool = await validateBackendTfvars(name);
+    let backendData = "";
+    if (backendBool === true) {
+      backendData = fs.readFileSync(backendTfvarsFile, "utf8");
+    }
     // Identify which environment the user selected
     if (fs.existsSync(tfVariableFile)) {
-      logger.info(`variables.tf file found : ${tfVariableFile}`);
+      logger.info(`A variables.tf file found : ${tfVariableFile}`);
       const data: string = fs.readFileSync(tfVariableFile, "utf8");
       if (data) {
         const baseDef: {
           [name: string]: string | null | any;
-        } = generateClusterDefinition(
+        } = await generateClusterDefinition(
           name,
           bedrockSource,
           template,
           bedrockVersion,
+          backendData,
           data
         );
         if (baseDef) {
@@ -252,51 +294,9 @@ export const scaffoldJson = async (
         logger.error(`Unable to read variable file: ${tfVariableFile}.`);
       }
     }
-  } catch (_) {
+  } catch (err) {
     logger.warn("Unable to create scaffold");
+    logger.error(err);
   }
   return false;
-};
-
-export const generateHclClusterDefinition = (vartfData: string) => {
-  const data: string = fs.readFileSync(vartfData, "utf8");
-  const fields: { [name: string]: string | "" | any } = parseVariablesTf(data);
-  const def: { [name: string]: string | "" | any } = {};
-  def.inputs = fields;
-  return def;
-};
-
-/**
- * This function creates a primary base Terragrunt HCL definition for
- * generating cluster definitions from.
- *
- * @param name Name of the cluster definition
- * @param vartfData Path to the variable.tf file to parse
- */
-export const scaffoldHcl = async (
-  dirName: string,
-  vartfData: string
-): Promise<boolean> => {
-  try {
-    const def = generateHclClusterDefinition(vartfData);
-    const confPath: string = path.format({
-      base: "terragrunt.hcl",
-      dir: dirName,
-      root: "/ignored"
-    });
-    const hcl = JSON.stringify(def, null, 2)
-      .replace(/\"([^(\")"]+)\":/g, "$1:")
-      .replace(new RegExp(":", "g"), " =")
-      .replace(new RegExp(",", "g"), " ")
-      .replace("{", "")
-      .replace(/\}([^}]*)$/, "$1")
-      .replace(/(^[ \t]*\n)/gm, "")
-      .trim();
-    fs.writeFileSync(confPath, hcl);
-  } catch (err) {
-    logger.error("Failed to create HCL file.");
-    logger.error(err);
-    return false;
-  }
-  return true;
 };

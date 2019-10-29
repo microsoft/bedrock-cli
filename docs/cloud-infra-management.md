@@ -76,7 +76,6 @@ spk infra scaffold|s [options]
 > `spk infra scaffold --name discovery-service --source https://github.com/microsoft/bedrock --version "0.0.1" --template /microsoft/bedrock/cluster/environments/azure-simple`
 
 Options:
-  --hcl                                          Generate HCL definition file (terragrunt.hcl)
   -n, --name <name>                              Cluster name for scaffolding
   -s, --source <cluster definition github repo>  Source URL for the repository containing the terraform deployment
   -v, --version <repository version>             Version or tag for the repository so a fixed version is referenced
@@ -128,38 +127,5 @@ definition.json
     "network_policy": "azure",
     "oms_agent_enabled": "false"
   }
-}
-```
-
-terrgrunt.hcl
-
-```
-inputs = {
-  agent_vm_count = "3"
-  agent_vm_size = "Standard_D2s_v3"
-  acr_enabled = "true"
-  gc_enabled = "true"
-  cluster_name = ""
-  dns_prefix = ""
-  flux_recreate = ""
-  kubeconfig_recreate = ""
-  gitops_ssh_url = ""
-  gitops_ssh_key = ""
-  gitops_path = ""
-  gitops_url_branch = "master"
-  resource_group_name = ""
-  ssh_public_key = ""
-  service_principal_id = ""
-  service_principal_secret = ""
-  gitops_poll_interval = "5m"
-  vnet_name = ""
-  service_cidr = "10.0.0.0/16"
-  dns_ip = "10.0.0.10"
-  docker_cidr = "172.17.0.1/16"
-  address_space = "10.10.0.0/16"
-  subnet_prefix = "10.10.1.0/24"
-  network_plugin = "azure"
-  network_policy = "azure"
-  oms_agent_enabled = "false"
 }
 ```

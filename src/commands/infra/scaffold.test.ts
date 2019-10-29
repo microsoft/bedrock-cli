@@ -3,11 +3,7 @@ import {
   enableVerboseLogging,
   logger
 } from "../../logger";
-import {
-  generateClusterDefinition,
-  parseVariablesTf,
-  scaffoldHcl
-} from "./scaffold";
+import { generateClusterDefinition, parseVariablesTf } from "./scaffold";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -56,32 +52,21 @@ describe("Validate generation of sample scaffold definition", () => {
       '   type    = "string"\n' +
       '    default = "5m"\n' +
       "} \n";
-    const def = generateClusterDefinition(
+    const backendTfVars =
+      'storage_account_name="<storage account name>"\n' +
+      'access_key="<storage access key>"\n' +
+      'container_name="<storage account container>"\n' +
+      'key="tfstate-azure-simple"\n';
+    const def = await generateClusterDefinition(
       "test-scaffold",
       "https://github.com/microsoft/bedrock",
       "cluster/environments/azure-simple",
       "v1.0.0",
+      backendTfVars,
       sampleVarTf
     );
     expect(def.name).toBe("test-scaffold");
     expect(def.variables.resource_group_name).toBe("<insert value>");
-  });
-});
-
-describe("Validate generation of a valid cluster HCL file", () => {
-  test("Validate that a variables.tf sample can be parsed and translated to an HCL file", async () => {
-    const mockFileName = "src/commands/mocks/azure-simple";
-    const sampleVarTf = "src/commands/mocks/azure-simple/variables.tf";
-    const value = await scaffoldHcl(mockFileName, sampleVarTf);
-    expect(value).toBe(true);
-  });
-});
-
-describe("Failure testing for generation of a valid cluster HCL file", () => {
-  test("Mocked a failed scenario of HCL generation", async () => {
-    const mockFileName = "src/commands/mocks/azure-simple";
-    const sampleVarTf = "src/commands/mocks/azure-simple";
-    const value = await scaffoldHcl(mockFileName, sampleVarTf);
-    expect(value).toBe(false);
+    expect(def.backend.key).toBe("tfstate-azure-simple");
   });
 });
