@@ -92,6 +92,26 @@ To configure the variable group run:
 spk variable-group create
 ```
 
+You will need the following variables:
+
+- `ACCOUNT_KEY`: Set this to the access key for your storage account
+- `ACCOUNT_NAME`: Set this to the name of your storage account
+- `PARTITION_KEY`: This field can be a distinguishing key that recognizea your
+  source repository in the storage, for eg. in this example, we're using the
+  name of the source repository `hello-bedrock`
+- `TABLE_NAME`: Set this to the name of the table in your storage account that
+  you prefer to use
+
+![](./images/variable_group.png)
+
+Make sure that you update the pipelines in the following steps to include this
+variable group, such as below:
+
+```yaml
+variables:
+  - group: <your-variable-group-name>
+```
+
 #### 2. CI pipeline configuration
 
 The CI pipeline runs from the source repository to build a docker image.
@@ -100,15 +120,15 @@ Paste the following task in its corresponding `azure-pipelines.yml`:
 
 ```yaml
 - bash: |
-    curl $SCRIPT > script.sh
-    chmod +x ./script.sh
     tag_name="hello-spektate-$(Build.SourceBranchName)-$(Build.BuildId)"
     commitId=$(Build.SourceVersion)
     commitId=$(echo "${commitId:0:7}")
-    ./script.sh $(ACCOUNT_NAME) $(ACCOUNT_KEY) $(TABLE_NAME) $(PARTITION_KEY) p1 $(Build.BuildId) imageTag $tag_name commitId $commitId service $(Build.Repository.Name)
-  displayName: Update manifest pipeline details in CJ db
-  env:
-    SCRIPT: https://raw.githubusercontent.com/catalystcode/spk/master/scripts/update_introspection.sh
+    VERSION_TO_DOWNLOAD=$(curl -s "https://api.github.com/repos/CatalystCode/spk/releases/latest" | grep "tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
+    echo "Downloading SPK version $VERSION_TO_DOWNLOAD" && wget "https://github.com/CatalystCode/spk/releases/download/$VERSION_TO_DOWNLOAD/spk-linux"
+    chmod +x ./spk-linux
+    ./spk-linux deployment create -n $(ACCOUNT_NAME) -k $(ACCOUNT_KEY) -t $(TABLE_NAME) -p $(PARTITION_KEY) --p1 $(Build.BuildId) --image-tag $tag_name --commit-id $commitId --service $service
+
+  displayName: Update manifest pipeline details in Spektate db
 ```
 
 This task will update the service introspection storage table for every build
@@ -127,20 +147,24 @@ by service introspection.
 
 The CD release pipeline updates the docker image number in the HLD.
 
-Paste the following task in its corresponding `azure-pipelines.yml`:
+Paste the following task towards the end of your release step in the release
+pipeline:
 
 ```yaml
- latest_commit=$(git rev-parse --short HEAD)
- echo "latest_commit=$latest_commit"
+latest_commit=$(git rev-parse --short HEAD) echo "latest_commit=$latest_commit"
 
- # Download update storage script
- curl https://raw.githubusercontent.com/catalystcode/spk/master/scripts/update_introspection.sh > script.sh
- chmod +x script.sh
-
- ./script.sh $(ACCOUNT_NAME) $(ACCOUNT_KEY) $(TABLE_NAME) $(PARTITION_KEY) imageTag $(Build.BuildId) p2 $(Release.ReleaseId) hldCommitId $latest_commit env $(Release.EnvironmentName)
+VERSION_TO_DOWNLOAD=$(curl -s
+"https://api.github.com/repos/CatalystCode/spk/releases/latest" | grep
+"tag_name" | sed -E 's/.*"([^"]+)".*/\1/') echo "Downloading SPK version
+$VERSION_TO_DOWNLOAD" && wget
+"https://github.com/CatalystCode/spk/releases/download/$VERSION_TO_DOWNLOAD/spk-linux"
+chmod +x ./spk-linux ./spk-linux deployment create  -n $(ACCOUNT_NAME) -k
+$(ACCOUNT_KEY) -t $(TABLE_NAME) -p $(PARTITION_KEY)  --p2 $(Release.ReleaseId)
+--hld-commit-id $latest_commit --env $(Release.EnvironmentName) --image-tag
+$(Build.BuildId)
 ```
 
-This task is the same as the one from step 1 but instead passes the information
+This task is similar to the one from step 1 but instead passes the information
 that corresponds to the CD release pipeline.
 
 #### 4. HLD manifest pipeline configuration
@@ -148,36 +172,21 @@ that corresponds to the CD release pipeline.
 The HLD manifest pipeline builds the HLD using `fabrikate` and generates
 resource manifests that are then placed in the resource manifest repository.
 
-Paste the following task in the `azure-pipelines.yml` file **before** the
+Paste the following task in the `azure-pipelines.yml` file **after** the
 `fabrikate` steps:
 
 ```yaml
 - bash: |
-    curl $SCRIPT > script.sh
-    chmod +x ./script.sh
+    cd "$HOME"/<name of your manifest repository>
     commitId=$(Build.SourceVersion)
     commitId=$(echo "${commitId:0:7}")
-    ./script.sh $(ACCOUNT_NAME) $(ACCOUNT_KEY) $(TABLE_NAME) $(PARTITION_KEY) hldCommitId $commitId p3 $(Build.BuildId)
-  displayName: Update manifest pipeline details in CJ db
-  env:
-    SCRIPT: https://raw.githubusercontent.com/catalystcode/spk/master/scripts/update_introspection.sh
-```
-
-Paste the following task after the `fabrikate` step:
-
-```yaml
-- script: |
-    cd "$HOME"/hello-bedrock-manifest
-    curl $SCRIPT > script.sh
-    chmod +x ./script.sh
     latest_commit=$(git rev-parse --short HEAD)
-    ./script.sh $(ACCOUNT_NAME) $(ACCOUNT_KEY) $(TABLE_NAME) $(PARTITION_KEY) p3 $(Build.BuildId) manifestCommitId $latest_commit
-  displayName: Update commit id in database
-  env:
-    SCRIPT: https://raw.githubusercontent.com/catalystcode/spk/master/scripts/update_introspection.sh
+    VERSION_TO_DOWNLOAD=$(curl -s "https://api.github.com/repos/CatalystCode/spk/releases/latest" | grep "tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
+    echo "Downloading SPK version $VERSION_TO_DOWNLOAD" && wget "https://github.com/CatalystCode/spk/releases/download/$VERSION_TO_DOWNLOAD/spk-linux"
+    chmod +x ./spk-linux
+    ./spk-linux deployment create -n $(ACCOUNT_NAME) -k $(ACCOUNT_KEY) -t $(TABLE_NAME) -p $(PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --manifest-commit-id $latest_commit
+  displayName: Update manifest pipeline details in Spektate db
 ```
-
-This task will update the `manifestCommitId`.
 
 ## Getting started
 
