@@ -26,7 +26,7 @@ export const readYaml = <T>(filepath: string): T => {
     const contents = fs.readFileSync(filepath, "utf8");
     return yaml.safeLoad(contents) as T;
   }
-  throw new Error(`Unable to load file '${filepath}'`);
+  throw Error(`Unable to load file '${filepath}'`);
 };
 
 /**
@@ -50,7 +50,7 @@ const loadConfigurationFromLocalEnv = <T>(configObj: T): T => {
             obj[key] = process.env[matchValue];
           } else {
             logger.error(`Env variable needs to be defined for ${matchValue}`);
-            throw new Error(
+            throw Error(
               `Environment variable needs to be defined for ${matchValue} since it's referenced in the config file.`
             );
           }
@@ -87,13 +87,13 @@ export const Config = (): IConfigYaml => {
 /**
  * Returns the current bedrock.yaml file for the project
  */
-export const Bedrock = async () =>
+export const Bedrock = () =>
   readYaml<IBedrockFile>(path.join(process.cwd(), "bedrock.yaml"));
 
 /**
  * Returns the current maintainers.yaml file for the project
  */
-export const Maintainers = async () =>
+export const Maintainers = () =>
   readYaml<IMaintainersFile>(path.join(process.cwd(), "maintainers.yaml"));
 
 /**

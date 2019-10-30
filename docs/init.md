@@ -1,6 +1,6 @@
 # SPK Init
 
-Initalize the `spk` cli for the first time.
+Initialize the `spk` cli for the first time.
 
 Usage:
 

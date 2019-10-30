@@ -35,7 +35,6 @@ export const createServiceRevisionCommandDecorator = (
       "--org-name <organization-name>",
       "Your Azure DevOps organization name; falls back to azure_devops.org in your spk config"
     )
-    .option("")
     .action(async opts => {
       try {
         const { azure_devops } = Config();
@@ -49,7 +48,7 @@ export const createServiceRevisionCommandDecorator = (
         // Give defaults
         ////////////////////////////////////////////////////////////////////////
         // default pull request against initial ring
-        const bedrockConfig = await Bedrock();
+        const bedrockConfig = Bedrock();
         const defaultRings = Object.entries(bedrockConfig.rings || {})
           .map(([branch, config]) => ({ branch, ...config }))
           .filter(ring => ring.isDefault);
