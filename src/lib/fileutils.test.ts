@@ -38,7 +38,6 @@ import {
   generateStarterAzurePipelinesYaml,
   starterAzurePipelines
 } from "./fileutils";
-import { start } from "repl";
 
 beforeAll(() => {
   enableVerboseLogging();
