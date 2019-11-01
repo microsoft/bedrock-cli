@@ -21,10 +21,12 @@ interface IUser {
 export interface IHelmConfig {
   chart:
     | {
+        method: "helm";
         repository: string; // repo (eg; https://kubernetes-charts-incubator.storage.googleapis.com/)
         chart: string; // chart name (eg; zookeeper)
       }
     | ({
+        method: "git";
         git: string; // git url to clone (eg; https://github.com/helm/charts.git)
         path: string; // path in the git repo to the directory containing the Chart.yaml (eg; incubator/zookeeper)
       } & (
