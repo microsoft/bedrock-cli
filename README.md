@@ -18,6 +18,13 @@ For more information on the end-to-end experience of using Bedrock principles
 refer to:
 [Bedrock Developer and Operations Experience](https://github.com/CatalystCode/bedrock-end-to-end-dx)
 
+## Installation
+
+Please refer to the latest SPK [release](https://github.com/CatalystCode/spk/releases) and navigate to the _assets_ section. From there choose from one of the following platform options to download:
+- linux
+- macos
+- windows
+
 ## CLI
 
 ```
