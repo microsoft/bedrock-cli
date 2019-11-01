@@ -76,6 +76,9 @@ describe("Adding a service to a repo directory", () => {
     const packageDir = "packages";
 
     const serviceName = uuid();
+
+    const variableGroupName = uuid();
+
     logger.info(
       `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
     );

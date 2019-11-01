@@ -1,8 +1,8 @@
 import commander from "commander";
 import fs from "fs";
 import path from "path";
-import shelljs from "shelljs";
-import * as config from "../../config";
+import shelljs, { cat } from "shelljs";
+import { Bedrock, write } from "../../config";
 import {
   generateDockerfile,
   generateGitIgnoreFile,
@@ -40,10 +40,31 @@ export const initCommandDecorator = (command: commander.Command): void => {
       "Specify a default ring; this corresponds to a default branch which you wish to push initial revisions to",
       "master"
     )
+    .option(
+      "--variable-group-name <variable-group-name>",
+      "The Azure DevOps Variable Group."
+    )
     .action(async opts => {
       const { monoRepo, packagesDir, defaultRing } = opts;
       const projectPath = process.cwd();
+
       try {
+        // fall back to bedrock.yaml when <variable-group-name> argument is not specified
+        let bedrockFile: IBedrockFile | undefined;
+        try {
+          bedrockFile = Bedrock();
+        } catch (err) {
+          logger.info(err);
+        }
+
+        const {
+          variableGroupName = bedrockFile &&
+            bedrockFile.variableGroups &&
+            bedrockFile.variableGroups![0]
+        } = opts;
+
+        logger.info(`variable name: ${variableGroupName}`);
+
         // Type check all parsed command line args here.
         if (typeof monoRepo !== "boolean") {
           throw new Error(
@@ -60,7 +81,26 @@ export const initCommandDecorator = (command: commander.Command): void => {
             `--default-ring must be of type 'string', '${defaultRing}' of type '${typeof defaultRing}' given`
           );
         }
-        await initialize(projectPath, { monoRepo, packagesDir, defaultRing });
+
+        if (
+          variableGroupName !== null &&
+          variableGroupName !== undefined &&
+          typeof variableGroupName !== "string"
+        ) {
+          throw new Error(
+            `variableGroupName must be of type 'string', ${typeof variableGroupName} given.`
+          );
+        }
+
+        await initialize(projectPath, {
+          defaultRing,
+          monoRepo,
+          packagesDir,
+          variableGroups:
+            variableGroupName === undefined || variableGroupName === null
+              ? []
+              : [variableGroupName]
+        });
       } catch (err) {
         logger.error(
           `Error occurred while initializing project ${projectPath}`
@@ -80,10 +120,19 @@ export const initCommandDecorator = (command: commander.Command): void => {
  */
 export const initialize = async (
   rootProjectPath: string,
-  opts?: { monoRepo: boolean; packagesDir?: string; defaultRing?: string }
+  opts?: {
+    monoRepo: boolean;
+    packagesDir?: string;
+    defaultRing?: string;
+    variableGroups?: string[];
+  }
 ) => {
-  const { monoRepo = false, packagesDir = "packages", defaultRing } =
-    opts || {};
+  const {
+    monoRepo = false,
+    packagesDir = "packages",
+    defaultRing,
+    variableGroups = []
+  } = opts || {};
   const absProjectRoot = path.resolve(rootProjectPath);
   logger.info(
     `Initializing project ${absProjectRoot} as a ${
@@ -115,7 +164,9 @@ export const initialize = async (
   const gitIgnoreFileContent = "spk.log";
 
   for (const absPackagePath of absPackagePaths) {
-    await generateStarterAzurePipelinesYaml(absProjectRoot, absPackagePath);
+    await generateStarterAzurePipelinesYaml(absProjectRoot, absPackagePath, {
+      variableGroups
+    });
     generateGitIgnoreFile(absPackagePath, gitIgnoreFileContent);
     generateDockerfile(absPackagePath);
   }
@@ -213,7 +264,7 @@ const generateMaintainersFile = async (
     );
   } else {
     // Write out
-    config.write(maintainersFile, absProjectPath);
+    write(maintainersFile, absProjectPath);
   }
 };
 
@@ -267,13 +318,20 @@ const generateBedrockFile = async (
 
   // Check if a bedrock.yaml already exists; skip write if present
   const bedrockFilePath = path.join(absProjectPath, "bedrock.yaml");
-  logger.debug(`Writing bedrock.yaml file to ${bedrockFilePath}`);
-  if (fs.existsSync(bedrockFilePath)) {
-    logger.warn(
-      `Existing bedrock.yaml found at ${bedrockFilePath}, skipping generation`
+
+  try {
+    logger.debug(
+      `Existing bedrock.yaml found at ${bedrockFilePath}, updating with generated services and rings`
     );
-  } else {
-    // Write out
-    config.write(bedrockFile, absProjectPath);
+    // File might have been created by `project create-variable-group` command to store variable group names for the project
+    const existingFile = Bedrock();
+    if (existingFile.variableGroups) {
+      bedrockFile.variableGroups = existingFile.variableGroups;
+    }
+  } catch (err) {
+    logger.debug(`Writing bedrock.yaml file to ${bedrockFilePath}`);
   }
+
+  // Write out
+  write(bedrockFile, absProjectPath);
 };

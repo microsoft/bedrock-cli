@@ -37,10 +37,12 @@ export const generateHldLifecyclePipelineYaml = async (projectRoot: string) => {
  *
  * @param projectRoot Path to the root of the project (where the bedrock.yaml file exists)
  * @param packagePath Path to the packages directory
+ * @param variableGroups Azure DevOps variable group names
  */
 export const generateStarterAzurePipelinesYaml = async (
   projectRoot: string,
-  packagePath: string
+  packagePath: string,
+  opts?: { variableGroups?: string[] }
 ) => {
   const absProjectRoot = path.resolve(projectRoot);
   const absPackagePath = path.resolve(packagePath);
@@ -49,6 +51,10 @@ export const generateStarterAzurePipelinesYaml = async (
   logger.info(
     `Generating starter ${azurePipelineFileName} in ${absPackagePath}`
   );
+
+  const { variableGroups = [] } = opts || {};
+
+  logger.debug(`variableGroups length: ${variableGroups.length}`);
 
   // Check if azure-pipelines.yaml already exists; if it does, skip generation
   const azurePipelinesYamlPath = path.join(
@@ -64,7 +70,8 @@ export const generateStarterAzurePipelinesYaml = async (
     );
   } else {
     const starterYaml = await starterAzurePipelines({
-      relProjectPaths: [path.relative(absProjectRoot, absPackagePath)]
+      relProjectPaths: [path.relative(absProjectRoot, absPackagePath)],
+      variableGroups
     });
     // Write
     await promisify(fs.writeFile)(

@@ -87,8 +87,8 @@ export const Config = (): IConfigYaml => {
 /**
  * Returns the current bedrock.yaml file for the project
  */
-export const Bedrock = () =>
-  readYaml<IBedrockFile>(path.join(process.cwd(), "bedrock.yaml"));
+export const Bedrock = (fileDirectory = process.cwd()) =>
+  readYaml<IBedrockFile>(path.join(fileDirectory, "bedrock.yaml"));
 
 /**
  * Returns the current maintainers.yaml file for the project

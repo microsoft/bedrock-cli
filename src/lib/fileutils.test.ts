@@ -369,4 +369,91 @@ describe("starterAzurePipelines", () => {
       expect(hasCorrectIncludes).toBe(true);
     }
   });
+
+  test("that all services receive an azure-pipelines.yaml with the correct paths and single variable group have been inserted", async () => {
+    // Create service directories
+    const servicePaths = ["a", "b", "c"].map(serviceDir => {
+      const servicePath = path.join(randomDirPath, "packages", serviceDir);
+      shelljs.mkdir("-p", servicePath);
+      return servicePath;
+    });
+
+    const variableGroups = [uuid()];
+
+    for (const servicePath of servicePaths) {
+      await generateStarterAzurePipelinesYaml(randomDirPath, servicePath, {
+        variableGroups
+      });
+
+      // file should exist
+      expect(fs.existsSync(servicePath)).toBe(true);
+
+      // pipeline triggers should include the relative path to the service
+      const azureYaml: IAzurePipelinesYaml = yaml.safeLoad(
+        fs.readFileSync(path.join(servicePath, "azure-pipelines.yaml"), "utf8")
+      );
+
+      const hasCorrectIncludes = azureYaml.trigger!.paths!.include!.includes(
+        "./" + path.relative(randomDirPath, servicePath)
+      );
+
+      let hasCorrecctVariableGroup: boolean = false;
+      for (const [key, value] of Object.entries(azureYaml.variables!)) {
+        const item: { group: string } = value as { group: string };
+        hasCorrecctVariableGroup = item.group === variableGroups[0];
+      }
+
+      expect(hasCorrectIncludes).toBe(true);
+      expect(hasCorrecctVariableGroup).toBe(true);
+    }
+  });
+
+  test("that all services receive an azure-pipelines.yaml with the correct paths and two variable group have been inserted", async () => {
+    // Create service directories
+    const servicePaths = ["a", "b", "c"].map(serviceDir => {
+      const servicePath = path.join(randomDirPath, "packages", serviceDir);
+      shelljs.mkdir("-p", servicePath);
+      return servicePath;
+    });
+
+    // const variableGroupName1 =;
+    // const variableGroupName2 = ;
+    const variableGroups = [uuid(), uuid()];
+
+    for (const servicePath of servicePaths) {
+      await generateStarterAzurePipelinesYaml(randomDirPath, servicePath, {
+        variableGroups
+      });
+
+      // file should exist
+      expect(fs.existsSync(servicePath)).toBe(true);
+
+      // pipeline triggers should include the relative path to the service
+      const azureYaml: IAzurePipelinesYaml = yaml.safeLoad(
+        fs.readFileSync(path.join(servicePath, "azure-pipelines.yaml"), "utf8")
+      );
+
+      const hasCorrectIncludes = azureYaml.trigger!.paths!.include!.includes(
+        "./" + path.relative(randomDirPath, servicePath)
+      );
+
+      let hasCorrecctVariableGroup1: boolean = false;
+      let hasCorrecctVariableGroup2: boolean = false;
+      for (const [key, value] of Object.entries(azureYaml.variables!)) {
+        const item: { group: string } = value as { group: string };
+
+        if (item.group === variableGroups[0]) {
+          hasCorrecctVariableGroup1 = true;
+        }
+
+        if (item.group === variableGroups[1]) {
+          hasCorrecctVariableGroup2 = true;
+        }
+      }
+
+      expect(hasCorrectIncludes).toBe(true);
+      expect(hasCorrecctVariableGroup1).toBe(true);
+      expect(hasCorrecctVariableGroup2).toBe(true);
+    }
+  });
 });
