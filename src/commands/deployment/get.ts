@@ -309,16 +309,24 @@ export const printDeployments = (
           ? getStatus(deployment.srcToDockerBuild.result)
           : ""
       );
-      row.push(
-        deployment.dockerToHldRelease ? deployment.dockerToHldRelease.id : ""
-      );
+
+      let dockerToHldId = "";
+      let dockerToHldStatus = "";
+
+      if (deployment.dockerToHldRelease) {
+        dockerToHldId = deployment.dockerToHldRelease.id;
+        dockerToHldStatus = getStatus(deployment.dockerToHldRelease.status);
+      } else if (deployment.dockerToHldReleaseStage) {
+        dockerToHldId = deployment.dockerToHldReleaseStage.id;
+        dockerToHldStatus = getStatus(
+          deployment.dockerToHldReleaseStage.status
+        );
+      }
+      row.push(dockerToHldId);
+
       row.push(deployment.environment.toUpperCase());
       row.push(deployment.hldCommitId);
-      row.push(
-        deployment.dockerToHldRelease
-          ? getStatus(deployment.dockerToHldRelease.status)
-          : ""
-      );
+      row.push(dockerToHldStatus);
       row.push(
         deployment.hldToManifestBuild ? deployment.hldToManifestBuild.id : ""
       );
