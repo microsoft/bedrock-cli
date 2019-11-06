@@ -5,6 +5,11 @@ import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
 import { validatePrereqs } from "../infra/validate";
 
+export interface IIntrospectionManifest {
+  githubUsername?: string;
+  manifestRepoName: string;
+}
+
 /**
  * Adds the onboard command to the commander command object
  * @param command Commander command object to decorate
@@ -106,6 +111,10 @@ export const launchDashboard = async (
   }
 };
 
+/**
+ * Creates and returns an array of env vars that need to be passed into the
+ * docker run command
+ */
 export const getEnvVars = (): string[] => {
   const config = Config();
   const envVars = [];
@@ -144,6 +153,10 @@ export const getEnvVars = (): string[] => {
           config.azure_devops!.access_token
       );
     }
+  } else {
+    logger.warning(
+      "Pipeline access token was not specified during init, dashboard may show empty results if pipelines are private"
+    );
   }
   if (config.introspection!.azure!.source_repo_access_token) {
     envVars.push("-e");
@@ -153,5 +166,45 @@ export const getEnvVars = (): string[] => {
     );
   }
 
+  const manifestRepo = extractManifestRepositoryInformation();
+  if (manifestRepo) {
+    envVars.push("-e");
+    envVars.push("REACT_APP_MANIFEST=" + manifestRepo.manifestRepoName);
+    if (manifestRepo.githubUsername) {
+      envVars.push("-e");
+      envVars.push(
+        "REACT_APP_GITHUB_MANIFEST_USERNAME=" + manifestRepo.githubUsername
+      );
+    }
+  }
+
   return envVars;
+};
+
+/**
+ * Extracts the necessary information from the config for
+ * `azure_devops.manifest_repository` which is required to fetch cluster sync
+ * information on dashboard
+ */
+export const extractManifestRepositoryInformation = ():
+  | IIntrospectionManifest
+  | undefined => {
+  const config = Config();
+  if (config.azure_devops!.manifest_repository) {
+    const repoUrl = config.azure_devops!.manifest_repository!.replace(
+      ".git",
+      ""
+    );
+    const manifestRepoSplit = repoUrl.split("/");
+    if (repoUrl.includes("azure") && manifestRepoSplit.length >= 1) {
+      return {
+        manifestRepoName: manifestRepoSplit[manifestRepoSplit.length - 1]
+      };
+    } else if (repoUrl.includes("github") && manifestRepoSplit.length >= 2) {
+      return {
+        githubUsername: manifestRepoSplit[manifestRepoSplit.length - 2],
+        manifestRepoName: manifestRepoSplit[manifestRepoSplit.length - 1]
+      };
+    }
+  }
 };

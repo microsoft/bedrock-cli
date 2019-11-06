@@ -7,7 +7,11 @@ import {
   logger
 } from "../../logger";
 import { validatePrereqs } from "../infra/validate";
-import { getEnvVars, launchDashboard } from "./dashboard";
+import {
+  extractManifestRepositoryInformation,
+  getEnvVars,
+  launchDashboard
+} from "./dashboard";
 
 beforeAll(() => {
   process.env.test_name = "my_storage_account";
@@ -77,15 +81,34 @@ describe("Fallback to azure devops access token", () => {
   test("Has repo_access_token specified", () => {
     Config().introspection!.azure!.source_repo_access_token = "test_token";
     const envVars = getEnvVars().toString();
-    const expectedEnvVars =
-      "-e,REACT_APP_PIPELINE_ORG=https://dev.azure.com/bhnook,-e,REACT_APP_PIPELINE_PROJECT=fabrikam,-e,REACT_APP_STORAGE_ACCOUNT_NAME=my_storage_account,-e,REACT_APP_STORAGE_PARTITION_KEY=partition-key,-e,REACT_APP_STORAGE_TABLE_NAME=table-name,-e,REACT_APP_STORAGE_ACCESS_KEY=my_storage_key,-e,REACT_APP_PIPELINE_ACCESS_TOKEN=hpe3a9oiswgcodtfdpzfiek3saxbrh5if1fp673xihgc5ap467a,-e,REACT_APP_SOURCE_REPO_ACCESS_TOKEN=test_token";
-    expect(envVars).toBe(expectedEnvVars);
+    const expectedSubstring = "REACT_APP_SOURCE_REPO_ACCESS_TOKEN=test_token";
+    expect(envVars.includes(expectedSubstring)).toBeTruthy();
   });
   test("No repo_access_token was specified", () => {
-    Config().introspection!.azure!.source_repo_access_token = undefined;
+    const config = Config();
+    config.introspection!.azure!.source_repo_access_token = undefined;
     const envVars = getEnvVars().toString();
-    const expectedEnvVars =
-      "-e,REACT_APP_PIPELINE_ORG=https://dev.azure.com/bhnook,-e,REACT_APP_PIPELINE_PROJECT=fabrikam,-e,REACT_APP_STORAGE_ACCOUNT_NAME=my_storage_account,-e,REACT_APP_STORAGE_PARTITION_KEY=partition-key,-e,REACT_APP_STORAGE_TABLE_NAME=table-name,-e,REACT_APP_STORAGE_ACCESS_KEY=my_storage_key,-e,REACT_APP_PIPELINE_ACCESS_TOKEN=hpe3a9oiswgcodtfdpzfiek3saxbrh5if1fp673xihgc5ap467a,-e,REACT_APP_SOURCE_REPO_ACCESS_TOKEN=hpe3a9oiswgcodtfdpzfiek3saxbrh5if1fp673xihgc5ap467a";
-    expect(envVars).toBe(expectedEnvVars);
+    const expectedSubstring =
+      "REACT_APP_SOURCE_REPO_ACCESS_TOKEN=" +
+      config.azure_devops!.access_token!;
+    expect(envVars.includes(expectedSubstring)).toBeTruthy();
+  });
+});
+
+describe("Extract manifest repository information", () => {
+  test("Manifest repository information is successfully extracted", () => {
+    let manifestInfo = extractManifestRepositoryInformation();
+    expect(manifestInfo).toBeDefined();
+    expect(manifestInfo!.githubUsername).toBeUndefined();
+    expect(manifestInfo!.manifestRepoName).toBe("materialized");
+    const config = Config();
+    config.azure_devops!.manifest_repository =
+      "https://github.com/username/manifest";
+    manifestInfo = extractManifestRepositoryInformation();
+    expect(manifestInfo).toBeDefined();
+    expect(manifestInfo!.githubUsername).toBe("username");
+    expect(manifestInfo!.manifestRepoName).toBe("manifest");
+
+    logger.info("Verified that manifest repository extraction works");
   });
 });
