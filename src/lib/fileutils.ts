@@ -11,26 +11,6 @@ import {
   IUser
 } from "../types";
 
-export const generateHldLifecyclePipelineYaml = async (projectRoot: string) => {
-  logger.info(
-    `Generating hld lifecycle pipeline hld-lifecycle.yaml in ${projectRoot}`
-  );
-
-  const azurePipelinesYamlPath = path.join(projectRoot, "hld-lifecycle.yaml");
-
-  if (fs.existsSync(azurePipelinesYamlPath)) {
-    logger.warn(
-      `Existing hld-lifecycle.yaml found at ${azurePipelinesYamlPath}, skipping generation`
-    );
-
-    return;
-  }
-
-  const hldYaml = hldLifecyclePipelineYaml();
-  logger.info(`Writing hld-lifecycle.yaml file to ${azurePipelinesYamlPath}`);
-  fs.writeFileSync(azurePipelinesYamlPath, hldYaml, "utf8");
-};
-
 /**
  * Writes out a starter azure-pipelines.yaml
  * One pipeline should exist for each service.
@@ -210,7 +190,6 @@ export const starterAzurePipelines = async (opts: {
                     `verify_access_token`,
                     `init`,
                     `helm init`,
-                    `get_os`,
                     ``,
                     `# Fabrikate`,
                     `get_fab_version`,
@@ -390,8 +369,42 @@ const manifestGenerationPipelineYaml = () => {
   return yaml.safeDump(pipelineYaml, { lineWidth: Number.MAX_SAFE_INTEGER });
 };
 
+/**
+ * Writes out the service to hld lifecycle pipeline.
+ * This pipeline utilizes spk hld reconcile to add/remove services from the hld repository.
+ *
+ * @param projectRoot
+ */
+export const generateHldLifecyclePipelineYaml = async (projectRoot: string) => {
+  logger.info(
+    `Generating hld lifecycle pipeline hld-lifecycle.yaml in ${projectRoot}`
+  );
+
+  const azurePipelinesYamlPath = path.join(projectRoot, "hld-lifecycle.yaml");
+
+  if (fs.existsSync(azurePipelinesYamlPath)) {
+    logger.warn(
+      `Existing hld-lifecycle.yaml found at ${azurePipelinesYamlPath}, skipping generation`
+    );
+
+    return;
+  }
+
+  const lifecycleYaml = hldLifecyclePipelineYaml();
+  logger.info(`Writing hld-lifecycle.yaml file to ${azurePipelinesYamlPath}`);
+  fs.writeFileSync(azurePipelinesYamlPath, lifecycleYaml, "utf8");
+
+  const requiredPipelineVariables = [
+    `'HLD_REPO' (Repository for your HLD in AzDo. eg. 'dev.azure.com/bhnook/fabrikam/_git/hld')`,
+    `'PAT' (AzDo Personal Access Token with permissions to the HLD repository.)`
+  ].join(", ");
+
+  logger.info(
+    `Generated hld-lifecycle.yaml. Commit and push this file to master before attempting to deploy via the command 'spk project create-lifecycle-pipeline'; before running the pipeline ensure the following environment variables are available to your pipeline: ${requiredPipelineVariables}`
+  );
+};
+
 const hldLifecyclePipelineYaml = () => {
-  // based on https://github.com/microsoft/bedrock/blob/master/gitops/azure-devops/ManifestGeneration.md#add-azure-pipelines-build-yaml
   // tslint:disable: object-literal-sort-keys
   // tslint:disable: no-empty
   const pipelineyaml: IAzurePipelinesYaml = {
@@ -400,20 +413,76 @@ const hldLifecyclePipelineYaml = () => {
         include: ["master"]
       }
     },
+    variables: [],
     pool: {
-      vmImage: "Ubuntu-16.04"
+      vmImage: "ubuntu-latest"
     },
     steps: [
       {
-        checkout: "self",
-        persistCredentials: true,
-        clean: true
+        script: generateYamlScript([
+          `# Download build.sh`,
+          `curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh`,
+          `chmod +x ./build.sh`
+        ]),
+        displayName: "Download bedrock bash scripts"
       },
       {
-        bash: generateYamlScript([
-          `echo "hello world. this is where lifecycle management will be implemented."`
+        script: generateYamlScript([
+          `# From https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/release.sh`,
+          `. build.sh --source-only`,
+          ``,
+          `# Initialization`,
+          `verify_access_token`,
+          `init`,
+          `helm init`,
+          ``,
+          `# Fabrikate`,
+          `get_fab_version`,
+          `download_fab`,
+          ``,
+          `# SPK`,
+          `get_spk_version`,
+          `download_spk`,
+          ``,
+          `# Clone HLD repo`,
+          `git_connect`,
+          ``,
+          `# Update HLD via spk`,
+          `git checkout -b "RECONCILE/$(Build.Repository.Name)-$(Build.BuildNumber)"`,
+          `echo "spk hld reconcile $(Build.Repository.Name) $PWD"`,
+          `spk hld reconcile $(Build.Repository.Name) $PWD`,
+          `echo "GIT STATUS"`,
+          `git status`,
+          `echo "GIT ADD (git add -A)"`,
+          `git add -A`,
+          ``,
+          `# Set git identity`,
+          `git config user.email "admin@azuredevops.com"`,
+          `git config user.name "Automated Account"`,
+          ``,
+          `# Commit changes`,
+          `echo "GIT COMMIT"`,
+          `git commit -m "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)."`,
+          ``,
+          `# Git Push`,
+          `git_push`,
+          ``,
+          `# Open PR via az repo cli`,
+          `echo 'az extension add --name azure-devops'`,
+          `az extension add --name azure-devops`,
+          ``,
+          `echo 'az devops login'`,
+          `echo "$(PAT)" | az devops login`,
+          ``,
+          `echo 'az repos pr create --description "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)."'`,
+          `az repos pr create --description "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)."`
         ]),
-        displayName: "hello world"
+        displayName:
+          "Download Fabrikate and SPK, Update HLD, Push changes, Open PR",
+        env: {
+          ACCESS_TOKEN_SECRET: "$(PAT)",
+          REPO: "$(HLD_REPO)"
+        }
       }
     ]
   };
