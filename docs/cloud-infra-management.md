@@ -12,6 +12,7 @@ Commands:
 
 - [validate](#validate)
 - [scaffold](#scaffold)
+- [generate](#generate)
 
 ## Prerequisites
 
@@ -129,3 +130,22 @@ definition.json
   }
 }
 ```
+
+### generate
+
+Generates a deployment folder based on scaffolded project with a definition.json
+
+Generates a deplooyment folder of an infrastructure scaffolded project
+containing a `definition.json` that contains a `source`, `template` and
+`version` to obtain the terraform template files.
+
+It will do the following (**In Progress**):
+
+- Check if a provided project folder contains a `definition.json`
+- Check if the terraform template `source` provided has a valid remote
+  repository
+- Cache the master version of the provided `source` repository locally in
+  `~/.spk/templates`
+  > Cached repositories will be converted through regex for spk to hash. I.e. a
+  > `source` template of `https://github.com/microsoft/bedrock` will be cached
+  > into a folder called `_microsoft_bedrock_git`
