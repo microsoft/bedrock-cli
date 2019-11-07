@@ -83,3 +83,58 @@ Install the manifest generation pipeline to your Azure DevOps instance
 Options:
   -h, --help  output usage information
 ```
+
+### reconcile
+
+The reconcile feature scaffolds a HLD with the services in the `bedrock.yaml`
+file at the root level of the application repository. Recall that in a
+mono-repo, `spk service create` will add an entry into the `bedrock.yaml`
+corresponding to all tracked services. When the service has been merged into
+`master` of the application repository, a pipeline (see `hld-lifecycle.yaml`,
+created by `spk project init`) runs `spk hld reconcile` to add any _new_
+services tracked in `bedrock.yaml` to the HLD.
+
+This command is _intended_ to be run in a pipeline (see the generated
+`hld-lifecycle.yaml` created from `spk project init`), but can be run by the
+user in a CLI for verification.
+
+```
+Usage: hld reconcile|r application-repo-name /path/to/cloned/hld/repsitory
+
+Reconcile a HLD with the services tracked in bedrock.yaml.
+
+Options:
+  -h, --help  output usage information
+```
+
+For a `bedrock.yaml` file that resembles the following:
+
+```
+rings:
+  ring-name:
+    isDefault: true
+services:
+  ./packages/service-name:
+    helm:
+      chart:
+        branch: 'master'
+        git: 'github.com/contoso/helm-charts'
+        path: 'service-name-chart'
+```
+
+A HLD is produced that resembles the following:
+
+```
+├── component.yaml
+├── application-repo
+│   ├── component.yaml
+│   ├── config
+│   └── service-name
+│       ├── component.yaml
+│       ├── config
+│       └── ring-name
+│           ├── component.yaml
+│           ├── config
+│           └── static
+│               └── ingress-route.yaml
+```
