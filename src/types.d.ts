@@ -21,12 +21,10 @@ interface IUser {
 export interface IHelmConfig {
   chart:
     | {
-        method: "helm";
         repository: string; // repo (eg; https://kubernetes-charts-incubator.storage.googleapis.com/)
         chart: string; // chart name (eg; zookeeper)
       }
     | ({
-        method: "git";
         git: string; // git url to clone (eg; https://github.com/helm/charts.git)
         path: string; // path in the git repo to the directory containing the Chart.yaml (eg; incubator/zookeeper)
       } & (
@@ -45,9 +43,9 @@ export interface IHelmConfig {
  * Used to capture service meta-information regarding how to deploy
  */
 export interface IBedrockFile {
-  rings?: {
+  rings: {
     [branchName: string]: {
-      isDefault: boolean; // indicates the branch is a default branch to PR against when creating a service revision
+      isDefault?: boolean; // indicates the branch is a default branch to PR against when creating a service revision
     };
   };
   services: {

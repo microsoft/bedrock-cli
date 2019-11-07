@@ -228,7 +228,6 @@ describe("Adding a new service to a Bedrock file", () => {
     const helmConfig: IHelmConfig = {
       chart: {
         chart: "somehelmchart",
-        method: "helm",
         repository: "somehelmrepository"
       }
     };

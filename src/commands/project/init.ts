@@ -294,7 +294,6 @@ const generateBedrockFile = async (
         chart: {
           branch: "",
           git: "",
-          method: "git",
           path: ""
         }
       };

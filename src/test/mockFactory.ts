@@ -43,7 +43,6 @@ export const createTestBedrockYaml = (
     chart: {
       branch: "master",
       git: "https://github.com/catalystcode/spk-demo-repo.git",
-      method: "git",
       path: ""
     }
   };
@@ -52,7 +51,6 @@ export const createTestBedrockYaml = (
     chart: {
       branch: "master",
       git: "https://github.com/catalystcode/spk-demo-repo.git",
-      method: "git",
       path: "/service1"
     }
   };
@@ -60,7 +58,6 @@ export const createTestBedrockYaml = (
   const zookeeperHelmConfig: IHelmConfig = {
     chart: {
       chart: "zookeeper",
-      method: "helm",
       repository: "https://kubernetes-charts-incubator.storage.googleapis.com/"
     }
   };

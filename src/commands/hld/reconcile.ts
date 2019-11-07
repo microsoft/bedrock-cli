@@ -126,11 +126,15 @@ export const reconcileHld = async (
       await execAndLog(createRingInSvcCommand);
 
       let addHelmChartCommand = "";
-      if (helmConfig.helm.chart.method === "git") {
-        // TODO: git sha
-        addHelmChartCommand = `fab add chart --source ${helmConfig.helm.chart.git} --path ${helmConfig.helm.chart.path}`;
-      } else {
-        addHelmChartCommand = `fab add chart --source ${helmConfig.helm.chart.repository} --path ${helmConfig.helm.chart.chart}`;
+      const { chart } = helmConfig.helm;
+      if ("git" in chart) {
+        const chartVersioning =
+          "branch" in chart
+            ? `--branch ${chart.branch}`
+            : `--version ${chart.sha}`;
+        addHelmChartCommand = `fab add chart --source ${chart.git} --path ${chart.path} ${chartVersioning}`;
+      } else if ("repository" in chart) {
+        addHelmChartCommand = `fab add chart --source ${chart.repository} --path ${chart.chart}`;
       }
 
       await execAndLog(addHelmChartCommand);

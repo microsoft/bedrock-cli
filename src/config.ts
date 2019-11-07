@@ -86,14 +86,53 @@ export const Config = (): IConfigYaml => {
 
 /**
  * Returns the current bedrock.yaml file for the project
+ *
+ * Does some validations against the file; if errors occur, an Exception is
+ * thrown:
+ * - Validates the helm configurations for all service entries
  */
-export const Bedrock = (fileDirectory = process.cwd()) =>
-  readYaml<IBedrockFile>(path.join(fileDirectory, "bedrock.yaml"));
+export const Bedrock = (fileDirectory = process.cwd()): IBedrockFile => {
+  const bedrockYamlPath = path.join(fileDirectory, "bedrock.yaml");
+  const bedrock = readYaml<IBedrockFile>(bedrockYamlPath);
+  const { services } = bedrock;
+
+  // validate service helm configurations
+  const helmErrors: Error[] = Object.entries(services)
+    .map(([servicePath, serviceConfig]) => {
+      const { chart } = serviceConfig.helm;
+      const isGitBased =
+        "git" in chart &&
+        "path" in chart &&
+        ("branch" in chart || "sha" in chart);
+      const isHelmBased = "repository" in chart && "chart" in chart;
+      if (!isGitBased && !isHelmBased) {
+        const requiredGitValues = ["git", "path", "branch|sha"];
+        const requiredHelmValues = ["repository", "chart"];
+        return Error(
+          `invalid helm configuration found in service ${servicePath}, helm configuration expects a set of keys matching ${JSON.stringify(
+            requiredGitValues
+          )} or ${JSON.stringify(requiredHelmValues)}; found: ${JSON.stringify(
+            chart
+          )}`
+        );
+      }
+    })
+    .filter(e => !!e) as Error[];
+  // log all the errors and throw an exception if their are any
+  if (helmErrors.length > 0) {
+    for (const error of helmErrors) {
+      logger.error(error);
+    }
+    throw Error(`invalid helm configuration found in ${bedrockYamlPath}`);
+  }
+
+  return bedrock;
+};
 
 /**
  * Returns the current maintainers.yaml file for the project
  */
-export const Maintainers = () =>
+export const Maintainers = (): IMaintainersFile =>
   readYaml<IMaintainersFile>(path.join(process.cwd(), "maintainers.yaml"));
 
 /**
