@@ -1,13 +1,13 @@
-import child_process from "child_process";
-import { getMaxListeners } from "cluster";
 import commander from "commander";
 import fs, { chmod } from "fs";
+import mkdirp from "mkdirp";
 import * as os from "os";
 import path from "path";
 import simpleGit from "simple-git/promise";
 import { logger } from "../../logger";
+import { copyTfTemplate } from "./scaffold";
 
-const spkTemplatesPath = os.homedir() + "/.spk/templates";
+const spkTemplatesPath = path.join(os.homedir(), ".spk/templates");
 const git = simpleGit();
 
 /**
@@ -39,6 +39,10 @@ export const generateCommandDecorator = (command: commander.Command): void => {
         await validateDefinition(opts.project);
         const jsonSource = await validateTemplateSource(opts.project);
         await validateRemoteSource(jsonSource);
+        const generatedDir = await createGenerated(opts.project);
+        const templatePath = await parseDefinitionJson(opts.project);
+        await copyTfTemplate(templatePath, generatedDir);
+        await generateSpkTfvars(opts.project, generatedDir);
       } catch (err) {
         logger.error(
           "Error occurred while generating project deployment files"
@@ -58,20 +62,18 @@ export const validateDefinition = async (
 ): Promise<boolean> => {
   try {
     // If templates folder does not exist, create cache templates directory
-    if (!fs.existsSync(spkTemplatesPath)) {
-      fs.mkdirSync(spkTemplatesPath);
-    }
+    mkdirp.sync(spkTemplatesPath);
     if (!fs.existsSync(path.join(projectPath, "definition.json"))) {
       logger.error(
-        `Provided project path for generate is invalid or definition.json can not be found: ${projectPath}`
+        `Provided project path for generate is invalid or definition.json cannot be found: ${projectPath}`
       );
       return false;
     }
     logger.info(
-      `Project folder found. Attempting to generate definition.json file.`
+      `Project folder found. Extracting information from definition.json files.`
     );
-  } catch (_) {
-    logger.error(`Unable to validate project folder path.`);
+  } catch (err) {
+    logger.error(`Unable to validate project folder path: ${err}`);
     return false;
   }
   return true;
@@ -86,9 +88,7 @@ export const validateTemplateSource = async (
   projectPath: string
 ): Promise<string[]> => {
   try {
-    const rootDef = path.join(projectPath, "definition.json");
-    const data: string = fs.readFileSync(rootDef, "utf8");
-    const definitionJSON = JSON.parse(data);
+    const definitionJSON = await readDefinitionJson(projectPath);
     // TO DO : Check for malformed JSON
     if (!(definitionJSON.template && definitionJSON.source)) {
       logger.info(
@@ -111,7 +111,6 @@ export const validateTemplateSource = async (
     );
     return [];
   }
-  return [];
 };
 
 /**
@@ -130,16 +129,16 @@ export const validateRemoteSource = async (
   sourceFolder = sourceFolder.replace(punctuationReg, "_").toLowerCase();
   const sourcePath = path.join(spkTemplatesPath, sourceFolder);
   logger.warn(`Converted to: ${sourceFolder}`);
-  logger.info(`Checking if source:${sourcePath} is stored locally.`);
+  logger.info(`Checking if source: ${sourcePath} is stored locally.`);
   try {
     if (!fs.existsSync(sourcePath)) {
       logger.warn(
-        `Provided source template folder was not found, attempting to clone the template source repo locally.`
+        `Provided source in template directory was not found, attempting to clone the template source repo locally.`
       );
-      fs.mkdirSync(sourcePath);
+      mkdirp.sync(sourcePath);
     } else {
       logger.info(
-        `Source template folder found. Checking remote existence of remote repository`
+        `Source template folder found. Validating existence of repository.`
       );
     }
     // Checking for git remote
@@ -154,18 +153,18 @@ export const validateRemoteSource = async (
       logger.info(
         `Checking if source repo: ${source} has been already cloned to: ${sourcePath}.`
       );
-      const init = await simpleGit(sourcePath).init();
-      const result2 = await simpleGit(sourcePath).revparse([
-        "--is-inside-work-tree"
-      ]);
-      if (!result2) {
-        logger.info(`Remote repo: ${source} exists in folder ${sourcePath}`);
+      // Check if .git folder exists in ${sourcePath}, if not, then clone
+      // if already cloned, 'git pull'
+      if (fs.existsSync(path.join(sourcePath, ".git"))) {
+        await simpleGit(sourcePath).pull("origin", "master");
+        logger.info(`${source} already cloned. Performing 'git pull'...`);
       } else {
-        logger.info(
-          `Cloning remote repo: ${source} into local folder ${sourcePath}`
-        );
-        git.clone(source, `${sourcePath}`);
+        await git.clone(source, `${sourcePath}`);
+        logger.info(`Cloning ${source} was successful.`);
       }
+      // Checkout tagged version
+      logger.info(`Checking out template version: ${version}`);
+      await simpleGit(sourcePath).checkout(version);
     }
   } catch (err) {
     logger.error(
@@ -174,4 +173,105 @@ export const validateRemoteSource = async (
     return false;
   }
   return true;
+};
+
+/**
+ * Creates "generated" directory if it does not already exists
+ *
+ * @param projectPath Path to the definition.json file
+ */
+export const createGenerated = async (projectPath: string): Promise<string> => {
+  try {
+    const newGeneratedPath = projectPath + "-generated";
+    mkdirp.sync(newGeneratedPath);
+    logger.info(`Created generated directory: ${newGeneratedPath}`);
+    return newGeneratedPath;
+  } catch (err) {
+    logger.error(`There was a problem creating the generated directory`);
+    return err;
+  }
+};
+
+/**
+ * Parses the definition.json file and copies the appropriate template
+ * to "-generated" directory
+ *
+ * @param projectPath Path to the definition.json file
+ * @param generatedPath Path to the generated directory
+ */
+export const parseDefinitionJson = async (projectPath: string) => {
+  const definitionJSON = await readDefinitionJson(projectPath);
+  const source = definitionJSON.source;
+  const httpReg = /^(.*?)\.com/;
+  const punctuationReg = /[^\w\s]/g;
+  let sourceFolder = source.replace(httpReg, "");
+  sourceFolder = sourceFolder.replace(punctuationReg, "_").toLowerCase();
+  const templatePath = path.join(
+    spkTemplatesPath,
+    sourceFolder,
+    definitionJSON.template
+  );
+  return templatePath;
+};
+
+/**
+ *
+ * Takes in the "variables" block from definition.json file and returns
+ * a spk.tfvars file.
+ *
+ * @param projectPath Path to the definition.json file
+ * @param generatedPath Path to the generated directory
+ *
+ * Regex will replace ":" with "=", and remove double quotes around
+ * each key to resemble:
+ *
+ * key = "value"
+ *
+ *
+ */
+export const generateSpkTfvars = async (
+  projectPath: string,
+  generatedPath: string
+) => {
+  try {
+    // Remove existing spk.tfvars if it already exists
+    if (fs.existsSync(path.join(generatedPath, "spk.tfvars"))) {
+      fs.unlinkSync(path.join(generatedPath, "spk.tfvars"));
+    }
+    // Parse definition.json and extract "variables"
+    const definitionJSON = await readDefinitionJson(projectPath);
+    const variables = definitionJSON.variables;
+    // Restructure the format of variables text
+    const tfVariables = JSON.stringify(variables)
+      .replace(/\:/g, "=")
+      .replace(/\{|\}/g, "")
+      .replace(/\,/g, "\n")
+      .split("\n");
+    // (re)Create spk.tfvars
+    tfVariables.forEach(t => {
+      const tfVar = t.split("=");
+      if (tfVar[0].length > 0) {
+        tfVar[0] = tfVar[0].replace(/\"/g, "");
+      }
+      const newTfVar = tfVar.join(" = ");
+      fs.appendFileSync(
+        path.join(generatedPath, "spk.tfvars"),
+        newTfVar + "\n"
+      );
+    });
+  } catch (err) {
+    logger.error(err);
+  }
+};
+
+/**
+ * Reads a definition.json and returns a JSON object
+ *
+ * @param projectPath Path to the definition.json file
+ */
+export const readDefinitionJson = async (projectPath: string) => {
+  const rootDef = path.join(projectPath, "definition.json");
+  const data: string = fs.readFileSync(rootDef, "utf8");
+  const definitionJSON = JSON.parse(data);
+  return definitionJSON;
 };

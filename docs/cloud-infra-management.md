@@ -135,9 +135,9 @@ definition.json
 
 Generates a deployment folder based on scaffolded project with a definition.json
 
-Generates a deplooyment folder of an infrastructure scaffolded project
-containing a `definition.json` that contains a `source`, `template` and
-`version` to obtain the terraform template files.
+Generates a deployment folder of an infrastructure scaffolded project containing
+a `definition.json` that contains a `source`, `template` and `version` to obtain
+and complete the terraform template files.
 
 It will do the following (**In Progress**):
 
@@ -149,3 +149,7 @@ It will do the following (**In Progress**):
   > Cached repositories will be converted through regex for spk to hash. I.e. a
   > `source` template of `https://github.com/microsoft/bedrock` will be cached
   > into a folder called `_microsoft_bedrock_git`
+- Create a "generated" directory for Terrform deployments
+- Copy the appropriate Terraform templates to the "generated" directory
+- Create a `spk.tfvars` in the generated directory based on the variables
+  provided in `definition.json`

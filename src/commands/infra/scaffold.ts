@@ -1,6 +1,8 @@
+import child_process, { exec } from "child_process";
 import commander from "commander";
 import fs, { chmod } from "fs";
 import fsextra, { readdir } from "fs-extra";
+import * as os from "os";
 import path from "path";
 import { logger } from "../../logger";
 
@@ -39,7 +41,7 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
         await copyTfTemplate(opts.template, opts.name);
         await validateVariablesTf(path.join(opts.template, "variables.tf"));
         await scaffold(opts.name, opts.source, opts.version, opts.template);
-        await renameTfvars(opts.name);
+        await removeTemplateFiles(opts.name);
       } catch (err) {
         logger.error("Error occurred while generating scaffold");
         logger.error(err);
@@ -120,7 +122,7 @@ export const copyTfTemplate = async (
 ): Promise<boolean> => {
   try {
     await fsextra.copy(templatePath, envName);
-    logger.info(`Terraform template files copied.`);
+    logger.info(`Terraform template files copied from ${templatePath}`);
   } catch (err) {
     logger.error(
       `Unable to find Terraform environment. Please check template path.`
@@ -129,6 +131,25 @@ export const copyTfTemplate = async (
     return false;
   }
   return true;
+};
+
+/**
+ * Removes the Terraform environment template
+ *
+ * @param envPath path so the directory of Terraform templates
+ */
+export const removeTemplateFiles = async (envPath: string): Promise<void> => {
+  // Remove template files after parsing
+  fs.readdir(envPath, (err, files) => {
+    if (err) {
+      throw err;
+    }
+    for (const file of files) {
+      if (file !== "definition.json") {
+        fs.unlinkSync(path.join(envPath, file));
+      }
+    }
+  });
 };
 
 /**

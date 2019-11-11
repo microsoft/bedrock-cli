@@ -2,7 +2,7 @@
   "name": "discovery-service",
   "source": "https://github.com/Microsoft/bedrock.git",
   "template": "cluster/environments/azure-single-keyvault",
-  "version": "0.0",
+  "version": "v0.12.0",
   "backend": {
     "storage_account_name": "storage-account-name",
     "access_key": "storage-account-access-key",
