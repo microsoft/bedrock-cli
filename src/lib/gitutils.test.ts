@@ -1,7 +1,7 @@
 import { when } from "jest-when";
 import {
   checkoutBranch,
-  commitDir,
+  commitPath,
   deleteBranch,
   getCurrentBranch,
   getOriginUrl,
@@ -130,11 +130,18 @@ describe("commitDir", () => {
   it("should call exec with the proper git arguments", async () => {
     (exec as jest.Mock).mockClear();
     const directory = "./my/service/dir";
+    const bedrockFile = "./my/service/bedrock.yaml";
+    const maintainersFile = "./my/service/maintainers.yaml";
     const branchName = "mynewbranch";
-    await commitDir(directory, branchName);
+    await commitPath(branchName, directory, bedrockFile, maintainersFile);
 
     expect(exec).toHaveBeenCalledTimes(2);
-    expect(exec).toHaveBeenCalledWith("git", ["add", `${directory}`]);
+    expect(exec).toHaveBeenCalledWith("git", [
+      "add",
+      directory,
+      bedrockFile,
+      maintainersFile
+    ]);
     expect(exec).toHaveBeenCalledWith("git", [
       "commit",
       "-m",
@@ -149,7 +156,7 @@ describe("commitDir", () => {
 
     let error: Error | undefined;
     try {
-      await commitDir("directory", "branchName");
+      await commitPath("branchName", "directory");
     } catch (_) {
       error = _;
     }

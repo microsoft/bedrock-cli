@@ -298,6 +298,11 @@ export const createService = async (
 
   // If requested, create new git branch, commit, and push
   if (gitPush) {
-    await checkoutCommitPushCreatePRLink(serviceName, newServiceDir);
+    await checkoutCommitPushCreatePRLink(
+      serviceName,
+      newServiceDir,
+      path.join(rootProjectPath, "bedrock.yaml"),
+      path.join(rootProjectPath, "maintainers.yaml")
+    );
   }
 };

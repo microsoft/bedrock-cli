@@ -49,22 +49,23 @@ export const deleteBranch = async (branchName: string): Promise<void> => {
 };
 
 /**
- * Adds the directory and commits changes for a new service.
+ * Adds the provided pathspec and commits changes for a new service.
  *
- * @param directory
+ * @param pathspecs - https://git-scm.com/docs/git-add#Documentation/git-add.txt-ltpathspecgt82308203
  * @param branchName
  */
-export const commitDir = async (
-  directory: string,
-  branchName: string
+export const commitPath = async (
+  branchName: string,
+  ...pathspecs: string[]
 ): Promise<void> => {
   try {
-    await exec("git", ["add", `${directory}`]);
+    await exec("git", ["add", ...pathspecs]);
     await exec("git", ["commit", "-m", `Adding new service: ${branchName}`]);
   } catch (_) {
     throw Error(
-      `Unable to commit changes in ${directory} to git branch ${branchName}: ` +
-        _
+      `Unable to commit changes in ${pathspecs.join(
+        ","
+      )} to git branch ${branchName}: ` + _
     );
   }
 };
@@ -175,63 +176,56 @@ export const getPullRequestLink = async (
 
 export const checkoutCommitPushCreatePRLink = async (
   newBranchName: string,
-  directory: string
+  ...pathspecs: string[]
 ): Promise<void> => {
   try {
-    const currentBranch = await getCurrentBranch();
-    try {
-      await checkoutBranch(newBranchName, true);
-      try {
-        await commitDir(directory, newBranchName);
-        try {
-          await pushBranch(newBranchName);
-
-          try {
-            const pullRequestLink = await getPullRequestLink(
-              currentBranch,
-              newBranchName,
-              await getOriginUrl()
-            );
-            logger.info(`Link to create PR: ${pullRequestLink}`);
-          } catch (e) {
-            logger.error(
-              `Could not create link for Pull Request. It will need to be done manually. ${e}`
-            );
-          }
-
-          // Clean up
-          try {
-            await checkoutBranch(currentBranch, false);
-            try {
-              await deleteBranch(newBranchName);
-            } catch (e) {
-              logger.error(
-                `Cannot delete new branch ${newBranchName}. Cleanup will need to be done manually. ${e}`
-              );
-            }
-          } catch (e) {
-            logger.error(
-              `Cannot checkout original branch ${currentBranch}. Clean up will need to be done manually. ${e}`
-            );
-          }
-        } catch (e) {
-          logger.error(
-            `Cannot push branch ${newBranchName}. Changes will have to be manually commited. ${e}`
-          );
-        }
-      } catch (e) {
-        logger.error(
-          `Cannot commit changes in ${directory} to branch ${newBranchName}. Changes will have to be manually commited. ${e}`
-        );
-      }
-    } catch (e) {
-      logger.error(
-        `Cannot create and checkout new branch ${newBranchName}. Changes will have to be manually commited. ${e}`
+    const currentBranch = await getCurrentBranch().catch(e => {
+      throw Error(
+        `Cannot fetch current branch. Changes will have to be manually committed. ${e}`
       );
-    }
-  } catch (e) {
-    logger.error(
-      `Cannot fetch current branch. Changes will have to be manually commited. ${e}`
-    );
+    });
+    await checkoutBranch(newBranchName, true).catch(e => {
+      throw Error(
+        `Cannot create and checkout new branch ${newBranchName}. Changes will have to be manually committed. ${e}`
+      );
+    });
+    await commitPath(newBranchName, ...pathspecs).catch(e => {
+      throw Error(
+        `Cannot commit changes in ${pathspecs.join(
+          ", "
+        )} to branch ${newBranchName}. Changes will have to be manually committed. ${e}`
+      );
+    });
+    await pushBranch(newBranchName).catch(e => {
+      throw Error(
+        `Cannot push branch ${newBranchName}. Changes will have to be manually committed. ${e}`
+      );
+    });
+
+    const pullRequestLink = await getPullRequestLink(
+      currentBranch,
+      newBranchName,
+      await getOriginUrl()
+    ).catch(e => {
+      throw Error(
+        `Could not create link for Pull Request. It will need to be done manually. ${e}`
+      );
+    });
+    logger.info(`Link to create PR: ${pullRequestLink}`);
+
+    // cleanup
+    await checkoutBranch(currentBranch, false).catch(e => {
+      throw Error(
+        `Cannot checkout original branch ${currentBranch}. Clean up will need to be done manually. ${e}`
+      );
+    });
+    await deleteBranch(newBranchName).catch(e => {
+      throw Error(
+        `Cannot delete new branch ${newBranchName}. Cleanup will need to be done manually. ${e}`
+      );
+    });
+  } catch (err) {
+    logger.error(err);
+    throw err;
   }
 };
