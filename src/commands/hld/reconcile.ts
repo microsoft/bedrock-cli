@@ -19,10 +19,12 @@ import { IBedrockFile } from "../../types";
 
 export const reconcileHldDecorator = (command: commander.Command): void => {
   command
-    .command("reconcile <repository-name> <hld-path>")
+    .command(
+      "reconcile <repository-name> <hld-path> <bedrock-application-repo-path>"
+    )
     .alias("r")
     .description("Reconcile a HLD with the services tracked in bedrock.yaml.")
-    .action(async (repositoryName, hldPath) => {
+    .action(async (repositoryName, hldPath, bedrockApplicationRepoPath) => {
       try {
         if (typeof repositoryName !== "string") {
           throw new Error(
@@ -33,6 +35,12 @@ export const reconcileHldDecorator = (command: commander.Command): void => {
         if (typeof hldPath !== "string") {
           throw new Error(
             `hld-path must be of type 'string', ${typeof hldPath} given`
+          );
+        }
+
+        if (typeof bedrockApplicationRepoPath !== "string") {
+          throw new Error(
+            `bedrock-application-repo-path must be of type 'string', ${typeof bedrockApplicationRepoPath} given`
           );
         }
 
@@ -50,13 +58,24 @@ export const reconcileHldDecorator = (command: commander.Command): void => {
           !shelljs.test("-e", absHldPath) &&
           !shelljs.test("-d", absHldPath)
         ) {
-          throw new Error(
-            "Error: could not validate bedrock yaml or hld path."
-          );
+          throw new Error("Error: could not validate hld path.");
         }
 
         logger.info(`Found HLD at ${absHldPath}`);
-        const bedrockConfig = Bedrock();
+
+        const absBedrockPath = path.resolve(bedrockApplicationRepoPath);
+
+        if (
+          !shelljs.test("-e", absBedrockPath) &&
+          !shelljs.test("-d", absBedrockPath)
+        ) {
+          throw new Error(
+            "Error: could not validate bedrock application path."
+          );
+        }
+
+        logger.info(`Found bedrock application at ${absHldPath}`);
+        const bedrockConfig = Bedrock(absBedrockPath);
 
         logger.info(
           `Attempting to reconcile HLD with services tracked in bedrock.yaml`

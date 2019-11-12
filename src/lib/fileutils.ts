@@ -222,9 +222,6 @@ export const starterAzurePipelines = async (opts: {
                     `echo 'az extension add --name azure-devops'`,
                     `az extension add --name azure-devops`,
                     ``,
-                    `echo 'az devops login'`,
-                    `echo "$(PAT)" | az devops login`,
-                    ``,
                     `echo 'az repos pr create --description "Updating ${projectName} to $(Build.SourceBranchName)-$(Build.BuildNumber)."'`,
                     `az repos pr create --description "Updating ${projectName} to $(Build.SourceBranchName)-$(Build.BuildNumber)."`
                   ]),
@@ -232,6 +229,7 @@ export const starterAzurePipelines = async (opts: {
                     "Download Fabrikate, Update HLD, Push changes, Open PR",
                   env: {
                     ACCESS_TOKEN_SECRET: "$(PAT)",
+                    AZURE_DEVOPS_EXT_PAT: "$(PAT)",
                     REPO: "$(HLD_REPO)"
                   }
                 };
@@ -471,9 +469,6 @@ const hldLifecyclePipelineYaml = () => {
           `echo 'az extension add --name azure-devops'`,
           `az extension add --name azure-devops`,
           ``,
-          `echo 'az devops login'`,
-          `echo "$(PAT)" | az devops login`,
-          ``,
           `echo 'az repos pr create --description "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)."'`,
           `az repos pr create --description "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)."`
         ]),
@@ -481,6 +476,7 @@ const hldLifecyclePipelineYaml = () => {
           "Download Fabrikate and SPK, Update HLD, Push changes, Open PR",
         env: {
           ACCESS_TOKEN_SECRET: "$(PAT)",
+          AZURE_DEVOPS_EXT_PAT: "$(PAT)",
           REPO: "$(HLD_REPO)"
         }
       }

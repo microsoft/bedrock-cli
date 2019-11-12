@@ -16,6 +16,7 @@ Commands:
   - [Commands](#commands)
     - [init](#init)
     - [install-manifest-pipeline](#install-manifest-pipeline)
+    - [reconcile](#reconcile)
 
 Global options:
 
@@ -99,7 +100,7 @@ This command is _intended_ to be run in a pipeline (see the generated
 user in a CLI for verification.
 
 ```
-Usage: hld reconcile|r application-repo-name /path/to/cloned/hld/repsitory
+Usage: hld reconcile|r [options] <repository-name> <hld-path> <bedrock-application-repo-path>
 
 Reconcile a HLD with the services tracked in bedrock.yaml.
 

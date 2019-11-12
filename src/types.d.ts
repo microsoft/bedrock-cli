@@ -89,6 +89,7 @@ export interface IAzurePipelinesYaml {
         script?: string;
         displayName?: string;
         env?: {
+          AZURE_DEVOPS_EXT_PAT?: string;
           ACCESS_TOKEN_SECRET?: string;
           REPO?: string;
         };
@@ -103,6 +104,7 @@ export interface IAzurePipelinesYaml {
     displayName?: string;
     env?: {
       ACCESS_TOKEN_SECRET?: string;
+      AZURE_DEVOPS_EXT_PAT?: string;
       BEDROCK_BUILD_SCRIPT?: string;
       BRANCH_NAME?: string;
       COMMIT_MESSAGE?: string;
