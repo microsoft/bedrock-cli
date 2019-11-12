@@ -48,3 +48,9 @@ steps:
       codeCoverageTool: Cobertura
       summaryFileLocation: "$(System.DefaultWorkingDirectory)/**/*coverage.xml"
       reportDirectory: "$(System.DefaultWorkingDirectory)/**/coverage"
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      path: $(System.DefaultWorkingDirectory)/dist/spk-linux
+      artifact: spk_linux_node_12
+    condition: and(eq(variables['Agent.JobStatus'], 'Succeeded'), endsWith(variables['Agent.JobName'], 'node_12_x'))
