@@ -295,22 +295,24 @@ export const printDeployments = (
       row.push(
         deployment.srcToDockerBuild
           ? deployment.srcToDockerBuild.startTime.toLocaleString()
-          : ""
+          : deployment.hldToManifestBuild
+          ? deployment.hldToManifestBuild.startTime.toLocaleString()
+          : "-"
       );
-      row.push(deployment.service);
+      row.push(deployment.service !== "" ? deployment.service : "-");
       row.push(deployment.deploymentId);
-      row.push(deployment.commitId);
+      row.push(deployment.commitId !== "" ? deployment.commitId : "-");
       row.push(
-        deployment.srcToDockerBuild ? deployment.srcToDockerBuild.id : ""
+        deployment.srcToDockerBuild ? deployment.srcToDockerBuild.id : "-"
       );
-      row.push(deployment.imageTag);
+      row.push(deployment.imageTag !== "" ? deployment.imageTag : "-");
       row.push(
         deployment.srcToDockerBuild
           ? getStatus(deployment.srcToDockerBuild.result)
           : ""
       );
 
-      let dockerToHldId = "";
+      let dockerToHldId = "-";
       let dockerToHldStatus = "";
 
       if (deployment.dockerToHldRelease) {
@@ -324,11 +326,15 @@ export const printDeployments = (
       }
       row.push(dockerToHldId);
 
-      row.push(deployment.environment.toUpperCase());
-      row.push(deployment.hldCommitId);
+      row.push(
+        deployment.environment !== ""
+          ? deployment.environment.toUpperCase()
+          : "-"
+      );
+      row.push(deployment.hldCommitId !== "" ? deployment.hldCommitId : "-");
       row.push(dockerToHldStatus);
       row.push(
-        deployment.hldToManifestBuild ? deployment.hldToManifestBuild.id : ""
+        deployment.hldToManifestBuild ? deployment.hldToManifestBuild.id : "-"
       );
       row.push(
         deployment.hldToManifestBuild
@@ -338,13 +344,19 @@ export const printDeployments = (
       if (outputFormat === OUTPUT_FORMAT.WIDE) {
         row.push(deployment.duration() + " mins");
         row.push(deployment.status());
-        row.push(deployment.manifestCommitId);
+        row.push(
+          deployment.manifestCommitId !== "" ? deployment.manifestCommitId : "-"
+        );
         row.push(
           deployment.hldToManifestBuild &&
             deployment.hldToManifestBuild.finishTime &&
             !isNaN(new Date(deployment.hldToManifestBuild.finishTime).getTime())
             ? deployment.hldToManifestBuild.finishTime.toLocaleString()
-            : ""
+            : deployment.srcToDockerBuild &&
+              deployment.srcToDockerBuild.finishTime &&
+              !isNaN(new Date(deployment.srcToDockerBuild.finishTime).getTime())
+            ? deployment.srcToDockerBuild.finishTime.toLocaleString()
+            : "-"
         );
       }
       table.push(row);
