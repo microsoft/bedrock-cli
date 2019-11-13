@@ -41,8 +41,8 @@ stages:
         chmod +x ./spk-int.sh
       displayName: "Download integration test scripts"
       env:
-        FUNC_SCRIPT: https://gist.githubusercontent.com/andrebriggs/4246ae4a0287c5b2a2a4e35de90e0f6a/raw/ed7296ba6f260c8bdc067e451f18c2b7ca3b08a0/spk-test-func.sh
-        TEST_SCRIPT: https://gist.githubusercontent.com/andrebriggs/1d538e95beb2e647ecab8ef6abb0ba7c/raw/88c1cb137cab5d72f43392b645b928614b6048fd/spk-int.sh
+        FUNC_SCRIPT: https://raw.githubusercontent.com/CatalystCode/spk/master/tests/functions.sh
+        TEST_SCRIPT: https://raw.githubusercontent.com/CatalystCode/spk/master/tests/validations.sh
     - bash: | 
         # Install the extension
         export AZURE_DEVOPS_EXT_PAT=$(AZDO_PAT)
