@@ -16,13 +16,15 @@ import {
 } from "../../lib/pipelines/pipelines";
 import { logger } from "../../logger";
 
-export const createPipelineCommandDecorator = (
+export const installBuildPipelineCommandDecorator = (
   command: commander.Command
 ): void => {
   command
-    .command("create-pipeline <service-name>")
+    .command("install-build-pipeline <service-name>")
     .alias("p")
-    .description("Configure Azure DevOps for a bedrock managed service.")
+    .description(
+      "Install the build and push to acr pipeline for a service to your Azure DevOps instance"
+    )
     .option(
       "-n, --pipeline-name <pipeline-name>",
       "Name of the pipeline to be created"
@@ -54,7 +56,7 @@ export const createPipelineCommandDecorator = (
       } = opts;
 
       logger.debug(`orgName: ${orgName}`);
-      logger.debug(`personalAccessToken: ${personalAccessToken}`);
+      logger.debug(`personalAccessToken: XXXXXXXXXXXXXXXXX`);
       logger.debug(`devopsProject: ${devopsProject}`);
       logger.debug(`pipelineName: ${pipelineName}`);
       logger.debug(`packagesDir: ${packagesDir}`);

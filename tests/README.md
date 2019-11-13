@@ -36,11 +36,11 @@ tests.
 
 ## Service Management
 
-| Command                     | Coverage |
-| --------------------------- | -------- |
-| spk service create          | ✅       |
-| spk service create-pipeline | ✅       |
-| spk service create-revision | ✅       |
+| Command                            | Coverage |
+| ---------------------------------- | -------- |
+| spk service create                 | ✅       |
+| spk service install-build-pipeline | ✅       |
+| spk service create-revision        | ✅       |
 
 ## HLD Management
 
