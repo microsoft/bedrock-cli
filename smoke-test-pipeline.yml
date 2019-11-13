@@ -35,14 +35,16 @@ stages:
         spk --version
       displayName: "Verify SPK downloaded and executable"
     - bash: |
-        curl $FUNC_SCRIPT > spk-test-func.sh
-        chmod +x ./spk-test-func.sh
-        curl $TEST_SCRIPT > spk-int.sh
-        chmod +x ./spk-int.sh
+        echo "FUNC_SCRIPT: $FUNC_SCRIPT"
+        curl $FUNC_SCRIPT >| functions.sh
+        chmod +x ./functions.sh
+        echo "TEST_SCRIPT: $TEST_SCRIPT"
+        curl $TEST_SCRIPT >| validations.sh
+        chmod +x ./validations.sh
       displayName: "Download integration test scripts"
       env:
-        FUNC_SCRIPT: https://raw.githubusercontent.com/CatalystCode/spk/master/tests/functions.sh
-        TEST_SCRIPT: https://raw.githubusercontent.com/CatalystCode/spk/master/tests/validations.sh
+        FUNC_SCRIPT: $(FUNC_SCRIPT)
+        TEST_SCRIPT: $(TEST_SCRIPT)
     - bash: | 
         # Install the extension
         export AZURE_DEVOPS_EXT_PAT=$(AZDO_PAT)
@@ -56,15 +58,17 @@ stages:
         git config --global user.email "me@microsoft.com"
         git config --global user.name "Service Account"
 
-        #Start Test
+        #Set ENV VARs
         export SPK_PATH="$(pwd)/spk-linux"
         export ACCESS_TOKEN_SECRET=$(AZDO_PAT)
 
-        # Include the functions here
-        . ./spk-test-func.sh
+        # Include dependent scripts
+        . ./functions.sh
 
         # Run the test
-        bash ./spk-int.sh
+        bash ./validations.sh
+
+        # Get exit status
         status=$?
         [ $status -eq 0 ] && echo "Test Done!" || (echo "Test had issues" && exit 1)
       #failOnStderr: true

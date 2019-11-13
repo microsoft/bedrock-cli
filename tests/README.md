@@ -82,8 +82,33 @@ tests.
 # Setup Instructions
 
 ## Requirements
+1. Azure DevOps Organization and Project
+2. Create variable group named `spk-vg`. Inside the variable group have the following key/values:
+    - AZDO_PROJECT (e.g. `bedrock`)
+    - AZDO_ORG (e.g. `epicstuff`)
+    - AZDO_PAT (e.g. Personal Access Token with access to AZDO_PROJECT) <-- 🔒
+    - SP_APP_ID (e.g Service Principal App Id)
+    - SP_PASS (e.g Service Principal Password) <-- 🔒
+    - SP_TENANT (e.g Service Principal Tenant Id)
+    - FUNC_SCRIPT (e.g. https://raw.githubusercontent.com/MY_ORG/spk/master/tests/functions.sh)
+    - TEST_SCRIPT (e.g. https://raw.githubusercontent.com/MY_ORG/spk/master/tests/validations.sh)
+3. Azure CLI with Azure DevOps Extension
+    - Provided in pipeline yaml
+4. SPK Binary
+    - Provided in pipeline yaml
 
-- SPK Binary
-- Azure DevOps Organization and Project
-- Azure CLI with Azure DevOps Extension
-- A variable group named `spk-vg`
+## Testing locally
+1. Login into AZ CLI
+2. Install Azure DevOps Extension
+3. Set the following environment variables
+    <pre>
+    export SPK_LOCATION=<b>REPLACE_ME</b>
+    export AZDO_PROJECT=<b>REPLACE_ME</b>
+    export AZDO_ORG=<b>REPLACE_ME</b>
+    export ACCESS_TOKEN_SECRET=<b>REPLACE_ME</b>
+    </pre>
+4. Navigate to this directory in shell
+5. RUN --> `$ . functions.sh`
+6. RUN --> `$ sh validations.sh`
+
+
