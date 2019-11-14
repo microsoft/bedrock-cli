@@ -2,7 +2,11 @@ import commander from "commander";
 import { join } from "path";
 import { Bedrock, Config } from "../../config";
 import { createPullRequest } from "../../lib/git/azure";
-import { getCurrentBranch, getOriginUrl } from "../../lib/gitutils";
+import {
+  getCurrentBranch,
+  getOriginUrl,
+  safeGitUrlForLogging
+} from "../../lib/gitutils";
 import { logger } from "../../logger";
 
 export const createServiceRevisionCommandDecorator = (
@@ -104,7 +108,8 @@ export const createServiceRevisionCommandDecorator = (
             `No remote-url provided, parsing remote from 'origin' on git client`
           );
           remoteUrl = await getOriginUrl();
-          logger.info(`Parsed remote-url for origin: '${remoteUrl}'`);
+          const safeLoggingUrl = safeGitUrlForLogging(remoteUrl);
+          logger.info(`Parsed remote-url for origin: ${safeLoggingUrl}`);
         }
 
         ////////////////////////////////////////////////////////////////////////

@@ -8,9 +8,10 @@ import {
   getPullRequestLink,
   getRepositoryName,
   getRepositoryUrl,
-  pushBranch
+  pushBranch,
+  safeGitUrlForLogging
 } from "../lib/gitutils";
-import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
+import { disableVerboseLogging, enableVerboseLogging } from "../logger";
 import { exec } from "./shell";
 
 import GitUrlParse from "git-url-parse";
@@ -27,6 +28,23 @@ afterAll(() => {
 
 beforeEach(() => {
   jest.resetAllMocks();
+});
+
+describe("safeGitUrlForLogging", () => {
+  it("should return a git url without access tokens when given a url with access tokens", async () => {
+    const testUrl =
+      "https://service_account:token@github.com/microsoft/spk.git";
+    const expected = "https://github.com/microsoft/spk.git";
+
+    expect(safeGitUrlForLogging(testUrl)).toEqual(expected);
+  });
+
+  it("should return the same git url when given a url without access tokens", async () => {
+    const testUrl = "https://github.com/microsoft/spk.git";
+    const expected = "https://github.com/microsoft/spk.git";
+
+    expect(safeGitUrlForLogging(testUrl)).toEqual(expected);
+  });
 });
 
 describe("getCurrentBranch", () => {
@@ -198,7 +216,7 @@ describe("pushBranch", () => {
 
 describe("getOriginUrl", () => {
   it("should call exec with the proper git arguments", async () => {
-    const originUrl = "";
+    const originUrl = "foo";
 
     when(exec as jest.Mock)
       .calledWith("git", ["config", "--get", "remote.origin.url"])

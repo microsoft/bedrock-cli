@@ -3,6 +3,23 @@ import { logger } from "../logger";
 import { exec } from "./shell";
 
 /**
+ * For git urls that you may want to log only!
+ * Checks if a provided git url contains any user or auth information, and returns a safe url for logging.
+ *
+ * @param repoUrl Git Repo URL that _may_ contain a PAT or auth token.
+ * @returns A safe string to log.
+ */
+export const safeGitUrlForLogging = (repoUrl: string): string => {
+  const parsedUrl = GitUrlParse(repoUrl);
+
+  if (parsedUrl.user !== "" || parsedUrl.token !== "") {
+    return `${parsedUrl.protocol}://${parsedUrl.resource}${parsedUrl.pathname}`;
+  }
+
+  return repoUrl;
+};
+
+/**
  * Gets the current working branch.
  */
 export const getCurrentBranch = async (): Promise<string> => {
@@ -93,7 +110,9 @@ export const getOriginUrl = async (): Promise<string> => {
       "--get",
       "remote.origin.url"
     ]);
-    logger.debug(`Got git origin url ${originUrl}`);
+
+    const safeLoggingUrl = safeGitUrlForLogging(originUrl);
+    logger.debug(`Got git origin url ${safeLoggingUrl}`);
     return originUrl;
   } catch (_) {
     throw Error(`Unable to get git origin URL.: ` + _);

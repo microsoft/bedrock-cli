@@ -3,13 +3,11 @@ import { IGitApi } from "azure-devops-node-api/GitApi";
 import AZGitInterfaces, {
   GitPullRequestSearchCriteria
 } from "azure-devops-node-api/interfaces/GitInterfaces";
-import { exec } from "child_process";
-import { promisify } from "util";
 import { IAzureDevOpsOpts, PullRequest } from ".";
 import { Config } from "../../config";
 import { logger } from "../../logger";
 import { azdoUrl } from "../azdoutil";
-import { getOriginUrl } from "../gitutils";
+import { getOriginUrl, safeGitUrlForLogging } from "../gitutils";
 
 ////////////////////////////////////////////////////////////////////////////////
 // State
@@ -138,6 +136,8 @@ export const createPullRequest: PullRequest = async (
           );
         });
 
+  const gitOriginUrlForLogging = safeGitUrlForLogging(originPushUrl);
+
   // fetch all repositories associated with the personal access token
   const gitAPI = await GitAPI(options);
   logger.info(
@@ -157,7 +157,7 @@ export const createPullRequest: PullRequest = async (
   logger.info(
     `${allRepos.length} repositor${
       allRepos.length > 1 ? "ies" : "y"
-    } found; searching for entries matching '${gitOrigin}'`
+    } found; searching for entries matching '${gitOriginUrlForLogging}'`
   );
   const reposWithMatchingOrigin = allRepos.filter(repo =>
     [repo.url, repo.sshUrl, repo.webUrl, repo.remoteUrl].includes(gitOrigin)
@@ -165,7 +165,7 @@ export const createPullRequest: PullRequest = async (
   logger.info(
     `Found ${reposWithMatchingOrigin.length} repositor${
       reposWithMatchingOrigin.length === 1 ? "y" : "ies"
-    } with matching URL '${gitOrigin}'`
+    } with matching URL '${gitOriginUrlForLogging}'`
   );
 
   // Search for repos with branches matching those to make the PR against
@@ -189,7 +189,7 @@ export const createPullRequest: PullRequest = async (
   if (reposWithMatchingBranches.length === 0) {
     return Promise.reject(
       Error(
-        `0 repositories found with remote url '${gitOrigin}' and branches '${sourceRef}' and '${targetRef}'; Ensure both '${sourceRef}' and '${targetRef}' exist on '${gitOrigin}. Cannot automate pull request`
+        `0 repositories found with remote url '${gitOriginUrlForLogging}' and branches '${sourceRef}' and '${targetRef}'; Ensure both '${sourceRef}' and '${targetRef}' exist on '${gitOriginUrlForLogging}'. Cannot automate pull request`
       )
     );
   } else if (reposWithMatchingBranches.length > 1) {
