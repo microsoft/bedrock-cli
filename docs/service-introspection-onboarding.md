@@ -149,8 +149,16 @@ by service introspection.
 
 The CD release pipeline updates the docker image number in the HLD.
 
-If you are not using multi-stage pipelines, paste the following task towards the end of your release step in the release
-pipeline:
+The release pipeline can be setup in two different ways: There are two options
+to setup the ACR to HLD step.
+
+\***\*Option 1:\*\*** As an
+[Azure Release Pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/?view=azure-devops)
+
+**Instructions:**
+
+Paste the following task towards the end of your release step in the release
+pipeline in the Azure DevOps portal:
 
 ```yaml
 latest_commit=$(git rev-parse --short HEAD)
@@ -163,7 +171,14 @@ chmod +x ./spk-linux
 This task is similar to the one from step 1 but instead passes the information
 that corresponds to the CD release pipeline.
 
-For multi-stage pipelines, paste the following yaml task towards the end of your image tag release stage:
+\***\*Option 2:** As a **stage\*\*** (if your setup is a
+[Multi-stage Azure Pipeline](https://devblogs.microsoft.com/devops/whats-new-with-azure-pipelines/))
+
+**Instructions:**
+
+Paste the following yaml task towards the end of your image tag release stage in
+your multi-stage `azure-pipelines.yml`:
+
 
 ```yaml
 latest_commit=$(git rev-parse --short HEAD)
@@ -174,7 +189,12 @@ chmod +x ./spk-linux
 ./spk-linux deployment create  -n $(ACCOUNT_NAME) -k $(ACCOUNT_KEY) -t $(TABLE_NAME) -p $(PARTITION_KEY)  --p2 $(Build.BuildId) --hld-commit-id $latest_commit --env $(Build.SourceBranchName) --image-tag $tag_name
 ```
 
-Make sure your variable `tag_name` in this script matches the `tag_name` in the source build pipeline step above. 
+Make sure your variable `tag_name` in this script matches the `tag_name` in the
+source build pipeline step above.
+
+You can find a working example of a multi-stage `azure-pipelines.yml`
+configuration
+[here](https://github.com/edaena/spartan-app/blob/master/azure-pipelines.yml).
 
 #### 4. HLD manifest pipeline configuration
 
