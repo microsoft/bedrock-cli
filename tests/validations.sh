@@ -45,7 +45,7 @@ cd $mono_repo_dir
 git init
 
 mkdir $services_dir
-spk project init -m -d $services_dir >> $TEST_WORKSPACE/log.txt
+spk project init >> $TEST_WORKSPACE/log.txt
 file_we_expect=("spk.log" "bedrock.yaml" "maintainers.yaml" "hld-lifecycle.yaml")
 validate_directory "$TEST_WORKSPACE/$mono_repo_dir" "${file_we_expect[@]}"
 
