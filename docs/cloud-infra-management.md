@@ -1,6 +1,8 @@
 # Cloud Infra Management
 
-Manage and update Bedrock infrastructure.
+Manage and update Bedrock infrastructure. For more information on the
+`spk infra` design, refer to the infrasrtucture design docs
+[here](./infra/README.md).
 
 Usage:
 
