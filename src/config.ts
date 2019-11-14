@@ -126,14 +126,16 @@ export const Bedrock = (fileDirectory = process.cwd()): IBedrockFile => {
     throw Error(`invalid helm configuration found in ${bedrockYamlPath}`);
   }
 
-  return bedrock;
+  return { ...bedrock };
 };
 
 /**
  * Returns the current maintainers.yaml file for the project
  */
-export const Maintainers = (): IMaintainersFile =>
-  readYaml<IMaintainersFile>(path.join(process.cwd(), "maintainers.yaml"));
+export const Maintainers = (
+  fileDirectory: string = process.cwd()
+): IMaintainersFile =>
+  readYaml<IMaintainersFile>(path.join(fileDirectory, "maintainers.yaml"));
 
 /**
  * Helper to write out a bedrock.yaml or maintainers.yaml file to the project root
@@ -142,16 +144,16 @@ export const Maintainers = (): IMaintainersFile =>
  */
 export const write = (
   file: IBedrockFile | IMaintainersFile,
-  parentDirectory = process.cwd()
+  targetDirectory = process.cwd()
 ) => {
   const asYaml = yaml.safeDump(file, { lineWidth: Number.MAX_SAFE_INTEGER });
   if ("rings" in file) {
     // Is bedrock.yaml
-    return fs.writeFileSync(path.join(parentDirectory, "bedrock.yaml"), asYaml);
+    return fs.writeFileSync(path.join(targetDirectory, "bedrock.yaml"), asYaml);
   } else {
     // Is maintainers file
     return fs.writeFileSync(
-      path.join(parentDirectory, "maintainers.yaml"),
+      path.join(targetDirectory, "maintainers.yaml"),
       asYaml
     );
   }

@@ -1,105 +1,96 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import shell from "shelljs";
 import uuid from "uuid/v4";
-import {
-  disableVerboseLogging,
-  enableVerboseLogging,
-  logger
-} from "../../logger";
+import { Bedrock, Maintainers, write } from "../../config";
+import { IBedrockFile, IMaintainersFile } from "../../types";
 import { initialize } from "./init";
 
-beforeAll(() => {
-  enableVerboseLogging();
-});
+/**
+ * Helper to create a new random directory to initialize
+ */
+const createNewProject = () => {
+  // Create random directory to initialize
+  const randomTmpDir = path.join(os.tmpdir(), uuid());
+  fs.mkdirSync(randomTmpDir);
+  return randomTmpDir;
+};
 
-afterAll(() => {
-  disableVerboseLogging();
-});
-
-describe("Initializing a blank standard repo", () => {
-  test("all standard files get generated in the project root on init for standard repository", async () => {
-    // Create random directory to initialize
-    const randomTmpDir = path.join(os.tmpdir(), uuid());
-    fs.mkdirSync(randomTmpDir);
-
+describe("Initializing a blank/new bedrock repository", () => {
+  test("all standard files get generated in the project root on init", async () => {
     // init
+    const randomTmpDir = createNewProject();
     await initialize(randomTmpDir);
 
-    // bedrock.yaml, maintainers.yaml, and azure-pipelines.yaml should be in a the root for a 'standard' project
-    const filepaths = [
-      "bedrock.yaml",
-      "maintainers.yaml",
-      "azure-pipelines.yaml",
-      "hld-lifecycle.yaml",
-      "Dockerfile"
-    ].map(filename => path.join(randomTmpDir, filename));
-
-    for (const filepath of filepaths) {
-      logger.info(filepath);
-      expect(fs.existsSync(filepath)).toBe(true);
-    }
-  });
-});
-
-describe("Initializing a blank mono-repo", () => {
-  test("all standard files get generated in the project root and azure-pipelines.yaml gets generated in all package directories in a mono-repo", async () => {
-    const randomTmpDir = path.join(os.tmpdir(), uuid());
-    fs.mkdirSync(randomTmpDir);
-
-    // Create some empty service directories
-    const randomPackagesDir = uuid();
-    const randomSubProjectDirs = Array.from({ length: 3 }, (_, i) => {
-      const projectDir = path.join(
-        randomTmpDir,
-        randomPackagesDir,
-        i.toString()
-      );
-      expect(shell.mkdir("-p", projectDir).code).toBe(0);
-      return projectDir;
-    });
-
-    // Initialize the monorepo
-    await initialize(randomTmpDir, {
-      monoRepo: true,
-      packagesDir: randomPackagesDir
-    });
-
-    // root should have bedrock.yaml and maintainers.yaml and should not be in the the package dirs
-    for (const file of [
+    // bedrock.yaml, maintainers.yaml should be in a the root for a 'standard' project
+    const filepathsShouldExist = [
+      ".gitignore",
       "bedrock.yaml",
       "maintainers.yaml",
       "hld-lifecycle.yaml"
-    ]) {
-      const filepath = path.join(randomTmpDir, file);
-      // Should be in package dir
-      expect(fs.existsSync(filepath)).toBe(true);
+    ].map(filename => path.join(randomTmpDir, filename));
 
-      // Should not be in project-root dir
-      for (const subProjectDir of randomSubProjectDirs) {
-        const filepathInPackage = path.join(subProjectDir, file);
-        expect(fs.existsSync(filepathInPackage)).toBe(false);
-      }
+    for (const filepath of filepathsShouldExist) {
+      expect(fs.existsSync(filepath)).toBe(true);
     }
 
-    // All package directories should have an azure-pipelines.yaml
-    for (const subProjectDir of randomSubProjectDirs) {
-      const filepath = path.join(subProjectDir, "azure-pipelines.yaml");
-      expect(fs.existsSync(filepath)).toBe(true);
-
-      const gitIgnoreFilePath = path.join(subProjectDir, ".gitignore");
-      expect(fs.existsSync(gitIgnoreFilePath)).toBe(true);
-
-      const dockerfilePath = path.join(subProjectDir, "Dockerfile");
-      expect(fs.existsSync(dockerfilePath)).toBe(true);
-    }
-
-    // azure-pipelines.yaml should not be in the root
-    expect(fs.existsSync(path.join(randomTmpDir, "azure-pipelines.yaml"))).toBe(
-      false
+    // ensure service specific files do not get created
+    const filepathsShouldNotExist = ["Dockerfile", "azure-pipelines.yaml"].map(
+      filename => path.join(randomTmpDir, filename)
     );
+    for (const filepath of filepathsShouldNotExist) {
+      expect(fs.existsSync(filepath)).toBe(false);
+    }
+  });
 
-    expect(fs.existsSync(path.join(randomTmpDir, "Dockerfile"))).toBe(false);
+  test("defaultRings gets injected successfully", async () => {
+    const randomTmpDir = createNewProject();
+    const ringName = uuid();
+    await initialize(randomTmpDir, { defaultRing: ringName });
+    const bedrock = Bedrock(randomTmpDir);
+    expect(Object.keys(bedrock.rings).includes(ringName)).toBe(true);
+  });
+});
+
+describe("initializing an existing file does not modify it", () => {
+  test("bedrock.yaml does not get modified", async () => {
+    const randomDir = createNewProject();
+    const bedrockFile: IBedrockFile = {
+      rings: { master: { isDefault: true } },
+      services: {
+        "some/random/dir": {
+          helm: {
+            chart: {
+              git: "foo",
+              path: "./",
+              sha: "bar"
+            }
+          }
+        }
+      }
+    };
+    write(bedrockFile, randomDir);
+    await initialize(randomDir);
+
+    // bedrock file should not have been modified
+    const updatedBedrock = Bedrock(randomDir);
+    expect(updatedBedrock).toStrictEqual(bedrockFile);
+  });
+
+  test("maintainers.yaml does not get modified", async () => {
+    const randomDir = createNewProject();
+    const maintainersFile: IMaintainersFile = {
+      services: {
+        "some/random/dir": {
+          maintainers: [{ name: "foo bar", email: "foobar@baz.com" }]
+        }
+      }
+    };
+    write(maintainersFile, randomDir);
+    await initialize(randomDir);
+
+    // maintainers file should not have been modified
+    const updatedMaintainers = Maintainers(randomDir);
+    expect(updatedMaintainers).toStrictEqual(maintainersFile);
   });
 });
