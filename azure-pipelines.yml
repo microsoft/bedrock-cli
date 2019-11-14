@@ -6,13 +6,11 @@ pr:
 
 strategy:
   matrix:
-    node_8_x:
-      node_version: 8.x
     node_10_x:
       node_version: 10.x
     node_12_x:
       node_version: 12.x
-  maxParallel: 3
+  maxParallel: 2
 
 pool:
   vmImage: "ubuntu-latest"
@@ -48,6 +46,13 @@ steps:
       codeCoverageTool: Cobertura
       summaryFileLocation: "$(System.DefaultWorkingDirectory)/**/*coverage.xml"
       reportDirectory: "$(System.DefaultWorkingDirectory)/**/coverage"
+    condition: and(eq(variables['Agent.JobStatus'], 'Succeeded'), endsWith(variables['Agent.JobName'], 'node_12_x'))
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/junit.xml' 
+    condition: and(eq(variables['Agent.JobStatus'], 'Succeeded'), endsWith(variables['Agent.JobName'], 'node_12_x'))
 
   - task: PublishPipelineArtifact@1
     inputs:

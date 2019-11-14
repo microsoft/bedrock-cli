@@ -9,7 +9,7 @@
     "build": "shx rm -rf dist && webpack && pkg dist/spk.js && shx mv spk-{linux,macos,win.exe} dist",
     "lint": "tslint 'src/**/*.ts{,x}'",
     "lint-fix": "tslint --fix 'src/**/*.ts{,x}'",
-    "test": "jest --coverage --coverageReporters=cobertura --coverageReporters=html",
+    "test": "jest --reporters=jest-junit --reporters=default --coverage --coverageReporters=cobertura --coverageReporters=html",
     "test-watch": "jest --watchAll",
     "postinstall": "cd node_modules/azure-devops-node-api && git apply ../../patches/001-azure-devops-node.patch || true",
     "test-coverage-html": "jest --coverage --coverageReporters=html"
@@ -28,6 +28,7 @@
     "@types/uuid": "^3.4.5",
     "husky": ">=1",
     "jest": "^24.9.0",
+    "jest-junit": "^9.0.0",
     "jest-when": "^2.7.0",
     "lint-staged": ">=8",
     "mock-fs": "^4.10.2",

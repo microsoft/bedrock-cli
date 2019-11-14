@@ -96,3 +96,6 @@ typings/
 
 # vscode
 .vscode/
+
+# Local XUnit test results
+junit.xml

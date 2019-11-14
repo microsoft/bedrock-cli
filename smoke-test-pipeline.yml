@@ -59,7 +59,7 @@ stages:
         git config --global user.name "Service Account"
 
         #Set ENV VARs
-        export SPK_PATH="$(pwd)/spk-linux"
+        export SPK_LOCATION="$(pwd)/spk-linux"
         export ACCESS_TOKEN_SECRET=$(AZDO_PAT)
 
         # Include dependent scripts
