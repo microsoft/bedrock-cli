@@ -17,8 +17,9 @@ tests.
 # Scenarios Exercised So Far
 
 - As a developer create a mono-repo and add services
+- As a developer create variable group with variables
 - As a developer create a pipeline from an existing service
-- As a devleper create a service revision from an existing service
+- As a developer create a service revision from an existing service
 
 # Operational Coverage
 
@@ -30,9 +31,11 @@ tests.
 
 ## Project Creation
 
-| Command          | Coverage |
-| ---------------- | -------- |
-| spk project init | ✅       |
+| Command                                | Coverage |
+| -------------------------------------- | -------- |
+| spk project init                       | ✅       |
+| spk project create-variable-group      | ✅       |
+| spk project install-lifecycle-pipeline | 🚫       |
 
 ## Service Management
 
@@ -46,7 +49,7 @@ tests.
 
 | Command                           | Coverage |
 | --------------------------------- | -------- |
-| spk hld init                      | 🚫       |
+| spk hld init                      | ✅       |
 | spk hld install-manifest-pipeline | 🚫       |
 
 ## Ingress Route Management
@@ -82,33 +85,57 @@ tests.
 # Setup Instructions
 
 ## Requirements
+
 1. Azure DevOps Organization and Project
-2. Create variable group named `spk-vg`. Inside the variable group have the following key/values:
-    - AZDO_PROJECT (e.g. `bedrock`)
-    - AZDO_ORG (e.g. `epicstuff`)
-    - AZDO_PAT (e.g. Personal Access Token with access to AZDO_PROJECT) <-- 🔒
-    - SP_APP_ID (e.g Service Principal App Id)
-    - SP_PASS (e.g Service Principal Password) <-- 🔒
-    - SP_TENANT (e.g Service Principal Tenant Id)
-    - FUNC_SCRIPT (e.g. https://raw.githubusercontent.com/MY_ORG/spk/master/tests/functions.sh)
-    - TEST_SCRIPT (e.g. https://raw.githubusercontent.com/MY_ORG/spk/master/tests/validations.sh)
+2. Create variable group named `spk-vg`. Inside the variable group have the
+   following key/values:
+   - AZDO_PROJECT (e.g. `bedrock`)
+   - AZDO_ORG (e.g. `epicstuff`)
+   - AZDO_PAT (e.g. Personal Access Token with access to AZDO_PROJECT) <-- 🔒
+   - SP_APP_ID (e.g Service Principal App Id)
+   - SP_PASS (e.g Service Principal Password) <-- 🔒
+   - SP_TENANT (e.g Service Principal Tenant Id)
+   - ACR_NAME (e.g Name of ACR resource that is accessible from above service
+     principal)
+   - SPK_DEFINITION_ID ( DefinitionId of the SPK artifact build)
+   - SPK_PROJECT_ID ( Project Id of the AzDO project the SPK build occurs in)
+   - FUNC_SCRIPT (e.g.
+     https://raw.githubusercontent.com/MY_ORG/spk/master/tests/functions.sh)
+   - TEST_SCRIPT (e.g.
+     https://raw.githubusercontent.com/MY_ORG/spk/master/tests/validations.sh)
 3. Azure CLI with Azure DevOps Extension
-    - Provided in pipeline yaml
+   - Provided in pipeline yaml
 4. SPK Binary
-    - Provided in pipeline yaml
+   - Provided in pipeline yaml
+
+## How to find Definition and Project Ids
+
+Navigate to your SPK build pipeline in Azure DevOps. Pay attention to the URL in
+the browser. The example below is for teh CatalystCode.spk pipeline. The
+definition id is 128. ![definitionid](./images/definitionid.png)
+
+You can find the project id but navigating tot
+`https://dev.azure.com/{organization}/_apis/projects?api-version=5.0-preview.3`
+in your web browser. Replace {organization} with the name of your org. You will
+get a JSON payload with a array of Azure DevOps projects. Find yours and use the
+top level `Id` field as the Project Id.
 
 ## Testing locally
+
+When testing locally you don't need to do teh above set up. Since there is no
+pipeline.
+
 1. Login into AZ CLI
 2. Install Azure DevOps Extension
 3. Set the following environment variables
-    <pre>
-    export SPK_LOCATION=<b>REPLACE_ME</b>
-    export AZDO_PROJECT=<b>REPLACE_ME</b>
-    export AZDO_ORG=<b>REPLACE_ME</b>
-    export ACCESS_TOKEN_SECRET=<b>REPLACE_ME</b>
-    </pre>
+   <pre>
+   export SPK_LOCATION=<b>REPLACE_ME</b>
+   export AZDO_PROJECT=<b>REPLACE_ME</b>
+   export AZDO_ORG=<b>REPLACE_ME</b>
+   export ACCESS_TOKEN_SECRET=<b>REPLACE_ME</b>
+   export ACR_NAME=<b>REPLACE_ME</b>
+   export AZURE_DEVOPS_EXT_PAT=<b>REPLACE_ME</b>
+   </pre>
 4. Navigate to this directory in shell
 5. RUN --> `$ . functions.sh`
 6. RUN --> `$ sh validations.sh`
-
-

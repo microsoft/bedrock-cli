@@ -20,8 +20,8 @@ stages:
     - task: DownloadPipelineArtifact@2
       inputs:
         buildType: 'specific'
-        project: '19624f10-abfa-4582-aa83-8398d0610041'
-        definition: '128'
+        project: $(SPK_PROJECT_ID)
+        definition: $(SPK_DEFINITION_ID)
         buildVersionToDownload: 'latestFromBranch'
         branchName: 'refs/heads/master'
         itemPattern: "spk*"
