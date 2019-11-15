@@ -23,7 +23,7 @@ export const validateCommandDecorator = (command: commander.Command): void => {
     .alias("v")
     .description("Validate the configuration and storage account are correct.")
     .option(
-      "-st, --self-test",
+      "-s, --self-test",
       "Run a test for the configured storage account. This will write test data and delete the test data. For more information on the behavior, please check the online documentation."
     )
     .action(async opts => {

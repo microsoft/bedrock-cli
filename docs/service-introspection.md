@@ -63,7 +63,7 @@ Usage:
 spk deployment validate|v [options]
 
 Options:
-   -st, --self-test  Run a test for the configured storage account. This will write test data and delete the test data. For more information on the behavior, please check the online documentation.
+   -s, --self-test  Run a test for the configured storage account. This will write test data and delete the test data. For more information on the behavior, please check the online documentation.
   -h, --help  Usage information
 
 ```
