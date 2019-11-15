@@ -155,3 +155,16 @@ It will do the following (**In Progress**):
 - Copy the appropriate Terraform templates to the "generated" directory
 - Create a `spk.tfvars` in the generated directory based on the variables
   provided in `definition.json`
+
+### Authentication
+
+Spk currently supports the use of Personal Access Tokens to authenticate with
+private infrastructure repositories hosted in Azure DevOps. To configure spk to
+build scaffolded definitions using a private AzDO repo, do one of the following:
+
+- **Using `.spk-config`** - Pass in your PAT through an .env when you initialize
+  spk. Be sure that the `access_token` and `infra_repository` is set and for
+  every scaffold specify your `--version` and `--template`
+- **Using arguments** - Pass in your formatted source url for your private AzDO
+  repo with the PAT and arbitrary username specified. Example
+  `spk infra scaffold --name discovery-service --source https://spk:{my_PAT_Token}@dev.azure.com/microsoft/spk/_git/infra_repo --version v0.0.1 --template cluster/environments/azure-single-keyvault`

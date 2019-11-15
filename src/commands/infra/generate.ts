@@ -154,6 +154,8 @@ export const validateRemoteSource = async (
       // Check if .git folder exists in ${sourcePath}, if not, then clone
       // if already cloned, 'git pull'
       if (fs.existsSync(path.join(sourcePath, ".git"))) {
+        // Make sure we have the latest version of all releases cached locally
+        await simpleGit(sourcePath).fetch("all");
         await simpleGit(sourcePath).pull("origin", "master");
         logger.info(`${source} already cloned. Performing 'git pull'...`);
       } else {

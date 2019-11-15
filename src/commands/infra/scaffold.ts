@@ -3,6 +3,7 @@ import commander from "commander";
 import fs from "fs";
 import fsextra from "fs-extra";
 import path from "path";
+import { Config } from "../../config";
 import { logger } from "../../logger";
 import { validateRemoteSource } from "./generate";
 import * as infraCommon from "./infra_common";
@@ -32,12 +33,36 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
     )
     .action(async opts => {
       try {
-        if (opts.name && opts.source && opts.version && opts.template) {
-          logger.info("All required options are configured for scaffolding.");
-        } else {
+        const config = Config();
+        if (
+          !config.azure_devops ||
+          !config.azure_devops.access_token ||
+          !config.azure_devops.infra_repository
+        ) {
           logger.warn(
-            "You must specify each of the variables 'name', 'source', 'version', 'template' in order to scaffold out a deployment."
+            "The infrastructure repository containing the remote terraform template repo and access token was not specified. Checking passed arguments."
           );
+          if (opts.name && opts.source && opts.version && opts.template) {
+            logger.info(
+              "All required options are configured via command line for scaffolding, expecting public remote repository for terraform templates or PAT embedded in source URL."
+            );
+          } else {
+            logger.error(
+              "You must specify each of the variables 'name', 'source', 'version', 'template' in order to scaffold out a deployment."
+            );
+          }
+        } else {
+          if (!opts.source) {
+            // Construct the source based on the the passed configurations of spk-config.yaml
+            opts.source =
+              "https://spk:" +
+              config.azure_devops.access_token +
+              "@" +
+              config.azure_devops.infra_repository;
+            logger.info(
+              `Infrastructure repository detected from initialized spk-config.yaml : ${opts.source}`
+            );
+          }
         }
         const scaffoldDefinition = [opts.source, opts.template, opts.version];
         const sourceFolder = await infraCommon.repoCloneRegex(opts.source);

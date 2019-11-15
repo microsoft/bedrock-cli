@@ -150,6 +150,7 @@ export interface IConfigYaml {
     project?: string;
     hld_repository?: string;
     manifest_repository?: string;
+    infra_repository?: string;
     access_token?: string;
     variable_group?: string;
   };
