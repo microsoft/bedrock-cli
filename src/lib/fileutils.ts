@@ -129,11 +129,14 @@ export const starterAzurePipelines = async (opts: {
                   projectPathParts.length > 1
                     ? "-" + projectPathParts.slice(-1)[0]
                     : "";
+
+                const lowerCaseProjectName = projectName.toLowerCase();
+
                 return {
                   script: generateYamlScript([
                     `cd ${projectPath}`,
-                    `echo "az acr build -r $(ACR_NAME) --image $(Build.Repository.Name)${projectName}:$(Build.SourceBranchName)-$(Build.BuildNumber) ."`,
-                    `az acr build -r $(ACR_NAME) --image $(Build.Repository.Name)${projectName}:$(Build.SourceBranchName)-$(Build.BuildNumber) .`
+                    `echo "az acr build -r $(ACR_NAME) --image $(Build.Repository.Name)${lowerCaseProjectName}:$(Build.SourceBranchName)-$(Build.BuildNumber) ."`,
+                    `az acr build -r $(ACR_NAME) --image $(Build.Repository.Name)${lowerCaseProjectName}:$(Build.SourceBranchName)-$(Build.BuildNumber) .`
                   ]),
                   displayName: "ACR Build and Publish"
                 };
@@ -179,7 +182,9 @@ export const starterAzurePipelines = async (opts: {
                     ? projectPathParts.slice(-1)[0]
                     : "";
 
-                logger.info(`projectName: ${projectName}`);
+                const lowerCaseProjectName = projectName.toLowerCase();
+
+                logger.info(`projectName: ${lowerCaseProjectName}`);
                 logger.info(`projectPath: ${projectPath}`);
                 return {
                   script: generateYamlScript([
@@ -200,8 +205,8 @@ export const starterAzurePipelines = async (opts: {
                     `# --- End Script`,
                     ``,
                     `# Update HLD`,
-                    `git checkout -b "DEPLOY/$(Build.Repository.Name)-${projectName}-$(Build.SourceBranchName)-$(Build.BuildNumber)"`,
-                    `../fab/fab set --subcomponent ${projectName} image.tag=$(Build.SourceBranchName)-$(Build.BuildNumber)`,
+                    `git checkout -b "DEPLOY/$(Build.Repository.Name)-${lowerCaseProjectName}-$(Build.SourceBranchName)-$(Build.BuildNumber)"`,
+                    `../fab/fab set --subcomponent ${lowerCaseProjectName}} image.tag=$(Build.SourceBranchName)-$(Build.BuildNumber)`,
                     `echo "GIT STATUS"`,
                     `git status`,
                     `echo "GIT ADD (git add -A)"`,
@@ -213,7 +218,7 @@ export const starterAzurePipelines = async (opts: {
                     ``,
                     `# Commit changes`,
                     `echo "GIT COMMIT"`,
-                    `git commit -m "Updating ${projectName} image tag to $(Build.SourceBranchName)-$(Build.BuildNumber)."`,
+                    `git commit -m "Updating ${lowerCaseProjectName} image tag to $(Build.SourceBranchName)-$(Build.BuildNumber)."`,
                     ``,
                     `# Git Push`,
                     `git_push`,
@@ -222,8 +227,8 @@ export const starterAzurePipelines = async (opts: {
                     `echo 'az extension add --name azure-devops'`,
                     `az extension add --name azure-devops`,
                     ``,
-                    `echo 'az repos pr create --description "Updating ${projectName} to $(Build.SourceBranchName)-$(Build.BuildNumber)."'`,
-                    `az repos pr create --description "Updating ${projectName} to $(Build.SourceBranchName)-$(Build.BuildNumber)."`
+                    `echo 'az repos pr create --description "Updating ${lowerCaseProjectName} to $(Build.SourceBranchName)-$(Build.BuildNumber)."'`,
+                    `az repos pr create --description "Updating ${lowerCaseProjectName} to $(Build.SourceBranchName)-$(Build.BuildNumber)."`
                   ]),
                   displayName:
                     "Download Fabrikate, Update HLD, Push changes, Open PR",
