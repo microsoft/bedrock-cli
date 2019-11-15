@@ -1,6 +1,8 @@
 import commander from "commander";
+import GitUrlParse from "git-url-parse";
 import open = require("open");
 import { Config } from "../../config";
+import { getRepositoryName } from "../../lib/gitutils";
 import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
 import { validatePrereqs } from "../infra/validate";
@@ -189,21 +191,21 @@ export const getEnvVars = (): string[] => {
 export const extractManifestRepositoryInformation = ():
   | IIntrospectionManifest
   | undefined => {
-  const config = Config();
-  if (config.azure_devops!.manifest_repository) {
-    const repoUrl = config.azure_devops!.manifest_repository!.replace(
-      ".git",
-      ""
+  const { azure_devops } = Config();
+  if (azure_devops!.manifest_repository) {
+    const manifestRepoName = getRepositoryName(
+      azure_devops!.manifest_repository
     );
-    const manifestRepoSplit = repoUrl.split("/");
-    if (repoUrl.includes("azure") && manifestRepoSplit.length >= 1) {
+
+    const gitComponents = GitUrlParse(azure_devops!.manifest_repository);
+    if (gitComponents.resource === "github.com") {
       return {
-        manifestRepoName: manifestRepoSplit[manifestRepoSplit.length - 1]
+        githubUsername: gitComponents.organization,
+        manifestRepoName
       };
-    } else if (repoUrl.includes("github") && manifestRepoSplit.length >= 2) {
+    } else {
       return {
-        githubUsername: manifestRepoSplit[manifestRepoSplit.length - 2],
-        manifestRepoName: manifestRepoSplit[manifestRepoSplit.length - 1]
+        manifestRepoName
       };
     }
   }

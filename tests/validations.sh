@@ -26,6 +26,7 @@ branchName=myFeatureBranch
 FrontEnd=fabrikam.acme.frontend
 BackEnd=fabrikam.acme.backend
 hld_dir=fabrikam-hld
+manifests_dir=fabrikam-manifests
 vg_name=fabrikam-vg
 services_dir=services
 mono_repo_dir=fabrikam2019
@@ -46,12 +47,45 @@ fi
 
 cd $TEST_WORKSPACE
 
-# HLD repo set up
+# Manifest Repo Setup ------------------
+mkdir $manifests_dir
+cd $manifests_dir
+git init
+touch README.md
+echo "This is the Flux Manifest Repository." >> README.md
+file_we_expect=("README.md")
+validate_directory "$TEST_WORKSPACE/$manifests_dir" "${file_we_expect[@]}"
+
+git add -A
+
+# See if the remote repo exists
+repo_exists $AZDO_ORG_URL $AZDO_PROJECT $manifests_dir
+
+# Create the remote repo for the local repo
+created_repo_result=$(az repos create --name "$manifests_dir" --org $AZDO_ORG_URL --p $AZDO_PROJECT)
+
+# Extract out remote repo URL from the above result
+remote_repo_url=$(echo $created_repo_result | jq '.remoteUrl' | tr -d '"' )
+echo "The remote_repo_url is $remote_repo_url"
+
+# Remove the user from the URL
+repo_url=$(getHostandPath "$remote_repo_url")
+manifest_repo_url=$repo_url
+
+# We need to manipulate the remote url to insert a PAT token so we can add an origin git url
+git commit -m "inital commit"
+# git remote rm origin
+git remote add origin https://service_account:$ACCESS_TOKEN_SECRET@$repo_url
+echo "git push"
+git push -u origin --all
+cd ..
+
+# HLD repo set up -----------------------
 mkdir $hld_dir
 cd $hld_dir
 git init
 spk hld init
-file_we_expect=("spk.log" "azure-pipelines.yaml")
+file_we_expect=("spk.log" "manifest-generation.yaml")
 validate_directory "$TEST_WORKSPACE/$hld_dir" "${file_we_expect[@]}"
 
 git add -A
@@ -79,6 +113,19 @@ git push -u origin --all
 cd ..
 
 # *** TODO: Get ride of duplication
+
+# First we should check hld pipelines exist. If there is a pipeline with the same name we should delete it
+hld_pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $hld_dir $manifests_dir
+
+# Create the hld to manifest pipeline
+echo "hld_dir $hld_dir"
+echo "hld_repo_url $hld_repo_url"
+echo "manifest_repo_url $manifest_repo_url"
+spk hld install-manifest-pipeline -o $AZDO_ORG -d $AZDO_PROJECT -p $ACCESS_TOKEN_SECRET -r $hld_dir -u https://$hld_repo_url -m https://$manifest_repo_url
+
+# Verify the pipeline was created
+pipeline_created=$(az pipelines show --name $hld_dir-to-$manifests_dir --org $AZDO_ORG_URL --p $AZDO_PROJECT)
+# TODO: Verify the pipeline run was successful
 
 # App Code Mono Repo set up 
 mkdir $mono_repo_dir

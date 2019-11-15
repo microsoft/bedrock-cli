@@ -46,6 +46,7 @@ describe("create hld to manifest pipeline test", () => {
       "amazing",
       "meow",
       "baz",
+      "pipelineName",
       exitFn
     );
 
@@ -63,6 +64,7 @@ describe("create hld to manifest pipeline test", () => {
       "wow",
       "wao",
       "baz",
+      "pipelineName",
       exitFn
     );
 
@@ -83,6 +85,7 @@ describe("create hld to manifest pipeline test", () => {
       "wow",
       "wao",
       "baz",
+      "pipelineName",
       exitFn
     );
 
@@ -102,6 +105,7 @@ describe("create hld to manifest pipeline test", () => {
       "wow",
       "wao",
       "baz",
+      "pipelineName",
       exitFn
     );
 

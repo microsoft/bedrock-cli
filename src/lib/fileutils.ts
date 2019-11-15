@@ -274,28 +274,40 @@ export const starterAzurePipelines = async (opts: {
 };
 
 /**
- * Writes out the hld azure-pipelines.yaml file to `targetPath`
+ * Writes out the hld manifest-generation.yaml file to `targetPath`
  *
- * @param hldRepoDirectory Path to write the azure-pipelines.yaml file to
+ * @param hldRepoDirectory Path to write the manifest-generation.yaml file to
  */
 export const generateHldAzurePipelinesYaml = (targetDirectory: string) => {
   const absTargetPath = path.resolve(targetDirectory);
-  logger.info(`Generating hld azure-pipelines.yaml in ${absTargetPath}`);
+  logger.info(`Generating hld manifest-generation in ${absTargetPath}`);
 
   const azurePipelinesYamlPath = path.join(
     absTargetPath,
-    "azure-pipelines.yaml"
+    "manifest-generation.yaml"
   );
 
   if (fs.existsSync(azurePipelinesYamlPath)) {
     logger.warn(
-      `Existing azure-pipelines.yaml found at ${azurePipelinesYamlPath}, skipping generation`
+      `Existing manifest-generation.yaml found at ${azurePipelinesYamlPath}, skipping generation`
     );
 
     return;
   }
   const hldYaml = manifestGenerationPipelineYaml();
-  logger.info(`Writing azure-pipelines.yaml file to ${azurePipelinesYamlPath}`);
+  logger.info(
+    `Writing manifest-generation.yaml file to ${azurePipelinesYamlPath}`
+  );
+
+  const requiredPipelineVariables = [
+    `'MANIFEST_REPO' (Repository for your kubernetes manifests in AzDo. eg. 'dev.azure.com/bhnook/fabrikam/_git/materialized')`,
+    `'PAT' (AzDo Personal Access Token with permissions to the HLD repository.)`
+  ].join(", ");
+
+  logger.info(
+    `Generated manifest-generation.yaml. Commit and push this file to master before attempting to deploy via the command 'spk hld install-manifest-pipeline'; before running the pipeline ensure the following environment variables are available to your pipeline: ${requiredPipelineVariables}`
+  );
+
   fs.writeFileSync(azurePipelinesYamlPath, hldYaml, "utf8");
 };
 
@@ -353,7 +365,7 @@ const manifestGenerationPipelineYaml = () => {
         },
         condition: `ne(variables['Build.Reason'], 'PullRequest')`,
         env: {
-          ACCESS_TOKEN_SECRET: "$(ACCESS_TOKEN)",
+          ACCESS_TOKEN_SECRET: "$(PAT)",
           COMMIT_MESSAGE: "$(Build.SourceVersionMessage)",
           REPO: "$(MANIFEST_REPO)",
           BRANCH_NAME: "$(Build.SourceBranchName)"

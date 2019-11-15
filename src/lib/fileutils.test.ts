@@ -102,7 +102,7 @@ describe("generateHldAzurePipelinesYaml", () => {
 
   it("should not do anything if file exist", async () => {
     const mockFsOptions = {
-      [`${targetDirectory}/azure-pipelines.yaml`]: "existing pipeline"
+      [`${targetDirectory}/manifest-generation.yaml`]: "existing pipeline"
     };
     mockFs(mockFsOptions);
 
@@ -112,7 +112,7 @@ describe("generateHldAzurePipelinesYaml", () => {
 
   it("should generate the file if one does not exist", async () => {
     const absTargetPath = path.resolve(targetDirectory);
-    const expectedFilePath = `${absTargetPath}/azure-pipelines.yaml`;
+    const expectedFilePath = `${absTargetPath}/manifest-generation.yaml`;
 
     generateHldAzurePipelinesYaml(targetDirectory);
     expect(writeSpy).toBeCalledWith(

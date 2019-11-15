@@ -152,13 +152,29 @@ function variable_group_exists () {
 
 function pipeline_exists () {
     FrontEnd=$3
-    pipeline_results=$(az pipelines list)
+    pipeline_results=$(az pipelines list --org $1 --p $2)
     pipeline_exists=$(tr '"\""' '"\\"' <<< "$pipeline_results" | jq -r --arg FrontEnd "$FrontEnd-pipeline" '.[].name  | select(. == $FrontEnd ) != null')
 
     if [ "$pipeline_exists" = "true" ]; then
         echo "The pipeline '$FrontEnd-pipeline' already exists "
         # Get the pipeline id. We have to replace single "\" with "\\"
         pipeline_id=$(tr '"\""' '"\\"' <<<"$pipeline_results"  | jq -r --arg FrontEnd "$FrontEnd-pipeline" '.[] | select(.name == $FrontEnd) | .id')
+        echo "pipeline_id to delete is $pipeline_id"
+        # Delete the repo
+        az pipelines delete --id "$pipeline_id" --yes --org $1 --p $2
+    fi
+}
+
+function hld_pipeline_exists () {
+    echo "Checking if the HLD pipeline already exists."
+    hld_pipeline_name="${3}-to-${4}"
+    echo "Looking for pipeline of name: $hld_pipeline_name"
+    pipeline_results=$(az pipelines list --org $1 --p $2)
+    pipeline_exists=$(tr '"\""' '"\\"' <<< "$pipeline_results" | jq -r --arg pipeline_name $hld_pipeline_name '.[].name  | select(. == $pipeline_name ) != null')
+    if [ "$pipeline_exists" = "true" ]; then
+        echo "The pipeline '$hld_pipeline_name' already exists."
+        # Get the pipeline id. We have to replace single "\" with "\\"
+        pipeline_id=$(tr '"\""' '"\\"' <<<"$pipeline_results"  | jq -r --arg pipeline_name $hld_pipeline_name '.[] | select(.name == $pipeline_name) | .id')
         echo "pipeline_id to delete is $pipeline_id"
         # Delete the repo
         az pipelines delete --id "$pipeline_id" --yes --org $1 --p $2

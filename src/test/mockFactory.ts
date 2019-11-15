@@ -216,7 +216,7 @@ export const createTestHldAzurePipelinesYaml = (
         },
         condition: `ne(variables['Build.Reason'], 'PullRequest')`,
         env: {
-          ACCESS_TOKEN_SECRET: "$(ACCESS_TOKEN)",
+          ACCESS_TOKEN_SECRET: "$(PAT)",
           COMMIT_MESSAGE: "$(Build.SourceVersionMessage)",
           REPO: "$(MANIFEST_REPO)",
           BRANCH_NAME: "$(Build.SourceBranchName)"

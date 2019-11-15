@@ -50,7 +50,7 @@ tests.
 | Command                           | Coverage |
 | --------------------------------- | -------- |
 | spk hld init                      | ✅       |
-| spk hld install-manifest-pipeline | 🚫       |
+| spk hld install-manifest-pipeline | ✅       |
 
 ## Ingress Route Management
 
@@ -111,7 +111,7 @@ tests.
 ## How to find Definition and Project Ids
 
 Navigate to your SPK build pipeline in Azure DevOps. Pay attention to the URL in
-the browser. The example below is for teh CatalystCode.spk pipeline. The
+the browser. The example below is for the CatalystCode.spk pipeline. The
 definition id is 128. ![definitionid](./images/definitionid.png)
 
 You can find the project id but navigating tot
@@ -122,8 +122,8 @@ top level `Id` field as the Project Id.
 
 ## Testing locally
 
-When testing locally you don't need to do teh above set up. Since there is no
-pipeline.
+When testing locally you don't need to do the above set up since there is no
+pipeline. Instead run these steps:
 
 1. Login into AZ CLI
 2. Install Azure DevOps Extension
@@ -135,6 +135,9 @@ pipeline.
    export ACCESS_TOKEN_SECRET=<b>REPLACE_ME</b>
    export ACR_NAME=<b>REPLACE_ME</b>
    export AZURE_DEVOPS_EXT_PAT=<b>REPLACE_ME</b>
+   export SP_PASS=<b>REPLACE_ME</b>
+   export SP_APP_ID=<b>REPLACE_ME</b>
+   export SP_TENANT=<b>REPLACE_ME</b>
    </pre>
 4. Navigate to this directory in shell
 5. RUN --> `$ . functions.sh`

@@ -14,7 +14,7 @@ export const initCommandDecorator = (command: commander.Command): void => {
     .command("init")
     .alias("i")
     .description(
-      "Initialize your hld repository. Will add the azure-pipelines YAML files to your working directory/repository if it does not already exist."
+      "Initialize your hld repository. Will add the manifest-generation.yaml file to your working directory/repository if it does not already exist."
     )
     .option(
       "--git-push",

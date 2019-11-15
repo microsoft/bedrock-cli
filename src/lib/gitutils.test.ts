@@ -250,7 +250,7 @@ describe("getOriginUrl", () => {
 });
 
 describe("getRepositoryName", () => {
-  it("returns the repository name for an AzDo HTTP origin url.", async () => {
+  it("returns the repository name for an AzDo HTTPS origin url.", async () => {
     const originUrl =
       "https://user@dev.azure.com/myorg/spk-test-project/_git/new-repo";
     const repositoryName = getRepositoryName(originUrl);
@@ -266,7 +266,7 @@ describe("getRepositoryName", () => {
     expect(repositoryName).toEqual(`new-repo`);
   });
 
-  it("returns the repository name for a GitHub HTTP origin url.", async () => {
+  it("returns the repository name for a GitHub HTTPS origin url.", async () => {
     const originUrl = "https://github.com/CatalystCode/spk.git";
     const repositoryName = getRepositoryName(originUrl);
 
