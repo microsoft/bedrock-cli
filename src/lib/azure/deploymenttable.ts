@@ -320,6 +320,26 @@ export const insertToTable = (
   });
 };
 
+export const deleteFromTable = (
+  tableInfo: IDeploymentTable,
+  entry: any
+): Promise<any> => {
+  const tableService = azure.createTableService(
+    tableInfo.accountName,
+    tableInfo.accountKey
+  );
+
+  return new Promise((resolve, reject) => {
+    tableService.deleteEntity(tableInfo.tableName, entry, {}, (err, result) => {
+      if (!err) {
+        resolve(entry);
+      } else {
+        reject(err);
+      }
+    });
+  });
+};
+
 /**
  * Updates an entry in the table
  * @param accountName Name of the storage account

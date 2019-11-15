@@ -1,9 +1,11 @@
 import * as path from "path";
 import { Config, loadConfiguration } from "../../config";
+import * as update from "../../lib/azure/deploymenttable";
 import { isValidConfig, isValidStorageAccount } from "./validate";
 
 import { StorageManagementClient } from "@azure/arm-storage";
 import * as storage from "../../lib/azure/storage";
+import { deleteSelfTestData, writeSelfTestData } from "./validate";
 
 jest.spyOn(storage, "getStorageClient").mockImplementation(
   async (): Promise<any> => {
@@ -37,6 +39,69 @@ jest.spyOn(storage, "isStorageAccountNameAvailable").mockImplementation(
     return true;
   }
 );
+
+let mockedDB: any[] = [];
+const mockTableInfo: update.IDeploymentTable = {
+  accountKey: "test",
+  accountName: "test",
+  partitionKey: "test",
+  tableName: "test"
+};
+
+jest.spyOn(update, "findMatchingDeployments").mockImplementation(
+  (
+    tableInfo: update.IDeploymentTable,
+    filterName: string,
+    filterValue: string
+  ): Promise<any> => {
+    const array: any[] = [];
+    return new Promise(resolve => {
+      mockedDB.forEach((row: any) => {
+        if (row.p1 === "500") {
+          array.push(row);
+        }
+      });
+      resolve(array);
+    });
+  }
+);
+
+jest.spyOn(update, "insertToTable").mockImplementation(
+  (tableInfo: update.IDeploymentTable, entry: any): Promise<any> => {
+    return new Promise(resolve => {
+      mockedDB.push(entry);
+      resolve(entry);
+    });
+  }
+);
+
+jest.spyOn(update, "deleteFromTable").mockImplementation(
+  (tableInfo: update.IDeploymentTable, entry: any): Promise<any> => {
+    return new Promise(resolve => {
+      if (mockedDB.length === 1 && mockedDB[0].p1 === "500") {
+        mockedDB = [];
+      }
+      resolve(0);
+    });
+  }
+);
+
+jest.spyOn(update, "updateEntryInTable").mockImplementation(
+  (tableInfo: update.IDeploymentTable, entry: any): Promise<any> => {
+    return new Promise(resolve => {
+      mockedDB.forEach((row: any, index: number) => {
+        if (row.RowKey === entry.RowKey) {
+          mockedDB[index] = entry;
+          resolve(entry);
+        }
+      }, mockedDB);
+    });
+  }
+);
+
+jest.spyOn(Math, "random").mockImplementation((): number => {
+  return 0.5;
+});
 
 beforeEach(() => {
   process.env.test_name = "my_storage_account";
@@ -163,5 +228,44 @@ describe("Validate storage account", () => {
     const isValid = await isValidStorageAccount();
 
     expect(isValid).toBe(false);
+  });
+});
+
+describe("Write self-test data", () => {
+  it("should create a row key, add to storage", async () => {
+    mockedDB = [];
+    await writeSelfTestData(
+      "test-key",
+      "test-name",
+      "test-partition-key",
+      "test-table-name"
+    );
+    expect(mockedDB).toHaveLength(1);
+    expect(mockedDB[0].p1).toBe("500");
+    expect(mockedDB[0].service).toBe("spk-self-test");
+  });
+});
+
+describe("Delete self-test data", () => {
+  it("should create a row key, add to storage and delete it", async () => {
+    mockedDB = [];
+    await writeSelfTestData(
+      "test-key",
+      "test-name",
+      "test-partition-key",
+      "test-table-name"
+    );
+    expect(mockedDB).toHaveLength(1);
+    expect(mockedDB[0].p1).toBe("500");
+    expect(mockedDB[0].service).toBe("spk-self-test");
+
+    await deleteSelfTestData(
+      "test-key",
+      "test-name",
+      "test-partition-key",
+      "test-table-name",
+      "500"
+    );
+    expect(mockedDB).toHaveLength(0);
   });
 });
