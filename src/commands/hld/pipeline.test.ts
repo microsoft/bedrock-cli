@@ -26,11 +26,11 @@ describe("required pipeline variables", () => {
     const variables = requiredPipelineVariables("foo", "bar");
 
     expect(Object.keys(variables).length).toBe(2);
-    expect(variables.ACCESS_TOKEN_SECRET.value).toBe("foo");
-    expect(variables.ACCESS_TOKEN_SECRET.isSecret).toBe(true);
+    expect(variables.PAT.value).toBe("foo");
+    expect(variables.PAT.isSecret).toBe(true);
 
-    expect(variables.REPO.value).toBe("bar");
-    expect(variables.REPO.isSecret).toBe(false);
+    expect(variables.MANIFEST_REPO.value).toBe("bar");
+    expect(variables.MANIFEST_REPO.isSecret).toBe(false);
   });
 });
 

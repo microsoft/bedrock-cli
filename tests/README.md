@@ -84,6 +84,9 @@ tests.
 
 # Setup Instructions
 
+If you wish to run these tests locally, skip ahead to
+[Testing locally](#Testing-locally)
+
 ## Requirements
 
 1. Azure DevOps Organization and Project
@@ -140,5 +143,4 @@ pipeline. Instead run these steps:
    export SP_TENANT=<b>REPLACE_ME</b>
    </pre>
 4. Navigate to this directory in shell
-5. RUN --> `$ . functions.sh`
-6. RUN --> `$ sh validations.sh`
+5. RUN --> `$ sh validations.sh`

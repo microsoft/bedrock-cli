@@ -218,15 +218,15 @@ export const requiredPipelineVariables = (
   manifestRepoUrl: string
 ): { [key: string]: BuildDefinitionVariable } => {
   return {
-    ACCESS_TOKEN_SECRET: {
-      allowOverride: true,
-      isSecret: true,
-      value: accessToken
-    },
-    REPO: {
+    MANIFEST_REPO: {
       allowOverride: true,
       isSecret: false,
       value: manifestRepoUrl
+    },
+    PAT: {
+      allowOverride: true,
+      isSecret: true,
+      value: accessToken
     }
   };
 };

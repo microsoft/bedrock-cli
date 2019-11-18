@@ -85,7 +85,8 @@ mkdir $hld_dir
 cd $hld_dir
 git init
 spk hld init
-file_we_expect=("spk.log" "manifest-generation.yaml")
+touch component.yaml ## Adding blank component.yaml, though spk hld init may also create a default one in the future.
+file_we_expect=("spk.log" "manifest-generation.yaml" "component.yaml")
 validate_directory "$TEST_WORKSPACE/$hld_dir" "${file_we_expect[@]}"
 
 git add -A
@@ -112,7 +113,7 @@ echo "git push"
 git push -u origin --all
 cd ..
 
-# *** TODO: Get ride of duplication
+# *** TODO: Get rid of duplication
 
 # First we should check hld pipelines exist. If there is a pipeline with the same name we should delete it
 hld_pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $hld_dir $manifests_dir
