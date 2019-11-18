@@ -28,3 +28,4 @@ introspection:
     service_principal_secret: "service-principal-secret"
     subscription_id: "subscription-id"
     tenant_id: "tenant-id"
+key_vault_name:

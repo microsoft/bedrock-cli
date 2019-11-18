@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@azure/abort-controller@1.0.0-preview.2":
-  version "1.0.0-preview.2"
-  resolved "https://registry.yarnpkg.com/@azure/abort-controller/-/abort-controller-1.0.0-preview.2.tgz#4cbe53ea5294317e4f50fa4270ab459486b9fbfa"
-  integrity sha512-pd2MVcHaitEC0ZoeixSTkJqTJFkIUVglosV//P2C/VwLg+9moGyx/P+WH2onDYukEOL5CCEuF0LBDfnTeL0gVA==
+"@azure/abort-controller@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@azure/abort-controller/-/abort-controller-1.0.0.tgz#75798c58fb486db20050c3ca00c5f2d7232f921a"
+  integrity sha512-U4RM+AuCxlwq1GDP+VSswfzxvsmQ2hUAAhii2Em2xf0e00/6CsZAoQnQCxhvLDe39pebjivobU29LioN9x+DJQ==
   dependencies:
     tslib "^1.9.3"
 
@@ -18,35 +18,29 @@
     "@azure/ms-rest-js" "^2.0.4"
     tslib "^1.10.0"
 
-"@azure/core-arm@1.0.0-preview.3":
-  version "1.0.0-preview.3"
-  resolved "https://registry.yarnpkg.com/@azure/core-arm/-/core-arm-1.0.0-preview.3.tgz#b1a240a726e52cd1fa37378ae15b29079a0070aa"
-  integrity sha512-YZZM1EIcJnH7ahIBy0wAZDTXeeNZiPYJnRMWl3wZ2PblSHUVdq1D2ZRZWwQWeWlgrNXhsO2HC/9ZAwq8OihRFw==
+"@azure/core-asynciterator-polyfill@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@azure/core-asynciterator-polyfill/-/core-asynciterator-polyfill-1.0.0.tgz#dcccebb88406e5c76e0e1d52e8cc4c43a68b3ee7"
+  integrity sha512-kmv8CGrPfN9SwMwrkiBK9VTQYxdFQEGe0BmQk+M8io56P9KNzpAxcWE/1fxJj7uouwN4kXF0BHW8DNlgx+wtCg==
+
+"@azure/core-auth@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@azure/core-auth/-/core-auth-1.0.0.tgz#e1012ec8919abb88baac6365892dc7d485b02115"
+  integrity sha512-DcXqxt0O0HDhYTcrN16e/hJutFkFTM8fQq6bJbHuDh5AUbDUKFrF64hj5RXATukThOszGFrR1MWJOGZPSo7fiA==
   dependencies:
-    "@azure/core-http" "1.0.0-preview.3"
+    "@azure/abort-controller" "^1.0.0"
+    "@azure/core-tracing" "1.0.0-preview.5"
     tslib "^1.9.3"
 
-"@azure/core-asynciterator-polyfill@1.0.0-preview.1":
-  version "1.0.0-preview.1"
-  resolved "https://registry.yarnpkg.com/@azure/core-asynciterator-polyfill/-/core-asynciterator-polyfill-1.0.0-preview.1.tgz#ad7c726cfd73c946dbfbc3e485338ccf678fc75a"
-  integrity sha512-hMp0y+j/odkAyTa5TYewn4hUlFdEe3sR9uTd2Oq+se61RtuDsqM7UWrNNlyylPyjIENSZHJVWN7jte/jvvMN2Q==
-
-"@azure/core-auth@1.0.0-preview.3":
-  version "1.0.0-preview.3"
-  resolved "https://registry.yarnpkg.com/@azure/core-auth/-/core-auth-1.0.0-preview.3.tgz#3f52e07942fb934c03e861987d6a1bfd35d538b6"
-  integrity sha512-SUG/ccOMGjPVUwKvwAW6r543bd66UOHu66N/jycr0hMVLI/46TuMZJIMjA2AN2+Gc+IrxSXQeJbN2VBFiJBWvA==
+"@azure/core-http@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@azure/core-http/-/core-http-1.0.0.tgz#d599cd48034916b84babec0478d357a30f0a92e2"
+  integrity sha512-vUVrALCoxY0gRfGWbEdiaFGK7qJMV/ZjZucN+LWZZGy/NdP5Iv6nVrxeb7YYIhPDsmcRvABYHrZUt01TB/8aAQ==
   dependencies:
-    "@azure/abort-controller" "1.0.0-preview.2"
-    tslib "^1.9.3"
-
-"@azure/core-http@1.0.0-preview.3":
-  version "1.0.0-preview.3"
-  resolved "https://registry.yarnpkg.com/@azure/core-http/-/core-http-1.0.0-preview.3.tgz#890e4dedc7a33398175bbabc3488d779b301ae6e"
-  integrity sha512-YxZPXG0xYRvBhkAtNVD18VG3i6JyS2dH7QtkiYoi9yAc/x7HUMcKg7FmOD/Nf/++OVGoTQcJ9QpG34MggWuHEQ==
-  dependencies:
-    "@azure/abort-controller" "1.0.0-preview.2"
-    "@azure/core-auth" "1.0.0-preview.3"
-    "@azure/core-tracing" "1.0.0-preview.2"
+    "@azure/abort-controller" "^1.0.0"
+    "@azure/core-auth" "^1.0.0"
+    "@azure/core-tracing" "1.0.0-preview.5"
+    "@azure/logger" "^1.0.0"
     "@types/node-fetch" "^2.5.0"
     "@types/tunnel" "^0.0.1"
     form-data "^2.5.0"
@@ -58,26 +52,39 @@
     uuid "^3.3.2"
     xml2js "^0.4.19"
 
-"@azure/core-paging@1.0.0-preview.2":
-  version "1.0.0-preview.2"
-  resolved "https://registry.yarnpkg.com/@azure/core-paging/-/core-paging-1.0.0-preview.2.tgz#a555bd6df3fdae9fb35ab704f157ef73a1e17b10"
-  integrity sha512-D0oiOmg82AnhTT3xkIyTpEhCesHtlpV2rTVVlCQmQPbfzAWh8eBZp1QAgNQcBdF6uXZrp69znpXSnICmtfH23Q==
+"@azure/core-lro@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@azure/core-lro/-/core-lro-1.0.0.tgz#9837398e03aa04b5b0b09158f4338861348dcce4"
+  integrity sha512-l4abIb8S9qmlv3bJkonLvgGSVQcSXq5jByA7Z28GRGJaQN/mSFal9YQOuLvVag+JXQJsoftuxJFrZiggF2TwOg==
   dependencies:
-    "@azure/core-asynciterator-polyfill" "1.0.0-preview.1"
-
-"@azure/core-tracing@1.0.0-preview.2":
-  version "1.0.0-preview.2"
-  resolved "https://registry.yarnpkg.com/@azure/core-tracing/-/core-tracing-1.0.0-preview.2.tgz#4f589dcac7841c8bcb65995d9592105e3d3f8ad2"
-  integrity sha512-ID/kDVax0uYlw1HVBNsLv6JuE8NbgLUrKrmvVqyuvtbNk+Gk+IKbpUbrDMAoauDAd1CHifs+fkg210LD2JWSEQ==
-  dependencies:
+    "@azure/abort-controller" "^1.0.0"
+    "@azure/core-http" "^1.0.0"
+    events "^3.0.0"
     tslib "^1.9.3"
 
-"@azure/identity@1.0.0-preview.3":
-  version "1.0.0-preview.3"
-  resolved "https://registry.yarnpkg.com/@azure/identity/-/identity-1.0.0-preview.3.tgz#5823772d7f2070fea27b4956377cffb23b50c037"
-  integrity sha512-V5XXvKLfIREoridG4GYZ3unnzTLwJ7SzTAoN9fPD2ieW1Xnt4utIlbgBAPASY1wZBANdKbKpxBqgx3CnMF5aSA==
+"@azure/core-paging@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@azure/core-paging/-/core-paging-1.0.0.tgz#3aa3855582154260326feea97f9f8322cbfe56d9"
+  integrity sha512-CzaT7LwxU97PZ+/Pn7uAbNGXY2mJ/3b56kmLsZzbR9stfrNfzlILxR94WHG/D1jZEQOk4lUNiaqJ2zP7nSGJhA==
   dependencies:
-    "@azure/core-http" "1.0.0-preview.3"
+    "@azure/core-asynciterator-polyfill" "^1.0.0"
+
+"@azure/core-tracing@1.0.0-preview.5":
+  version "1.0.0-preview.5"
+  resolved "https://registry.yarnpkg.com/@azure/core-tracing/-/core-tracing-1.0.0-preview.5.tgz#656892565a9d1920be2008c9609429e37e13443c"
+  integrity sha512-i3hF4EQucZmn2l4zXscwG5bilnboKHtnLMFVuzXk55dt487/9EJ5uMOP3eyTFpULGjn6xubgYFAJVpUJGVQv4w==
+  dependencies:
+    "@opencensus/web-types" "0.0.7"
+    tslib "^1.9.3"
+
+"@azure/identity@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@azure/identity/-/identity-1.0.0.tgz#6d74ae2e831948f17162a1ab0b179ed01c8d76a9"
+  integrity sha512-IyxddNpAlvLYmtNgzedYhJPnlmJpfyJ3S+fmiVHWhCMLvJI3x1011noZu8wyJektQN7NIANKDD77H4OLjf+DUQ==
+  dependencies:
+    "@azure/core-http" "^1.0.0"
+    "@azure/core-tracing" "1.0.0-preview.5"
+    "@azure/logger" "^1.0.0"
     events "^3.0.0"
     jws "^3.2.2"
     msal "^1.0.2"
@@ -85,16 +92,24 @@
     tslib "^1.9.3"
     uuid "^3.3.2"
 
-"@azure/keyvault-secrets@4.0.0-preview.5":
-  version "4.0.0-preview.5"
-  resolved "https://registry.yarnpkg.com/@azure/keyvault-secrets/-/keyvault-secrets-4.0.0-preview.5.tgz#822d0cb204a55915bcd15e77124551fca2096a49"
-  integrity sha512-dve4E34RYro9KKSDBFVjG49hbtpXlBA9WKUAxaQQ0P2VOv50j6OXMID49D9Yk7dwXrhwkskwVNnaR/m43dXXQg==
+"@azure/keyvault-secrets@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@azure/keyvault-secrets/-/keyvault-secrets-4.0.0.tgz#f6c892cf3ddf0925e9cf6b1bef039468d255d227"
+  integrity sha512-C22NfIL+Lm1rEdg28DyhCZPZ1CQm0o6U79oNnjFV2fsgaR/wRyrM/zfDJ4dok8yrhKX8+O1SLmGHDkp0ro+mBQ==
   dependencies:
-    "@azure/abort-controller" "1.0.0-preview.2"
-    "@azure/core-arm" "1.0.0-preview.3"
-    "@azure/core-http" "1.0.0-preview.3"
-    "@azure/core-paging" "1.0.0-preview.2"
-    "@azure/identity" "1.0.0-preview.3"
+    "@azure/abort-controller" "^1.0.0"
+    "@azure/core-http" "^1.0.0"
+    "@azure/core-lro" "^1.0.0"
+    "@azure/core-paging" "^1.0.0"
+    "@azure/core-tracing" "1.0.0-preview.5"
+    "@azure/logger" "^1.0.0"
+    tslib "^1.9.3"
+
+"@azure/logger@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@azure/logger/-/logger-1.0.0.tgz#48b371dfb34288c8797e5c104f6c4fb45bf1772c"
+  integrity sha512-g2qLDgvmhyIxR3JVS8N67CyIOeFRKQlX/llxYJQr1OSGQqM3HTpVP8MjmjcEKbL/OIt2N9C9UFaNQuKOw1laOA==
+  dependencies:
     tslib "^1.9.3"
 
 "@azure/ms-rest-azure-env@^2.0.0":
@@ -472,6 +487,11 @@
     "@nodelib/fs.scandir" "2.1.3"
     fastq "^1.6.0"
 
+"@opencensus/web-types@0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@opencensus/web-types/-/web-types-0.0.7.tgz#4426de1fe5aa8f624db395d2152b902874f0570a"
+  integrity sha512-xB+w7ZDAu3YBzqH44rCmG9/RlrOmFuDPt/bpf17eJr8eZSrLt7nc7LnWdxM9Mmoj/YKMHpxRg28txu3TcpiL+g==
+
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@samverschueren/stream-to-observable/-/stream-to-observable-0.3.0.tgz#ecdf48d532c58ea477acfcab80348424f8d0662f"
@@ -623,17 +643,29 @@
   resolved "https://registry.yarnpkg.com/@types/node-emoji/-/node-emoji-1.8.1.tgz#689cb74fdf6e84309bcafce93a135dfecd01de3f"
   integrity sha512-0fRfA90FWm6KJfw6P9QGyo0HDTCmthZ7cWaBQndITlaWLTZ6njRyKwrwpzpg+n6kBXBIGKeUHEQuBx7bphGJkA==
 
-"@types/node-fetch@^2.3.7", "@types/node-fetch@^2.5.0":
+"@types/node-fetch@^2.3.7":
   version "2.5.2"
   resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.5.2.tgz#76906dea5b3d6901e50e63e15249c9bcd6e9676e"
   integrity sha512-djYYKmdNRSBtL1x4CiE9UJb9yZhwtI1VC+UxZD0psNznrUj80ywsxKlEGAE+QL1qvLjPbfb24VosjkYM6W4RSQ==
   dependencies:
     "@types/node" "*"
 
-"@types/node@*", "@types/node@^12.7.8":
+"@types/node-fetch@^2.5.0":
+  version "2.5.3"
+  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.5.3.tgz#b84127facd93642b1fb6439bc630ba0612e3ec50"
+  integrity sha512-X3TNlzZ7SuSwZsMkb5fV7GrPbVKvHc2iwHmslb8bIxRKWg2iqkfm3F/Wd79RhDpOXR7wCtKAwc5Y2JE6n/ibyw==
+  dependencies:
+    "@types/node" "*"
+
+"@types/node@*":
   version "12.11.7"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.11.7.tgz#57682a9771a3f7b09c2497f28129a0462966524a"
   integrity sha512-JNbGaHFCLwgHn/iCckiGSOZ1XYHsKFwREtzPwSGCVld1SGhOlmZw2D4ZI94HQCrBHbADzW9m4LER/8olJTRGHA==
+
+"@types/node@^12.12.6":
+  version "12.12.6"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.6.tgz#a47240c10d86a9a57bb0c633f0b2e0aea9ce9253"
+  integrity sha512-FjsYUPzEJdGXjwKqSpE0/9QEh6kzhTAeObA54rn6j3rR4C/mzpI9L0KNfoeASSPMMdxIsoJuCLDWcM/rVjIsSA==
 
 "@types/node@^8.0.47":
   version "8.10.56"
@@ -5501,9 +5533,9 @@ punycode@^2.1.0, punycode@^2.1.1:
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
 qs@^6.7.0:
-  version "6.9.0"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.9.0.tgz#d1297e2a049c53119cb49cca366adbbacc80b409"
-  integrity sha512-27RP4UotQORTpmNQDX8BHPukOnBP3p1uUJY5UnDhaJB+rMt9iMsok724XL+UHU23bEFOHRMQ2ZhI99qOWUMGFA==
+  version "6.9.1"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.9.1.tgz#20082c65cb78223635ab1a9eaca8875a29bf8ec9"
+  integrity sha512-Cxm7/SS/y/Z3MHWSxXb8lIFqgqBowP5JMlTUFyJN88y0SGQhVmZnqFK/PeuMX9LzUyWsqqhNxIyg0jlzq946yA==
 
 qs@~6.5.2:
   version "6.5.2"

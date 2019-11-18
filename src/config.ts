@@ -3,6 +3,7 @@ import fs from "fs";
 import yaml from "js-yaml";
 import * as os from "os";
 import path from "path";
+import { getSecret } from "./lib/azure/keyvault";
 import { logger } from "./logger";
 import { IBedrockFile, IConfigYaml, IMaintainersFile } from "./types";
 
@@ -10,7 +11,6 @@ import { IBedrockFile, IConfigYaml, IMaintainersFile } from "./types";
 // State
 ////////////////////////////////////////////////////////////////////////////////
 let spkConfig: IConfigYaml = {}; // DANGEROUS! this var is globally retrievable and mutable via Config()
-
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,6 +66,29 @@ const loadConfigurationFromLocalEnv = <T>(configObj: T): T => {
   return configObj;
 };
 
+const getKeyVaulSecret = async (
+  keyVaultName: string | undefined,
+  storageAccountName: string | undefined
+): Promise<string | undefined> => {
+  logger.debug(`Fetching key from key vault`);
+  let keyVaultKey: string | undefined;
+
+  // fetch stoarge access key from key vault when it is configured
+  if (
+    keyVaultName !== undefined &&
+    keyVaultName !== null &&
+    storageAccountName !== undefined
+  ) {
+    keyVaultKey = await getSecret(keyVaultName, `${storageAccountName}Key`);
+  }
+
+  if (keyVaultKey === undefined) {
+    keyVaultKey = await ((spkConfig.introspection || {}).azure || {}).key;
+  }
+
+  return keyVaultKey;
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // Exported
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,7 +104,22 @@ export const Config = (): IConfigYaml => {
       logger.warn(err);
     }
   }
-  return spkConfig;
+
+  const introspectionAzure = {
+    ...(spkConfig.introspection || {}).azure,
+    get key() {
+      const { account_name } = (spkConfig.introspection || {}).azure || {};
+      return getKeyVaulSecret(spkConfig.key_vault_name, account_name);
+    }
+  };
+
+  return {
+    ...spkConfig,
+    introspection: {
+      ...spkConfig.introspection,
+      azure: introspectionAzure
+    }
+  };
 };
 
 /**
@@ -160,10 +198,21 @@ export const write = (
 };
 
 /**
+ * Fetches the absolute default directory of the spk global config
+ */
+export const defaultConfigDir = () => {
+  const dir = path.join(os.homedir(), ".spk");
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+  }
+  return dir;
+};
+
+/**
  * Fetches the absolute default path of the spk global config
  */
-export const defaultFileLocation = () =>
-  path.join(os.homedir(), ".spk", "config.yaml");
+export const defaultConfigFile = () =>
+  path.join(defaultConfigDir(), "config.yaml");
 
 /**
  * Loads configuration from a given filename, if provided, otherwise
@@ -171,14 +220,34 @@ export const defaultFileLocation = () =>
  *
  * @param filepath file to load configuration from
  */
-export const loadConfiguration = (filepath: string = defaultFileLocation()) => {
+export const loadConfiguration = (filepath: string = defaultConfigFile()) => {
   try {
     fs.statSync(filepath);
     dotenv.config();
     const data = readYaml<IConfigYaml>(filepath);
-    spkConfig = loadConfigurationFromLocalEnv(data);
+    spkConfig = loadConfigurationFromLocalEnv(data || {});
   } catch (err) {
     logger.error(`An error occurred while loading configuration\n ${err}`);
     throw err;
+  }
+};
+
+/**
+ * Writes the global config object to default location
+ * @param sourceFilePath The source configuration file
+ * @param targetDir The optional target directory to store the configuration to override the default directory
+ */
+export const saveConfiguration = async (
+  sourceFilePath: string,
+  targetDir: string = defaultConfigDir()
+) => {
+  try {
+    const data = yaml.safeDump(readYaml<IConfigYaml>(sourceFilePath));
+    const targetFile = path.join(targetDir, "config.yaml");
+    fs.writeFileSync(targetFile, data);
+  } catch (err) {
+    logger.error(
+      `Error occurred while writing config to default location ${err}`
+    );
   }
 };

@@ -7,7 +7,7 @@ import {
   IDeploymentTable,
   updateACRToHLDPipeline
 } from "../../lib/azure/deploymenttable";
-import { storageAccountExists } from "../../lib/azure/storage";
+import { validateStorageAccount } from "../../lib/azure/storage";
 import { logger } from "../../logger";
 import { IConfigYaml } from "../../types";
 
@@ -43,7 +43,7 @@ export const validateCommandDecorator = (command: commander.Command): void => {
 /**
  * Validates that the deployment configuration is specified.
  */
-export const isValidConfig = (): boolean => {
+export const isValidConfig = async (): Promise<boolean> => {
   const missingConfig = [];
   const config = Config();
   if (!config.introspection) {
@@ -55,7 +55,9 @@ export const isValidConfig = (): boolean => {
       if (!config.introspection.azure.account_name) {
         missingConfig.push("config.introspection.azure.account_name");
       }
-      if (!config.introspection.azure.key) {
+      const key = await config.introspection.azure.key;
+
+      if (!key) {
         missingConfig.push("config.introspection.azure.key");
       }
       if (!config.introspection.azure.partition_key) {
@@ -92,10 +94,11 @@ export const isValidConfig = (): boolean => {
  */
 export const isValidStorageAccount = async (): Promise<boolean> => {
   const config = Config();
-  const isValid = await storageAccountExists(
+  const key = await config.introspection!.azure!.key;
+  const isValid = await validateStorageAccount(
     config.introspection!.azure!.resource_group!,
     config.introspection!.azure!.account_name!,
-    config.introspection!.azure!.key!
+    key!
   );
 
   if (!isValid) {
@@ -114,8 +117,9 @@ export const isValidStorageAccount = async (): Promise<boolean> => {
 export const runSelfTest = async (config: IConfigYaml): Promise<any> => {
   try {
     logger.info("Writing self-test data for introspection...");
+    const key = await config.introspection!.azure!.key;
     const buildId = await writeSelfTestData(
-      config.introspection!.azure!.key!,
+      key!,
       config.introspection!.azure!.account_name!,
       config.introspection!.azure!.partition_key!,
       config.introspection!.azure!.table_name!
@@ -123,7 +127,7 @@ export const runSelfTest = async (config: IConfigYaml): Promise<any> => {
 
     logger.info("Deleting self-test data...");
     const isVerified = await deleteSelfTestData(
-      config.introspection!.azure!.key!,
+      key!,
       config.introspection!.azure!.account_name!,
       config.introspection!.azure!.partition_key!,
       config.introspection!.azure!.table_name!,

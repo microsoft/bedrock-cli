@@ -1,9 +1,14 @@
-import * as fs from "fs";
+import fs from "fs";
+import os from "os";
 import * as path from "path";
-import * as util from "util";
-import { Config, defaultFileLocation, loadConfiguration } from "../config";
+import uuid from "uuid/v4";
+import {
+  Config,
+  defaultConfigFile,
+  loadConfiguration,
+  saveConfiguration
+} from "../config";
 import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
-import { writeConfigToDefaultLocation } from "./init";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -16,15 +21,23 @@ afterAll(() => {
 const mockFileName = "src/commands/mocks/spk-config.yaml";
 describe("Initializing a project to use spk with a config file", () => {
   test("init command basic file test", async () => {
+    // Create random directory to initialize
+    const randomTmpDir = path.join(os.tmpdir(), uuid());
+    fs.mkdirSync(randomTmpDir);
+
     process.env.test_name = "my_storage_account";
     process.env.test_key = "my_storage_key";
     const filename = path.resolve(mockFileName);
-    loadConfiguration(filename);
-    expect(Config().introspection!).toBeDefined();
-    expect(Config().introspection!.azure!.account_name).toBe(
+    await saveConfiguration(filename, randomTmpDir);
+    loadConfiguration(path.join(randomTmpDir, "config.yaml"));
+
+    const config = Config();
+    expect(config.introspection!).toBeDefined();
+    expect(config.introspection!.azure!.account_name).toBe(
       process.env.test_name
     );
-    expect(Config().introspection!.azure!.key).toBe(process.env.test_key);
+    const key = await config.introspection!.azure!.key;
+    expect(key).toBe(process.env.test_key);
     logger.info("Able to initialize a basic config file");
   });
 });
@@ -68,13 +81,10 @@ describe("Writing to default config location", () => {
       process.env.test_name = "testStorageName";
       process.env.test_key = "testStorageKey";
       loadConfiguration(filename);
-      Config().azure_devops!.access_token = "unit_test_token";
 
-      await writeConfigToDefaultLocation();
-      loadConfiguration(defaultFileLocation());
-
+      await saveConfiguration(filename);
+      loadConfiguration(defaultConfigFile());
       expect(Config().azure_devops!).toBeDefined();
-      expect(Config().azure_devops!.access_token!).toBe("unit_test_token");
     } catch (e) {
       logger.error(e);
       // Make sure execution does not get here:

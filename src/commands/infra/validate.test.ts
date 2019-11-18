@@ -1,7 +1,10 @@
 import child_process from "child_process";
+import fs from "fs";
+import yaml from "js-yaml";
+import os from "os";
 import * as path from "path";
 import { promisify } from "util";
-import { Config, loadConfiguration } from "../../config";
+import { Config, defaultConfigFile, loadConfiguration } from "../../config";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
@@ -26,6 +29,15 @@ afterAll(() => {
 describe("Validating executable prerequisites", () => {
   test("Validate that array of executables do not exists in PATH", async () => {
     // Iterate through an array of non-existent binaries to create a force fail. If fails, then test pass
+    const data = {
+      introspection: {
+        azure: {}
+      }
+    };
+
+    // create config file in test location
+    fs.writeFileSync(defaultConfigFile(), yaml.safeDump(data));
+
     const fakeBinaries: string[] = ["ydawgie"];
     const value = await validatePrereqs(fakeBinaries, false);
     expect(value).toBe(false);

@@ -1,5 +1,7 @@
-import * as path from "path";
-import { Config, loadConfiguration } from "../../config";
+// Mocks
+jest.mock("../../config");
+
+import { Config } from "../../config";
 import { exec } from "../../lib/shell";
 import {
   disableVerboseLogging,
@@ -13,12 +15,9 @@ import {
   launchDashboard
 } from "./dashboard";
 
+import uuid from "uuid/v4";
+
 beforeAll(() => {
-  process.env.test_name = "my_storage_account";
-  process.env.test_key = "my_storage_key";
-  const mockFileName = "src/commands/mocks/spk-config.yaml";
-  const filename = path.resolve(mockFileName);
-  loadConfiguration(filename);
   enableVerboseLogging();
 });
 
@@ -78,25 +77,67 @@ describe("Validate dashboard clean up", () => {
 });
 
 describe("Fallback to azure devops access token", () => {
-  test("Has repo_access_token specified", () => {
-    Config().introspection!.azure!.source_repo_access_token = "test_token";
-    const envVars = getEnvVars().toString();
+  test("Has repo_access_token specified", async () => {
+    (Config as jest.Mock).mockReturnValue({
+      azure_devops: {
+        access_token: uuid(),
+        org: uuid(),
+        project: uuid()
+      },
+      introspection: {
+        azure: {
+          account_name: uuid(),
+          key: uuid(),
+          partition_key: uuid(),
+          source_repo_access_token: "test_token",
+          table_name: uuid()
+        }
+      }
+    });
+    const envVars = (await getEnvVars()).toString();
+    logger.info(
+      `spin: ${envVars}, act: ${
+        Config().introspection!.azure!.source_repo_access_token
+      }`
+    );
     const expectedSubstring = "REACT_APP_SOURCE_REPO_ACCESS_TOKEN=test_token";
     expect(envVars.includes(expectedSubstring)).toBeTruthy();
   });
-  test("No repo_access_token was specified", () => {
-    const config = Config();
-    config.introspection!.azure!.source_repo_access_token = undefined;
-    const envVars = getEnvVars().toString();
+
+  test("No repo_access_token was specified", async () => {
+    const sourceRepoAccessToken = uuid();
+    (Config as jest.Mock).mockReturnValue({
+      azure_devops: {
+        access_token: sourceRepoAccessToken,
+        org: uuid(),
+        project: uuid()
+      },
+      introspection: {
+        azure: {
+          account_name: uuid(),
+          key: uuid(),
+          partition_key: uuid(),
+          source_repo_access_token: undefined,
+          table_name: uuid()
+        }
+      }
+    });
+    const envVars = (await getEnvVars()).toString();
     const expectedSubstring =
-      "REACT_APP_SOURCE_REPO_ACCESS_TOKEN=" +
-      config.azure_devops!.access_token!;
+      "REACT_APP_SOURCE_REPO_ACCESS_TOKEN=" + sourceRepoAccessToken;
     expect(envVars.includes(expectedSubstring)).toBeTruthy();
   });
 });
 
 describe("Extract manifest repository information", () => {
   test("Manifest repository information is successfully extracted", () => {
+    (Config as jest.Mock).mockReturnValue({
+      azure_devops: {
+        manifest_repository:
+          "https://dev.azure.com/bhnook/fabrikam/_git/materialized"
+      }
+    });
+
     let manifestInfo = extractManifestRepositoryInformation();
     expect(manifestInfo).toBeDefined();
     expect(manifestInfo!.githubUsername).toBeUndefined();

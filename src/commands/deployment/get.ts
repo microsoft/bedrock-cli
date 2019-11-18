@@ -61,7 +61,7 @@ export const getCommandDecorator = (command: commander.Command): void => {
     .option("-w, --watch", "Watch the deployments for a live view")
     .action(async opts => {
       try {
-        initialize();
+        await initialize();
         if (opts.watch) {
           watchGetDeployments(
             processOutputFormat(opts.output),
@@ -73,7 +73,7 @@ export const getCommandDecorator = (command: commander.Command): void => {
             opts.deploymentId
           );
         } else {
-          getDeployments(
+          await getDeployments(
             processOutputFormat(opts.output),
             opts.env,
             opts.imageTag,
@@ -114,7 +114,7 @@ export const processOutputFormat = (outputFormat: string): OUTPUT_FORMAT => {
  * @param service name of the service that was modified
  * @param deploymentId unique identifier for the deployment
  */
-export const getDeployments = (
+export const getDeployments = async (
   outputFormat: OUTPUT_FORMAT,
   environment?: string,
   imageTag?: string,
@@ -124,9 +124,11 @@ export const getDeployments = (
   deploymentId?: string
 ): Promise<Deployment[]> => {
   const config = Config();
+  const key = await Config().introspection!.azure!.key;
+
   return Deployment.getDeploymentsBasedOnFilters(
     config.introspection!.azure!.account_name!,
-    config.introspection!.azure!.key!,
+    key!,
     config.introspection!.azure!.table_name!,
     config.introspection!.azure!.partition_key!,
     srcPipeline,
@@ -151,8 +153,9 @@ export const getDeployments = (
 /**
  * Initializes the pipelines assuming that the configuration has been loaded
  */
-const initialize = () => {
+const initialize = async () => {
   const config = Config();
+  const key = await Config().introspection!.azure!.key;
 
   if (
     !config.introspection ||
@@ -162,10 +165,12 @@ const initialize = () => {
     !config.azure_devops.project ||
     !config.introspection.azure.account_name ||
     !config.introspection.azure.table_name ||
-    !config.introspection.azure.key ||
+    !key ||
     !config.introspection.azure.partition_key
   ) {
-    logger.error("You need to run `spk init` to initialize.");
+    logger.error(
+      "You need to run `spk init` and `spk deployment onboard` to configure `spk."
+    );
     process.exit(1);
     return;
   }

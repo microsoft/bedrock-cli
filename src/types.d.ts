@@ -173,7 +173,7 @@ export interface IConfigYaml {
       account_name?: string;
       table_name?: string;
       partition_key?: string;
-      key?: string;
+      key: Promise<string | undefined>;
       source_repo_access_token?: string;
       service_principal_id?: string;
       service_principal_secret?: string;
@@ -182,4 +182,12 @@ export interface IConfigYaml {
       resource_group?: string;
     };
   };
+  key_vault_name?: string;
+}
+
+export interface IAzureAccessOpts {
+  servicePrincipalId?: string;
+  servicePrincipalPassword?: string;
+  tenantId?: string;
+  subscriptionId?: string;
 }

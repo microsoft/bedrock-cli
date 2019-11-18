@@ -1,15 +1,11 @@
 import commander from "commander";
-import * as fs from "fs";
-import yaml from "js-yaml";
-import * as os from "os";
-import { Config, defaultFileLocation, loadConfiguration } from "../config";
+import { loadConfiguration, saveConfiguration } from "../config";
 import { logger } from "../logger";
 import {
   validateAzure,
   validateEnvVariables,
   validatePrereqs
 } from "./infra/validate";
-
 /**
  * Adds the init command to the commander command object
  * @param command Commander command object to decorate
@@ -44,7 +40,7 @@ export const initCommandDecorator = (command: commander.Command): void => {
           true
         );
 
-        await writeConfigToDefaultLocation();
+        await saveConfiguration(opts.file);
 
         logger.info("Successfully initialized the spk tool!");
       } catch (err) {
@@ -52,22 +48,4 @@ export const initCommandDecorator = (command: commander.Command): void => {
         logger.error(err);
       }
     });
-};
-
-/**
- * Writes the global config object to default location
- */
-export const writeConfigToDefaultLocation = async () => {
-  try {
-    const data = yaml.safeDump(Config());
-    const defaultDir = os.homedir() + "/.spk";
-    if (!fs.existsSync(defaultDir)) {
-      fs.mkdirSync(defaultDir);
-    }
-    fs.writeFileSync(defaultFileLocation(), data);
-  } catch (err) {
-    logger.error(
-      `Error occurred while writing config to default location ${err}`
-    );
-  }
 };
