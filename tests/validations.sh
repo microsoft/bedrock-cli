@@ -12,6 +12,9 @@ TEST_WORKSPACE="$(pwd)/spk-env"
 [ ! -z "$AZDO_PROJECT" ] || { echo "Provide AZDO_PROJECT"; exit 1;}
 [ ! -z "$AZDO_ORG" ] || { echo "Provide AZDO_ORG"; exit 1;}
 [ ! -z "$ACR_NAME" ] || { echo "Provide ACR_NAME"; exit 1;}
+[ ! -z "$SP_APP_ID" ] || { echo "Provide SP_APP_ID"; exit 1;}
+[ ! -z "$SP_PASS" ] || { echo "Provide SP_PASS"; exit 1;}
+[ ! -z "$SP_TENANT" ] || { echo "Provide SP_TENANT"; exit 1;}
 AZDO_ORG_URL="${AZDO_ORG_URL:-"https://dev.azure.com/$AZDO_ORG"}"
 
 
@@ -142,7 +145,7 @@ validate_directory "$TEST_WORKSPACE/$mono_repo_dir" "${file_we_expect[@]}"
 variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $vg_name "delete"
 
 # Create variable group
-spk project create-variable-group $vg_name -r $ACR_NAME -d $hld_repo_url -u $SP_APP_ID -p $SP_PASS -t $SP_TENANT --org-name $AZDO_ORG --project $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET  #>> $TEST_WORKSPACE/log.txt
+spk project create-variable-group $vg_name -r $ACR_NAME -d $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --project $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET  #>> $TEST_WORKSPACE/log.txt
 
 # Verify the variable group was created. Fail if not
 variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $vg_name "fail"

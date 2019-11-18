@@ -61,6 +61,7 @@ stages:
         #Set ENV VARs
         export SPK_LOCATION="$(pwd)/spk-linux"
         export ACCESS_TOKEN_SECRET=$(AZDO_PAT)
+        export SP_PASS=$(SP_PASS)
 
         # Include dependent scripts
         . ./functions.sh

@@ -134,7 +134,7 @@ function variable_group_exists () {
     vg_exists=$(echo $vg_result | jq -r --arg vg_name "$vg_name" '.[].name | select(. == $vg_name ) != null')
 
     if [ "$vg_exists" = "true" ]; then
-        echo "The variable group '$vg_name' already exists "
+        echo "The variable group '$vg_name' exists "
         if [ "$action" == "delete" ]; then
             # Get the variable group id
             vg_id=$(echo "$vg_result"  | jq -r --arg vg_name "$vg_name" '.[] | select(.name == $vg_name) | .id')
