@@ -317,6 +317,51 @@ export const generateHldAzurePipelinesYaml = (targetDirectory: string) => {
 };
 
 /**
+ * Add a default component.yaml when running `hld init`.
+ */
+export const generateDefaultHldComponentYaml = (targetDirectory: string) => {
+  const absTargetPath = path.resolve(targetDirectory);
+  logger.info(`Generating component.yaml in ${absTargetPath}`);
+
+  const fabrikateComponentPath = path.join(absTargetPath, "component.yaml");
+
+  if (fs.existsSync(fabrikateComponentPath)) {
+    logger.warn(
+      `Existing component.yaml found at ${fabrikateComponentPath}, skipping generation`
+    );
+
+    return;
+  }
+
+  const componentYaml = defaultComponentYaml();
+  logger.info(
+    `Writing manifest-generation.yaml file to ${fabrikateComponentPath}`
+  );
+
+  fs.writeFileSync(fabrikateComponentPath, componentYaml, "utf8");
+};
+
+/**
+ * A default fabrikate component that includes the cloud native stack.
+ */
+const defaultComponentYaml = () => {
+  const componentYaml = {
+    name: "default-component",
+    subcomponents: [
+      {
+        name: "cloud-native",
+        // tslint:disable-next-line:object-literal-sort-keys
+        method: "git",
+        source: "https://github.com/microsoft/fabrikate-definitions.git",
+        path: "definitions/fabrikate-cloud-native"
+      }
+    ]
+  };
+
+  return yaml.safeDump(componentYaml, { lineWidth: Number.MAX_SAFE_INTEGER });
+};
+
+/**
  * Returns a the Manifest Generation Pipeline as defined here: https://github.com/microsoft/bedrock/blob/master/gitops/azure-devops/ManifestGeneration.md#add-azure-pipelines-build-yaml
  */
 const manifestGenerationPipelineYaml = () => {

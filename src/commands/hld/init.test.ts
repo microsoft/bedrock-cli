@@ -32,8 +32,8 @@ describe("Initializing an HLD Repository.", () => {
     expect(fs.existsSync(randomTmpDir)).toBe(true);
 
     // Verify new azure-pipelines created
-    const filepaths = ["manifest-generation.yaml"].map(filename =>
-      path.join(randomTmpDir, filename)
+    const filepaths = ["manifest-generation.yaml", "component.yaml"].map(
+      filename => path.join(randomTmpDir, filename)
     );
 
     for (const filepath of filepaths) {

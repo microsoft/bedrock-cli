@@ -1,6 +1,9 @@
 import commander from "commander";
 
-import { generateHldAzurePipelinesYaml } from "../../lib/fileutils";
+import {
+  generateDefaultHldComponentYaml,
+  generateHldAzurePipelinesYaml
+} from "../../lib/fileutils";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import { logger } from "../../logger";
 
@@ -46,6 +49,7 @@ export const initialize = async (rootProjectPath: string, gitPush: boolean) => {
   logger.info("Initializing bedrock HLD repository.");
 
   generateHldAzurePipelinesYaml(rootProjectPath);
+  generateDefaultHldComponentYaml(rootProjectPath);
 
   // If requested, create new git branch, commit, and push
   if (gitPush) {

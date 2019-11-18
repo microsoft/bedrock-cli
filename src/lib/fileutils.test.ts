@@ -31,6 +31,7 @@ import {
 import {
   addNewServiceToBedrockFile,
   addNewServiceToMaintainersFile,
+  generateDefaultHldComponentYaml,
   generateDockerfile,
   generateGitIgnoreFile,
   generateHldAzurePipelinesYaml,
@@ -120,6 +121,34 @@ describe("generateHldAzurePipelinesYaml", () => {
       createTestHldAzurePipelinesYaml(),
       "utf8"
     );
+    expect(writeSpy).toBeCalled();
+  });
+});
+
+describe("generateDefaultHldComponentYaml", () => {
+  const targetDirectory = "hld-repository";
+  const writeSpy = jest.spyOn(fs, "writeFileSync");
+  beforeEach(() => {
+    mockFs({
+      "hld-repository": {}
+    });
+  });
+  afterEach(() => {
+    mockFs.restore();
+  });
+
+  it("should not do anything if file exist", async () => {
+    const mockFsOptions = {
+      [`${targetDirectory}/component.yaml`]: "existing component"
+    };
+    mockFs(mockFsOptions);
+
+    generateDefaultHldComponentYaml(targetDirectory);
+    expect(writeSpy).not.toBeCalled();
+  });
+
+  it("should generate the file if one does not exist", async () => {
+    generateDefaultHldComponentYaml(targetDirectory);
     expect(writeSpy).toBeCalled();
   });
 });
