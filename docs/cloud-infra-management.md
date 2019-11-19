@@ -141,7 +141,7 @@ Generates a deployment folder of an infrastructure scaffolded project containing
 a `definition.json` that contains a `source`, `template` and `version` to obtain
 and complete the terraform template files.
 
-It will do the following (**In Progress**):
+It will do the following:
 
 - Check if a provided project folder contains a `definition.json`
 - Check if the terraform template `source` provided has a valid remote
@@ -156,6 +156,82 @@ It will do the following (**In Progress**):
 - Create a `spk.tfvars` in the generated directory based on the variables
   provided in `definition.json`
 
+```
+Usage:
+spk infra generate|g [options]
+
+Generate scaffold for terraform cluster deployment.
+
+Options:
+  -p, --project <path to project folder to generate>   Location of the definition.json file that will be generated
+  -h, --help                                           output usage information
+```
+
+### generate example
+
+Assuming you have the following setup:
+
+```
+discovery-service
+    |- definition.json
+    |- east/
+        |- definition.json
+    |- central/
+        |- definition.json
+```
+
+When executing the following command **in the `discovery-service` directory**:
+
+```
+spk infra generate --project east
+```
+
+The following hiearchy of directories will be generated _alongside_ the targeted
+directory. In addition, the appropriate versioned Terraform templates will be
+copied over to the leaf directory with a `spk.tfvars`, which contains the
+variables accumulated from parent **and** leaf definition.json files.
+
+```
+discovery-service
+    |- definition.json
+    |- east/
+        |- definition.json
+    |- central/
+        |- definition.json
+discovery-service-generated
+    |- east
+        |- main.tf
+        |- variables.tf
+        |- spk.tfvars
+```
+
+You can also have a "single-tree" generation by executing `spk infra generate`
+at the level above the targeted directory. For example, if you had the following
+tree structure:
+
+```
+discovery-service
+    |- east/
+        |- definition.json
+    |- central/
+        |- definition.json
+```
+
+and wanted to create _just_ an `east-generated` directory, you could run
+`spk infra generate -p east`, and this will result in the following:
+
+```
+discovery-service
+    |- east/
+        |- definition.json
+    |- east-generated/
+        |- main.tf
+        |- variables.tf
+        |- spk.tfvars
+    |- central/
+        |- definition.json
+```
+
 ### Authentication
 
 Spk currently supports the use of Personal Access Tokens to authenticate with
@@ -168,3 +244,4 @@ build scaffolded definitions using a private AzDO repo, do one of the following:
 - **Using arguments** - Pass in your formatted source url for your private AzDO
   repo with the PAT and arbitrary username specified. Example
   `spk infra scaffold --name discovery-service --source https://spk:{my_PAT_Token}@dev.azure.com/microsoft/spk/_git/infra_repo --version v0.0.1 --template cluster/environments/azure-single-keyvault`
+

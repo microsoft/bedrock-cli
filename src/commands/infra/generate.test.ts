@@ -8,6 +8,7 @@ import {
 import {
   generateSpkTfvars,
   parseDefinitionJson,
+  readDefinitionJson,
   validateDefinition,
   validateRemoteSource,
   validateTemplateSource
@@ -83,15 +84,8 @@ describe("Validate template path from a definition.json", () => {
 describe("Validate spk.tfvars file", () => {
   test("Validating that a spk.tfvars is generated and has appropriate format", async () => {
     const mockProjectPath = "src/commands/infra/mocks";
-    const generateTfvars = await generateSpkTfvars(
-      mockProjectPath,
-      mockProjectPath
-    );
-    const data = fs.readFileSync(
-      path.join(mockProjectPath, "spk.tfvars"),
-      "utf-8"
-    );
-    expect(data).toContain('gitops_poll_interval = "5m"');
-    fs.unlinkSync(path.join(mockProjectPath, "spk.tfvars"));
+    const definitionJSON = await readDefinitionJson(mockProjectPath);
+    const spkTfvarsObject = await generateSpkTfvars(definitionJSON);
+    expect(spkTfvarsObject).toContain('gitops_poll_interval = "5m"');
   });
 });

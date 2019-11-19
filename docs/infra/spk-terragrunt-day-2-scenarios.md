@@ -379,4 +379,4 @@ Additional Thoughts:
 
 ## Holder for comparison between Terragrunt & Bespoke
 
-![](../images/Capture.PNG)
+![](../images/Capture.png)
