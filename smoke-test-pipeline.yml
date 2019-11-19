@@ -62,6 +62,7 @@ stages:
         export SPK_LOCATION="$(pwd)/spk-linux"
         export ACCESS_TOKEN_SECRET=$(AZDO_PAT)
         export SP_PASS=$(SP_PASS)
+        export SP_TENANT=$(SP_TENANT)
 
         # Include dependent scripts
         . ./functions.sh
@@ -74,3 +75,8 @@ stages:
         [ $status -eq 0 ] && echo "Test Done!" || (echo "Test had issues" && exit 1)
       #failOnStderr: true
       displayName: "Run Tests"
+    - task: PublishPipelineArtifact@1
+      inputs:
+        path: $(System.DefaultWorkingDirectory)/spk-env/log.txt
+        artifact: test_logs
+      condition: always()

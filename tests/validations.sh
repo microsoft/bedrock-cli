@@ -129,7 +129,9 @@ spk hld install-manifest-pipeline -o $AZDO_ORG -d $AZDO_PROJECT -p $ACCESS_TOKEN
 
 # Verify the pipeline was created
 pipeline_created=$(az pipelines show --name $hld_dir-to-$manifests_dir --org $AZDO_ORG_URL --p $AZDO_PROJECT)
-# TODO: Verify the pipeline run was successful
+
+# Verify the pipeline run was successful
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_dir-to-$manifests_dir 180 15
 
 # App Code Mono Repo set up 
 mkdir $mono_repo_dir
@@ -186,12 +188,17 @@ git push -u origin --all
 # First we should check what pipelines exist. If there is a pipeline with the same name we should delete it
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $FrontEnd
 
+pipeline_name="$FrontEnd-pipeline"
+
 # Create a pipeline since the code exists in remote repo
-spk service install-build-pipeline -o $AZDO_ORG -r $mono_repo_dir -u $remote_repo_url -d $AZDO_PROJECT -l $services_dir -p $ACCESS_TOKEN_SECRET -v $FrontEnd  >> $TEST_WORKSPACE/log.txt
+spk service install-build-pipeline -o $AZDO_ORG -r $mono_repo_dir -u $remote_repo_url -d $AZDO_PROJECT -l $services_dir -p $ACCESS_TOKEN_SECRET -n $pipeline_name -v $FrontEnd  >> $TEST_WORKSPACE/log.txt
 
 # Verify the pipeline was created
-pipeline_created=$(az pipelines show --name $FrontEnd-pipeline --org $AZDO_ORG_URL --p $AZDO_PROJECT)
-# TODO: Verify the pipeline run was successful
+pipeline_created=$(az pipelines show --name $pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
+
+# Verify the pipeline run was successful
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $pipeline_name 180 25
+# TODO approve the PR this build creates on the HLD
 
 # Start creating a service revision
 git branch $branchName
@@ -202,7 +209,13 @@ git commit -m "Adding my new file"
 git push --set-upstream origin $branchName
 
 # Create a PR for the change
-spk service create-revision -t "Automated Test PR" -d "Adding my new file" --org-name $AZDO_ORG --personal-access-token $ACCESS_TOKEN_SECRET  --remote-url $remote_repo_url >> $TEST_WORKSPACE/log.txt
+current_time=$(date +"%Y-%m-%d-%H-%M-%S")
+pr_title="Automated Test PR $current_time"
+echo "Creating pull request: '$pr_title'" 
+spk service create-revision -t $pr_title -d "Adding my new file" --org-name $AZDO_ORG --personal-access-token "$ACCESS_TOKEN_SECRET"  --remote-url $remote_repo_url >> $TEST_WORKSPACE/log.txt
 
-# TODO: Get the id of the pr created and set the PR to be approved
-# az repos pr update --id --bypass-policy --auto-complete
+echo "Attempting to approve pull request: '$pr_title'" 
+# Get the id of the pr created and set the PR to be approved
+approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT $pr_title
+
+

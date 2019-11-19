@@ -180,3 +180,65 @@ function hld_pipeline_exists () {
         az pipelines delete --id "$pipeline_id" --yes --org $1 --p $2
     fi
 }
+
+function verify_pipeline_with_poll () {
+    local pipeline_name=$3
+    poll_timeout=$4
+    poll_interval=$5
+    end=$((SECONDS+$poll_timeout))
+    loop_result="unknown"
+    
+    echo "Attempting to verify that the pipeline build for $pipeline_name is successful..."
+    pipeline_result=$(az pipelines build definition show --name $pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
+    pipeline_id=$(tr '"\""' '"\\"' <<< "$pipeline_result" | jq .id)
+    echo "$pipeline_name has pipeline id of $pipeline_id"
+
+    while [ $SECONDS -lt $end ]; do
+        pipeline_builds=$(az pipelines build list --definition-ids $pipeline_id --org $1 --p $2)
+        
+        # We expect only 1 build right now
+        build_count=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq '. | length')
+        if [ "$build_count" != "1"  ]; then 
+            echo "Expected 1 build for pipeline id $pipeline_id but found $build_count"
+            exit 1 
+        fi
+
+        # We use grep because of string matching issues
+        echo "Get the build status for build..."
+        pipeline_status=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq .[0].status)
+        echo "pipeline_status this iteration --> $pipeline_status"
+        if [ "$(echo $pipeline_status | grep 'completed')" != "" ]; then
+        pipeline_result=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq .[0].result)
+        if [ "$(echo $pipeline_result | grep 'succeeded')" != "" ]; then
+            echo "Successful build for pipeline id $pipeline_id!"
+            loop_result=$pipeline_result
+            break
+        else
+            echo "Expected successful build for pipeline id $pipeline_id but result is $pipeline_result"
+            exit 1 
+        fi
+        else
+        echo "Pipeline Id $pipeline_id status is $pipeline_status. Sleeping for $poll_interval seconds"
+        sleep $poll_interval
+        fi 
+    done
+    if [ "$loop_result" = "unknown" ]; then
+        echo "Polling the build timed out after $poll_timeout seconds!"
+        exit 1
+    fi
+}
+
+function approve_pull_request () {
+    all_prs=$(az repos pr list --org $1 --p $2) 
+    pr_title=$3
+    pr_exists=$(tr '"\""' '"\\"' <<< "$all_prs" | jq -r --arg pr_title $pr_title '.[] | select(.title == $pr_title) | != null')
+    if [ "$pr_exists" != "true" ]; then
+        echo "PR for '$pr_title' not found"
+        exit 1
+    fi
+    pull_request_id=$(tr '"\""' '"\\"' <<< "$all_prs" | jq -r --arg pr_title $pr_title '.[] | select(.title == $pr_title) | .pullRequestId')
+    echo "Found pull request id $pull_request_id for '$pr_title'"
+    approve_result=$(az repos pr update --id $pull_request_id --auto-complete true -—org $1 --p $2)
+    echo "PR $pull_request_id approved"
+    # TODO verify actually successful
+}
