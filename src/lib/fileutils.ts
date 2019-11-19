@@ -127,7 +127,7 @@ export const starterAzurePipelines = async (opts: {
                 // and does not need a a project name
                 const projectName =
                   projectPathParts.length > 1
-                    ? "-" + projectPathParts.slice(-1)[0]
+                    ? projectPathParts.slice(-1)[0]
                     : "";
 
                 return {
@@ -176,14 +176,14 @@ export const starterAzurePipelines = async (opts: {
                 // folder containing the Dockerfile. Otherwise, its a standard service
                 // and does not need a a project name
 
-                logger.info(`projectPathParts: ${projectPathParts}`);
+                logger.debug(`projectPathParts: ${projectPathParts}`);
                 const projectName =
                   projectPathParts.length > 1
                     ? projectPathParts.slice(-1)[0]
                     : "";
 
-                logger.info(`projectName: ${projectName}`);
-                logger.info(`projectPath: ${projectPath}`);
+                logger.debug(`projectName: ${projectName}`);
+                logger.debug(`projectPath: ${projectPath}`);
                 return {
                   script: generateYamlScript([
                     `export PROJECT_NAME_LOWER=$(echo ${projectName} | tr '[:upper:]' '[:lower:]')`,
