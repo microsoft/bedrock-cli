@@ -95,6 +95,6 @@ Options:
   --remote-url <remote-url>        The remote host to create the pull request in; defaults to the URL for 'origin'
   --personal-access-token <pat>    Personal access token associated with your Azure DevOps token; falls back to azure_devops.access_token in your spk config
   --org-name <organization-name>   Your Azure DevOps organization name; falls back to azure_devops.org in your spk config
-
+  --target-branch                  Target branch/ring to create a PR against; overwrites the default rings specified in bedrock.yaml
   -h, --help                       output usage information
 ```

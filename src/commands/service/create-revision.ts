@@ -39,12 +39,17 @@ export const createServiceRevisionCommandDecorator = (
       "--org-name <organization-name>",
       "Your Azure DevOps organization name; falls back to azure_devops.org in your spk config"
     )
+    .option(
+      "--target-branch",
+      "Target branch/ring to create a PR against; overwrites the default rings specified in bedrock.yaml"
+    )
     .action(async opts => {
       try {
         const { azure_devops } = Config();
         const {
           orgName = azure_devops && azure_devops.org,
-          personalAccessToken = azure_devops && azure_devops.access_token
+          personalAccessToken = azure_devops && azure_devops.access_token,
+          targetBranch
         } = opts;
         let { description, remoteUrl, sourceBranch, title } = opts;
 
@@ -53,20 +58,23 @@ export const createServiceRevisionCommandDecorator = (
         ////////////////////////////////////////////////////////////////////////
         // default pull request against initial ring
         const bedrockConfig = Bedrock();
-        const defaultRings = Object.entries(bedrockConfig.rings || {})
-          .map(([branch, config]) => ({ branch, ...config }))
-          .filter(ring => ring.isDefault);
+        // Default to the --target-branch for creating a revision; if not specified, fallback to default rings in bedrock.yaml
+        const defaultRings: string[] = targetBranch
+          ? [targetBranch]
+          : Object.entries(bedrockConfig.rings || {})
+              .map(([branch, config]) => ({ branch, ...config }))
+              .filter(ring => !!ring.isDefault)
+              .map(ring => ring.branch);
         if (defaultRings.length === 0) {
-          throw new Error(
-            `No default rings specified in ${join(__dirname, "bedrock.yaml")}`
+          throw Error(
+            `Default branches/rings must either be specified in ${join(
+              __dirname,
+              "bedrock.yaml"
+            )} or provided via --target-branch`
           );
         }
         logger.info(
-          `${
-            defaultRings.length
-          } default ring(s) found in bedrock config. Creating pull request against branches: ${defaultRings
-            .map(r => `'${r.branch}'`)
-            .join(", ")}`
+          `Creating pull request against branches: ${defaultRings.join(", ")}`
         );
 
         // default pull request source branch to the current branch
@@ -94,6 +102,15 @@ export const createServiceRevisionCommandDecorator = (
               );
               throw err;
             });
+        }
+
+        // Make sure the user isn't trying to make a PR for a branch against itself
+        if (defaultRings.includes(sourceBranch)) {
+          throw Error(
+            `A pull request for a branch cannot be made against itself. Ensure your target branch(es) '${JSON.stringify(
+              defaultRings
+            )}' do not include your source branch '${sourceBranch}'`
+          );
         }
 
         // Give a default description
@@ -147,10 +164,10 @@ export const createServiceRevisionCommandDecorator = (
         // Make a PR against all default rings
         for (const ring of defaultRings) {
           if (typeof title !== "string") {
-            title = `[SPK] ${sourceBranch} => ${ring.branch}`;
+            title = `[SPK] ${sourceBranch} => ${ring}`;
             logger.info(`--title not set, defaulting to: '${title}'`);
           }
-          await createPullRequest(title, sourceBranch, ring.branch, {
+          await createPullRequest(title, sourceBranch, ring, {
             description,
             orgName,
             originPushUrl: remoteUrl,
