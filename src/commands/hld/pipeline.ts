@@ -177,8 +177,6 @@ export const installHldToManifestPipeline = async (
     yamlFilePath: `manifest-generation.yaml`
   } as IAzureRepoPipelineConfig);
 
-  logger.info(`pipelineDefinition: ${JSON.stringify(definition)}`); // TODO REMOVE THIS -----------------------------------------------------
-
   try {
     builtDefinition = await createPipelineForDefinition(
       devopsClient as IBuildApi,

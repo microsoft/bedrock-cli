@@ -212,9 +212,6 @@ export const createPipelineForDefinition = async (
   logger.info("Creating pipeline for definition");
 
   try {
-    logger.debug(
-      `Creating BuildDefinition based on ${JSON.stringify(definition)}`
-    );
     const createdDefn = await buildApi.createDefinition(
       definition,
       azdoProject
