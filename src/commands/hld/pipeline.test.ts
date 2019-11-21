@@ -22,15 +22,26 @@ afterAll(() => {
 });
 
 describe("required pipeline variables", () => {
-  it("should use access token and repo as pipeline vars", () => {
-    const variables = requiredPipelineVariables("foo", "bar");
+  it("should use have the proper pipeline vars vars", () => {
+    const variables = requiredPipelineVariables(
+      "somePAT",
+      "buildScriptUrl",
+      "manifestRepoUrl"
+    );
 
-    expect(Object.keys(variables).length).toBe(2);
-    expect(variables.PAT.value).toBe("foo");
+    expect(Object.keys(variables).length).toBe(3);
+
+    expect(variables.PAT.value).toBe("somePAT");
     expect(variables.PAT.isSecret).toBe(true);
+    expect(variables.PAT.allowOverride).toBe(true);
 
-    expect(variables.MANIFEST_REPO.value).toBe("bar");
+    expect(variables.BUILD_SCRIPT_URL.value).toBe("buildScriptUrl");
+    expect(variables.BUILD_SCRIPT_URL.isSecret).toBe(false);
+    expect(variables.BUILD_SCRIPT_URL.allowOverride).toBe(true);
+
+    expect(variables.MANIFEST_REPO.value).toBe("manifestRepoUrl");
     expect(variables.MANIFEST_REPO.isSecret).toBe(false);
+    expect(variables.MANIFEST_REPO.allowOverride).toBe(true);
   });
 });
 
@@ -40,13 +51,14 @@ describe("create hld to manifest pipeline test", () => {
 
     const exitFn = jest.fn();
     await installHldToManifestPipeline(
-      "foo",
-      "bar",
-      "wow",
-      "amazing",
-      "meow",
-      "baz",
+      "orgName",
+      "personalAccessToken",
+      "hldRepoName",
+      "hldRepoUrl",
+      "manifestRepoUrl",
+      "project",
       "pipelineName",
+      "buildScriptUrl",
       exitFn
     );
 
@@ -58,13 +70,14 @@ describe("create hld to manifest pipeline test", () => {
 
     const exitFn = jest.fn();
     await installHldToManifestPipeline(
-      "foo",
-      "bar",
-      "baz",
-      "wow",
-      "wao",
-      "baz",
+      "orgName",
+      "personalAccessToken",
+      "hldRepoName",
+      "hldRepoUrl",
+      "manifestRepoUrl",
+      "project",
       "pipelineName",
+      "buildScriptUrl",
       exitFn
     );
 
@@ -79,13 +92,14 @@ describe("create hld to manifest pipeline test", () => {
 
     const exitFn = jest.fn();
     await installHldToManifestPipeline(
-      "foo",
-      "bar",
-      "baz",
-      "wow",
-      "wao",
-      "baz",
+      "orgName",
+      "personalAccessToken",
+      "hldRepoName",
+      "hldRepoUrl",
+      "manifestRepoUrl",
+      "project",
       "pipelineName",
+      "buildScriptUrl",
       exitFn
     );
 
@@ -99,13 +113,14 @@ describe("create hld to manifest pipeline test", () => {
 
     const exitFn = jest.fn();
     await installHldToManifestPipeline(
-      "foo",
-      "bar",
-      "baz",
-      "wow",
-      "wao",
-      "baz",
+      "orgName",
+      "personalAccessToken",
+      "hldRepoName",
+      "hldRepoUrl",
+      "manifestRepoUrl",
+      "project",
       "pipelineName",
+      "buildScriptUrl",
       exitFn
     );
 

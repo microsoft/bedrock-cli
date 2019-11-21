@@ -5,6 +5,7 @@ import {
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
 import { Config } from "../../config";
+import { BUILD_SCRIPT_URL } from "../../lib/constants";
 import {
   getOriginUrl,
   getRepositoryName,
@@ -40,6 +41,10 @@ export const deployLifecyclePipelineCommandDecorator = (
     .option("-u, --repo-url <repo-url>", "Repository URL")
     .option("-e, --hld-url <hld-url>", "HLD Repository URL")
     .option("-d, --devops-project <devops-project>", "Azure DevOps Project")
+    .option(
+      "-b, --build-script <build-script-url>",
+      `Build Script URL. By default it is '${BUILD_SCRIPT_URL}'.`
+    )
     .action(async opts => {
       const gitOriginUrl = await getOriginUrl();
       const { azure_devops } = Config();
@@ -51,7 +56,8 @@ export const deployLifecyclePipelineCommandDecorator = (
         pipelineName = getRepositoryName(gitOriginUrl) + "-lifecycle",
         repoName = getRepositoryName(gitOriginUrl),
         repoUrl = getRepositoryUrl(gitOriginUrl),
-        hldUrl = azure_devops && azure_devops.hld_repository
+        hldUrl = azure_devops && azure_devops.hld_repository,
+        buildScriptUrl = BUILD_SCRIPT_URL
       } = opts;
 
       logger.debug(`orgName: ${orgName}`);
@@ -61,6 +67,7 @@ export const deployLifecyclePipelineCommandDecorator = (
       logger.debug(`repoUrl: ${repoUrl}`);
       logger.debug(`hldUrl: ${hldUrl}`);
       logger.debug(`devopsProject: ${devopsProject}`);
+      logger.debug(`buildScriptUrl: ${buildScriptUrl}`);
 
       try {
         if (typeof pipelineName !== "string") {
@@ -68,52 +75,51 @@ export const deployLifecyclePipelineCommandDecorator = (
             `--pipeline-name must be of type 'string', ${typeof pipelineName} given.`
           );
         }
-
         if (typeof personalAccessToken !== "string") {
           throw new Error(
             `--personal-access-token must be of type 'string', ${typeof personalAccessToken} given.`
           );
         }
-
         if (typeof orgName !== "string") {
           throw new Error(
             `--org-url must be of type 'string', ${typeof orgName} given.`
           );
         }
-
         if (typeof repoName !== "string") {
           throw new Error(
             `--repo-name must be of type 'string', ${typeof repoName} given.`
           );
         }
-
         if (typeof repoUrl !== "string") {
           throw new Error(
             `--repo-url must be of type 'string', ${typeof repoUrl} given.`
           );
         }
-
         if (typeof hldUrl !== "string") {
           throw new Error(
             `--hld-url must be of type 'string', ${typeof hldUrl} given.`
           );
         }
-
         if (typeof devopsProject !== "string") {
           throw new Error(
             `--devops-project must be of type 'string', ${typeof devopsProject} given.`
           );
         }
+        if (typeof buildScriptUrl !== "string") {
+          throw new Error(
+            `--build-script must be of type 'string', ${typeof buildScriptUrl} given.`
+          );
+        }
       } catch (err) {
         logger.error(
-          `Error occurred validating inputs for install-lifecycle-pipeline`
+          `Error occurred validating inputs for project install-lifecycle-pipeline`
         );
         logger.error(err);
         process.exit(1);
       }
 
       try {
-        await installPipeline(
+        await installLifecyclePipeline(
           orgName,
           personalAccessToken,
           pipelineName,
@@ -121,6 +127,7 @@ export const deployLifecyclePipelineCommandDecorator = (
           repoUrl,
           hldUrl,
           devopsProject,
+          buildScriptUrl,
           process.exit
         );
       } catch (err) {
@@ -143,9 +150,10 @@ export const deployLifecyclePipelineCommandDecorator = (
  * @param repositoryUrl
  * @param hldRepoUrl
  * @param project
+ * @param buildScriptUrl Build Script URL
  * @param exitFn
  */
-export const installPipeline = async (
+export const installLifecyclePipeline = async (
   orgName: string,
   personalAccessToken: string,
   pipelineName: string,
@@ -153,6 +161,7 @@ export const installPipeline = async (
   repositoryUrl: string,
   hldRepoUrl: string,
   project: string,
+  buildScriptUrl: string,
   exitFn: (status: number) => void
 ) => {
   let devopsClient: IBuildApi | undefined;
@@ -173,7 +182,11 @@ export const installPipeline = async (
     pipelineName,
     repositoryName,
     repositoryUrl,
-    variables: requiredPipelineVariables(personalAccessToken, hldRepoUrl),
+    variables: requiredPipelineVariables(
+      personalAccessToken,
+      buildScriptUrl,
+      hldRepoUrl
+    ),
     yamlFileBranch: "master",
     yamlFilePath: "hld-lifecycle.yaml"
   });
@@ -216,14 +229,21 @@ export const installPipeline = async (
 /**
  * Builds and returns variables required for the lifecycle pipeline.
  * @param accessToken Access token with access to the HLD repository.
- * @param  hldRepoUrl to the HLD repository.
- * @returns Object containing the necessary run-time variables for the lifecycle repository.
+ * @param buildScriptUrl Build Script URL
+ * @param hldRepoUrl to the HLD repository.
+ * @returns Object containing the necessary run-time variables for the lifecycle pipeline.
  */
 export const requiredPipelineVariables = (
   accessToken: string,
+  buildScriptUrl: string,
   hldRepoUrl: string
 ): { [key: string]: BuildDefinitionVariable } => {
   return {
+    BUILD_SCRIPT_URL: {
+      allowOverride: true,
+      isSecret: false,
+      value: buildScriptUrl
+    },
     HLD_REPO: {
       allowOverride: true,
       isSecret: false,

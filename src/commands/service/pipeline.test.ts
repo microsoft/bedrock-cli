@@ -8,7 +8,10 @@ import {
   queueBuild
 } from "../../lib/pipelines/pipelines";
 
-import { installPipeline } from "./pipeline";
+import {
+  installBuildUpdatePipeline,
+  requiredPipelineVariables
+} from "./pipeline";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -18,20 +21,33 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
+describe("required pipeline variables", () => {
+  it("should use have the proper pipeline vars vars", () => {
+    const variables = requiredPipelineVariables("buildScriptUrl");
+
+    expect(Object.keys(variables).length).toBe(1);
+
+    expect(variables.BUILD_SCRIPT_URL.value).toBe("buildScriptUrl");
+    expect(variables.BUILD_SCRIPT_URL.isSecret).toBe(false);
+    expect(variables.BUILD_SCRIPT_URL.allowOverride).toBe(true);
+  });
+});
+
 describe("create pipeline tests", () => {
   it("should create a pipeline", async () => {
     (createPipelineForDefinition as jest.Mock).mockReturnValue({ id: 10 });
 
     const exitFn = jest.fn();
-    await installPipeline(
-      "foo",
-      "bar",
-      "baz",
-      "wow",
-      "wao",
-      "amazing",
-      "meow",
-      ".",
+    await installBuildUpdatePipeline(
+      "serviceName",
+      "orgName",
+      "personalAccessToken",
+      "pipelineName",
+      "repositoryName",
+      "repositoryUrl",
+      "project",
+      "packagesDir",
+      "buildScriptUrl",
       exitFn
     );
 
@@ -42,15 +58,16 @@ describe("create pipeline tests", () => {
     (getBuildApiClient as jest.Mock).mockReturnValue(Promise.reject());
 
     const exitFn = jest.fn();
-    await installPipeline(
-      "foo",
-      "bar",
-      "baz",
-      "wow",
-      "wao",
-      "amazing",
-      "meow",
-      ".",
+    await installBuildUpdatePipeline(
+      "serviceName",
+      "orgName",
+      "personalAccessToken",
+      "pipelineName",
+      "repositoryName",
+      "repositoryUrl",
+      "project",
+      "packagesDir",
+      "buildScriptUrl",
       exitFn
     );
 
@@ -64,15 +81,16 @@ describe("create pipeline tests", () => {
     );
 
     const exitFn = jest.fn();
-    await installPipeline(
-      "foo",
-      "bar",
-      "baz",
-      "wow",
-      "wao",
-      "amazing",
-      "meow",
-      ".",
+    await installBuildUpdatePipeline(
+      "serviceName",
+      "orgName",
+      "personalAccessToken",
+      "pipelineName",
+      "repositoryName",
+      "repositoryUrl",
+      "project",
+      "packagesDir",
+      "buildScriptUrl",
       exitFn
     );
 
@@ -85,15 +103,16 @@ describe("create pipeline tests", () => {
     (queueBuild as jest.Mock).mockReturnValue(Promise.reject());
 
     const exitFn = jest.fn();
-    await installPipeline(
-      "foo",
-      "bar",
-      "baz",
-      "wow",
-      "wao",
-      "amazing",
-      "meow",
-      ".",
+    await installBuildUpdatePipeline(
+      "serviceName",
+      "orgName",
+      "personalAccessToken",
+      "pipelineName",
+      "repositoryName",
+      "repositoryUrl",
+      "project",
+      "packagesDir",
+      "buildScriptUrl",
       exitFn
     );
 

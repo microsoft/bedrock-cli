@@ -1,8 +1,12 @@
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
-import { BuildDefinition } from "azure-devops-node-api/interfaces/BuildInterfaces";
+import {
+  BuildDefinition,
+  BuildDefinitionVariable
+} from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
 import path from "path";
 import { Config } from "../../config";
+import { BUILD_SCRIPT_URL } from "../../lib/constants";
 import {
   getOriginUrl,
   getRepositoryName,
@@ -38,6 +42,10 @@ export const installBuildPipelineCommandDecorator = (
     .option("-u, --repo-url <repo-url>", "Repository URL")
     .option("-d, --devops-project <devops-project>", "Azure DevOps Project")
     .option(
+      "-b, --build-script <build-script-url>",
+      `Build Script URL. By default it is '${BUILD_SCRIPT_URL}'.`
+    )
+    .option(
       "-l, --packages-dir <packages-dir>",
       "The mono-repository directory containing this service definition. ie. '--packages-dir packages' if my-service is located under ./packages/my-service. Omitting this option implies this is a not a mono-repository."
     )
@@ -52,7 +60,8 @@ export const installBuildPipelineCommandDecorator = (
         pipelineName = serviceName + "-pipeline",
         packagesDir, // allow to be undefined in the case of a mono-repo
         repoName = getRepositoryName(gitOriginUrl),
-        repoUrl = getRepositoryUrl(gitOriginUrl)
+        repoUrl = getRepositoryUrl(gitOriginUrl),
+        buildScriptUrl = BUILD_SCRIPT_URL
       } = opts;
 
       logger.debug(`orgName: ${orgName}`);
@@ -62,6 +71,7 @@ export const installBuildPipelineCommandDecorator = (
       logger.debug(`packagesDir: ${packagesDir}`);
       logger.debug(`repoName: ${repoName}`);
       logger.debug(`repoUrl: ${repoUrl}`);
+      logger.debug(`buildScriptUrl: ${buildScriptUrl}`);
 
       try {
         if (typeof pipelineName !== "string") {
@@ -69,34 +79,34 @@ export const installBuildPipelineCommandDecorator = (
             `--pipeline-name must be of type 'string', ${typeof pipelineName} given.`
           );
         }
-
         if (typeof personalAccessToken !== "string") {
           throw new Error(
             `--personal-access-token must be of type 'string', ${typeof personalAccessToken} given.`
           );
         }
-
         if (typeof orgName !== "string") {
           throw new Error(
             `--org-url must be of type 'string', ${typeof orgName} given.`
           );
         }
-
         if (typeof repoName !== "string") {
           throw new Error(
             `--repo-name must be of type 'string', ${typeof repoName} given.`
           );
         }
-
         if (typeof repoUrl !== "string") {
           throw new Error(
             `--repo-url must be of type 'string', ${typeof repoUrl} given.`
           );
         }
-
         if (typeof devopsProject !== "string") {
           throw new Error(
             `--devops-project must be of type 'string', ${typeof devopsProject} given.`
+          );
+        }
+        if (typeof buildScriptUrl !== "string") {
+          throw new Error(
+            `--build-script must be of type 'string', ${typeof buildScriptUrl} given.`
           );
         }
       } catch (err) {
@@ -106,7 +116,7 @@ export const installBuildPipelineCommandDecorator = (
       }
 
       try {
-        await installPipeline(
+        await installBuildUpdatePipeline(
           serviceName,
           orgName,
           personalAccessToken,
@@ -115,6 +125,7 @@ export const installBuildPipelineCommandDecorator = (
           repoUrl,
           devopsProject,
           packagesDir,
+          buildScriptUrl,
           process.exit
         );
       } catch (err) {
@@ -136,9 +147,10 @@ export const installBuildPipelineCommandDecorator = (
  * @param repositoryUrl
  * @param project
  * @param packagesDir The directory containing the services for a mono-repo. If undefined; implies that we are operating on a standard service repository
+ * @param buildScriptUrl Build Script URL
  * @param exitFn
  */
-export const installPipeline = async (
+export const installBuildUpdatePipeline = async (
   serviceName: string,
   orgName: string,
   personalAccessToken: string,
@@ -147,6 +159,7 @@ export const installPipeline = async (
   repositoryUrl: string,
   project: string,
   packagesDir: string | undefined,
+  buildScriptUrl: string,
   exitFn: (status: number) => void
 ) => {
   let devopsClient: IBuildApi | undefined;
@@ -167,6 +180,7 @@ export const installPipeline = async (
     pipelineName,
     repositoryName,
     repositoryUrl,
+    variables: requiredPipelineVariables(buildScriptUrl),
     yamlFileBranch: "master",
     yamlFilePath: packagesDir // if a packages dir is supplied, its a mono-repo
       ? path.join(packagesDir, serviceName, "azure-pipelines.yaml") // if a packages dir is supplied, its a mono-repo; concat <packages-dir>/<service-name>
@@ -206,4 +220,21 @@ export const installPipeline = async (
     logger.error(err);
     return exitFn(1);
   }
+};
+
+/**
+ * Builds and returns variables required for the Build & Update service pipeline.
+ * @param buildScriptUrl Build Script URL
+ * @returns Object containing the necessary run-time variables for the Build & Update service  pipeline.
+ */
+export const requiredPipelineVariables = (
+  buildScriptUrl: string
+): { [key: string]: BuildDefinitionVariable } => {
+  return {
+    BUILD_SCRIPT_URL: {
+      allowOverride: true,
+      isSecret: false,
+      value: buildScriptUrl
+    }
+  };
 };

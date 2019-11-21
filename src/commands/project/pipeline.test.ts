@@ -8,7 +8,10 @@ import {
   queueBuild
 } from "../../lib/pipelines/pipelines";
 
-import { installPipeline } from "./pipeline";
+import {
+  installLifecyclePipeline,
+  requiredPipelineVariables
+} from "./pipeline";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -18,12 +21,36 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
+describe("required pipeline variables", () => {
+  it("should use have the proper pipeline vars vars", () => {
+    const variables = requiredPipelineVariables(
+      "somePAT",
+      "buildScriptUrl",
+      "hldRepoUrl"
+    );
+
+    expect(Object.keys(variables).length).toBe(3);
+
+    expect(variables.PAT.value).toBe("somePAT");
+    expect(variables.PAT.isSecret).toBe(true);
+    expect(variables.PAT.allowOverride).toBe(true);
+
+    expect(variables.BUILD_SCRIPT_URL.value).toBe("buildScriptUrl");
+    expect(variables.BUILD_SCRIPT_URL.isSecret).toBe(false);
+    expect(variables.BUILD_SCRIPT_URL.allowOverride).toBe(true);
+
+    expect(variables.HLD_REPO.value).toBe("hldRepoUrl");
+    expect(variables.HLD_REPO.isSecret).toBe(false);
+    expect(variables.HLD_REPO.allowOverride).toBe(true);
+  });
+});
+
 describe("create hld to manifest pipeline test", () => {
   it("should create a pipeline", async () => {
     (createPipelineForDefinition as jest.Mock).mockReturnValue({ id: 10 });
 
     const exitFn = jest.fn();
-    await installPipeline(
+    await installLifecyclePipeline(
       "orgName",
       "PAT",
       "pipelineName",
@@ -31,6 +58,7 @@ describe("create hld to manifest pipeline test", () => {
       "repoUrl",
       "hldRepoUrl",
       "azDoProject",
+      "buildScriptUrl",
       exitFn
     );
 
@@ -41,7 +69,7 @@ describe("create hld to manifest pipeline test", () => {
     (getBuildApiClient as jest.Mock).mockReturnValue(Promise.reject());
 
     const exitFn = jest.fn();
-    await installPipeline(
+    await installLifecyclePipeline(
       "orgName",
       "PAT",
       "pipelineName",
@@ -49,6 +77,7 @@ describe("create hld to manifest pipeline test", () => {
       "repoUrl",
       "hldRepoUrl",
       "azDoProject",
+      "buildScriptUrl",
       exitFn
     );
 
@@ -62,7 +91,7 @@ describe("create hld to manifest pipeline test", () => {
     );
 
     const exitFn = jest.fn();
-    await installPipeline(
+    await installLifecyclePipeline(
       "orgName",
       "PAT",
       "pipelineName",
@@ -70,6 +99,7 @@ describe("create hld to manifest pipeline test", () => {
       "repoUrl",
       "hldRepoUrl",
       "azDoProject",
+      "buildScriptUrl",
       exitFn
     );
 
@@ -82,7 +112,7 @@ describe("create hld to manifest pipeline test", () => {
     (queueBuild as jest.Mock).mockReturnValue(Promise.reject());
 
     const exitFn = jest.fn();
-    await installPipeline(
+    await installLifecyclePipeline(
       "orgName",
       "PAT",
       "pipelineName",
@@ -90,6 +120,7 @@ describe("create hld to manifest pipeline test", () => {
       "repoUrl",
       "hldRepoUrl",
       "azDoProject",
+      "buildScriptUrl",
       exitFn
     );
 

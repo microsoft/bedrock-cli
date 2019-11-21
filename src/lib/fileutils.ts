@@ -161,10 +161,13 @@ export const starterAzurePipelines = async (opts: {
               {
                 script: generateYamlScript([
                   `# Download build.sh`,
-                  `curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh`,
+                  `curl $BEDROCK_BUILD_SCRIPT > build.sh`,
                   `chmod +x ./build.sh`
                 ]),
-                displayName: "Download bedrock bash scripts"
+                displayName: "Download bedrock bash scripts",
+                env: {
+                  BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)"
+                }
               },
               ...cleanedPaths.map(projectPath => {
                 logger.info(`projectPath: ${projectPath}`);
@@ -384,15 +387,14 @@ const manifestGenerationPipelineYaml = () => {
         clean: true
       },
       {
-        bash: generateYamlScript([
-          // TODO: Double check this script, it's turning it tnto a list with a '-'.
+        script: generateYamlScript([
+          `# Download build.sh`,
           `curl $BEDROCK_BUILD_SCRIPT > build.sh`,
           `chmod +x ./build.sh`
         ]),
-        displayName: "Download Bedrock orchestration script",
+        displayName: "Download bedrock bash scripts",
         env: {
-          BEDROCK_BUILD_SCRIPT:
-            "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh"
+          BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)"
         }
       },
       {
@@ -481,10 +483,13 @@ const hldLifecyclePipelineYaml = () => {
       {
         script: generateYamlScript([
           `# Download build.sh`,
-          `curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh`,
+          `curl $BEDROCK_BUILD_SCRIPT > build.sh`,
           `chmod +x ./build.sh`
         ]),
-        displayName: "Download bedrock bash scripts"
+        displayName: "Download bedrock bash scripts",
+        env: {
+          BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)"
+        }
       },
       {
         script: generateYamlScript([

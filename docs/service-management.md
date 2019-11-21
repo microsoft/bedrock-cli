@@ -65,7 +65,7 @@ https://docs.microsoft.com/en-us/azure/devops/pipelines/process/stages?view=azur
 ```
 Usage: service install-build-pipeline|p [options] <service-name>
 
-Install the build and push to acr pipeline for a service to your Azure DevOps instance.
+Install the build and push to acr pipeline for a service to your Azure DevOps instance
 
 Options:
   -n, --pipeline-name <pipeline-name>                  Name of the pipeline to be created
@@ -74,6 +74,7 @@ Options:
   -r, --repo-name <repo-name>                          Repository Name in Azure DevOps
   -u, --repo-url <repo-url>                            Repository URL
   -d, --devops-project <devops-project>                Azure DevOps Project
+  -b, --build-script <build-script-url>                Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'.
   -l, --packages-dir <packages-dir>                    The mono-repository directory containing this service definition. ie. '--packages-dir packages' if my-service is located under ./packages/my-service. Omitting this option implies this is a not a mono-repository.
   -h, --help                                           output usage information
 ```

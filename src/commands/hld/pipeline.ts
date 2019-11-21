@@ -5,6 +5,7 @@ import {
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
 import { Config } from "../../config";
+import { BUILD_SCRIPT_URL } from "../../lib/constants";
 import { getRepositoryName } from "../../lib/gitutils";
 import {
   createPipelineForDefinition,
@@ -20,7 +21,7 @@ export const installHldToManifestPipelineDecorator = (
 ): void => {
   command
     .command("install-manifest-pipeline")
-    .alias("m")
+    .alias("p")
     .description(
       "Install the manifest generation pipeline to your Azure DevOps instance. Default values are set in spk-config.yaml and can be loaded via spk init or overriden via option flags."
     )
@@ -37,6 +38,10 @@ export const installHldToManifestPipelineDecorator = (
     .option("-u, --hld-url <hld-url>", "HLD Repository URL")
     .option("-m, --manifest-url <manifest-url>", "Manifest Repository URL")
     .option("-d, --devops-project <devops-project>", "Azure DevOps Project")
+    .option(
+      "-b, --build-script <build-script-url>",
+      `Build Script URL. By default it is '${BUILD_SCRIPT_URL}'.`
+    )
     .action(async opts => {
       const { azure_devops } = Config();
 
@@ -52,7 +57,8 @@ export const installHldToManifestPipelineDecorator = (
         personalAccessToken = azure_devops && azure_devops.access_token,
         devopsProject = azure_devops && azure_devops.project,
         hldName = getRepositoryName(hldUrl),
-        pipelineName = hldName + "-to-" + manifestRepoName
+        pipelineName = hldName + "-to-" + manifestRepoName,
+        buildScriptUrl = BUILD_SCRIPT_URL
       } = opts;
 
       logger.debug(`orgName: ${orgName}`);
@@ -62,6 +68,7 @@ export const installHldToManifestPipelineDecorator = (
       logger.debug(`manifestUrl: ${manifestUrl}`);
       logger.debug(`hldName: ${hldName}`);
       logger.debug(`hldUrl: ${hldUrl}`);
+      logger.debug(`buildScriptUrl: ${buildScriptUrl}`);
 
       try {
         if (typeof pipelineName !== "string") {
@@ -105,6 +112,11 @@ export const installHldToManifestPipelineDecorator = (
             `--devops-project must be of type 'string', ${typeof devopsProject} given.`
           );
         }
+        if (typeof buildScriptUrl !== "string") {
+          throw new Error(
+            `--build-script must be of type 'string', ${typeof buildScriptUrl} given.`
+          );
+        }
       } catch (err) {
         logger.error(
           `Error occurred validating inputs for hld install-manifest-pipeline`
@@ -122,6 +134,7 @@ export const installHldToManifestPipelineDecorator = (
           manifestUrl,
           devopsProject,
           pipelineName,
+          buildScriptUrl,
           process.exit
         );
       } catch (err) {
@@ -143,6 +156,8 @@ export const installHldToManifestPipelineDecorator = (
  * @param hldRepoUrl URL to the HLD repository
  * @param manifestRepoUrl URL to the materialized manifest repository
  * @param project Azure DevOps project that the HLD and Materialized manifest repository is in
+ * @param pipelineName Name of this build pipeline in AzDo
+ * @param buildScriptUrl Build Script URL
  */
 export const installHldToManifestPipeline = async (
   orgName: string,
@@ -152,6 +167,7 @@ export const installHldToManifestPipeline = async (
   manifestRepoUrl: string,
   project: string,
   pipelineName: string,
+  buildScriptUrl: string,
   exitFn: (status: number) => void
 ) => {
   let devopsClient;
@@ -172,7 +188,11 @@ export const installHldToManifestPipeline = async (
     pipelineName: pipelineName,
     repositoryName: hldRepoName,
     repositoryUrl: hldRepoUrl,
-    variables: requiredPipelineVariables(personalAccessToken, manifestRepoUrl),
+    variables: requiredPipelineVariables(
+      personalAccessToken,
+      buildScriptUrl,
+      manifestRepoUrl
+    ),
     yamlFileBranch: "master",
     yamlFilePath: `manifest-generation.yaml`
   } as IAzureRepoPipelineConfig);
@@ -208,14 +228,21 @@ export const installHldToManifestPipeline = async (
 /**
  * Builds and returns variables required for the HLD to Manifest pipeline.
  * @param accessToken Access token with access to the manifest repository.
+ * @param buildScriptUrl Build Script URL
  * @param manifestRepoUrl URL to the materialized manifest repository.
- * @returns Object containing the necessary run-time variables for the HLD to Manifest repository.
+ * @returns Object containing the necessary run-time variables for the HLD to Manifest pipeline.
  */
 export const requiredPipelineVariables = (
   accessToken: string,
+  buildScriptUrl: string,
   manifestRepoUrl: string
 ): { [key: string]: BuildDefinitionVariable } => {
   return {
+    BUILD_SCRIPT_URL: {
+      allowOverride: true,
+      isSecret: false,
+      value: buildScriptUrl
+    },
     MANIFEST_REPO: {
       allowOverride: true,
       isSecret: false,

@@ -77,7 +77,7 @@ invoke "manifest generation"
 and configuration into Kubernetes yaml.
 
 ```
-Usage: hld install-manifest-pipeline|m [options]
+Usage: hld install-manifest-pipeline|p [options]
 
 Install the manifest generation pipeline to your Azure DevOps instance. Default values are set in spk-config.yaml and can be loaded via spk init or overriden via option flags.
 
@@ -89,6 +89,7 @@ Options:
   -u, --hld-url <hld-url>                              HLD Repository URL
   -m, --manifest-url <manifest-url>                    Manifest Repository URL
   -d, --devops-project <devops-project>                Azure DevOps Project
+  -b, --build-script <build-script-url>                Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'.
   -h, --help                                           output usage information
 ```
 

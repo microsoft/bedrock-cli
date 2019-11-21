@@ -98,10 +98,13 @@ export const createTestHldLifecyclePipelineYaml = (
       {
         script: generateYamlScript([
           `# Download build.sh`,
-          `curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh`,
+          `curl $BEDROCK_BUILD_SCRIPT > build.sh`,
           `chmod +x ./build.sh`
         ]),
-        displayName: "Download bedrock bash scripts"
+        displayName: "Download bedrock bash scripts",
+        env: {
+          BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)"
+        }
       },
       {
         script: generateYamlScript([
@@ -189,11 +192,14 @@ export const createTestHldAzurePipelinesYaml = (
         clean: true
       },
       {
-        bash: "curl $BEDROCK_BUILD_SCRIPT > build.sh\nchmod +x ./build.sh",
-        displayName: "Download Bedrock orchestration script",
+        script: generateYamlScript([
+          `# Download build.sh`,
+          `curl $BEDROCK_BUILD_SCRIPT > build.sh`,
+          `chmod +x ./build.sh`
+        ]),
+        displayName: "Download bedrock bash scripts",
         env: {
-          BEDROCK_BUILD_SCRIPT:
-            "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh"
+          BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)"
         }
       },
       {
