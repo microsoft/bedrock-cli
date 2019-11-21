@@ -94,7 +94,8 @@ If you wish to run these tests locally, skip ahead to
    following key/values:
    - AZDO_PROJECT (e.g. `bedrock`)
    - AZDO_ORG (e.g. `epicstuff`)
-   - AZDO_PAT (e.g. Personal Access Token with access to AZDO_PROJECT) <-- 🔒
+   - AZDO_PAT (e.g. Personal Access Token with _read/write/manage_ access to
+     AZDO_PROJECT) <-- 🔒
    - SP_APP_ID (e.g Service Principal App Id)
    - SP_PASS (e.g Service Principal Password) <-- 🔒
    - SP_TENANT (e.g Service Principal Tenant Id)

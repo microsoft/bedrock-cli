@@ -131,7 +131,7 @@ spk hld install-manifest-pipeline -o $AZDO_ORG -d $AZDO_PROJECT -p $ACCESS_TOKEN
 pipeline_created=$(az pipelines show --name $hld_dir-to-$manifests_dir --org $AZDO_ORG_URL --p $AZDO_PROJECT)
 
 # Verify the pipeline run was successful
-verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_dir-to-$manifests_dir 180 15
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_dir-to-$manifests_dir 300 15
 
 # App Code Mono Repo set up 
 mkdir $mono_repo_dir
@@ -197,7 +197,7 @@ spk service install-build-pipeline -o $AZDO_ORG -r $mono_repo_dir -u $remote_rep
 pipeline_created=$(az pipelines show --name $pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
 
 # Verify the pipeline run was successful
-verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $pipeline_name 180 25
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $pipeline_name 300 25
 # TODO approve the PR this build creates on the HLD
 
 # Start creating a service revision
@@ -212,10 +212,10 @@ git push --set-upstream origin $branchName
 current_time=$(date +"%Y-%m-%d-%H-%M-%S")
 pr_title="Automated Test PR $current_time"
 echo "Creating pull request: '$pr_title'" 
-spk service create-revision -t $pr_title -d "Adding my new file" --org-name $AZDO_ORG --personal-access-token "$ACCESS_TOKEN_SECRET"  --remote-url $remote_repo_url >> $TEST_WORKSPACE/log.txt
+spk service create-revision -t "$pr_title" -d "Adding my new file" --org-name $AZDO_ORG --personal-access-token $ACCESS_TOKEN_SECRET --remote-url $remote_repo_url >> $TEST_WORKSPACE/log.txt
 
 echo "Attempting to approve pull request: '$pr_title'" 
 # Get the id of the pr created and set the PR to be approved
-approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT $pr_title
+approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "$pr_title"
 
-
+# TODO hook up helm chart, approve HLD pull request, verify manifest gen pipeline

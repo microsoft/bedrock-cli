@@ -208,15 +208,15 @@ function verify_pipeline_with_poll () {
         pipeline_status=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq .[0].status)
         echo "pipeline_status this iteration --> $pipeline_status"
         if [ "$(echo $pipeline_status | grep 'completed')" != "" ]; then
-        pipeline_result=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq .[0].result)
-        if [ "$(echo $pipeline_result | grep 'succeeded')" != "" ]; then
-            echo "Successful build for pipeline id $pipeline_id!"
-            loop_result=$pipeline_result
-            break
-        else
-            echo "Expected successful build for pipeline id $pipeline_id but result is $pipeline_result"
-            exit 1 
-        fi
+            pipeline_result=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq .[0].result)
+            if [ "$(echo $pipeline_result | grep 'succeeded')" != "" ]; then
+                echo "Successful build for pipeline id $pipeline_id!"
+                loop_result=$pipeline_result
+                break
+            else
+                echo "Expected successful build for pipeline id $pipeline_id but result is $pipeline_result"
+                exit 1 
+            fi
         else
         echo "Pipeline Id $pipeline_id status is $pipeline_status. Sleeping for $poll_interval seconds"
         sleep $poll_interval
@@ -231,14 +231,20 @@ function verify_pipeline_with_poll () {
 function approve_pull_request () {
     all_prs=$(az repos pr list --org $1 --p $2) 
     pr_title=$3
-    pr_exists=$(tr '"\""' '"\\"' <<< "$all_prs" | jq -r --arg pr_title $pr_title '.[] | select(.title == $pr_title) | != null')
+
+    pr_exists=$(echo $all_prs | jq -r --arg pr_title "$pr_title" '.[] | select(.title == $pr_title) != null')
     if [ "$pr_exists" != "true" ]; then
         echo "PR for '$pr_title' not found"
         exit 1
     fi
-    pull_request_id=$(tr '"\""' '"\\"' <<< "$all_prs" | jq -r --arg pr_title $pr_title '.[] | select(.title == $pr_title) | .pullRequestId')
+    pull_request_id=$(echo $all_prs | jq -r --arg pr_title "$pr_title" '.[] | select(.title == $pr_title) | .pullRequestId')
     echo "Found pull request id $pull_request_id for '$pr_title'"
-    approve_result=$(az repos pr update --id $pull_request_id --auto-complete true -—org $1 --p $2)
-    echo "PR $pull_request_id approved"
-    # TODO verify actually successful
+    approve_result=$(az repos pr update --id "$pull_request_id" --auto-complete true --output json )
+
+    if [ "$(echo $approve_result | jq '.mergeStatus' | grep 'succeeded')" != "" ]; then
+        echo "PR $pull_request_id approved"
+    else
+        echo "Issue approving PR $pull_request_id"
+        exit 1
+    fi
 }
