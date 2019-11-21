@@ -60,7 +60,7 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
               "@" +
               config.azure_devops.infra_repository;
             logger.info(
-              `Infrastructure repository detected from initialized spk-config.yaml : ${opts.source}`
+              `Infrastructure repository detected from initialized spk-config.yaml.`
             );
           }
         }

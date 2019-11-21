@@ -4,6 +4,11 @@ import mkdirp from "mkdirp";
 import * as os from "os";
 import path from "path";
 import simpleGit from "simple-git/promise";
+import {
+  getCurrentBranch,
+  getOriginUrl,
+  safeGitUrlForLogging
+} from "../../lib/gitutils";
 import { logger } from "../../logger";
 import * as infraCommon from "./infra_common";
 import { copyTfTemplate } from "./scaffold";
@@ -87,15 +92,16 @@ export const validateTemplateSource = async (
 ): Promise<string[]> => {
   try {
     const definitionJSON = await readDefinitionJson(projectPath);
+    const safeLoggingUrl = safeGitUrlForLogging(definitionJSON.source);
     // TO DO : Check for malformed JSON
     if (!(definitionJSON.template && definitionJSON.source)) {
       logger.info(
-        `The definition.json file is invalid. There is a missing field for the definition file's sources. Template: ${definitionJSON.template} source: ${definitionJSON.source} version: ${definitionJSON.version}`
+        `The definition.json file is invalid. There is a missing field for the definition file's sources. Template: ${definitionJSON.template} source: ${safeLoggingUrl} version: ${definitionJSON.version}`
       );
       return [];
     }
     logger.info(
-      `Checking for locally stored template: ${definitionJSON.template} from remote repository: ${definitionJSON.source} at version: ${definitionJSON.version}`
+      `Checking for locally stored template: ${definitionJSON.template} from remote repository: ${safeLoggingUrl} at version: ${definitionJSON.version}`
     );
     const sources = [
       definitionJSON.source,
@@ -123,6 +129,7 @@ export const validateRemoteSource = async (
   // Converting source name to storable folder name
   const sourceFolder = await infraCommon.repoCloneRegex(source);
   const sourcePath = path.join(infraCommon.spkTemplatesPath, sourceFolder);
+  const safeLoggingUrl = safeGitUrlForLogging(source);
   logger.warn(`Converted to: ${sourceFolder}`);
   logger.info(`Checking if source: ${sourcePath} is stored locally.`);
   try {
@@ -144,9 +151,9 @@ export const validateRemoteSource = async (
       );
       return false;
     } else {
-      logger.info(`Remote source repo: ${source} exists.`);
+      logger.info(`Remote source repo: ${safeLoggingUrl} exists.`);
       logger.info(
-        `Checking if source repo: ${source} has been already cloned to: ${sourcePath}.`
+        `Checking if source repo: ${safeLoggingUrl} has been already cloned to: ${sourcePath}.`
       );
       // Check if .git folder exists in ${sourcePath}, if not, then clone
       // if already cloned, 'git pull'
@@ -154,10 +161,12 @@ export const validateRemoteSource = async (
         // Make sure we have the latest version of all releases cached locally
         await simpleGit(sourcePath).fetch("all");
         await simpleGit(sourcePath).pull("origin", "master");
-        logger.info(`${source} already cloned. Performing 'git pull'...`);
+        logger.info(
+          `${safeLoggingUrl} already cloned. Performing 'git pull'...`
+        );
       } else {
         await git.clone(source, `${sourcePath}`);
-        logger.info(`Cloning ${source} was successful.`);
+        logger.info(`Cloning ${safeLoggingUrl} was successful.`);
       }
       // Checkout tagged version
       logger.info(`Checking out template version: ${version}`);
