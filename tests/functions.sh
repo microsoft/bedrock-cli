@@ -151,30 +151,13 @@ function variable_group_exists () {
 }
 
 function pipeline_exists () {
-    FrontEnd=$3
+    echo "Checking if pipeline: ${3} already exists."
     pipeline_results=$(az pipelines list --org $1 --p $2)
-    pipeline_exists=$(tr '"\""' '"\\"' <<< "$pipeline_results" | jq -r --arg FrontEnd "$FrontEnd-pipeline" '.[].name  | select(. == $FrontEnd ) != null')
-
+    pipeline_exists=$(tr '"\""' '"\\"' <<< "$pipeline_results" | jq -r --arg pipeline_name ${3} '.[].name  | select(. == $pipeline_name ) != null')
     if [ "$pipeline_exists" = "true" ]; then
-        echo "The pipeline '$FrontEnd-pipeline' already exists "
+        echo "The pipeline '${3}' already exists."
         # Get the pipeline id. We have to replace single "\" with "\\"
-        pipeline_id=$(tr '"\""' '"\\"' <<<"$pipeline_results"  | jq -r --arg FrontEnd "$FrontEnd-pipeline" '.[] | select(.name == $FrontEnd) | .id')
-        echo "pipeline_id to delete is $pipeline_id"
-        # Delete the repo
-        az pipelines delete --id "$pipeline_id" --yes --org $1 --p $2
-    fi
-}
-
-function hld_pipeline_exists () {
-    echo "Checking if the HLD pipeline already exists."
-    hld_pipeline_name="${3}-to-${4}"
-    echo "Looking for pipeline of name: $hld_pipeline_name"
-    pipeline_results=$(az pipelines list --org $1 --p $2)
-    pipeline_exists=$(tr '"\""' '"\\"' <<< "$pipeline_results" | jq -r --arg pipeline_name $hld_pipeline_name '.[].name  | select(. == $pipeline_name ) != null')
-    if [ "$pipeline_exists" = "true" ]; then
-        echo "The pipeline '$hld_pipeline_name' already exists."
-        # Get the pipeline id. We have to replace single "\" with "\\"
-        pipeline_id=$(tr '"\""' '"\\"' <<<"$pipeline_results"  | jq -r --arg pipeline_name $hld_pipeline_name '.[] | select(.name == $pipeline_name) | .id')
+        pipeline_id=$(tr '"\""' '"\\"' <<<"$pipeline_results"  | jq -r --arg pipeline_name ${3} '.[] | select(.name == $pipeline_name) | .id')
         echo "pipeline_id to delete is $pipeline_id"
         # Delete the repo
         az pipelines delete --id "$pipeline_id" --yes --org $1 --p $2
@@ -199,31 +182,32 @@ function verify_pipeline_with_poll () {
         # We expect only 1 build right now
         build_count=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq '. | length')
         if [ "$build_count" != "1"  ]; then 
-            echo "Expected 1 build for pipeline id $pipeline_id but found $build_count"
+            echo "Expected 1 build for pipeline: $pipeline_name-$pipeline_id but found $build_count"
             exit 1 
         fi
 
         # We use grep because of string matching issues
         echo "Get the build status for build..."
         pipeline_status=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq .[0].status)
+        echo "pipeline: $pipeline_name-$pipeline_id:"
         echo "pipeline_status this iteration --> $pipeline_status"
         if [ "$(echo $pipeline_status | grep 'completed')" != "" ]; then
             pipeline_result=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq .[0].result)
             if [ "$(echo $pipeline_result | grep 'succeeded')" != "" ]; then
-                echo "Successful build for pipeline id $pipeline_id!"
+                echo "Successful build for pipeline: $pipeline_name-$pipeline_id!"
                 loop_result=$pipeline_result
                 break
             else
-                echo "Expected successful build for pipeline id $pipeline_id but result is $pipeline_result"
+                echo "Expected successful build for pipeline: $pipeline_name-$pipeline_id but result is $pipeline_result"
                 exit 1 
             fi
         else
-        echo "Pipeline Id $pipeline_id status is $pipeline_status. Sleeping for $poll_interval seconds"
+        echo "pipeline: $pipeline_name-$pipeline_id status is $pipeline_status. Sleeping for $poll_interval seconds"
         sleep $poll_interval
         fi 
     done
     if [ "$loop_result" = "unknown" ]; then
-        echo "Polling the build timed out after $poll_timeout seconds!"
+        echo "Polling pipeline: $pipeline_name-$pipeline_id timed out after $poll_timeout seconds!"
         exit 1
     fi
 }

@@ -24,12 +24,13 @@ describe("create hld to manifest pipeline test", () => {
 
     const exitFn = jest.fn();
     await installPipeline(
-      "foo",
-      "bar",
-      "wow",
-      "amazing",
-      "meow",
-      "baz",
+      "orgName",
+      "PAT",
+      "pipelineName",
+      "repoName",
+      "repoUrl",
+      "hldRepoUrl",
+      "azDoProject",
       exitFn
     );
 
@@ -40,7 +41,16 @@ describe("create hld to manifest pipeline test", () => {
     (getBuildApiClient as jest.Mock).mockReturnValue(Promise.reject());
 
     const exitFn = jest.fn();
-    await installPipeline("foo", "bar", "baz", "wow", "wao", "baz", exitFn);
+    await installPipeline(
+      "orgName",
+      "PAT",
+      "pipelineName",
+      "repoName",
+      "repoUrl",
+      "hldRepoUrl",
+      "azDoProject",
+      exitFn
+    );
 
     expect(exitFn).toBeCalledTimes(1);
   });
@@ -52,7 +62,16 @@ describe("create hld to manifest pipeline test", () => {
     );
 
     const exitFn = jest.fn();
-    await installPipeline("foo", "bar", "baz", "wow", "wao", "baz", exitFn);
+    await installPipeline(
+      "orgName",
+      "PAT",
+      "pipelineName",
+      "repoName",
+      "repoUrl",
+      "hldRepoUrl",
+      "azDoProject",
+      exitFn
+    );
 
     expect(exitFn).toBeCalledTimes(1);
   });
@@ -63,7 +82,16 @@ describe("create hld to manifest pipeline test", () => {
     (queueBuild as jest.Mock).mockReturnValue(Promise.reject());
 
     const exitFn = jest.fn();
-    await installPipeline("foo", "bar", "baz", "wow", "wao", "baz", exitFn);
+    await installPipeline(
+      "orgName",
+      "PAT",
+      "pipelineName",
+      "repoName",
+      "repoUrl",
+      "hldRepoUrl",
+      "azDoProject",
+      exitFn
+    );
 
     expect(exitFn).toBeCalledTimes(1);
   });

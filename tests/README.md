@@ -35,7 +35,7 @@ tests.
 | -------------------------------------- | -------- |
 | spk project init                       | ✅       |
 | spk project create-variable-group      | ✅       |
-| spk project install-lifecycle-pipeline | 🚫       |
+| spk project install-lifecycle-pipeline | ✅       |
 
 ## Service Management
 

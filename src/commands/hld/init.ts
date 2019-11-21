@@ -2,6 +2,7 @@ import commander from "commander";
 
 import {
   generateDefaultHldComponentYaml,
+  generateGitIgnoreFile,
   generateHldAzurePipelinesYaml
 } from "../../lib/fileutils";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
@@ -50,6 +51,8 @@ export const initialize = async (rootProjectPath: string, gitPush: boolean) => {
 
   generateHldAzurePipelinesYaml(rootProjectPath);
   generateDefaultHldComponentYaml(rootProjectPath);
+  // Create .gitignore file in directory ignoring spk.log, if one doesn't already exist.
+  generateGitIgnoreFile(rootProjectPath, "spk.log");
 
   // If requested, create new git branch, commit, and push
   if (gitPush) {

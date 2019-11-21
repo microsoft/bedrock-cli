@@ -88,8 +88,8 @@ mkdir $hld_dir
 cd $hld_dir
 git init
 spk hld init
-touch component.yaml ## Adding blank component.yaml, though spk hld init may also create a default one in the future.
-file_we_expect=("spk.log" "manifest-generation.yaml" "component.yaml")
+touch component.yaml
+file_we_expect=("spk.log" "manifest-generation.yaml" "component.yaml" ".gitignore")
 validate_directory "$TEST_WORKSPACE/$hld_dir" "${file_we_expect[@]}"
 
 git add -A
@@ -119,19 +119,20 @@ cd ..
 # *** TODO: Get rid of duplication
 
 # First we should check hld pipelines exist. If there is a pipeline with the same name we should delete it
-hld_pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $hld_dir $manifests_dir
+hld_to_manifest_pipeline_name=$hld_dir-to-$manifests_dir
+pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name
 
 # Create the hld to manifest pipeline
 echo "hld_dir $hld_dir"
 echo "hld_repo_url $hld_repo_url"
 echo "manifest_repo_url $manifest_repo_url"
-spk hld install-manifest-pipeline -o $AZDO_ORG -d $AZDO_PROJECT -p $ACCESS_TOKEN_SECRET -r $hld_dir -u https://$hld_repo_url -m https://$manifest_repo_url
+spk hld install-manifest-pipeline -o $AZDO_ORG -d $AZDO_PROJECT -p $ACCESS_TOKEN_SECRET -r $hld_dir -u https://$hld_repo_url -m https://$manifest_repo_url >> $TEST_WORKSPACE/log.txt
 
-# Verify the pipeline was created
-pipeline_created=$(az pipelines show --name $hld_dir-to-$manifests_dir --org $AZDO_ORG_URL --p $AZDO_PROJECT)
+# Verify hld to manifest pipeline was created
+pipeline_created=$(az pipelines show --name $hld_to_manifest_pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
 
-# Verify the pipeline run was successful
-verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_dir-to-$manifests_dir 300 15
+# Verify hld to manifest pipeline run was successful
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 300 15
 
 # App Code Mono Repo set up 
 mkdir $mono_repo_dir
@@ -147,7 +148,7 @@ validate_directory "$TEST_WORKSPACE/$mono_repo_dir" "${file_we_expect[@]}"
 variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $vg_name "delete"
 
 # Create variable group
-spk project create-variable-group $vg_name -r $ACR_NAME -d $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --project $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET  #>> $TEST_WORKSPACE/log.txt
+spk project create-variable-group $vg_name -r $ACR_NAME -d $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --project $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
 
 # Verify the variable group was created. Fail if not
 variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $vg_name "fail"
@@ -185,22 +186,36 @@ git remote add origin https://service_account:$ACCESS_TOKEN_SECRET@$repo_url
 echo "git push"
 git push -u origin --all
 
-# First we should check what pipelines exist. If there is a pipeline with the same name we should delete it
-pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $FrontEnd
+# First we should check lifecycle pipelines exist. If there is a pipeline with the same name we should delete it
+lifecycle_pipeline_name="$mono_repo_dir-lifecycle"
+pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name
 
-pipeline_name="$FrontEnd-pipeline"
+# Deploy lifecycle pipeline and verify it runs.
+spk project install-lifecycle-pipeline --org-name $AZDO_ORG --devops-project $AZDO_PROJECT --hld-url $hld_repo_url --repo-url $repo_url --repo-name $mono_repo_dir --pipeline-name $lifecycle_pipeline_name --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
+
+# TODO: Verify the lifecycle pipeline sucessfully runs
+# Verify lifecycle pipeline was created
+pipeline_created=$(az pipelines show --name $lifecycle_pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
+
+# Verify lifecycle pipeline run was successful
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name 180 15
+
+# First we should check what service build & update pipelines exist. If there is a pipeline with the same name we should delete it
+frontend_pipeline_name="$FrontEnd-pipeline"
+pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $frontend_pipeline_name
 
 # Create a pipeline since the code exists in remote repo
-spk service install-build-pipeline -o $AZDO_ORG -r $mono_repo_dir -u $remote_repo_url -d $AZDO_PROJECT -l $services_dir -p $ACCESS_TOKEN_SECRET -n $pipeline_name -v $FrontEnd  >> $TEST_WORKSPACE/log.txt
+spk service install-build-pipeline -o $AZDO_ORG -r $mono_repo_dir -u $remote_repo_url -d $AZDO_PROJECT -l $services_dir -p $ACCESS_TOKEN_SECRET -n $frontend_pipeline_name -v $FrontEnd  >> $TEST_WORKSPACE/log.txt
 
-# Verify the pipeline was created
-pipeline_created=$(az pipelines show --name $pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
+# Verify frontend service pipeline was created
+pipeline_created=$(az pipelines show --name $frontend_pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
 
-# Verify the pipeline run was successful
-verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $pipeline_name 300 25
+# Verify frontend service pipeline run was successful
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $frontend_pipeline_name 300 15
 # TODO approve the PR this build creates on the HLD
 
 # Start creating a service revision
+echo "Creating service revision"
 git branch $branchName
 git checkout $branchName
 echo "# My New Added File" >> myNewFile.md
@@ -217,5 +232,7 @@ spk service create-revision -t "$pr_title" -d "Adding my new file" --org-name $A
 echo "Attempting to approve pull request: '$pr_title'" 
 # Get the id of the pr created and set the PR to be approved
 approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "$pr_title"
+
+echo "Successfully reached the end of the validations scripts."
 
 # TODO hook up helm chart, approve HLD pull request, verify manifest gen pipeline
