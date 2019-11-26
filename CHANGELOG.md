@@ -1,10 +1,18 @@
 # RELEASE NOTES
 
-## [Unreleased]
+## [0.3.0] - 2019-11-24
 
-- Service management `reconcile` features
+### Added
+
+- Service management `reconcile`, `install-manifest-pipeline`,
+  `install-lifecycle-pipeline`, and `ingress-route create` features
 - Service Infrastructure `generate` features
 - Multi-stage pipeline support in service management and introspection
+- Service Introspection `dashboard` UX tweaks
+
+### Changed
+
+- Syntax for from operations. Please refer to documentation.
 
 ## [0.2.0] - 2019-10-29
 
