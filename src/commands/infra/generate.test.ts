@@ -6,7 +6,7 @@ import {
   logger
 } from "../../logger";
 import {
-  generateSpkTfvars,
+  generateTfvars,
   parseDefinitionJson,
   readDefinitionJson,
   validateDefinition,
@@ -85,7 +85,18 @@ describe("Validate spk.tfvars file", () => {
   test("Validating that a spk.tfvars is generated and has appropriate format", async () => {
     const mockProjectPath = "src/commands/infra/mocks";
     const definitionJSON = await readDefinitionJson(mockProjectPath);
-    const spkTfvarsObject = await generateSpkTfvars(definitionJSON);
+    const spkTfvarsObject = await generateTfvars(definitionJSON.variables);
     expect(spkTfvarsObject).toContain('gitops_poll_interval = "5m"');
+  });
+});
+
+describe("Validate backend.tfvars file", () => {
+  test("Validating that a backend.tfvars is generated and has appropriate format", async () => {
+    const mockProjectPath = "src/commands/infra/mocks";
+    const definitionJSON = await readDefinitionJson(mockProjectPath);
+    const baclendTfvarsObject = await generateTfvars(definitionJSON.backend);
+    expect(baclendTfvarsObject).toContain(
+      'storage_account_name = "storage-account-name"'
+    );
   });
 });

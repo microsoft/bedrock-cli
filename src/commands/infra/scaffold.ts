@@ -71,7 +71,11 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
           sourceFolder
         );
         await validateRemoteSource(scaffoldDefinition);
-        await copyTfTemplate(path.join(sourcePath, opts.template), opts.name);
+        await copyTfTemplate(
+          path.join(sourcePath, opts.template),
+          opts.name,
+          false
+        );
         await validateVariablesTf(
           path.join(sourcePath, opts.template, "variables.tf")
         );
@@ -153,14 +157,33 @@ export const renameTfvars = async (dir: string): Promise<void> => {
  */
 export const copyTfTemplate = async (
   templatePath: string,
-  envName: string
+  envName: string,
+  generation: boolean
 ): Promise<boolean> => {
   try {
-    await fsextra.copy(templatePath, envName, {
-      filter: file => {
-        return !(file.indexOf("terraform.tfvars") > -1);
-      }
-    });
+    if (generation === true) {
+      await fsextra.copy(templatePath, envName, {
+        filter: file => {
+          if (
+            file.indexOf("terraform.tfvars") !== -1 ||
+            file.indexOf("backend.tfvars") !== -1
+          ) {
+            return false;
+          }
+          return true;
+        }
+      });
+    } else {
+      await fsextra.copy(templatePath, envName, {
+        filter: file => {
+          // return !(file.indexOf("terraform.tfvars") > -1);
+          if (file.indexOf("terraform.tfvars") !== -1) {
+            return false;
+          }
+          return true;
+        }
+      });
+    }
     logger.info(`Terraform template files copied from ${templatePath}`);
   } catch (err) {
     logger.error(
@@ -254,7 +277,9 @@ export const parseBackendTfvars = (backendData: string) => {
   block.forEach(b => {
     const elt = b.split(":");
     if (elt[0].length > 0) {
-      backend[elt[0]] = elt[1].replace(/\"/g, "");
+      backend[elt[0]] = elt[1]
+        .replace(/\"/g, "")
+        .replace(/(?:\\[rn]|[\r\n]+)+/g, "");
     }
   });
   return backend;
