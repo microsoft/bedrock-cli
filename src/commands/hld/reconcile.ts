@@ -162,6 +162,13 @@ export const reconcileHld = async (
 
       await execAndLog(createConfigAndStaticComponentCommand);
 
+      // Service explicitly requests no ingress-routes to be generated.
+      if (serviceConfig.disableRouteScaffold) {
+        logger.info(
+          `Skipping ingress route generation for service ${serviceName}`
+        );
+        continue;
+      }
       // Create Middlewares
       const staticComponentPathInRing = path.join(ringPathInHld, "static");
       const middlewaresPathInStaticComponent = path.join(

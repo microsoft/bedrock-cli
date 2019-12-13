@@ -53,6 +53,7 @@ export interface IBedrockFile {
       displayName?: string;
       middlewares?: string[];
       helm: IHelmConfig;
+      disableRouteScaffold?: boolean;
     };
   };
   variableGroups?: string[];
