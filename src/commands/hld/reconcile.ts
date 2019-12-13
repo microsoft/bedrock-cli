@@ -99,7 +99,7 @@ export const reconcileHld = async (
 
   // Create Repository Component if it doesn't exist.
   // In a pipeline, the repository component is the name of the application repository.
-  const createRepositoryComponent = `cd ${absHldPath} && mkdir -p ${repositoryName} && fab add ${repositoryName} -- source ./${repositoryName} --method local`;
+  const createRepositoryComponent = `cd ${absHldPath} && mkdir -p ${repositoryName} && fab add ${repositoryName} -- path ./${repositoryName} --method local`;
 
   await execAndLog(createRepositoryComponent);
 
@@ -114,7 +114,7 @@ export const reconcileHld = async (
 
     // Fab add is idempotent.
     // mkdir -p does not fail if ${pathBase} does not exist.
-    const createSvcInHldCommand = `cd ${absRepositoryInHldPath} && mkdir -p ${pathBase} config && fab add ${pathBase} --source ./${pathBase} --method local && touch ./config/common.yaml`;
+    const createSvcInHldCommand = `cd ${absRepositoryInHldPath} && mkdir -p ${pathBase} config && fab add ${pathBase} --path ./${pathBase} --method local --type component && touch ./config/common.yaml`;
 
     await execAndLog(createSvcInHldCommand);
 
@@ -140,7 +140,7 @@ export const reconcileHld = async (
       }
 
       // Otherwise, create the ring in the service.
-      const createRingInSvcCommand = `cd ${svcPathInHld} && mkdir -p ${ring} config && fab add ${ring} --source ./${ring} --method local && touch ./config/common.yaml`;
+      const createRingInSvcCommand = `cd ${svcPathInHld} && mkdir -p ${ring} config && fab add ${ring} --path ./${ring} --method local --type component && touch ./config/common.yaml`;
 
       await execAndLog(createRingInSvcCommand);
 
@@ -159,7 +159,7 @@ export const reconcileHld = async (
       await execAndLog(`cd ${ringPathInHld} && ${addHelmChartCommand}`);
 
       // Create config directory, crate static manifest directory.
-      const createConfigAndStaticComponentCommand = `cd ${ringPathInHld} && mkdir -p config static && fab add static --source ./static --method local --type static && touch ./config/common.yaml`;
+      const createConfigAndStaticComponentCommand = `cd ${ringPathInHld} && mkdir -p config static && fab add static --path ./static --method local --type static && touch ./config/common.yaml`;
 
       await execAndLog(createConfigAndStaticComponentCommand);
 
