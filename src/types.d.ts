@@ -49,14 +49,16 @@ export interface IBedrockFile {
     };
   };
   services: {
-    [relativeDirectory: string]: {
-      displayName?: string;
-      middlewares?: string[];
-      helm: IHelmConfig;
-      disableRouteScaffold?: boolean;
-    };
+    [relativeDirectory: string]: IBedrockServiceConfig;
   };
   variableGroups?: string[];
+}
+
+export interface IBedrockServiceConfig {
+  displayName?:  string;
+  middlewares?: string[];
+  helm: IHelmConfig;
+  disableRouteScaffold?: boolean;
 }
 
 /**

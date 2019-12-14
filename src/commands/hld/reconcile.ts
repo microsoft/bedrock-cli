@@ -13,7 +13,7 @@ import { logger } from "../../logger";
 
 const exec = promisify(child_process.exec);
 
-import { IBedrockFile } from "../../types";
+import { IBedrockFile, IBedrockServiceConfig } from "../../types";
 
 export const reconcileHldDecorator = (command: commander.Command): void => {
   command
@@ -97,9 +97,7 @@ export const reconcileHld = async (
 
   // Create Repository Component if it doesn't exist.
   // In a pipeline, the repository component is the name of the application repository.
-  const createRepositoryComponent = `cd ${absHldPath} && mkdir -p ${repositoryName} && fab add ${repositoryName} -- path ./${repositoryName} --method local`;
-
-  await execAndLog(createRepositoryComponent);
+  await createRepositoryComponent(absHldPath, repositoryName);
 
   // Repository in HLD ie /path/to/hld/repositoryName/
   const absRepositoryInHldPath = path.join(absHldPath, repositoryName);
@@ -113,9 +111,7 @@ export const reconcileHld = async (
 
     // Fab add is idempotent.
     // mkdir -p does not fail if ${pathBase} does not exist.
-    const createSvcInHldCommand = `cd ${absRepositoryInHldPath} && mkdir -p ${pathBase} config && fab add ${pathBase} --path ./${pathBase} --method local --type component && touch ./config/common.yaml`;
-
-    await execAndLog(createSvcInHldCommand);
+    await createServiceComponent(absRepositoryInHldPath, pathBase);
 
     // No rings
     if (!managedRings) {
@@ -139,28 +135,13 @@ export const reconcileHld = async (
       }
 
       // Otherwise, create the ring in the service.
-      const createRingInSvcCommand = `cd ${svcPathInHld} && mkdir -p ${ring} config && fab add ${ring} --path ./${ring} --method local --type component && touch ./config/common.yaml`;
+      await createRingComponent(svcPathInHld, ring);
 
-      await execAndLog(createRingInSvcCommand);
+      // Add the helm chart to the ring.
+      await addChartToRing(ringPathInHld, serviceConfig);
 
-      let addHelmChartCommand = "";
-      const { chart } = serviceConfig.helm;
-      if ("git" in chart) {
-        const chartVersioning =
-          "branch" in chart
-            ? `--branch ${chart.branch}`
-            : `--version ${chart.sha}`;
-        addHelmChartCommand = `fab add chart --source ${chart.git} --path ${chart.path} ${chartVersioning}`;
-      } else if ("repository" in chart) {
-        addHelmChartCommand = `fab add chart --source ${chart.repository} --path ${chart.chart}`;
-      }
-
-      await execAndLog(`cd ${ringPathInHld} && ${addHelmChartCommand}`);
-
-      // Create config directory, crate static manifest directory.
-      const createConfigAndStaticComponentCommand = `cd ${ringPathInHld} && mkdir -p config static && fab add static --path ./static --method local --type static && touch ./config/common.yaml`;
-
-      await execAndLog(createConfigAndStaticComponentCommand);
+      // Create config directory, create static manifest directory.
+      await createStaticComponent(ringPathInHld);
 
       // Service explicitly requests no ingress-routes to be generated.
       if (serviceConfig.disableRouteScaffold) {
@@ -188,25 +169,7 @@ export const reconcileHld = async (
       writeFileSync(middlewaresPathInStaticComponent, middlewareYaml);
 
       // Create Ingress Route.
-      const ingressRoutePathInStaticComponent = path.join(
-        staticComponentPathInRing,
-        "ingress-route.yaml"
-      );
-      // TODO: figure out a way to grab the port from _somewhere_; store in bedrock.yaml?
-      const ingressRoute = TraefikIngressRoute(serviceName, ring, 8000, {
-        middlewares: [
-          middlewares.metadata.name,
-          ...(serviceConfig.middlewares ?? [])
-        ]
-      });
-      const routeYaml = yaml.safeDump(ingressRoute, {
-        lineWidth: Number.MAX_SAFE_INTEGER
-      });
-
-      logger.info(
-        `Writing IngressRoute YAML to ${ingressRoutePathInStaticComponent}`
-      );
-      writeFileSync(ingressRoutePathInStaticComponent, routeYaml);
+      createIngressRouteForRing(ringPathInHld, serviceName, ring);
     }
   }
 };
@@ -229,4 +192,75 @@ const execAndLog = async (commandToRun: string) => {
       `Error occurred when invoking command: ${commandResult.stderr}`
     );
   }
+};
+
+const createIngressRouteForRing = (
+  ringPathInHld: string,
+  serviceName: string,
+  ring: string
+) => {
+  const staticComponentPathInRing = path.join(ringPathInHld, "static");
+  const ingressRoutePathInStaticComponent = path.join(
+    staticComponentPathInRing,
+    "ingress-route.yaml"
+  );
+  // TODO: figure out a way to grab the port from _somewhere_; store in bedrock.yaml?
+  const ingressRoute = TraefikIngressRoute(serviceName, ring, 8000, {
+    middlewares: [
+      middlewares.metadata.name,
+      ...(serviceConfig.middlewares ?? [])
+    ]
+  });
+  const routeYaml = yaml.safeDump(ingressRoute, {
+    lineWidth: Number.MAX_SAFE_INTEGER
+  });
+  logger.info(
+    `Writing IngressRoute YAML to ${ingressRoutePathInStaticComponent}`
+  );
+  writeFileSync(ingressRoutePathInStaticComponent, routeYaml);
+};
+
+const createRepositoryComponent = async (
+  absHldPath: string,
+  repositoryName: string
+) => {
+  await execAndLog(
+    `cd ${absHldPath} && mkdir -p ${repositoryName} && fab add ${repositoryName} --path ./${repositoryName} --method local`
+  );
+};
+
+const createServiceComponent = async (
+  absRepositoryInHldPath: string,
+  pathBase: string
+) => {
+  await execAndLog(
+    `cd ${absRepositoryInHldPath} && mkdir -p ${pathBase} config && fab add ${pathBase} --path ./${pathBase} --method local --type component && touch ./config/common.yaml`
+  );
+};
+
+const createRingComponent = async (svcPathInHld: string, ring: string) => {
+  const createRingInSvcCommand = `cd ${svcPathInHld} && mkdir -p ${ring} config && fab add ${ring} --path ./${ring} --method local --type component && touch ./config/common.yaml`;
+  await execAndLog(createRingInSvcCommand);
+};
+
+const addChartToRing = async (
+  ringPathInHld: string,
+  serviceConfig: IBedrockServiceConfig
+) => {
+  let addHelmChartCommand = "";
+  const { chart } = serviceConfig.helm;
+  if ("git" in chart) {
+    const chartVersioning =
+      "branch" in chart ? `--branch ${chart.branch}` : `--version ${chart.sha}`;
+    addHelmChartCommand = `fab add chart --source ${chart.git} --path ${chart.path} ${chartVersioning}`;
+  } else if ("repository" in chart) {
+    addHelmChartCommand = `fab add chart --source ${chart.repository} --path ${chart.chart}`;
+  }
+
+  await execAndLog(`cd ${ringPathInHld} && ${addHelmChartCommand}`);
+};
+
+const createStaticComponent = async (ringPathInHld: string) => {
+  const createConfigAndStaticComponentCommand = `cd ${ringPathInHld} && mkdir -p config static && fab add static --path ./static --method local --type static && touch ./config/common.yaml`;
+  await execAndLog(createConfigAndStaticComponentCommand);
 };
