@@ -93,7 +93,7 @@ describe("Introspect deployments", () => {
 
 describe("Print deployments", () => {
   test("verify print deployments", () => {
-    const table = Get.printDeployments(
+    let table = Get.printDeployments(
       deployments,
       Get.processOutputFormat("json")
     );
@@ -121,6 +121,13 @@ describe("Print deployments", () => {
         expect(field).toHaveLength(13);
       }
     });
+
+    table = Get.printDeployments(
+      deployments,
+      Get.processOutputFormat("json"),
+      3
+    );
+    expect(table).toHaveLength(3);
   });
 });
 

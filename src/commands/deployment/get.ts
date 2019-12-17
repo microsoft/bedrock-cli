@@ -54,6 +54,7 @@ export const getCommandDecorator = (command: commander.Command): void => {
     .option("-i, --image-tag <image-tag>", "Filter by a container image tag")
     .option("-e, --env <environment>", "Filter by environment name")
     .option("-s, --service <service-name>", "Filter by service name")
+    .option("-t, --top <top>", "Return only top N most recent deployments")
     .option(
       "-o, --output <output-format>",
       "Output the information one of the following: normal, wide, JSON"
@@ -70,7 +71,8 @@ export const getCommandDecorator = (command: commander.Command): void => {
             opts.buildId,
             opts.commitId,
             opts.service,
-            opts.deploymentId
+            opts.deploymentId,
+            opts.top
           );
         } else {
           await getDeployments(
@@ -80,7 +82,8 @@ export const getCommandDecorator = (command: commander.Command): void => {
             opts.buildId,
             opts.commitId,
             opts.service,
-            opts.deploymentId
+            opts.deploymentId,
+            opts.top
           );
         }
       } catch (err) {
@@ -121,7 +124,8 @@ export const getDeployments = async (
   p1Id?: string,
   commitId?: string,
   service?: string,
-  deploymentId?: string
+  deploymentId?: string,
+  limit?: number
 ): Promise<Deployment[]> => {
   const config = Config();
   const key = await Config().introspection!.azure!.key;
@@ -144,7 +148,7 @@ export const getDeployments = async (
     if (outputFormat === OUTPUT_FORMAT.JSON) {
       logger.info(JSON.stringify(deployments, null, 2));
     } else {
-      printDeployments(deployments, outputFormat);
+      printDeployments(deployments, outputFormat, limit);
     }
     return deployments;
   });
@@ -212,7 +216,8 @@ export const watchGetDeployments = (
   p1Id?: string,
   commitId?: string,
   service?: string,
-  deploymentId?: string
+  deploymentId?: string,
+  limit?: number
 ): void => {
   const timeInterval = 5000;
 
@@ -224,7 +229,8 @@ export const watchGetDeployments = (
     p1Id,
     commitId,
     service,
-    deploymentId
+    deploymentId,
+    limit
   );
 
   setInterval(() => {
@@ -235,7 +241,8 @@ export const watchGetDeployments = (
       p1Id,
       commitId,
       service,
-      deploymentId
+      deploymentId,
+      limit
     );
   }, timeInterval);
 };
@@ -247,7 +254,8 @@ export const watchGetDeployments = (
  */
 export const printDeployments = (
   deployments: Deployment[],
-  outputFormat: OUTPUT_FORMAT
+  outputFormat: OUTPUT_FORMAT,
+  limit?: number
 ): Table | undefined => {
   if (deployments.length > 0) {
     let row = [];
@@ -293,9 +301,12 @@ export const printDeployments = (
       },
       style: { "padding-left": 0, "padding-right": 0 }
     });
-    // tslint:enable: object-literal-sort-keys
 
-    deployments.forEach(deployment => {
+    let count = 0;
+    // disable for-of so that break can be used
+    // tslint:disable-next-line: prefer-for-of
+    for (let i = 0; i < deployments.length; i++) {
+      const deployment = deployments[i];
       row = [];
       row.push(
         deployment.srcToDockerBuild
@@ -365,7 +376,11 @@ export const printDeployments = (
         );
       }
       table.push(row);
-    });
+      count++;
+      if (limit && count >= limit) {
+        break;
+      }
+    }
 
     logger.info("\n" + table.toString());
     return table;
