@@ -60,7 +60,7 @@ Options:
 Create initial scaffolding for cluster deployment.
 
 Builds a scaffold of an infrastructure deployment project containing a
-`definition.json` that enables a user to version, modify and organize terraform
+`definition.yaml` that enables a user to version, modify and organize terraform
 deployments.
 
 It will do the following:
@@ -70,7 +70,7 @@ It will do the following:
 - Provide an infrastructure deployment scaffold based on a `<source>` git url
   for a terraform deployment, `<version>` respective to the repository of which
   tag to pull, and a `<template>` (LOCAL-ONLY) of the path to the variables.tf
-  file for which `spk` will embed into a definition json file.
+  file for which `spk` will embed into a definition yaml file.
 
 ```
 Usage:
@@ -94,56 +94,60 @@ spk infra scaffold --name discovery-service --source https://github.com/microsof
 
 Output:
 
-definition.json
+definition.yaml
 
-```json
-{
-  "name": "discovery-service",
-  "source": "https://github.com/microsoft/bedrock",
-  "template": "bedrock/cluster/environments/azure-simple",
-  "version": "v0.12.0",
-  "variables": {
-    "agent_vm_count": "3",
-    "agent_vm_size": "Standard_D2s_v3",
-    "acr_enabled": "true",
-    "gc_enabled": "true",
-    "cluster_name": "<insert value>",
-    "dns_prefix": "<insert value>",
-    "flux_recreate": "<insert value>",
-    "kubeconfig_recreate": "<insert value>",
-    "gitops_ssh_url": "<insert value>",
-    "gitops_ssh_key": "<insert value>",
-    "gitops_path": "<insert value>",
-    "gitops_url_branch": "master",
-    "resource_group_name": "<insert value>",
-    "ssh_public_key": "<insert value>",
-    "service_principal_id": "<insert value>",
-    "service_principal_secret": "<insert value>",
-    "gitops_poll_interval": "5m",
-    "vnet_name": "<insert value>",
-    "service_cidr": "10.0.0.0/16",
-    "dns_ip": "10.0.0.10",
-    "docker_cidr": "172.17.0.1/16",
-    "address_space": "10.10.0.0/16",
-    "subnet_prefix": "10.10.1.0/24",
-    "network_plugin": "azure",
-    "network_policy": "azure",
-    "oms_agent_enabled": "false"
-  }
-}
+```yaml
+name: discovery-service
+source: https://github.com/Microsoft/bedrock.git
+template: cluster/environments/azure-single-keyvault
+version: v0.12.0
+backend:
+  storage_account_name: storage-account-name
+  access_key: storage-account-access-key
+  container_name: storage-account-container
+  key: tfstate-key
+variables:
+  acr_enabled: "true"
+  address_space: <insert value>
+  agent_vm_count: <insert value>
+  agent_vm_size: <insert value>
+  cluster_name: <insert value>
+  dns_prefix: <insert value>
+  flux_recreate: <insert value>
+  kubeconfig_recreate: <insert value>
+  gc_enabled: "true"
+  gitops_poll_interval: 5m
+  gitops_ssh_url: <insert value>
+  gitops_url_branch: master
+  gitops_ssh_key: <insert value>
+  gitops_path: <insert value>
+  keyvault_name: <insert value>
+  keyvault_resource_group: <insert value>
+  resource_group_name: <insert value>
+  ssh_public_key: <insert value>
+  service_principal_id: <insert value>
+  service_principal_secret: <insert value>
+  subnet_prefixes: <insert value>
+  vnet_name: <insert value>
+  subnet_name: <insert value>
+  network_plugin: azure
+  network_policy: azure
+  oms_agent_enabled: "false"
+  enable_acr: "false"
+  acr_name: <insert value>
 ```
 
 ### generate
 
-Generates a deployment folder based on scaffolded project with a definition.json
+Generates a deployment folder based on scaffolded project with a definition.yaml
 
 Generates a deployment folder of an infrastructure scaffolded project containing
-a `definition.json` that contains a `source`, `template` and `version` to obtain
+a `definition.yaml` that contains a `source`, `template` and `version` to obtain
 and complete the terraform template files.
 
 It will do the following:
 
-- Check if a provided project folder contains a `definition.json`
+- Check if a provided project folder contains a `definition.yaml`
 - Check if the terraform template `source` provided has a valid remote
   repository
 - Cache the master version of the provided `source` repository locally in
@@ -154,7 +158,7 @@ It will do the following:
 - Create a "generated" directory for Terrform deployments
 - Copy the appropriate Terraform templates to the "generated" directory
 - Create a `spk.tfvars` in the generated directory based on the variables
-  provided in `definition.json`
+  provided in `definition.yaml`
 
 ```
 Usage:
@@ -163,7 +167,7 @@ spk infra generate|g [options]
 Generate scaffold for terraform cluster deployment.
 
 Options:
-  -p, --project <path to project folder to generate>   Location of the definition.json file that will be generated
+  -p, --project <path to project folder to generate>   Location of the definition.yaml file that will be generated
   -h, --help                                           output usage information
 ```
 
@@ -173,11 +177,11 @@ Assuming you have the following setup:
 
 ```
 discovery-service
-    |- definition.json
+    |- definition.yaml
     |- east/
-        |- definition.json
+        |- definition.yaml
     |- central/
-        |- definition.json
+        |- definition.yaml
 ```
 
 When executing the following command **in the `discovery-service` directory**:
@@ -189,15 +193,15 @@ spk infra generate --project east
 The following hiearchy of directories will be generated _alongside_ the targeted
 directory. In addition, the appropriate versioned Terraform templates will be
 copied over to the leaf directory with a `spk.tfvars`, which contains the
-variables accumulated from parent **and** leaf definition.json files.
+variables accumulated from parent **and** leaf definition.yaml files.
 
 ```
 discovery-service
-    |- definition.json
+    |- definition.yaml
     |- east/
-        |- definition.json
+        |- definition.yaml
     |- central/
-        |- definition.json
+        |- definition.yaml
 discovery-service-generated
     |- east
         |- main.tf
@@ -212,9 +216,9 @@ tree structure:
 ```
 discovery-service
     |- east/
-        |- definition.json
+        |- definition.yaml
     |- central/
-        |- definition.json
+        |- definition.yaml
 ```
 
 and wanted to create _just_ an `east-generated` directory, you could run
@@ -223,14 +227,21 @@ and wanted to create _just_ an `east-generated` directory, you could run
 ```
 discovery-service
     |- east/
-        |- definition.json
+        |- definition.yaml
     |- east-generated/
         |- main.tf
         |- variables.tf
         |- spk.tfvars
     |- central/
-        |- definition.json
+        |- definition.yaml
 ```
+
+## Secrets
+
+`definition.yaml` will handle secrets if specified in the following format:
+`variable_name: ${env:secret_name}`. When the yaml file is read,
+`spk infra generate` will load any references to environment variables either
+from local environment variables in the current shell, or from a .env file.
 
 ### Authentication
 
@@ -244,4 +255,3 @@ build scaffolded definitions using a private AzDO repo, do one of the following:
 - **Using arguments** - Pass in your formatted source url for your private AzDO
   repo with the PAT and arbitrary username specified. Example
   `spk infra scaffold --name discovery-service --source https://spk:{my_PAT_Token}@dev.azure.com/microsoft/spk/_git/infra_repo --version v0.0.1 --template cluster/environments/azure-single-keyvault`
-

@@ -38,7 +38,7 @@ export const readYaml = <T>(filepath: string): T => {
  *
  * @returns The original object passed with the values referencing environment variables being swapped to their literal value
  */
-const loadConfigurationFromLocalEnv = <T>(configObj: T): T => {
+export const loadConfigurationFromLocalEnv = <T>(configObj: T): T => {
   const iterate = (obj: any) => {
     if (obj != null && obj !== undefined) {
       for (const [key, value] of Object.entries(obj)) {

@@ -1,16 +1,16 @@
 import fs, { chmod } from "fs";
 import path from "path";
+import { loadConfigurationFromLocalEnv, readYaml } from "../../config";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
   logger
 } from "../../logger";
+import { IInfraConfigYaml } from "../../types";
 import {
   generateTfvars,
-  parseDefinitionJson,
-  readDefinitionJson,
+  parseDefinitionYaml,
   validateDefinition,
-  validateRemoteSource,
   validateTemplateSource
 } from "./generate";
 
@@ -24,32 +24,35 @@ afterAll(() => {
   jest.setTimeout(5000);
 });
 
-describe("Validate test project folder contains a definition.json", () => {
-  test("Validating test project folder contains a definition.json file", async () => {
+describe("Validate test project folder contains a definition.yaml", () => {
+  test("Validating test project folder contains a definition.yaml file", async () => {
     const mockProjectPath = "src/commands/infra/mocks";
     expect(await validateDefinition(mockProjectPath)).toBe(true);
   });
 });
 
-describe("Validate test project folder does not contains a definition.json", () => {
-  test("Validating that a provided project folder does not contain a definition.json", async () => {
+describe("Validate test project folder does not contains a definition.yaml", () => {
+  test("Validating that a provided project folder does not contain a definition.yaml", async () => {
     const mockProjectPath = "src/commands/infra";
     expect(await validateDefinition(mockProjectPath)).toBe(false);
   });
 });
 
-describe("Validate definition.json contains a source", () => {
-  test("Validating that a provided project folder  contains a source in definition.json", async () => {
+describe("Validate definition.yaml contains a source", () => {
+  test("Validating that a provided project folder  contains a source in definition.yaml", async () => {
     const mockProjectPath = "src/commands/infra/mocks";
-    const rootDef = path.join(mockProjectPath, "definition.json");
-    const data: string = fs.readFileSync(rootDef, "utf8");
-    const definitionJSON = JSON.parse(data);
+    const data = readYaml<IInfraConfigYaml>(
+      path.join(mockProjectPath, `definition.yaml`)
+    );
+    const infraConfig = loadConfigurationFromLocalEnv(data);
     const expectedArray = [
-      definitionJSON.source,
-      definitionJSON.template,
-      definitionJSON.version
+      infraConfig.source,
+      infraConfig.template,
+      infraConfig.version
     ];
-    const returnArray = await validateTemplateSource(mockProjectPath);
+    const returnArray = await validateTemplateSource(
+      path.join(mockProjectPath, `definition.yaml`)
+    );
     expect(returnArray).toEqual(expectedArray);
   });
 });
@@ -71,10 +74,10 @@ describe("Validate definition.json contains a source", () => {
   });
 }); */
 
-describe("Validate template path from a definition.json", () => {
-  test("Validating that generate can extract a path from a definition.json file", async () => {
+describe("Validate template path from a definition.yaml", () => {
+  test("Validating that generate can extract a path from a definition.yaml file", async () => {
     const mockProjectPath = "src/commands/infra/mocks";
-    const templatePath = await parseDefinitionJson(mockProjectPath);
+    const templatePath = await parseDefinitionYaml(mockProjectPath);
     expect(templatePath).toContain(
       "_microsoft_bedrock_git/cluster/environments/azure-single-keyvault"
     );
@@ -84,8 +87,11 @@ describe("Validate template path from a definition.json", () => {
 describe("Validate spk.tfvars file", () => {
   test("Validating that a spk.tfvars is generated and has appropriate format", async () => {
     const mockProjectPath = "src/commands/infra/mocks";
-    const definitionJSON = await readDefinitionJson(mockProjectPath);
-    const spkTfvarsObject = await generateTfvars(definitionJSON.variables);
+    const data = readYaml<IInfraConfigYaml>(
+      path.join(mockProjectPath, `definition.yaml`)
+    );
+    const infraConfig = loadConfigurationFromLocalEnv(data);
+    const spkTfvarsObject = await generateTfvars(infraConfig.variables);
     expect(spkTfvarsObject).toContain('gitops_poll_interval = "5m"');
   });
 });
@@ -93,9 +99,12 @@ describe("Validate spk.tfvars file", () => {
 describe("Validate backend.tfvars file", () => {
   test("Validating that a backend.tfvars is generated and has appropriate format", async () => {
     const mockProjectPath = "src/commands/infra/mocks";
-    const definitionJSON = await readDefinitionJson(mockProjectPath);
-    const baclendTfvarsObject = await generateTfvars(definitionJSON.backend);
-    expect(baclendTfvarsObject).toContain(
+    const data = readYaml<IInfraConfigYaml>(
+      path.join(mockProjectPath, `definition.yaml`)
+    );
+    const infraConfig = loadConfigurationFromLocalEnv(data);
+    const backendTfvarsObject = await generateTfvars(infraConfig.backend);
+    expect(backendTfvarsObject).toContain(
       'storage_account_name = "storage-account-name"'
     );
   });

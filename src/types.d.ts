@@ -192,3 +192,16 @@ export interface IAzureAccessOpts {
   tenantId?: string;
   subscriptionId?: string;
 }
+
+export interface IInfraConfigYaml {
+  name: string;
+  source: string;
+  template: string;
+  version: string;
+  backend?: {
+    [key: string]: any;
+  };
+  variables?: {
+    [key: string]: any;
+  };
+}
