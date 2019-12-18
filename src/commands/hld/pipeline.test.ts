@@ -10,6 +10,7 @@ import {
 
 import {
   installHldToManifestPipeline,
+  isValidConfig,
   requiredPipelineVariables
 } from "./pipeline";
 
@@ -42,6 +43,157 @@ describe("required pipeline variables", () => {
     expect(variables.MANIFEST_REPO.value).toBe("manifestRepoUrl");
     expect(variables.MANIFEST_REPO.isSecret).toBe(false);
     expect(variables.MANIFEST_REPO.allowOverride).toBe(true);
+  });
+});
+
+describe("validate pipeline config", () => {
+  const parameters: string[] = [
+    "orgName",
+    "devopsProject",
+    "pipelineName",
+    "manifestUrl",
+    "hldName",
+    "hldUrl",
+    "buildScriptUrl",
+    "personalAccessToken"
+  ];
+  const configValues: any[] = [
+    "testOrg",
+    "testDevopsProject",
+    "testPipeline",
+    "https://manifestulr",
+    "testHld",
+    "https://hldurl",
+    "https://buildscript",
+    "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
+  ];
+
+  it("config is valid", () => {
+    expect(
+      isValidConfig(
+        "testOrg",
+        "testDevopsProject",
+        "testPipeline",
+        "https://manifestulr",
+        "testHld",
+        "https://hldurl",
+        "https://buildscript",
+        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
+      )
+    ).toBe(true);
+  });
+
+  it("invalid orgName", () => {
+    expect(
+      isValidConfig(
+        undefined,
+        "testDevopsProject",
+        "testPipeline",
+        "https://manifestulr",
+        "testHld",
+        "https://hldurl",
+        "https://buildscript",
+        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
+      )
+    ).toBe(false);
+  });
+  it("invalid devOpsProject", () => {
+    expect(
+      isValidConfig(
+        "testOrg",
+        undefined,
+        "testPipeline",
+        "https://manifestulr",
+        "testHld",
+        "https://hldurl",
+        "https://buildscript",
+        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
+      )
+    ).toBe(false);
+  });
+  it("invalid pipelineName", () => {
+    expect(
+      isValidConfig(
+        "testOrg",
+        "testDevopsProject",
+        53,
+        "https://manifestulr",
+        "testHld",
+        "https://hldurl",
+        "https://buildscript",
+        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
+      )
+    ).toBe(false);
+  });
+  it("invalid manifestUrl", () => {
+    expect(
+      isValidConfig(
+        "testOrg",
+        "testDevopsProject",
+        "testPipeline",
+        2,
+        "testHld",
+        "https://hldurl",
+        "https://buildscript",
+        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
+      )
+    ).toBe(false);
+  });
+  it("invalid hldName", () => {
+    expect(
+      isValidConfig(
+        "testOrg",
+        "testDevopsProject",
+        "testPipeline",
+        "https://manifestulr",
+        4,
+        "https://hldurl",
+        "https://buildscript",
+        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
+      )
+    ).toBe(false);
+  });
+  it("invalid hldUrl", () => {
+    expect(
+      isValidConfig(
+        "testOrg",
+        "testDevopsProject",
+        "testPipeline",
+        "https://manifestulr",
+        "testHld",
+        6,
+        "https://buildscript",
+        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
+      )
+    ).toBe(false);
+  });
+  it("invalid buildScriptUrl", () => {
+    expect(
+      isValidConfig(
+        "testOrg",
+        "testDevopsProject",
+        "testPipeline",
+        "https://manifestulr",
+        "testHld",
+        "https://hldurl",
+        9,
+        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
+      )
+    ).toBe(false);
+  });
+  it("invalid personalAccessToken", () => {
+    expect(
+      isValidConfig(
+        "testOrg",
+        "testDevopsProject",
+        "testPipeline",
+        "https://manifestulr",
+        "testHld",
+        "https://hldurl",
+        "https://buildscript",
+        4
+      )
+    ).toBe(false);
   });
 });
 

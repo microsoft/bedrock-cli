@@ -61,67 +61,18 @@ export const installHldToManifestPipelineDecorator = (
         buildScriptUrl = BUILD_SCRIPT_URL
       } = opts;
 
-      logger.debug(`orgName: ${orgName}`);
-      logger.debug(`personalAccessToken: XXXXXXXXXXXXXXXXX`);
-      logger.debug(`devopsProject: ${devopsProject}`);
-      logger.debug(`pipelineName: ${pipelineName}`);
-      logger.debug(`manifestUrl: ${manifestUrl}`);
-      logger.debug(`hldName: ${hldName}`);
-      logger.debug(`hldUrl: ${hldUrl}`);
-      logger.debug(`buildScriptUrl: ${buildScriptUrl}`);
-
-      try {
-        if (typeof pipelineName !== "string") {
-          throw new Error(
-            `--pipeline-name must be of type 'string', ${typeof pipelineName} given.`
-          );
-        }
-
-        if (typeof personalAccessToken !== "string") {
-          throw new Error(
-            `--personal-access-token must be of type 'string', ${typeof personalAccessToken} given.`
-          );
-        }
-
-        if (typeof orgName !== "string") {
-          throw new Error(
-            `--org-url must be of type 'string', ${typeof orgName} given.`
-          );
-        }
-
-        if (typeof hldName !== "string") {
-          throw new Error(
-            `--hld-name must be of type 'string', ${typeof hldName} given.`
-          );
-        }
-
-        if (typeof hldUrl !== "string") {
-          throw new Error(
-            `--hld-url must be of type 'string', ${typeof hldUrl} given.`
-          );
-        }
-
-        if (typeof manifestUrl !== "string") {
-          throw new Error(
-            `--manifest-url must be of type 'string', ${typeof manifestUrl} given.`
-          );
-        }
-
-        if (typeof devopsProject !== "string") {
-          throw new Error(
-            `--devops-project must be of type 'string', ${typeof devopsProject} given.`
-          );
-        }
-        if (typeof buildScriptUrl !== "string") {
-          throw new Error(
-            `--build-script must be of type 'string', ${typeof buildScriptUrl} given.`
-          );
-        }
-      } catch (err) {
-        logger.error(
-          `Error occurred validating inputs for hld install-manifest-pipeline`
-        );
-        logger.error(err);
+      if (
+        !isValidConfig(
+          orgName,
+          devopsProject,
+          pipelineName,
+          manifestUrl,
+          hldName,
+          hldUrl,
+          buildScriptUrl,
+          personalAccessToken
+        )
+      ) {
         process.exit(1);
       }
 
@@ -223,6 +174,93 @@ export const installHldToManifestPipeline = async (
     logger.error(err);
     return exitFn(1);
   }
+};
+
+/**
+ * Validates the pipeline configuration
+ * @param orgName URL to the Azure DevOps organization that you are using.
+ * @param devopsProject Name of the devops project
+ * @param pipelineName Name of this build pipeline in AzDo
+ * @param manifestUrl URL of the manifest
+ * @param hldName Name of the HLD
+ * @param hldUrl  URL of the HLD
+ * @param buildScriptUrl Build Script URL
+ * @param personalAccessToken Personal Access token with access to the HLD repository and materialized manifest repository.
+ */
+export const isValidConfig = (
+  orgName: any,
+  devopsProject: any,
+  pipelineName: any,
+  manifestUrl: any,
+  hldName: any,
+  hldUrl: any,
+  buildScriptUrl: any,
+  personalAccessToken: any
+): boolean => {
+  const missingConfig = [];
+
+  logger.debug(`orgName: ${orgName}`);
+  logger.debug(`personalAccessToken: XXXXXXXXXXXXXXXXX`);
+  logger.debug(`devopsProject: ${devopsProject}`);
+  logger.debug(`pipelineName: ${pipelineName}`);
+  logger.debug(`manifestUrl: ${manifestUrl}`);
+  logger.debug(`hldName: ${hldName}`);
+  logger.debug(`hldUrl: ${hldUrl}`);
+  logger.debug(`buildScriptUrl: ${buildScriptUrl}`);
+
+  if (typeof pipelineName !== "string") {
+    missingConfig.push(
+      `--pipeline-name must be of type 'string', ${typeof pipelineName} given.`
+    );
+  }
+
+  if (typeof personalAccessToken !== "string") {
+    missingConfig.push(
+      `--personal-access-token must be of type 'string', ${typeof personalAccessToken} given.`
+    );
+  }
+
+  if (typeof orgName !== "string") {
+    missingConfig.push(
+      `--org-url must be of type 'string', ${typeof orgName} given.`
+    );
+  }
+
+  if (typeof hldName !== "string") {
+    missingConfig.push(
+      `--hld-name must be of type 'string', ${typeof hldName} given.`
+    );
+  }
+
+  if (typeof hldUrl !== "string") {
+    missingConfig.push(
+      `--hld-url must be of type 'string', ${typeof hldUrl} given.`
+    );
+  }
+
+  if (typeof manifestUrl !== "string") {
+    missingConfig.push(
+      `--manifest-url must be of type 'string', ${typeof manifestUrl} given.`
+    );
+  }
+
+  if (typeof devopsProject !== "string") {
+    missingConfig.push(
+      `--devops-project must be of type 'string', ${typeof devopsProject} given.`
+    );
+  }
+  if (typeof buildScriptUrl !== "string") {
+    missingConfig.push(
+      `--build-script must be of type 'string', ${typeof buildScriptUrl} given.`
+    );
+  }
+
+  if (missingConfig.length > 0) {
+    logger.error("Error in configuration: " + missingConfig.join(" "));
+    return false;
+  }
+
+  return true;
 };
 
 /**
