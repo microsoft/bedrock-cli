@@ -1,4 +1,5 @@
 import uuid from "uuid/v4";
+import { logger } from "../../logger";
 import { TraefikIngressRoute } from "./ingress-route";
 
 describe("TraefikIngressRoute", () => {
@@ -48,5 +49,22 @@ describe("TraefikIngressRoute", () => {
       entryPoints: ["web", "web-secure"]
     });
     expect(withBoth.spec.entryPoints).toStrictEqual(["web", "web-secure"]);
+  });
+
+  test("middleware gets added properly", () => {
+    const middlewares = Array.from({ length: 10 }, () => "/" + uuid());
+    const middlewaresNameArray = [
+      ...middlewares.map(middlewareName => ({ name: middlewareName }))
+    ];
+
+    const withMiddlewares = TraefikIngressRoute("foo", "bar", 80, {
+      middlewares
+    });
+
+    const middlewaresValues = withMiddlewares.spec.routes[0].middlewares;
+    expect(middlewaresValues && middlewaresValues.length).toBe(
+      middlewares.length
+    );
+    expect(middlewaresValues).toMatchObject(middlewaresNameArray);
   });
 });

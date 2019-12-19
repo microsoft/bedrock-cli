@@ -12,6 +12,7 @@ import yaml from "js-yaml";
 import { promisify } from "util";
 
 import { TraefikIngressRoute } from "../../lib/traefik/ingress-route";
+import { TraefikMiddleware } from "../../lib/traefik/middleware";
 
 const exec = promisify(child_process.exec);
 
@@ -163,15 +164,34 @@ export const reconcileHld = async (
 
       await execAndLog(createConfigAndStaticComponentCommand);
 
-      // Create Ingress Route.
+      // Create Middlewares
       const staticComponentPathInRing = path.join(ringPathInHld, "static");
+      const middlewaresPathInStaticComponent = path.join(
+        staticComponentPathInRing,
+        "middlewares.yaml"
+      );
+
+      const servicePrefix = `/${serviceName}`;
+      const middlewares = TraefikMiddleware(serviceName, ring, [servicePrefix]);
+      const middlewareYaml = yaml.safeDump(middlewares, {
+        lineWidth: Number.MAX_SAFE_INTEGER
+      });
+
+      logger.info(
+        `Writing Middlewares YAML to ${middlewaresPathInStaticComponent}`
+      );
+      writeFileSync(middlewaresPathInStaticComponent, middlewareYaml);
+
+      // Create Ingress Route.
       const ingressRoutePathInStaticComponent = path.join(
         staticComponentPathInRing,
         "ingress-route.yaml"
       );
 
       // TODO: figure out a way to grab the port from _somewhere_; store in bedrock.yaml?
-      const ingressRoute = TraefikIngressRoute(serviceName, ring, 8000);
+      const ingressRoute = TraefikIngressRoute(serviceName, ring, 8000, {
+        middlewares: [middlewares.metadata.name]
+      });
       const routeYaml = yaml.safeDump(ingressRoute, {
         lineWidth: Number.MAX_SAFE_INTEGER
       });

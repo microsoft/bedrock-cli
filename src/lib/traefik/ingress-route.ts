@@ -55,11 +55,12 @@ export const TraefikIngressRoute = (
   ringName: string,
   servicePort: number,
   opts: {
+    middlewares?: string[];
     namespace?: string;
     entryPoints?: TraefikEntryPoints;
   } = {}
 ): ITraefikIngressRoute => {
-  const { entryPoints, namespace } = opts;
+  const { entryPoints, middlewares = [], namespace } = opts;
   const name = !!ringName ? `${serviceName}-${ringName}` : serviceName;
   const routeMatchPathPrefix = `PathPrefix(\`/${serviceName}\`)`;
   const routeMatchHeaders = ringName && `Headers(\`Ring\`, \`${ringName}\`)`; // no 'X-' prefix for header: https://tools.ietf.org/html/rfc6648
@@ -81,6 +82,9 @@ export const TraefikIngressRoute = (
         {
           kind: "Rule",
           match: routeMatch,
+          middlewares: [
+            ...middlewares.map(middlewareName => ({ name: middlewareName }))
+          ],
           services: [
             {
               name,
