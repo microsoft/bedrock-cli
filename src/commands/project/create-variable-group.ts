@@ -28,37 +28,36 @@ export const createVariablegroupCommandDecorator = (
     )
     .option(
       "-d, --hld-repo-url <hld-repo-url>",
-      "The high level definition (HLD) git repo url."
+      "The high level definition (HLD) git repo url; falls back to azure_devops.org in spk config."
     )
     .option(
       "-u, --service-principal-id <service-principal-id>",
-      "Azure service principal id with `contributor` role in Azure Container Registry"
+      "Azure service principal id with `contributor` role in Azure Container Registry."
     )
     .option(
       "-p, --service-principal-password <service-principal-password>",
-      "The Azure service principal password"
+      "The Azure service principal password."
     )
     .option(
       "-t, --tenant <tenant>",
-      "The Azure AD tenant id of service principal"
+      "The Azure AD tenant id of service principal."
     )
     .option(
       "--org-name <organization-name>",
-      "Azure DevOps organization name; falls back to azure_devops.org in spk config"
+      "Azure DevOps organization name; falls back to azure_devops.org in spk config."
     )
     .option(
       "--project <project>",
-      "Azure DevOps project name; falls back to azure_devops.project in spk config"
+      "Azure DevOps project name; falls back to azure_devops.project in spk config."
     )
     .option(
       "--personal-access-token <personal-access-token>",
-      "Azure DevOps Personal access token; falls back to azure_devops.access_token in spk config"
+      "Azure DevOps Personal access token; falls back to azure_devops.access_token in spk config."
     )
     .action(async (variableGroupName, opts) => {
       try {
         const {
           registryName,
-          hldRepoUrl,
           servicePrincipalId,
           servicePrincipalPassword,
           tenant
@@ -67,6 +66,7 @@ export const createVariablegroupCommandDecorator = (
         const { azure_devops } = Config();
 
         const {
+          hldRepoUrl = azure_devops && azure_devops.hld_repository,
           orgName = azure_devops && azure_devops.org,
           personalAccessToken = azure_devops && azure_devops.access_token,
           project = azure_devops && azure_devops.project
