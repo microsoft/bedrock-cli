@@ -15,6 +15,50 @@ const exec = promisify(child_process.exec);
 
 import { IBedrockFile, IBedrockServiceConfig } from "../../types";
 
+//
+export interface IReconcileDependencies {
+  exec: (commandToRun: string) => Promise<void>;
+
+  writeFile: (path: string, contents: string) => void;
+
+  test: (option: shelljs.TestOptions, path: string) => boolean;
+
+  createRepositoryComponent: (
+    execCmd: (commandToRun: string) => Promise<void>,
+    absHldPath: string,
+    repositoryName: string
+  ) => Promise<void>;
+
+  createServiceComponent: (
+    execCmd: (commandToRun: string) => Promise<void>,
+    absRepositoryInHldPath: string,
+    pathBase: string
+  ) => Promise<void>;
+
+  createRingComponent: (
+    execCmd: (commandToRun: string) => Promise<void>,
+    svcPathInHld: string,
+    ring: string
+  ) => Promise<void>;
+
+  addChartToRing: (
+    execCmd: (commandToRun: string) => Promise<void>,
+    ringPathInHld: string,
+    serviceConfig: IBedrockServiceConfig
+  ) => Promise<void>;
+
+  createStaticComponent: (
+    execCmd: (commandToRun: string) => Promise<void>,
+    ringPathInHld: string
+  ) => Promise<void>;
+
+  createIngressRouteForRing: (
+    ringPathInHld: string,
+    serviceName: string,
+    ring: string
+  ) => void;
+}
+
 export const reconcileHldDecorator = (command: commander.Command): void => {
   command
     .command(
@@ -78,7 +122,25 @@ export const reconcileHldDecorator = (command: commander.Command): void => {
         logger.info(
           `Attempting to reconcile HLD with services tracked in bedrock.yaml`
         );
-        await reconcileHld(bedrockConfig, repositoryName, absHldPath);
+
+        const reconcileDependencies: IReconcileDependencies = {
+          addChartToRing,
+          createIngressRouteForRing,
+          createRepositoryComponent,
+          createRingComponent,
+          createServiceComponent,
+          createStaticComponent,
+          exec: execAndLog,
+          test: shelljs.test,
+          writeFile: writeFileSync
+        };
+
+        await reconcileHld(
+          reconcileDependencies,
+          bedrockConfig,
+          repositoryName,
+          absHldPath
+        );
       } catch (err) {
         logger.error(`Error occurred while reconciling HLD`);
         logger.error(err);
@@ -88,6 +150,7 @@ export const reconcileHldDecorator = (command: commander.Command): void => {
 };
 
 export const reconcileHld = async (
+  dependencies: IReconcileDependencies,
   bedrockYaml: IBedrockFile,
   repositoryName: string,
   absHldPath: string
@@ -97,7 +160,11 @@ export const reconcileHld = async (
 
   // Create Repository Component if it doesn't exist.
   // In a pipeline, the repository component is the name of the application repository.
-  await createRepositoryComponent(absHldPath, repositoryName);
+  await dependencies.createRepositoryComponent(
+    dependencies.exec,
+    absHldPath,
+    repositoryName
+  );
 
   // Repository in HLD ie /path/to/hld/repositoryName/
   const absRepositoryInHldPath = path.join(absHldPath, repositoryName);
@@ -107,11 +174,15 @@ export const reconcileHld = async (
   )) {
     const pathBase = path.basename(serviceRelPath);
     const serviceName = pathBase;
+    const serviceConfig = managedServices[serviceRelPath];
     logger.info(`Reconciling service: ${pathBase}`);
 
-    // Fab add is idempotent.
-    // mkdir -p does not fail if ${pathBase} does not exist.
-    await createServiceComponent(absRepositoryInHldPath, pathBase);
+    // Utilizes fab add, which is idempotent.
+    await dependencies.createServiceComponent(
+      dependencies.exec,
+      absRepositoryInHldPath,
+      pathBase
+    );
 
     // No rings
     if (!managedRings) {
@@ -125,8 +196,8 @@ export const reconcileHld = async (
 
       // If the ring component already exists, we do not attempt to create it.
       if (
-        shelljs.test("-e", ringPathInHld) &&
-        shelljs.test("-d", ringPathInHld)
+        dependencies.test("-e", ringPathInHld) &&
+        dependencies.test("-d", ringPathInHld)
       ) {
         logger.info(
           `Ring component: ${ring} already exists, skipping ring generation.`
@@ -135,13 +206,24 @@ export const reconcileHld = async (
       }
 
       // Otherwise, create the ring in the service.
-      await createRingComponent(svcPathInHld, ring);
+      await dependencies.createRingComponent(
+        dependencies.exec,
+        svcPathInHld,
+        ring
+      );
 
       // Add the helm chart to the ring.
-      await addChartToRing(ringPathInHld, serviceConfig);
+      await dependencies.addChartToRing(
+        dependencies.exec,
+        ringPathInHld,
+        serviceConfig
+      );
 
       // Create config directory, create static manifest directory.
-      await createStaticComponent(ringPathInHld);
+      await dependencies.createStaticComponent(
+        dependencies.exec,
+        ringPathInHld
+      );
 
       // Service explicitly requests no ingress-routes to be generated.
       if (serviceConfig.disableRouteScaffold) {
@@ -169,7 +251,7 @@ export const reconcileHld = async (
       writeFileSync(middlewaresPathInStaticComponent, middlewareYaml);
 
       // Create Ingress Route.
-      createIngressRouteForRing(ringPathInHld, serviceName, ring);
+      dependencies.createIngressRouteForRing(ringPathInHld, serviceName, ring);
     }
   }
 };
@@ -181,7 +263,7 @@ export const reconcileHld = async (
  * @param commandToRun String version of the command that must be run
  * @throws An Error containing the logs captured from stderr
  */
-const execAndLog = async (commandToRun: string) => {
+export const execAndLog = async (commandToRun: string) => {
   logger.info(`Running: ${commandToRun}`);
   const commandResult = await exec(commandToRun);
   logger.info(commandResult.stdout);
@@ -220,30 +302,39 @@ const createIngressRouteForRing = (
   writeFileSync(ingressRoutePathInStaticComponent, routeYaml);
 };
 
-const createRepositoryComponent = async (
+export const createRepositoryComponent = async (
+  execCmd: (commandToRun: string) => Promise<void>,
   absHldPath: string,
   repositoryName: string
 ) => {
-  await execAndLog(
+  await execCmd(
     `cd ${absHldPath} && mkdir -p ${repositoryName} && fab add ${repositoryName} --path ./${repositoryName} --method local`
   );
 };
 
-const createServiceComponent = async (
+export const createServiceComponent = async (
+  execCmd: (commandToRun: string) => Promise<void>,
   absRepositoryInHldPath: string,
   pathBase: string
 ) => {
-  await execAndLog(
+  // Fab add is idempotent.
+  // mkdir -p does not fail if ${pathBase} does not exist.
+  await execCmd(
     `cd ${absRepositoryInHldPath} && mkdir -p ${pathBase} config && fab add ${pathBase} --path ./${pathBase} --method local --type component && touch ./config/common.yaml`
   );
 };
 
-const createRingComponent = async (svcPathInHld: string, ring: string) => {
+export const createRingComponent = async (
+  execCmd: (commandToRun: string) => Promise<void>,
+  svcPathInHld: string,
+  ring: string
+) => {
   const createRingInSvcCommand = `cd ${svcPathInHld} && mkdir -p ${ring} config && fab add ${ring} --path ./${ring} --method local --type component && touch ./config/common.yaml`;
-  await execAndLog(createRingInSvcCommand);
+  await execCmd(createRingInSvcCommand);
 };
 
-const addChartToRing = async (
+export const addChartToRing = async (
+  execCmd: (commandToRun: string) => Promise<void>,
   ringPathInHld: string,
   serviceConfig: IBedrockServiceConfig
 ) => {
@@ -257,10 +348,13 @@ const addChartToRing = async (
     addHelmChartCommand = `fab add chart --source ${chart.repository} --path ${chart.chart}`;
   }
 
-  await execAndLog(`cd ${ringPathInHld} && ${addHelmChartCommand}`);
+  await execCmd(`cd ${ringPathInHld} && ${addHelmChartCommand}`);
 };
 
-const createStaticComponent = async (ringPathInHld: string) => {
+export const createStaticComponent = async (
+  execCmd: (commandToRun: string) => {},
+  ringPathInHld: string
+) => {
   const createConfigAndStaticComponentCommand = `cd ${ringPathInHld} && mkdir -p config static && fab add static --path ./static --method local --type static && touch ./config/common.yaml`;
-  await execAndLog(createConfigAndStaticComponentCommand);
+  await execCmd(createConfigAndStaticComponentCommand);
 };
