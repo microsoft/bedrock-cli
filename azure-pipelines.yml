@@ -59,3 +59,21 @@ steps:
       path: $(System.DefaultWorkingDirectory)/dist/spk-linux
       artifact: spk_linux_node_12
     condition: and(eq(variables['Agent.JobStatus'], 'Succeeded'), endsWith(variables['Agent.JobName'], 'node_12_x'))
+
+  - task: mspremier.BuildQualityChecks.QualityChecks-task.BuildQualityChecks@6
+    displayName: 'Check build quality'
+    inputs:
+      checkWarnings: false
+      warningFailOption: fixed
+      warningFilters: ''
+      showStatistics: true
+      checkCoverage: true
+      coverageFailOption: 'Previous Value'
+      coverageType: branches
+      buildConfiguration: ''
+      buildPlatform: ''
+      explicitFilter: true
+      baseDefinitionId: 128
+      baseBranchRef: refs/heads/master
+      runTitle: 'Code Coverage Evaluation'
+    condition: and(eq(variables['Agent.JobStatus'], 'Succeeded'), endsWith(variables['Agent.JobName'], 'node_12_x'))
