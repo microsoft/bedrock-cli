@@ -232,3 +232,14 @@ function approve_pull_request () {
         exit 1
     fi
 }
+
+function validate_file () {
+    echo "Validatng file $1"
+    if grep -q $2 $1;
+    then
+        echo "File contents have been successfully validated in $1"
+    else
+        echo "Issue validating file content with provided content in $1"
+        exit 1
+    fi
+}
