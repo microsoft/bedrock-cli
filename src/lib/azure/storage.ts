@@ -149,7 +149,7 @@ export const getStorageAccountKeys = async (
     accountName
   );
 
-  if (typeof keysResponse.keys !== undefined) {
+  if (typeof keysResponse.keys !== "undefined") {
     for (const storageKey of keysResponse.keys!) {
       storageAccountKeys.push(storageKey.value!);
     }
@@ -233,7 +233,7 @@ export const getStorageAccount = async (
       resourceGroup
     );
 
-    if (accounts === undefined || accounts === null) {
+    if (typeof accounts === "undefined" || accounts === null) {
       logger.debug(`No storage accounts found in ${resourceGroup}`);
     } else {
       logger.debug(
