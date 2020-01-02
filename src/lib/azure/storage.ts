@@ -19,7 +19,7 @@ import { getManagementCredentials } from "./azurecredentials";
 let storageManagementClient: StorageManagementClient | undefined; // singleton Storage Management Client so it can be reused
 
 /**
- * Creates  Azure storate management client
+ * Creates  Azure storage management client
  *
  * @param opts optionally override spk config with Azure subscription access options
  *
@@ -159,9 +159,9 @@ export const getStorageAccountKeys = async (
 };
 
 /**
- * Checks whether Azure storate account exists in specified resource group `resourceGroup` or not
+ * Checks whether Azure storage account exists in specified resource group `resourceGroup` or not
  *
- * @param resourceGroup Name of Azure reesource group
+ * @param resourceGroup Name of Azure resource group
  * @param accountName The Azure storage account name
  * @param opts optionally override spk config with Azure subscription access options
  *
@@ -197,9 +197,9 @@ export const isStorageAccountExist = async (
 };
 
 /**
- * Checks whether Azure storate account exists in specified resource group `resourceGroup` or not
+ * Checks whether Azure storage account exists in specified resource group `resourceGroup` or not
  *
- * @param resourceGroup Name of Azure reesource group
+ * @param resourceGroup Name of Azure resource group
  * @param accountName The Azure storage account name
  * @param opts optionally override spk config with Azure subscription access options
  *
@@ -255,9 +255,9 @@ export const getStorageAccount = async (
 };
 
 /**
- * Creates Azure storate account `name` in resource group `resourceGroup` in 1ocation `location`
+ * Creates Azure storage account `name` in resource group `resourceGroup` in location `location`
  *
- * @param resourceGroup Name of Azure reesource group
+ * @param resourceGroup Name of Azure resource group
  * @param accountName The Azure storage account name
  * @param location The Azure storage account location
  * @param opts optionally override spk config with Azure subscription access options
@@ -305,7 +305,7 @@ export const createStorageAccount = async (
       throw new Error(nameErrorMessage);
     }
 
-    logger.verbose(`Storage account name ${accountName} is availabile`);
+    logger.verbose(`Storage account name ${accountName} is available`);
 
     // Proceed to create a storage account
     const createParameters = {
@@ -334,7 +334,7 @@ export const createStorageAccount = async (
 /**
  * Get storage account `accountName` primary key in resource group `resourceGroup`
  *
- * @param resourceGroup Name of Azure reesource group
+ * @param resourceGroup Name of Azure resource group
  * @param accountName The Azure storage account name
  * @param opts optionally override spk config with Azure subscription access options
  * @returns the storage account primary access key `Promise<string>`
@@ -435,7 +435,7 @@ export const createTableIfNotExists = async (
 };
 
 /**
- * Creates Azure resource group `name` in 1ocation `location` if not exist already
+ * Creates Azure resource group `name` in location `location` if not exist already
  *
  * @param name The Azure resource group name
  * @param location The Azure resource group location

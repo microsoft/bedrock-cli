@@ -94,7 +94,7 @@ export const createCommandDecorator = (command: commander.Command): void => {
 };
 
 /**
- * Loads varible group manifest from a given filename
+ * Loads variable group manifest from a given filename
  *
  * @param filepath file to read manifest
  * @param accessOpts Azure DevOps access options from command options to override spk config

@@ -63,7 +63,7 @@ export const exec = async (
       if (code === 0) {
         resolve(stdout.trim());
       } else {
-        reject(new Error(stderr.trim()));
+        reject(Error(stderr.trim()));
       }
     });
   });

@@ -66,14 +66,14 @@ export const loadConfigurationFromLocalEnv = <T>(configObj: T): T => {
   return configObj;
 };
 
-const getKeyVaulSecret = async (
+const getKeyVaultSecret = async (
   keyVaultName: string | undefined,
   storageAccountName: string | undefined
 ): Promise<string | undefined> => {
   logger.debug(`Fetching key from key vault`);
   let keyVaultKey: string | undefined;
 
-  // fetch stoarge access key from key vault when it is configured
+  // fetch storage access key from key vault when it is configured
   if (
     keyVaultName !== undefined &&
     keyVaultName !== null &&
@@ -109,7 +109,7 @@ export const Config = (): IConfigYaml => {
     ...(spkConfig.introspection || {}).azure,
     get key() {
       const { account_name } = (spkConfig.introspection || {}).azure || {};
-      return getKeyVaulSecret(spkConfig.key_vault_name, account_name);
+      return getKeyVaultSecret(spkConfig.key_vault_name, account_name);
     }
   };
 
