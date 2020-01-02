@@ -56,10 +56,12 @@ mkdir template
 cd template
 tfTemplate=$'resource "azurerm_resource_group" "example"{\n name= "${var.rg_name}"\n location = "${var.rg_location}"\n}'
 tfVars=$'variable "rg_name" { \n type = "string" \n } \n variable "rg_location" { \n type = "string" \n }'
-touch main.tf variables.tf
+backendTfVars=$'storage_account_name="<storage account name>"'
+touch main.tf variables.tf backend.tfvars
 echo "$tfVars" >> variables.tf
+echo "$backendTfVars" >> backend.tfvars
 echo "$tfTemplate" >> main.tf
-file_we_expect=("variables.tf" "main.tf")
+file_we_expect=("variables.tf" "main.tf" "backend.tfvars")
 validate_directory "$TEST_WORKSPACE/$terraform_template_dir/template" "${file_we_expect[@]}" >> $TEST_WORKSPACE/log.txt
 # The TF Template requires a git release for a version to be targeted for spk scaffold
 git add -A
@@ -100,3 +102,17 @@ file_we_expect=("definition.yaml")
 validate_directory "$TEST_WORKSPACE/$infra_hld_dir" "${file_we_expect[@]}"
 # Validate the contents of the definition.yaml
 validate_file "$TEST_WORKSPACE/$infra_hld_dir/definition.yaml" $validation_test_yaml >> $TEST_WORKSPACE/log.txt
+
+# Generate TF Files from Infra HLDs ------------------
+cd $infra_hld_dir
+spk infra generate
+
+# Verify that the Terraform files generation was successful
+# Confirm that generated directory created, spk.tfvars created, and tf templates copied
+generated_directory="$TEST_WORKSPACE/$infra_hld_dir-generated"
+file_we_expect=("spk.tfvars" "main.tf" "variables.tf" "backend.tfvars")
+validate_directory "$generated_directory" "${file_we_expect[@]}"
+
+# Confirm contents of the spk.tfvars file are correct
+validate_file "$generated_directory/spk.tfvars" 'rg_name = "<insert value>"'
+validate_file "$generated_directory/backend.tfvars" 'storage_account_name = "<storage account name>"'

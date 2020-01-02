@@ -86,7 +86,7 @@ tests.
 | -------------------------- | -------- |
 | spk infra scaffold         | ✅       |
 | spk infra validate onboard | 🚫       |
-| spk infra generate         | 🚫       |
+| spk infra generate         | ✅       |
 
 # Setup Instructions
 

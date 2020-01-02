@@ -41,14 +41,10 @@ stages:
         echo "TEST_SCRIPT: $TEST_SCRIPT"
         curl $TEST_SCRIPT >| validations.sh
         chmod +x ./validations.sh
-        echo "TEST_SCRIPT2: $TEST_SCRIPT2"
-        curl $TEST_SCRIPT2 >| infra-validations.sh
-        chmod +x ./infra-validations.sh
       displayName: "Download integration test scripts"
       env:
         FUNC_SCRIPT: $(FUNC_SCRIPT)
         TEST_SCRIPT: $(TEST_SCRIPT)
-        TEST_SCRIPT2: $(TEST_SCRIPT2)
     - bash: |
         # Install the extension
         export AZURE_DEVOPS_EXT_PAT=$(AZDO_PAT)
@@ -78,16 +74,78 @@ stages:
         status=$?
         [ $status -eq 0 ] && echo "Test Done!" || (echo "Test had issues" && exit 1)
 
-        # Run the infra test
-        bash ./infra-validations.sh
-
-        # Get exit status
-        status=$?
-        [ $status -eq 0 ] && echo "Infra Test Done!" || (echo "Infra Test had issues" && exit 1)
       #failOnStderr: true
       displayName: "Run Validation Tests"
     - task: PublishPipelineArtifact@1
       inputs:
         path: $(System.DefaultWorkingDirectory)/spk-env/log.txt
         artifact: test_logs
+      condition: always()
+  - job: infra_integration_tests
+    pool:
+      vmImage: 'Ubuntu 16.04'
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'specific'
+        project: $(SPK_PROJECT_ID)
+        definition: $(SPK_DEFINITION_ID)
+        buildVersionToDownload: 'latestFromBranch'
+        branchName: 'refs/heads/master'
+        itemPattern: "spk*"
+        artifactName: 'spk_linux_node_12'
+        targetPath: '$(System.DefaultWorkingDirectory)'
+    - bash: |
+        shopt -s expand_aliases
+        echo "Current Dir is $(pwd)"
+        chmod +x spk-linux
+        alias spk="$(pwd)/spk-linux"
+        spk --version
+      displayName: "Verify SPK downloaded and executable"
+    - bash: |
+        echo "FUNC_SCRIPT: $FUNC_SCRIPT"
+        curl $FUNC_SCRIPT >| functions.sh
+        chmod +x ./functions.sh
+        echo "TEST_SCRIPT2: $TEST_SCRIPT2"
+        curl $TEST_SCRIPT2 >| infra-validations.sh
+        chmod +x ./infra-validations.sh
+      displayName: "Download integration test scripts"
+      env:
+        FUNC_SCRIPT: $(FUNC_SCRIPT)
+        TEST_SCRIPT2: $(TEST_SCRIPT2)
+    - bash: |
+        # Install the extension
+        export AZURE_DEVOPS_EXT_PAT=$(AZDO_PAT)
+        az extension add --name azure-devops
+
+        # Login to Azure
+        echo "az login --service-principal --username $(SP_APP_ID) --password $(SP_PASS) --tenant $(SP_TENANT)"
+        az login --service-principal --username "$(SP_APP_ID)" --password "$(SP_PASS)" --tenant "$(SP_TENANT)"
+
+        # Step up git identity
+        git config --global user.email "me@microsoft.com"
+        git config --global user.name "Service Account"
+
+        # Set ENV VARs
+        export SPK_LOCATION="$(pwd)/spk-linux"
+        export ACCESS_TOKEN_SECRET=$(AZDO_PAT)
+        export SP_PASS=$(SP_PASS)
+        export SP_TENANT=$(SP_TENANT)
+
+        # Include dependent scripts
+        . ./functions.sh
+
+        # Run the infra test
+        bash ./infra-validations.sh
+
+        # Get exit status
+        status=$?
+        [ $status -eq 0 ] && echo "Infra Test Done!" || (echo "Infra Test had issues" && exit 1)
+
+      #failOnStderr: true
+      displayName: "Run Infra Validation Tests"
+    - task: PublishPipelineArtifact@1
+      inputs:
+        path: $(System.DefaultWorkingDirectory)/spk-env/log.txt
+        artifact: infra_test_logs
       condition: always()

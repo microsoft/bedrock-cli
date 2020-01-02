@@ -3,12 +3,12 @@ print_array () {
     arr=("$@")
     for i in "${arr[@]}";
     do
-        : 
+        :
         echo "\t$i"
     done
 }
-validate_directory () {    
-    echo "Checking directory $1" 
+validate_directory () {
+    echo "Checking directory $1"
     #Get first arg then shift over to get array arg
     actual_files=( $(find $1 -maxdepth 1 -type f) ); shift
     # actual_files=("$1"/*); shift
@@ -18,7 +18,7 @@ validate_directory () {
     actual_base_files=()
     for i in "${actual_files[@]}"
     do
-        : 
+        :
         echo "Current file: $i"
         currentFile=$(basename "$i")
         # echo "Current file: $currentFile"
@@ -51,11 +51,11 @@ validate_directory () {
 }
 
 validate_service () {
-    echo "Checking directory `$1`" 
+    echo "Checking directory `$1`"
     local files=( ".gitignore" "azure-pipelines.yaml" "Dockerfile" )
     for i in "${files[@]}"
     do
-        : 
+        :
         currentFile="$1/$i"
         echo "Current file: $currentFile"
         if [ ! -f $currentFile ]; then
@@ -66,11 +66,11 @@ validate_service () {
 }
 
 validate_mono_repo () {
-    echo "Checking directory `$1`" 
+    echo "Checking directory `$1`"
     local files=( ".gitignore" "bedrock.yaml" "maintainers.yaml" )
     for i in "${files[@]}"
     do
-        : 
+        :
         currentFile="$1/$i"
         echo "Current file: $currentFile"
         if [ ! -f $currentFile ]; then
@@ -100,13 +100,13 @@ function getHostandPath () {
     user="$(echo $url | grep @ | cut -d@ -f1)"
     # extract the host and port
     hostport="$(echo ${url/$user@/} | cut -d/ -f1)"
-    # by request host without port    
+    # by request host without port
     host="$(echo $hostport | sed -e 's,:.*,,g')"
     # by request - try to extract the port
     port="$(echo $hostport | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
     # extract the path (if any)
     path="$(echo $url | grep / | cut -d/ -f2-)"
-    
+
     echo "$host/$path"
 }
 
@@ -170,7 +170,7 @@ function verify_pipeline_with_poll () {
     poll_interval=$5
     end=$((SECONDS+$poll_timeout))
     loop_result="unknown"
-    
+
     echo "Attempting to verify that the pipeline build for $pipeline_name is successful..."
     pipeline_result=$(az pipelines build definition show --name $pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
     pipeline_id=$(tr '"\""' '"\\"' <<< "$pipeline_result" | jq .id)
@@ -178,12 +178,12 @@ function verify_pipeline_with_poll () {
 
     while [ $SECONDS -lt $end ]; do
         pipeline_builds=$(az pipelines build list --definition-ids $pipeline_id --org $1 --p $2)
-        
+
         # We expect only 1 build right now
         build_count=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq '. | length')
-        if [ "$build_count" != "1"  ]; then 
+        if [ "$build_count" != "1"  ]; then
             echo "Expected 1 build for pipeline: $pipeline_name-$pipeline_id but found $build_count"
-            exit 1 
+            exit 1
         fi
 
         # We use grep because of string matching issues
@@ -199,12 +199,12 @@ function verify_pipeline_with_poll () {
                 break
             else
                 echo "Expected successful build for pipeline: $pipeline_name-$pipeline_id but result is $pipeline_result"
-                exit 1 
+                exit 1
             fi
         else
         echo "pipeline: $pipeline_name-$pipeline_id status is $pipeline_status. Sleeping for $poll_interval seconds"
         sleep $poll_interval
-        fi 
+        fi
     done
     if [ "$loop_result" = "unknown" ]; then
         echo "Polling pipeline: $pipeline_name-$pipeline_id timed out after $poll_timeout seconds!"
@@ -213,7 +213,7 @@ function verify_pipeline_with_poll () {
 }
 
 function approve_pull_request () {
-    all_prs=$(az repos pr list --org $1 --p $2) 
+    all_prs=$(az repos pr list --org $1 --p $2)
     pr_title=$3
 
     pr_exists=$(echo $all_prs | jq -r --arg pr_title "$pr_title" '.[] | select(.title == $pr_title) != null')
@@ -235,7 +235,7 @@ function approve_pull_request () {
 
 function validate_file () {
     echo "Validatng file $1"
-    if grep -q $2 $1;
+    if grep -q "$2" "$1";
     then
         echo "File contents have been successfully validated in $1"
     else
