@@ -1,4 +1,5 @@
 import GitUrlParse from "git-url-parse";
+import path from "path";
 import { logger } from "../logger";
 import { exec } from "./shell";
 
@@ -21,13 +22,19 @@ export const safeGitUrlForLogging = (repoUrl: string): string => {
 
 /**
  * Gets the current working branch.
+ *
+ * @param repoDir the directory of the git repository to get current branch of
  */
-export const getCurrentBranch = async (): Promise<string> => {
+export const getCurrentBranch = async (
+  repoDir: string = process.cwd()
+): Promise<string> => {
   try {
-    const branch = await exec("git", ["rev-parse", "--abbrev-ref", "HEAD"]);
+    const branch = await exec("git", ["branch", "--show-current"], {
+      cwd: path.resolve(repoDir)
+    });
     return branch;
-  } catch (_) {
-    throw Error("Unable to determine current branch: " + _);
+  } catch (err) {
+    throw Error("Unable to determine current branch: " + err);
   }
 };
 
@@ -193,6 +200,14 @@ export const getPullRequestLink = async (
   }
 };
 
+/**
+ * Creates a new branch of name `newBranchName`, commits all `pathspecs` to the
+ * new branch, pushes the new branch, and creates a PR to merge `newBranchName`
+ * into the hosts current branch.
+ *
+ * @param newBranchName name of branch to create and which the a PR will be made for
+ * @param pathspecs
+ */
 export const checkoutCommitPushCreatePRLink = async (
   newBranchName: string,
   ...pathspecs: string[]
@@ -221,10 +236,11 @@ export const checkoutCommitPushCreatePRLink = async (
       );
     });
 
+    const originUrl = await getOriginUrl();
     const pullRequestLink = await getPullRequestLink(
       currentBranch,
       newBranchName,
-      await getOriginUrl()
+      originUrl
     ).catch(e => {
       throw Error(
         `Could not create link for Pull Request. It will need to be done manually. ${e}`

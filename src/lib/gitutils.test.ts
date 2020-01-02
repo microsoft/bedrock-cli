@@ -14,8 +14,6 @@ import {
 import { disableVerboseLogging, enableVerboseLogging } from "../logger";
 import { exec } from "./shell";
 
-import GitUrlParse from "git-url-parse";
-
 jest.mock("./shell");
 
 beforeAll(() => {
@@ -55,11 +53,9 @@ describe("getCurrentBranch", () => {
 
     expect(currentBranch).toEqual("currentBranch");
     expect(exec).toHaveBeenCalledTimes(1);
-    expect(exec).toHaveBeenCalledWith("git", [
-      "rev-parse",
-      "--abbrev-ref",
-      "HEAD"
-    ]);
+    expect(exec).toHaveBeenCalledWith("git", ["branch", "--show-current"], {
+      cwd: process.cwd()
+    });
   });
 
   it("should return an error when exec throws an error", async () => {
