@@ -275,10 +275,11 @@ describe("Adding a new service to a Bedrock file", () => {
     const expected: IBedrockFile = {
       rings: {},
       services: {
-        ...((defaultBedrockFileObject as any) as IBedrockFile).services,
+        ...(defaultBedrockFileObject as IBedrockFile).services,
         ["./" + servicePath]: {
           displayName: svcDisplayName,
-          helm: helmConfig
+          helm: helmConfig,
+          middlewares: []
         }
       }
     };

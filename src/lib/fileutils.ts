@@ -618,7 +618,8 @@ export const addNewServiceToBedrockFile = (
   bedrockFilePath: string,
   newServicePath: string,
   svcDisplayName: string,
-  helmConfig: IHelmConfig
+  helmConfig: IHelmConfig,
+  middlewares: string[] = []
 ) => {
   const bedrockFile = yaml.safeLoad(
     fs.readFileSync(bedrockFilePath, "utf8")
@@ -626,7 +627,8 @@ export const addNewServiceToBedrockFile = (
 
   bedrockFile.services["./" + newServicePath] = {
     displayName: svcDisplayName,
-    helm: helmConfig
+    helm: helmConfig,
+    middlewares
   };
 
   logger.info("Updating bedrock.yaml");

@@ -38,17 +38,19 @@ Usage: service create|c [options] <service-name>
 Add a new service into this initialized spk project repository
 
 Options:
-  -c, --helm-chart-chart <helm-chart>            bedrock helm chart name. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
-  -r, --helm-chart-repository <helm-repository>  bedrock helm chart repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
-  -b, --helm-config-branch <helm-branch>         bedrock custom helm chart configuration branch. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
-  -p, --helm-config-path <helm-path>             bedrock custom helm chart configuration path. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
-  -g, --helm-config-git <helm-git>               bedrock helm chart configuration git repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
-  -d, --packages-dir <dir>                       The directory containing the mono-repo packages. (default: "")
-  -n, --display-name <display-name>              Display name of the service.
-  -m, --maintainer-name <maintainer-name>        The name of the primary maintainer for this service. (default: "maintainer name")
-  -e, --maintainer-email <maintainer-email>      The email of the primary maintainer for this service. (default: "maintainer email")
-  --git-push                                     SPK CLI will try to commit and push these changes to a new origin/branch named after the service. (default: false)
-  -h, --help                                     output usage information
+  -c, --helm-chart-chart <helm-chart>                         bedrock helm chart name. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  -r, --helm-chart-repository <helm-repository>               bedrock helm chart repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  -b, --helm-config-branch <helm-branch>                      bedrock custom helm chart configuration branch. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  -p, --helm-config-path <helm-path>                          bedrock custom helm chart configuration path. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  -g, --helm-config-git <helm-git>                            bedrock helm chart configuration git repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  -d, --packages-dir <dir>                                    The directory containing the mono-repo packages. (default: "")
+  -n, --display-name <display-name>                           Display name of the service. (default: "")
+  -m, --maintainer-name <maintainer-name>                     The name of the primary maintainer for this service. (default: "maintainer name")
+  -e, --maintainer-email <maintainer-email>                   The email of the primary maintainer for this service. (default: "maintainer email")
+  --git-push                                                  SPK CLI will try to commit and push these changes to a new origin/branch named after the service. (default: false)
+  --variable-group-name <variable-group-name>                 The Azure DevOps Variable Group.
+  --middlewares <comma-delimitated-list-of-middleware-names>  Traefik2 middlewares you wish to to be injected into your Traefik2 IngressRoutes (default: "")
+  -h, --help                                                  output usage information
 ```
 
 **NOTE:**

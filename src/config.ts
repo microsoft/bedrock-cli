@@ -128,6 +128,8 @@ export const Config = (): IConfigYaml => {
  * Does some validations against the file; if errors occur, an Exception is
  * thrown:
  * - Validates the helm configurations for all service entries
+ *
+ * @param fileDirectory the project directory containing the bedrock.yaml file
  */
 export const Bedrock = (fileDirectory = process.cwd()): IBedrockFile => {
   const bedrockYamlPath = path.join(fileDirectory, "bedrock.yaml");
@@ -168,12 +170,33 @@ export const Bedrock = (fileDirectory = process.cwd()): IBedrockFile => {
 };
 
 /**
+ * Async wrapper for the Bedrock() function
+ * Use this if preferring to use Promise based control flow over try/catch as
+ * Bedrock() can throw and Error
+ *
+ * @param fileDirectory the project directory containing the bedrock.yaml file
+ */
+export const BedrockAsync = async (
+  fileDirectory = process.cwd()
+): Promise<IBedrockFile> => Bedrock(fileDirectory);
+
+/**
  * Returns the current maintainers.yaml file for the project
  */
 export const Maintainers = (
   fileDirectory: string = process.cwd()
 ): IMaintainersFile =>
   readYaml<IMaintainersFile>(path.join(fileDirectory, "maintainers.yaml"));
+
+/**
+ * Async wrapper for Maintainers() function
+ * Use this if preferring to use Promise based control flow over try/catch as
+ * Maintainers() can throw and Error
+ *
+ * @param fileDirectory the project directory containing the maintainers.yaml file
+ */
+export const MaintainersAsync = (fileDirectory: string = process.cwd()) =>
+  Maintainers(fileDirectory);
 
 /**
  * Helper to write out a bedrock.yaml or maintainers.yaml file to the project root

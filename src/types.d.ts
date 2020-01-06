@@ -51,6 +51,7 @@ export interface IBedrockFile {
   services: {
     [relativeDirectory: string]: {
       displayName?: string;
+      middlewares?: string[];
       helm: IHelmConfig;
     };
   };

@@ -1,18 +1,15 @@
+import child_process from "child_process";
 import commander from "commander";
+import { writeFileSync } from "fs";
+import yaml from "js-yaml";
 import path from "path";
 import process from "process";
 import shelljs from "shelljs";
-
-import { Bedrock } from "../../config";
-import { logger } from "../../logger";
-
-import child_process from "child_process";
-import { writeFileSync } from "fs";
-import yaml from "js-yaml";
 import { promisify } from "util";
-
+import { Bedrock } from "../../config";
 import { TraefikIngressRoute } from "../../lib/traefik/ingress-route";
 import { TraefikMiddleware } from "../../lib/traefik/middleware";
+import { logger } from "../../logger";
 
 const exec = promisify(child_process.exec);
 
@@ -107,11 +104,12 @@ export const reconcileHld = async (
   // Repository in HLD ie /path/to/hld/repositoryName/
   const absRepositoryInHldPath = path.join(absHldPath, repositoryName);
 
-  for (const serviceRelPath of Object.keys(managedServices)) {
+  for (const [serviceRelPath, serviceConfig] of Object.entries(
+    managedServices
+  )) {
     const pathBase = path.basename(serviceRelPath);
     const serviceName = pathBase;
     logger.info(`Reconciling service: ${pathBase}`);
-    const helmConfig = managedServices[serviceRelPath];
 
     // Fab add is idempotent.
     // mkdir -p does not fail if ${pathBase} does not exist.
@@ -146,7 +144,7 @@ export const reconcileHld = async (
       await execAndLog(createRingInSvcCommand);
 
       let addHelmChartCommand = "";
-      const { chart } = helmConfig.helm;
+      const { chart } = serviceConfig.helm;
       if ("git" in chart) {
         const chartVersioning =
           "branch" in chart
@@ -187,10 +185,12 @@ export const reconcileHld = async (
         staticComponentPathInRing,
         "ingress-route.yaml"
       );
-
       // TODO: figure out a way to grab the port from _somewhere_; store in bedrock.yaml?
       const ingressRoute = TraefikIngressRoute(serviceName, ring, 8000, {
-        middlewares: [middlewares.metadata.name]
+        middlewares: [
+          middlewares.metadata.name,
+          ...(serviceConfig.middlewares ?? [])
+        ]
       });
       const routeYaml = yaml.safeDump(ingressRoute, {
         lineWidth: Number.MAX_SAFE_INTEGER
@@ -218,8 +218,8 @@ const execAndLog = async (commandToRun: string) => {
 
   if (commandResult.stderr) {
     logger.error(commandResult.stderr);
-    throw new Error(
-      `Error occurred when invoking commmand: ${commandResult.stderr}`
+    throw Error(
+      `Error occurred when invoking command: ${commandResult.stderr}`
     );
   }
 };
