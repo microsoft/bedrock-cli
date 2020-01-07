@@ -6,13 +6,16 @@ import * as path from "path";
 import uuid from "uuid/v4";
 import { Config, loadConfiguration } from "../../config";
 import * as config from "../../config";
+import * as keyvault from "../../lib/azure/keyvault";
+import * as storage from "../../lib/azure/storage";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
   logger
 } from "../../logger";
-import { IAzureAccessOpts, IConfigYaml } from "../../types";
+import { IAzureAccessOpts } from "../../types";
 import {
+  onboard,
   setConfiguration,
   validateRequiredArguments,
   validateStorageName,
@@ -43,6 +46,123 @@ const testConfigFile = path.join(randomTmpDir, "config.yaml");
 
 jest.spyOn(config, "defaultConfigFile").mockImplementation((): string => {
   return testConfigFile;
+});
+
+jest.spyOn(storage, "isStorageAccountExist").mockImplementation(
+  async (): Promise<any> => {
+    return false;
+  }
+);
+
+jest.spyOn(storage, "createStorageAccount").mockImplementation(
+  async (): Promise<any> => {
+    return {
+      location: "westus",
+      name: "testAccount"
+    };
+  }
+);
+
+jest.spyOn(keyvault, "setSecret").mockImplementation(
+  async (): Promise<any> => {
+    return true;
+  }
+);
+
+jest.spyOn(logger, "info");
+
+describe("onboard", () => {
+  test("empty location", async () => {
+    jest.spyOn(storage, "isStorageAccountExist").mockImplementationOnce(
+      async (): Promise<any> => {
+        return false;
+      }
+    );
+
+    let hasError = false;
+    try {
+      await onboard(
+        "testAccount",
+        "testTable",
+        "testResourceGroup",
+        "",
+        "testKeyVault"
+      );
+    } catch (err) {
+      hasError = true;
+      expect(err.message).toBe(
+        "the following argument is required: \n -l / --storage-location"
+      );
+    }
+
+    expect(hasError).toBe(true);
+  });
+
+  test("no access key", async () => {
+    jest.spyOn(storage, "getStorageAccountKey").mockImplementationOnce(
+      async (): Promise<any> => {
+        return undefined;
+      }
+    );
+
+    let hasError = false;
+    try {
+      await onboard(
+        "testAccount",
+        "testTable",
+        "testResourceGroup",
+        "westus",
+        "testKeyVault"
+      );
+    } catch (err) {
+      hasError = true;
+      expect(err.message).toBe(
+        "Storage account testAccount access keys in resource group testResourceGroup is not defined"
+      );
+    }
+
+    expect(hasError).toBe(true);
+  });
+
+  test("create storage account", async () => {
+    jest.spyOn(storage, "getStorageAccountKey").mockImplementationOnce(
+      async (): Promise<any> => {
+        return "kZ83JRndk27402nB";
+      }
+    );
+
+    jest.spyOn(storage, "createTableIfNotExists").mockImplementationOnce(
+      async (): Promise<boolean> => {
+        return true;
+      }
+    );
+
+    // Setup test configuration file
+    let hasError = false;
+    try {
+      const data = {
+        introspection: {
+          azure: {
+            account_name: "testAccount",
+            table_name: "testTable"
+          }
+        }
+      };
+
+      fs.writeFileSync(testConfigFile, yaml.safeDump(data));
+      await onboard(
+        "testAccount",
+        "testTable",
+        "testResourceGroup",
+        "westus",
+        "testKeyVault"
+      );
+    } catch (err) {
+      hasError = true;
+    }
+
+    expect(hasError).toBe(false);
+  });
 });
 
 describe("validateRequiredArguments", () => {

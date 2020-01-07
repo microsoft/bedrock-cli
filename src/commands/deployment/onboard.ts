@@ -166,7 +166,7 @@ export const onboard = async (
 
   if (accessKey === undefined) {
     throw new Error(
-      `Storage account ${accountName} access keys in resource group ${resourceGroup}is not defined`
+      `Storage account ${accountName} access keys in resource group ${resourceGroup} is not defined`
     );
   }
 
