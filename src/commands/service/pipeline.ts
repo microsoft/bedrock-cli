@@ -137,6 +137,69 @@ export const installBuildPipelineCommandDecorator = (
 };
 
 /**
+ * Validates the pipeline configuration
+ * @param pipelineName Name of pipeline
+ * @param personalAccessToken Personal access token
+ * @param orgName Name of organization
+ * @param repoName Name of repository
+ * @param repoUrl URL of repository
+ * @param devopsProject DevOps project
+ * @param buildScriptUrl URL of build script
+ */
+export const isValidConfig = (
+  pipelineName: any,
+  personalAccessToken: any,
+  orgName: any,
+  repoName: any,
+  repoUrl: any,
+  devopsProject: any,
+  buildScriptUrl: any
+): boolean => {
+  const missingConfig = [];
+
+  if (typeof pipelineName !== "string") {
+    missingConfig.push(
+      `--pipeline-name must be of type 'string', ${typeof pipelineName} given.`
+    );
+  }
+  if (typeof personalAccessToken !== "string") {
+    missingConfig.push(
+      `--personal-access-token must be of type 'string', ${typeof personalAccessToken} given.`
+    );
+  }
+  if (typeof orgName !== "string") {
+    missingConfig.push(
+      `--org-url must be of type 'string', ${typeof orgName} given.`
+    );
+  }
+  if (typeof repoName !== "string") {
+    missingConfig.push(
+      `--repo-name must be of type 'string', ${typeof repoName} given.`
+    );
+  }
+  if (typeof repoUrl !== "string") {
+    missingConfig.push(
+      `--repo-url must be of type 'string', ${typeof repoUrl} given.`
+    );
+  }
+  if (typeof devopsProject !== "string") {
+    missingConfig.push(
+      `--devops-project must be of type 'string', ${typeof devopsProject} given.`
+    );
+  }
+  if (typeof buildScriptUrl !== "string") {
+    missingConfig.push(
+      `--build-script must be of type 'string', ${typeof buildScriptUrl} given.`
+    );
+  }
+  if (missingConfig.length > 0) {
+    logger.error("Error in configuration: " + missingConfig.join(" "));
+    return false;
+  }
+
+  return true;
+};
+/**
  * Install a pipeline for the service in an azure devops org.
  *
  * @param serviceName Name of the service this pipeline belongs to; this is only used when `packagesDir` is defined as a means to locate the azure-pipelines.yaml file
