@@ -25,220 +25,33 @@ afterAll(() => {
 });
 
 describe("validate pipeline config", () => {
+  const configValues: any[] = [
+    "testHelmChart",
+    "testHelmRepo",
+    "testHelmConfigBranch",
+    "testHelmConfigGit",
+    "/test/path",
+    "testService",
+    "test/packages",
+    "test-maintainer",
+    "test@maintainer.com",
+    true,
+    "testVariableGroup"
+  ];
+
   it("config is valid", () => {
-    expect(
-      isValidConfig(
-        "testHelmChart",
-        "testHelmRepo",
-        "testHelmConfigBranch",
-        "testHelmConfigGit",
-        "/test/path",
-        "testService",
-        "test/packages",
-        "test-maintainer",
-        "test@maintainer.com",
-        true,
-        "testVariableGroup"
-      )
-    ).toBe(true);
+    expect(isValidConfig.apply(undefined, configValues as any)).toBe(true);
   });
 
-  it("invalid helmChartChart", () => {
-    expect(
-      isValidConfig(
-        undefined,
-        "testHelmRepo",
-        "testHelmConfigBranch",
-        "testHelmConfigGit",
-        "/test/path",
-        "testService",
-        "test/packages",
-        "test-maintainer",
-        "test@maintainer.com",
-        true,
-        "testVariableGroup"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid helmChartRepository", () => {
-    expect(
-      isValidConfig(
-        "testHelmChart",
-        undefined,
-        "testHelmConfigBranch",
-        "testHelmConfigGit",
-        "/test/path",
-        "testService",
-        "test/packages",
-        "test-maintainer",
-        "test@maintainer.com",
-        true,
-        "testVariableGroup"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid helmConfigBranch", () => {
-    expect(
-      isValidConfig(
-        "testHelmChart",
-        "testHelmRepo",
-        undefined,
-        "testHelmConfigGit",
-        "/test/path",
-        "testService",
-        "test/packages",
-        "test-maintainer",
-        "test@maintainer.com",
-        true,
-        "testVariableGroup"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid helmConfigGit", () => {
-    expect(
-      isValidConfig(
-        "testHelmChart",
-        "testHelmRepo",
-        "testHelmConfigBranch",
-        undefined,
-        "/test/path",
-        "testService",
-        "test/packages",
-        "test-maintainer",
-        "test@maintainer.com",
-        true,
-        "testVariableGroup"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid helmConfigPath", () => {
-    expect(
-      isValidConfig(
-        "testHelmChart",
-        "testHelmRepo",
-        "testHelmConfigBranch",
-        "testHelmConfigGit",
-        undefined,
-        "testService",
-        "test/packages",
-        "test-maintainer",
-        "test@maintainer.com",
-        true,
-        "testVariableGroup"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid serviceName", () => {
-    expect(
-      isValidConfig(
-        "testHelmChart",
-        "testHelmRepo",
-        "testHelmConfigBranch",
-        "testHelmConfigGit",
-        "/test/path",
-        undefined,
-        "test/packages",
-        "test-maintainer",
-        "test@maintainer.com",
-        true,
-        "testVariableGroup"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid packagesDir", () => {
-    expect(
-      isValidConfig(
-        "testHelmChart",
-        "testHelmRepo",
-        "testHelmConfigBranch",
-        "testHelmConfigGit",
-        "/test/path",
-        "testService",
-        undefined,
-        "test-maintainer",
-        "test@maintainer.com",
-        true,
-        "testVariableGroup"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid maintainerName", () => {
-    expect(
-      isValidConfig(
-        "testHelmChart",
-        "testHelmRepo",
-        "testHelmConfigBranch",
-        "testHelmConfigGit",
-        "/test/path",
-        "testService",
-        "test/packages",
-        undefined,
-        "test@maintainer.com",
-        true,
-        "testVariableGroup"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid maintainerEmail", () => {
-    expect(
-      isValidConfig(
-        "testHelmChart",
-        "testHelmRepo",
-        "testHelmConfigBranch",
-        "testHelmConfigGit",
-        "/test/path",
-        "testService",
-        "test/packages",
-        "test-maintainer",
-        undefined,
-        true,
-        "testVariableGroup"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid gitPush", () => {
-    expect(
-      isValidConfig(
-        "testHelmChart",
-        "testHelmRepo",
-        "testHelmConfigBranch",
-        "testHelmConfigGit",
-        "/test/path",
-        "testService",
-        "test/packages",
-        "test-maintainer",
-        "test@maintainer.com",
-        undefined,
-        "testVariableGroup"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid variableGroupName", () => {
-    expect(
-      isValidConfig(
-        "testHelmChart",
-        "testHelmRepo",
-        "testHelmConfigBranch",
-        "testHelmConfigGit",
-        "/test/path",
-        "testService",
-        "test/packages",
-        "test-maintainer",
-        "test@maintainer.com",
-        true,
-        undefined
-      )
-    ).toBe(false);
+  it("undefined parameters", () => {
+    for (const i of configValues.keys()) {
+      const configValuesWithInvalidValue = configValues.map((value, j) =>
+        i === j ? undefined : value
+      );
+      expect(
+        isValidConfig.apply(undefined, configValuesWithInvalidValue as any)
+      ).toBe(false);
+    }
   });
 });
 

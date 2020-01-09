@@ -24,139 +24,30 @@ afterAll(() => {
 });
 
 describe("validate pipeline config", () => {
+  const configValues: any[] = [
+    "testOrg",
+    "testDevopsProject",
+    "testPipeline",
+    "repoName",
+    "https:/repoulr",
+    "https://hldurl",
+    "https://buildscript",
+    "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
+  ];
+
   it("config is valid", () => {
-    expect(
-      isValidConfig(
-        "testOrg",
-        "testDevopsProject",
-        "testPipeline",
-        "repoName",
-        "https:/repoulr",
-        "https://hldurl",
-        "https://buildscript",
-        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
-      )
-    ).toBe(true);
+    expect(isValidConfig.apply(undefined, configValues as any)).toBe(true);
   });
 
-  it("invalid orgName", () => {
-    expect(
-      isValidConfig(
-        undefined,
-        "testDevopsProject",
-        "testPipeline",
-        "repoName",
-        "https:/repoulr",
-        "https://hldurl",
-        "https://buildscript",
-        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid devopsProject", () => {
-    expect(
-      isValidConfig(
-        "testOrg",
-        undefined,
-        "testPipeline",
-        "repoName",
-        "https:/repoulr",
-        "https://hldurl",
-        "https://buildscript",
-        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid pipelineName", () => {
-    expect(
-      isValidConfig(
-        "testOrg",
-        "testDevopsProject",
-        undefined,
-        "repoName",
-        "https:/repoulr",
-        "https://hldurl",
-        "https://buildscript",
-        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid repoName", () => {
-    expect(
-      isValidConfig(
-        "testOrg",
-        "testDevopsProject",
-        "testPipeline",
-        undefined,
-        "https:/repoulr",
-        "https://hldurl",
-        "https://buildscript",
-        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid repoUrl", () => {
-    expect(
-      isValidConfig(
-        "testOrg",
-        "testDevopsProject",
-        "testPipeline",
-        "repoName",
-        undefined,
-        "https://hldurl",
-        "https://buildscript",
-        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid hldUrl", () => {
-    expect(
-      isValidConfig(
-        "testOrg",
-        "testDevopsProject",
-        "testPipeline",
-        "repoName",
-        "https:/repoulr",
-        undefined,
-        "https://buildscript",
-        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid buildScriptUrl", () => {
-    expect(
-      isValidConfig(
-        "testOrg",
-        "testDevopsProject",
-        "testPipeline",
-        "repoName",
-        "https:/repoulr",
-        "https://hldurl",
-        undefined,
-        "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid personalAccessToken", () => {
-    expect(
-      isValidConfig(
-        "testOrg",
-        "testDevopsProject",
-        "testPipeline",
-        "repoName",
-        "https:/repoulr",
-        "https://hldurl",
-        "https://buildscript",
-        undefined
-      )
-    ).toBe(false);
+  it("undefined values", () => {
+    for (const i of configValues.keys()) {
+      const configValuesWithInvalidValue = configValues.map((value, j) =>
+        i === j ? undefined : value
+      );
+      expect(
+        isValidConfig.apply(undefined, configValuesWithInvalidValue as any)
+      ).toBe(false);
+    }
   });
 });
 
