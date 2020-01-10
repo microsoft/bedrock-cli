@@ -617,6 +617,7 @@ export const generateGitIgnoreFile = (
 export const addNewServiceToBedrockFile = (
   bedrockFilePath: string,
   newServicePath: string,
+  svcDisplayName: string,
   helmConfig: IHelmConfig
 ) => {
   const bedrockFile = yaml.safeLoad(
@@ -624,6 +625,7 @@ export const addNewServiceToBedrockFile = (
   ) as IBedrockFile;
 
   bedrockFile.services["./" + newServicePath] = {
+    displayName: svcDisplayName,
     helm: helmConfig
   };
 

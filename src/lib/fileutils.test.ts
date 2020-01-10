@@ -254,6 +254,7 @@ describe("Adding a new service to a Bedrock file", () => {
     const bedrockFilePath = "bedrock.yaml";
 
     const servicePath = "packages/my-new-service";
+    const svcDisplayName = "my-new-service";
     const helmConfig: IHelmConfig = {
       chart: {
         chart: "somehelmchart",
@@ -262,7 +263,12 @@ describe("Adding a new service to a Bedrock file", () => {
     };
 
     const writeSpy = jest.spyOn(fs, "writeFileSync");
-    addNewServiceToBedrockFile(bedrockFilePath, servicePath, helmConfig);
+    addNewServiceToBedrockFile(
+      bedrockFilePath,
+      servicePath,
+      svcDisplayName,
+      helmConfig
+    );
 
     const defaultBedrockFileObject = createTestBedrockYaml(false);
 
@@ -271,6 +277,7 @@ describe("Adding a new service to a Bedrock file", () => {
       services: {
         ...((defaultBedrockFileObject as any) as IBedrockFile).services,
         ["./" + servicePath]: {
+          displayName: svcDisplayName,
           helm: helmConfig
         }
       }

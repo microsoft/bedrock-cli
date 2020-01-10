@@ -56,6 +56,11 @@ export const createCommandDecorator = (command: commander.Command): void => {
       ""
     )
     .option(
+      "-n, --display-name <display-name>",
+      "Display name of the service.",
+      ""
+    )
+    .option(
       "-m, --maintainer-name <maintainer-name>",
       "The name of the primary maintainer for this service.",
       "maintainer name"
@@ -76,6 +81,7 @@ export const createCommandDecorator = (command: commander.Command): void => {
     )
     .action(async (serviceName, opts) => {
       const {
+        displayName,
         helmChartChart,
         helmChartRepository,
         helmConfigBranch,
@@ -117,13 +123,15 @@ export const createCommandDecorator = (command: commander.Command): void => {
             maintainerName,
             maintainerEmail,
             gitPush,
-            variableGroupName
+            variableGroupName,
+            displayName
           )
         ) {
           process.exit(1);
         }
 
         await createService(projectPath, serviceName, packagesDir, gitPush, {
+          displayName,
           helmChartChart,
           helmChartRepository,
           helmConfigBranch,
@@ -170,7 +178,8 @@ export const isValidConfig = (
   maintainerName: any,
   maintainerEmail: any,
   gitPush: any,
-  variableGroupName: any
+  variableGroupName: any,
+  displayName: any
 ): boolean => {
   const missingConfig = [];
 
@@ -203,6 +212,11 @@ export const isValidConfig = (
   if (typeof serviceName !== "string") {
     missingConfig.push(
       `serviceName must be of type 'string', ${typeof serviceName} given.`
+    );
+  }
+  if (typeof displayName !== "string") {
+    missingConfig.push(
+      `displayName must be of type 'string', ${typeof displayName} given.`
     );
   }
   if (typeof packagesDir !== "string") {
@@ -256,6 +270,7 @@ export const createService = async (
   packagesDir: string,
   gitPush: boolean,
   opts?: {
+    displayName: string;
     helmChartChart: string;
     helmChartRepository: string;
     helmConfigBranch: string;
@@ -267,6 +282,7 @@ export const createService = async (
   }
 ) => {
   const {
+    displayName,
     helmChartChart,
     helmChartRepository,
     helmConfigBranch,
@@ -276,6 +292,7 @@ export const createService = async (
     maintainerEmail,
     variableGroups
   } = opts || {
+    displayName: "",
     helmChartChart: "",
     helmChartRepository: "",
     helmConfigBranch: "",
@@ -290,7 +307,7 @@ export const createService = async (
     `Adding Service: ${serviceName}, to Project: ${rootProjectPath} under directory: ${packagesDir}`
   );
   logger.info(
-    `MaintainerName: ${maintainerName}, MaintainerEmail: ${maintainerEmail}`
+    `DisplayName: ${displayName}, MaintainerName: ${maintainerName}, MaintainerEmail: ${maintainerEmail}`
   );
 
   const newServiceDir = path.join(rootProjectPath, packagesDir, serviceName);
@@ -348,6 +365,7 @@ export const createService = async (
   addNewServiceToBedrockFile(
     path.join(rootProjectPath, "bedrock.yaml"),
     newServiceRelativeDir,
+    displayName,
     helmConfig
   );
 

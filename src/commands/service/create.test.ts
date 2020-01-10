@@ -36,7 +36,8 @@ describe("validate pipeline config", () => {
     "test-maintainer",
     "test@maintainer.com",
     true,
-    "testVariableGroup"
+    "testVariableGroup",
+    "testDisplayName"
   ];
 
   it("config is valid", () => {
