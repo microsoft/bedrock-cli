@@ -1,7 +1,4 @@
-name: discovery-service
-source: https://github.com/Microsoft/bedrock.git
-template: cluster/environments/azure-single-keyvault
-version: v0.12.0
+name: discovery-service-central
 backend:
   storage_account_name: storage-account-name
   access_key: storage-account-access-key
@@ -12,7 +9,7 @@ variables:
   address_space: <insert value>
   agent_vm_count: <insert value>
   agent_vm_size: <insert value>
-  cluster_name: <insert value>
+  cluster_name: "discovery-service-central"
   dns_prefix: <insert value>
   flux_recreate: <insert value>
   kubeconfig_recreate: <insert value>

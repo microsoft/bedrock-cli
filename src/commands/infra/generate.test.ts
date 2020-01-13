@@ -1,4 +1,3 @@
-import fs, { chmod } from "fs";
 import path from "path";
 import { loadConfigurationFromLocalEnv, readYaml } from "../../config";
 import {
@@ -8,85 +7,207 @@ import {
 } from "../../logger";
 import { IInfraConfigYaml } from "../../types";
 import {
+  dirIteration,
+  generateConfig,
   generateTfvars,
-  parseDefinitionYaml,
   validateDefinition,
-  validateTemplateSource
+  validateRemoteSource,
+  validateTemplateSources
 } from "./generate";
+import * as generate from "./generate";
 
 beforeAll(() => {
   enableVerboseLogging();
-  jest.setTimeout(10000);
 });
 
 afterAll(() => {
   disableVerboseLogging();
-  jest.setTimeout(5000);
 });
 
-describe("Validate test project folder contains a definition.yaml", () => {
-  test("Validating test project folder contains a definition.yaml file", async () => {
-    const mockProjectPath = "src/commands/infra/mocks";
-    expect(await validateDefinition(mockProjectPath)).toBe(true);
-  });
-});
-
-describe("Validate test project folder does not contains a definition.yaml", () => {
-  test("Validating that a provided project folder does not contain a definition.yaml", async () => {
-    const mockProjectPath = "src/commands/infra";
-    expect(await validateDefinition(mockProjectPath)).toBe(false);
-  });
-});
-
-describe("Validate definition.yaml contains a source", () => {
-  test("Validating that a provided project folder  contains a source in definition.yaml", async () => {
-    const mockProjectPath = "src/commands/infra/mocks";
-    const data = readYaml<IInfraConfigYaml>(
+describe("Validate sources in definition.yaml files", () => {
+  test("Validating that a provided project folder contains definition.yaml files with valid source, version, and template", async () => {
+    let mockParentPath = "src/commands/infra/mocks/discovery-service";
+    let mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
+    const expectedArrayWest = [
+      "A",
+      "https://github.com/yradsmikham/spk-source",
+      "cluster/environments/azure-single-keyvault",
+      "v0.0.2"
+    ];
+    let sourceConfiguration = await validateDefinition(
+      mockParentPath,
+      mockProjectPath
+    );
+    let returnArray = await validateTemplateSources(
+      sourceConfiguration,
+      path.join(mockParentPath, `definition.yaml`),
       path.join(mockProjectPath, `definition.yaml`)
     );
-    const infraConfig = loadConfigurationFromLocalEnv(data);
-    const expectedArray = [
-      infraConfig.source,
-      infraConfig.template,
-      infraConfig.version
+    expect(returnArray).toEqual(expectedArrayWest);
+    await generateConfig(mockParentPath, mockProjectPath, returnArray);
+
+    mockProjectPath = "src/commands/infra/mocks/discovery-service/east";
+    const expectedArrayEast = [
+      "B",
+      "https://github.com/yradsmikham/spk-source",
+      "cluster/environments/azure-single-keyvault",
+      "v0.0.1"
     ];
-    const returnArray = await validateTemplateSource(
+    sourceConfiguration = await validateDefinition(
+      mockParentPath,
+      mockProjectPath
+    );
+    returnArray = await validateTemplateSources(
+      sourceConfiguration,
+      path.join(mockParentPath, `definition.yaml`),
       path.join(mockProjectPath, `definition.yaml`)
     );
-    expect(returnArray).toEqual(expectedArray);
+
+    expect(returnArray).toEqual(expectedArrayEast);
+    await generateConfig(mockParentPath, mockProjectPath, returnArray);
+
+    mockProjectPath = "src/commands/infra/mocks/discovery-service/central";
+    const expectedArrayCentral = [
+      "A",
+      "https://github.com/yradsmikham/spk-source",
+      "cluster/environments/azure-single-keyvault",
+      "v0.0.1"
+    ];
+    sourceConfiguration = await validateDefinition(
+      mockParentPath,
+      mockProjectPath
+    );
+    returnArray = await validateTemplateSources(
+      sourceConfiguration,
+      path.join(mockParentPath, `definition.yaml`),
+      path.join(mockProjectPath, `definition.yaml`)
+    );
+
+    expect(returnArray).toEqual(expectedArrayCentral);
+    await generateConfig(mockParentPath, mockProjectPath, returnArray);
+
+    mockParentPath = "src/commands/infra/mocks";
+    sourceConfiguration = await validateDefinition(
+      mockParentPath,
+      mockParentPath
+    );
+
+    expect(sourceConfiguration).toEqual("");
   });
 });
 
-// Work in progress. Could be used in Integration Testing...
-/* describe("Validate cloning of a remote repo from source", () => {
-  test("Validating that a provided project source remote repo is initially cloned into .spk/templates", async () => {
-    const mockProjectPath = "src/commands/infra/mocks";
-    const rootDef = path.join(mockProjectPath, "definition.json");
-    const data: string = fs.readFileSync(rootDef, "utf8");
-    const definitionJSON = JSON.parse(data);
-    const testValues = [
-      definitionJSON.source,
-      definitionJSON.template,
-      definitionJSON.version
-    ];
-    expect(await validateRemoteSource(testValues)).toBe(true);
-    // Need improved tests to check cloned repo
-  });
-}); */
-
-describe("Validate template path from a definition.yaml", () => {
-  test("Validating that generate can extract a path from a definition.yaml file", async () => {
-    const mockProjectPath = "src/commands/infra/mocks";
-    const templatePath = await parseDefinitionYaml(mockProjectPath);
-    expect(templatePath).toContain(
-      "_microsoft_bedrock_git/cluster/environments/azure-single-keyvault"
+describe("Validate remote git source", () => {
+  test("Validating that a git source is cloned to .spk/templates", async () => {
+    const mockParentPath = "src/commands/infra/mocks/discovery-service";
+    const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
+    const sourceConfiguration = await validateDefinition(
+      mockParentPath,
+      mockProjectPath
     );
+    const sourceArray = await validateTemplateSources(
+      sourceConfiguration,
+      path.join(mockParentPath, `definition.yaml`),
+      path.join(mockProjectPath, `definition.yaml`)
+    );
+    const sourceBoolean = await validateRemoteSource(sourceArray);
+    expect(sourceBoolean).toBe(false);
+  });
+});
+
+jest.spyOn(generate, "gitClone").mockImplementation(
+  (source: string, sourcePath: string): Promise<void> => {
+    logger.info(`gitClone function mocked.`);
+    return new Promise(resolve => {
+      resolve();
+    });
+  }
+);
+
+jest.spyOn(generate, "createGenerated").mockImplementation(
+  (projectPath: string): Promise<string> => {
+    logger.info(`createGenerated function mocked.`);
+    return new Promise(resolve => {
+      resolve();
+    });
+  }
+);
+
+jest.spyOn(generate, "checkTfvars").mockImplementation(
+  (generatedPath: string, tfvarsFilename: string): Promise<void> => {
+    logger.info(`checkTfvars function mocked.`);
+    return new Promise(resolve => {
+      resolve();
+    });
+  }
+);
+
+jest
+  .spyOn(generate, "writeTfvarsFile")
+  .mockImplementation(
+    (spkTfvars: string[], generatedPath: string, tfvarsFilename: string) => {
+      logger.info(`writeTfvarsFile function mocked.`);
+      return new Promise(resolve => {
+        resolve();
+      });
+    }
+  );
+
+describe("Validate replacement of variables between parent and leaf definitions", () => {
+  test("Validating that leaf definitions take precedence when generating multi-cluster definitions", async () => {
+    const mockParentPath = "src/commands/infra/mocks/discovery-service";
+    const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
+    const finalArray = [
+      'acr_enabled = "true"',
+      'address_space = "<insert value>"',
+      'agent_vm_count = "<insert value>"',
+      'agent_vm_size = "<insert value>"',
+      'cluster_name = "discovery-service-west"',
+      'dns_prefix = "<insert value>"',
+      'flux_recreate = "<insert value>"',
+      'kubeconfig_recreate = "<insert value>"',
+      'gc_enabled = "true"',
+      'gitops_poll_interval = "5m"',
+      'gitops_ssh_url = "<insert value>"',
+      'gitops_url_branch = "master"',
+      'gitops_ssh_key = "<insert value>"',
+      'gitops_path = "<insert value>"',
+      'keyvault_name = "<insert value>"',
+      'keyvault_resource_group = "<insert value>"',
+      'resource_group_name = "<insert value>"',
+      'ssh_public_key = "<insert value>"',
+      'service_principal_id = "<insert value>"',
+      'service_principal_secret = "<insert value>"',
+      'subnet_prefixes = "<insert value>"',
+      'vnet_name = "<insert value>"',
+      'subnet_name = "<insert value>"',
+      'network_plugin = "azure"',
+      'network_policy = "azure"',
+      'oms_agent_enabled = "false"',
+      'enable_acr = "false"',
+      'acr_name = "<insert value>"'
+    ];
+    const parentData = readYaml<IInfraConfigYaml>(
+      path.join(mockParentPath, "definition.yaml")
+    );
+    const parentInfraConfig: any = loadConfigurationFromLocalEnv(
+      parentData || {}
+    );
+    const leafData = readYaml<IInfraConfigYaml>(
+      path.join(mockProjectPath, "definition.yaml")
+    );
+    const leafInfraConfig: any = loadConfigurationFromLocalEnv(leafData || {});
+    const finalDefinition = await dirIteration(
+      parentInfraConfig.variables,
+      leafInfraConfig.variables
+    );
+    const combinedSpkTfvarsObject = await generateTfvars(finalDefinition);
+    expect(combinedSpkTfvarsObject).toStrictEqual(finalArray);
   });
 });
 
 describe("Validate spk.tfvars file", () => {
   test("Validating that a spk.tfvars is generated and has appropriate format", async () => {
-    const mockProjectPath = "src/commands/infra/mocks";
+    const mockProjectPath = "src/commands/infra/mocks/discovery-service";
     const data = readYaml<IInfraConfigYaml>(
       path.join(mockProjectPath, `definition.yaml`)
     );
@@ -98,7 +219,7 @@ describe("Validate spk.tfvars file", () => {
 
 describe("Validate backend.tfvars file", () => {
   test("Validating that a backend.tfvars is generated and has appropriate format", async () => {
-    const mockProjectPath = "src/commands/infra/mocks";
+    const mockProjectPath = "src/commands/infra/mocks/discovery-service";
     const data = readYaml<IInfraConfigYaml>(
       path.join(mockProjectPath, `definition.yaml`)
     );
