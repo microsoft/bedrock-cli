@@ -73,7 +73,7 @@ steps:
       buildConfiguration: ''
       buildPlatform: ''
       explicitFilter: true
-      baseDefinitionId: 128
+      baseDefinitionId: $(SPK_DEFINITION_ID)
       baseBranchRef: refs/heads/master
       runTitle: 'Code Coverage Evaluation'
     condition: and(eq(variables['Agent.JobStatus'], 'Succeeded'), endsWith(variables['Agent.JobName'], 'node_12_x'))

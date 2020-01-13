@@ -100,7 +100,7 @@ If you wish to run these tests locally, skip ahead to
    following key/values:
    - AZDO_PROJECT (e.g. `bedrock`)
    - AZDO_ORG (e.g. `epicstuff`)
-   - AZDO_PAT (e.g. Personal Access Token with _read/write/manage_ access to
+   - AZDO_PAT (e.g. Personal Access Token with __read/write/manage__ access to
      AZDO_PROJECT) <-- 🔒
    - SP_APP_ID (e.g Service Principal App Id)
    - SP_PASS (e.g Service Principal Password) <-- 🔒
@@ -115,6 +115,9 @@ If you wish to run these tests locally, skip ahead to
      https://raw.githubusercontent.com/MY_ORG/spk/master/tests/functions.sh)
    - TEST_SCRIPT (e.g.
      https://raw.githubusercontent.com/MY_ORG/spk/master/tests/validations.sh)
+   - TEST_SCRIPT2 (e.g.
+     https://raw.githubusercontent.com/MY_ORG/spk/master/tests/infra-validations.sh)
+
 3. [Azure CLI with Azure DevOps Extension](https://docs.microsoft.com/en-us/azure/devops/cli/?view=azure-devops)
    - Provided in pipeline yaml
 4. SPK Binary

@@ -13,7 +13,7 @@ variables:
 stages:
 - stage: integration_tests
   jobs:
-  - job: "setup_env_and_run_tests"
+  - job: rings_integration_tests
     pool:
       vmImage: 'Ubuntu 16.04'
     steps:
@@ -34,6 +34,7 @@ stages:
         alias spk="$(pwd)/spk-linux"
         spk --version
       displayName: "Verify SPK downloaded and executable"
+      failOnStderr: true
     - bash: |
         echo "FUNC_SCRIPT: $FUNC_SCRIPT"
         curl $FUNC_SCRIPT >| functions.sh
@@ -73,9 +74,8 @@ stages:
         # Get exit status
         status=$?
         [ $status -eq 0 ] && echo "Test Done!" || (echo "Test had issues" && exit 1)
-
-      #failOnStderr: true
       displayName: "Run Validation Tests"
+      timeoutInMinutes: 15
     - task: PublishPipelineArtifact@1
       inputs:
         path: $(System.DefaultWorkingDirectory)/spk-env/log.txt
@@ -102,6 +102,7 @@ stages:
         alias spk="$(pwd)/spk-linux"
         spk --version
       displayName: "Verify SPK downloaded and executable"
+      failOnStderr: true
     - bash: |
         echo "FUNC_SCRIPT: $FUNC_SCRIPT"
         curl $FUNC_SCRIPT >| functions.sh
@@ -141,9 +142,8 @@ stages:
         # Get exit status
         status=$?
         [ $status -eq 0 ] && echo "Infra Test Done!" || (echo "Infra Test had issues" && exit 1)
-
-      #failOnStderr: true
       displayName: "Run Infra Validation Tests"
+      timeoutInMinutes: 15
     - task: PublishPipelineArtifact@1
       inputs:
         path: $(System.DefaultWorkingDirectory)/spk-env/log.txt

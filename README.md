@@ -1,6 +1,7 @@
 # SPK
 
 [![Build Status](https://dev.azure.com/epicstuff/bedrock/_apis/build/status/CatalystCode.spk?branchName=master)](https://dev.azure.com/epicstuff/bedrock/_build/latest?definitionId=128&branchName=master)
+![Azure DevOps coverage](https://img.shields.io/azure-devops/coverage/epicstuff/bedrock/128/master)
 
 `spk` is a tool that provides automation around defining and operating
 Kubernetes clusters with [Bedrock](https://github.com/microsoft/bedrock)
@@ -20,7 +21,11 @@ refer to:
 
 ## Installation
 
-Please refer to the latest SPK [release](https://github.com/CatalystCode/spk/releases) and navigate to the _assets_ section. From there choose from one of the following platform options to download:
+Please refer to the latest SPK
+[release](https://github.com/CatalystCode/spk/releases) and navigate to the
+_assets_ section. From there choose from one of the following platform options
+to download:
+
 - linux
 - macos
 - windows
