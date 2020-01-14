@@ -68,11 +68,8 @@ steps:
       warningFilters: ''
       showStatistics: true
       checkCoverage: true
-      coverageFailOption: 'Previous Value'
+      coverageFailOption: build
       coverageType: branches
-      buildConfiguration: ''
-      buildPlatform: ''
-      explicitFilter: true
       baseDefinitionId: $(SPK_DEFINITION_ID)
       baseBranchRef: refs/heads/master
       runTitle: 'Code Coverage Evaluation'
