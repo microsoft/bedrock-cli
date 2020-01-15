@@ -8,14 +8,16 @@ import shelljs from "shelljs";
 import { promisify } from "util";
 import { Bedrock } from "../../config";
 import { TraefikIngressRoute } from "../../lib/traefik/ingress-route";
-import { TraefikMiddleware } from "../../lib/traefik/middleware";
+import {
+  ITraefikMiddleware,
+  TraefikMiddleware
+} from "../../lib/traefik/middleware";
 import { logger } from "../../logger";
 
 const exec = promisify(child_process.exec);
 
 import { IBedrockFile, IBedrockServiceConfig } from "../../types";
 
-//
 export interface IReconcileDependencies {
   exec: (commandToRun: string) => Promise<void>;
 
@@ -55,8 +57,16 @@ export interface IReconcileDependencies {
   createIngressRouteForRing: (
     ringPathInHld: string,
     serviceName: string,
+    serviceConfig: IBedrockServiceConfig,
+    middlewares: ITraefikMiddleware,
     ring: string
   ) => void;
+
+  createMiddlewareForRing: (
+    ringPathInHld: string,
+    serviceName: string,
+    ring: string
+  ) => ITraefikMiddleware;
 }
 
 export const reconcileHldDecorator = (command: commander.Command): void => {
@@ -126,6 +136,7 @@ export const reconcileHldDecorator = (command: commander.Command): void => {
         const reconcileDependencies: IReconcileDependencies = {
           addChartToRing,
           createIngressRouteForRing,
+          createMiddlewareForRing,
           createRepositoryComponent,
           createRingComponent,
           createServiceComponent,
@@ -174,7 +185,6 @@ export const reconcileHld = async (
   )) {
     const pathBase = path.basename(serviceRelPath);
     const serviceName = pathBase;
-    const serviceConfig = managedServices[serviceRelPath];
     logger.info(`Reconciling service: ${pathBase}`);
 
     // Utilizes fab add, which is idempotent.
@@ -191,13 +201,15 @@ export const reconcileHld = async (
 
     // Create ring components.
     const svcPathInHld = path.join(absRepositoryInHldPath, pathBase);
+
+    // Will only loop over _existing_ rings in bedrock.yaml - does not cover the deletion case, ie: i remove a ring from bedrock.yaml
     for (const ring of Object.keys(managedRings)) {
       const ringPathInHld = path.join(svcPathInHld, ring);
 
       // If the ring component already exists, we do not attempt to create it.
       if (
-        dependencies.test("-e", ringPathInHld) &&
-        dependencies.test("-d", ringPathInHld)
+        dependencies.test("-e", ringPathInHld) && // path exists
+        dependencies.test("-d", ringPathInHld) // path is a directory
       ) {
         logger.info(
           `Ring component: ${ring} already exists, skipping ring generation.`
@@ -232,26 +244,22 @@ export const reconcileHld = async (
         );
         continue;
       }
-      // Create Middlewares
-      const staticComponentPathInRing = path.join(ringPathInHld, "static");
-      const middlewaresPathInStaticComponent = path.join(
-        staticComponentPathInRing,
-        "middlewares.yaml"
-      );
 
-      const servicePrefix = `/${serviceName}`;
-      const middlewares = TraefikMiddleware(serviceName, ring, [servicePrefix]);
-      const middlewareYaml = yaml.safeDump(middlewares, {
-        lineWidth: Number.MAX_SAFE_INTEGER
-      });
-
-      logger.info(
-        `Writing Middlewares YAML to ${middlewaresPathInStaticComponent}`
+      // Create middleware.
+      const middlewares = dependencies.createMiddlewareForRing(
+        ringPathInHld,
+        serviceName,
+        ring
       );
-      writeFileSync(middlewaresPathInStaticComponent, middlewareYaml);
 
       // Create Ingress Route.
-      dependencies.createIngressRouteForRing(ringPathInHld, serviceName, ring);
+      dependencies.createIngressRouteForRing(
+        ringPathInHld,
+        serviceName,
+        serviceConfig,
+        middlewares,
+        ring
+      );
     }
   }
 };
@@ -279,6 +287,8 @@ export const execAndLog = async (commandToRun: string) => {
 const createIngressRouteForRing = (
   ringPathInHld: string,
   serviceName: string,
+  serviceConfig: IBedrockServiceConfig,
+  middlewares: ITraefikMiddleware,
   ring: string
 ) => {
   const staticComponentPathInRing = path.join(ringPathInHld, "static");
@@ -293,13 +303,42 @@ const createIngressRouteForRing = (
       ...(serviceConfig.middlewares ?? [])
     ]
   });
+
   const routeYaml = yaml.safeDump(ingressRoute, {
     lineWidth: Number.MAX_SAFE_INTEGER
   });
+
   logger.info(
     `Writing IngressRoute YAML to ${ingressRoutePathInStaticComponent}`
   );
+
   writeFileSync(ingressRoutePathInStaticComponent, routeYaml);
+};
+
+const createMiddlewareForRing = (
+  ringPathInHld: string,
+  serviceName: string,
+  ring: string
+): ITraefikMiddleware => {
+  // Create Middlewares
+  const staticComponentPathInRing = path.join(ringPathInHld, "static");
+  const middlewaresPathInStaticComponent = path.join(
+    staticComponentPathInRing,
+    "middlewares.yaml"
+  );
+
+  const servicePrefix = `/${serviceName}`;
+  const middlewares = TraefikMiddleware(serviceName, ring, [servicePrefix]);
+  const middlewareYaml = yaml.safeDump(middlewares, {
+    lineWidth: Number.MAX_SAFE_INTEGER
+  });
+
+  logger.info(
+    `Writing Middlewares YAML to ${middlewaresPathInStaticComponent}`
+  );
+  writeFileSync(middlewaresPathInStaticComponent, middlewareYaml);
+
+  return middlewares;
 };
 
 export const createRepositoryComponent = async (

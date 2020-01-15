@@ -5,10 +5,12 @@ import {
   createRepositoryComponent,
   createRingComponent,
   createServiceComponent,
-  createStaticComponent
+  createStaticComponent,
+  IReconcileDependencies,
+  reconcileHld
 } from "./reconcile";
 
-import { IBedrockServiceConfig } from "../../types";
+import { IBedrockFile, IBedrockServiceConfig } from "../../types";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -135,7 +137,7 @@ describe("addChartToRing", () => {
     expect(exec).toBeCalledWith(expectedInvocation);
   });
 
-  it("should invke the correct command for adding a helm chart with a helm repository", () => {
+  it("should invoke the correct command for adding a helm chart with a helm repository", () => {
     const exec = jest.fn();
     const ringPath = "/path/to/ring";
 
@@ -160,5 +162,118 @@ describe("addChartToRing", () => {
 
     expect(exec).toBeCalled();
     expect(exec).toBeCalledWith(expectedInvocation);
+  });
+});
+
+describe("reconcile tests", () => {
+  let dependencies: IReconcileDependencies;
+  let bedrockYaml: IBedrockFile;
+  const sha = "f8a33e1d";
+  const git = "github.com/company/service";
+  const path = "/charts/service";
+
+  beforeEach(() => {
+    dependencies = {
+      addChartToRing: jest.fn(),
+      createIngressRouteForRing: jest.fn(),
+      createMiddlewareForRing: jest.fn(),
+      createRepositoryComponent: jest.fn(),
+      createRingComponent: jest.fn(),
+      createServiceComponent: jest.fn(),
+      createStaticComponent: jest.fn(),
+      exec: jest.fn(),
+      test: jest.fn().mockReturnValue(false),
+      writeFile: jest.fn()
+    };
+
+    bedrockYaml = {
+      rings: {
+        dev: {
+          isDefault: true
+        },
+        prod: {}
+      },
+      services: {
+        "./path/to/svc/": {
+          disableRouteScaffold: false,
+          helm: {
+            chart: {
+              git,
+              path,
+              sha
+            }
+          }
+        }
+      }
+    };
+  });
+
+  it("executes the appropriate functions for creating or updating a HLD", async () => {
+    await reconcileHld(dependencies, bedrockYaml, "service", "./path/to/hld");
+
+    expect(dependencies.createRepositoryComponent).toHaveBeenCalled();
+    expect(dependencies.createServiceComponent).toHaveBeenCalledTimes(1);
+    expect(dependencies.createRingComponent).toHaveBeenCalledTimes(2);
+    expect(dependencies.addChartToRing).toHaveBeenCalledTimes(2);
+    expect(dependencies.createStaticComponent).toHaveBeenCalledTimes(2);
+    expect(dependencies.createMiddlewareForRing).toHaveBeenCalledTimes(2);
+    expect(dependencies.createIngressRouteForRing).toHaveBeenCalledTimes(2);
+  });
+
+  it("should be able to create a HLD without rings, when no rings are provided", async () => {
+    // bedrock yaml fixture
+    bedrockYaml.rings = {};
+
+    await reconcileHld(dependencies, bedrockYaml, "service", "./path/to/hld");
+
+    expect(dependencies.createRepositoryComponent).toHaveBeenCalled();
+    expect(dependencies.createServiceComponent).toHaveBeenCalledTimes(1);
+    expect(dependencies.createRingComponent).not.toHaveBeenCalled();
+  });
+
+  it("does not produce ingress routes or middlewares when route scaffold is disabled", async () => {
+    // bedrock yaml fixture
+    bedrockYaml = {
+      rings: {
+        dev: {
+          isDefault: true
+        }
+      },
+      services: {
+        "./path/to/svc/": {
+          disableRouteScaffold: true,
+          helm: {
+            chart: {
+              git,
+              path,
+              sha
+            }
+          }
+        }
+      }
+    };
+
+    await reconcileHld(dependencies, bedrockYaml, "service", "./path/to/hld");
+
+    expect(dependencies.createRepositoryComponent).toHaveBeenCalled();
+    expect(dependencies.createServiceComponent).toHaveBeenCalledTimes(1);
+    expect(dependencies.createRingComponent).toHaveBeenCalledTimes(1);
+    expect(dependencies.addChartToRing).toHaveBeenCalledTimes(1);
+    expect(dependencies.createStaticComponent).toHaveBeenCalledTimes(1);
+
+    // Skipping route generation.
+    expect(dependencies.createMiddlewareForRing).not.toHaveBeenCalled();
+    expect(dependencies.createIngressRouteForRing).not.toHaveBeenCalled();
+  });
+
+  it("does not create a ring, if one already exists", async () => {
+    bedrockYaml.rings = {};
+
+    await reconcileHld(dependencies, bedrockYaml, "service", "./path/to/hld");
+
+    expect(dependencies.createRingComponent).not.toHaveBeenCalled();
+    expect(dependencies.createStaticComponent).not.toHaveBeenCalled();
+    expect(dependencies.createMiddlewareForRing).not.toHaveBeenCalled();
+    expect(dependencies.createIngressRouteForRing).not.toHaveBeenCalled();
   });
 });

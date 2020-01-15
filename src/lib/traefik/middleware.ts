@@ -3,7 +3,7 @@
  *
  * @see https://docs.traefik.io/routing/providers/kubernetes-crd/
  */
-interface ITraefikMiddleware {
+export interface ITraefikMiddleware {
   apiVersion: "traefik.containo.us/v1alpha1";
   kind: "Middleware";
   metadata: {
