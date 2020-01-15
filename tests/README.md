@@ -82,11 +82,10 @@ tests.
 
 ## Infrastructure Management
 
-| Command                    | Coverage |
-| -------------------------- | -------- |
-| spk infra scaffold         | ✅       |
-| spk infra validate onboard | 🚫       |
-| spk infra generate         | ✅       |
+| Command            | Coverage |
+| ------------------ | -------- |
+| spk infra scaffold | ✅       |
+| spk infra generate | ✅       |
 
 # Setup Instructions
 
@@ -98,9 +97,10 @@ If you wish to run these tests locally, skip ahead to
 1. Azure DevOps Organization and Project
 2. Create variable group named `spk-vg`. Inside the variable group have the
    following key/values:
+
    - AZDO_PROJECT (e.g. `bedrock`)
    - AZDO_ORG (e.g. `epicstuff`)
-   - AZDO_PAT (e.g. Personal Access Token with __read/write/manage__ access to
+   - AZDO_PAT (e.g. Personal Access Token with **read/write/manage** access to
      AZDO_PROJECT) <-- 🔒
    - SP_APP_ID (e.g Service Principal App Id)
    - SP_PASS (e.g Service Principal Password) <-- 🔒

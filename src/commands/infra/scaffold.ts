@@ -64,7 +64,14 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
             );
           }
         }
-        const scaffoldDefinition = [opts.source, opts.template, opts.version];
+        /* scaffoldDefinition will take in a definition object with a
+           null configuration. Hence, the first index is "" */
+        const scaffoldDefinition = [
+          "",
+          opts.source,
+          opts.template,
+          opts.version
+        ];
         const sourceFolder = await infraCommon.repoCloneRegex(opts.source);
         const sourcePath = path.join(
           infraCommon.spkTemplatesPath,
