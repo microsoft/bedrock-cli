@@ -70,6 +70,7 @@ steps:
       checkCoverage: true
       coverageFailOption: build
       coverageType: branches
+      coverageDeltaType: percentage
       baseDefinitionId: $(SPK_DEFINITION_ID)
       baseBranchRef: refs/heads/master
       runTitle: 'Code Coverage Evaluation'
