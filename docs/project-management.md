@@ -75,7 +75,7 @@ authorization with Azure Key Vault.
    [with Azure CLI](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli).
 
 ```
-Usage: service create-variable-group|cvg [options] <variable-group-name>
+Usage: project create-variable-group|cvg [options] <variable-group-name>
 
 Create new variable group in Azure DevOps project using the options below. Also sets the azure_devops.variable_grroup item in spk config with the variable group name
 
