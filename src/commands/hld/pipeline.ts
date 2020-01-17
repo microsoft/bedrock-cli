@@ -46,37 +46,35 @@ export const installHldToManifestPipelineDecorator = (
       const { azure_devops } = Config();
 
       const {
-        hldUrl = azure_devops && azure_devops.hld_repository,
-        manifestUrl = azure_devops && azure_devops.manifest_repository
+        hldUrl = azure_devops?.hld_repository,
+        manifestUrl = azure_devops?.manifest_repository
       } = opts;
-
-      const manifestRepoName = getRepositoryName(manifestUrl);
-
-      const {
-        orgName = azure_devops && azure_devops.org,
-        personalAccessToken = azure_devops && azure_devops.access_token,
-        devopsProject = azure_devops && azure_devops.project,
-        hldName = getRepositoryName(hldUrl),
-        pipelineName = hldName + "-to-" + manifestRepoName,
-        buildScriptUrl = BUILD_SCRIPT_URL
-      } = opts;
-
-      if (
-        !isValidConfig(
-          orgName,
-          devopsProject,
-          pipelineName,
-          manifestUrl,
-          hldName,
-          hldUrl,
-          buildScriptUrl,
-          personalAccessToken
-        )
-      ) {
-        process.exit(1);
-      }
 
       try {
+        const {
+          orgName = azure_devops?.org,
+          personalAccessToken = azure_devops?.access_token,
+          devopsProject = azure_devops?.project,
+          hldName = getRepositoryName(hldUrl),
+          pipelineName = hldName + "-to-" + getRepositoryName(manifestUrl),
+          buildScriptUrl = BUILD_SCRIPT_URL
+        } = opts;
+
+        if (
+          !isValidConfig(
+            orgName,
+            devopsProject,
+            pipelineName,
+            manifestUrl,
+            hldName,
+            hldUrl,
+            buildScriptUrl,
+            personalAccessToken
+          )
+        ) {
+          throw Error(`Invalid configuration provided`);
+        }
+
         await installHldToManifestPipeline(
           orgName,
           personalAccessToken,
