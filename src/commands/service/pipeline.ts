@@ -246,8 +246,8 @@ export const installBuildUpdatePipeline = async (
     variables: requiredPipelineVariables(buildScriptUrl),
     yamlFileBranch: "master",
     yamlFilePath: packagesDir // if a packages dir is supplied, its a mono-repo
-      ? path.join(packagesDir, serviceName, "azure-pipelines.yaml") // if a packages dir is supplied, its a mono-repo; concat <packages-dir>/<service-name>
-      : "azure-pipelines.yaml" // if no packages dir, its a standard repo; so the azure-pipelines.yaml is in the root
+      ? path.join(packagesDir, serviceName, "azure-pipelines.yaml") // if a packages dir is supplied, concat <packages-dir>/<service-name>
+      : path.join(serviceName, "azure-pipelines.yaml") // if no packages dir, then just concat with the service directory.
   });
 
   try {
