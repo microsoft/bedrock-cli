@@ -121,7 +121,7 @@ export const reconcileHldDecorator = (command: commander.Command): void => {
           absHldPath
         );
       } catch (err) {
-        logger.error(`Error occurred while reconciling HLD`);
+        logger.error(`An error occurred while reconciling HLD`);
         logger.error(err);
         process.exit(1);
       }
@@ -247,7 +247,7 @@ export const execAndLog = async (commandToRun: string) => {
   if (commandResult.stderr) {
     logger.error(commandResult.stderr);
     throw Error(
-      `Error occurred when invoking command: ${commandResult.stderr}`
+      `An error occurred when invoking command: ${commandResult.stderr}`
     );
   }
 };
@@ -398,7 +398,7 @@ export const testAndGetAbsPath = (
 ): string => {
   const absPath = path.resolve(possiblyRelativePath);
   if (!test("-e", absPath) && !test("-d", absPath)) {
-    throw new Error(`Error: could not validate ${pathType} path.`);
+    throw new Error(`Could not validate ${pathType} path.`);
   }
   log(`Found ${pathType} at ${absPath}`);
   return absPath;
@@ -408,7 +408,7 @@ export const checkForFabrikate = (which: (path: string) => string) => {
   const fabrikateInstalled = which("fab");
   if (fabrikateInstalled === "") {
     throw new Error(
-      `Error: Fabrikate not installed. Please fetch and install the latest version: https://github.com/microsoft/fabrikate/releases`
+      `Fabrikate not installed. Please fetch and install the latest version: https://github.com/microsoft/fabrikate/releases`
     );
   }
 };
