@@ -2,12 +2,15 @@ import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 
 import {
   addChartToRing,
+  checkForFabrikate,
   createRepositoryComponent,
   createRingComponent,
   createServiceComponent,
   createStaticComponent,
   IReconcileDependencies,
-  reconcileHld
+  reconcileHld,
+  testAndGetAbsPath,
+  validateInputs
 } from "./reconcile";
 
 import { IBedrockFile, IBedrockServiceConfig } from "../../types";
@@ -18,6 +21,78 @@ beforeAll(() => {
 
 afterAll(() => {
   disableVerboseLogging();
+});
+
+describe("validateInputs", () => {
+  it("should not accept an invalid input for repository-name", () => {
+    expect(() => {
+      validateInputs(10, "hld-path", "app-path");
+    }).toThrow();
+  });
+
+  it("should not accept an invalid input for hld-path", () => {
+    expect(() => {
+      validateInputs("repo-name", 10, "app-path");
+    }).toThrow();
+  });
+
+  it("should not accept an invalid input for bedrock-application-repo-path", () => {
+    expect(() => {
+      validateInputs("repo-name", "repo-name", 10);
+    }).toThrow();
+  });
+
+  it("should accept valid inputs for validateInputs", () => {
+    expect(() => {
+      validateInputs("repo-name", "repo-name", "bedrock-application-repo-path");
+    }).not.toThrow();
+  });
+});
+
+describe("checkForFabrikate", () => {
+  it("throws an error if fabrikate is not installed", () => {
+    const which = jest.fn();
+    which.mockReturnValue("");
+
+    expect(() => {
+      checkForFabrikate(which);
+    }).toThrow();
+  });
+
+  it("does not throw an error if fabrikate is installed", () => {
+    const which = jest.fn();
+    which.mockReturnValue("/some/path/to/fabrikate");
+
+    expect(() => {
+      checkForFabrikate(which);
+    }).not.toThrow();
+  });
+});
+
+describe("testAndGetAbsPath", () => {
+  it("fails to test and get an absolute path for a file", () => {
+    const test = jest.fn();
+    const log = jest.fn();
+
+    expect(() => {
+      // Could not find the path.
+      test.mockReturnValue(false);
+
+      testAndGetAbsPath(test, log, "/some/path/to/hld-path", "hld-path");
+    }).toThrow();
+  });
+
+  it("finds an absolute path for a file", () => {
+    const test = jest.fn();
+    const log = jest.fn();
+
+    expect(() => {
+      // Could not find the path.
+      test.mockReturnValue(true);
+
+      testAndGetAbsPath(test, log, "/some/path/to/hld-path", "hld-path");
+    }).not.toThrow();
+  });
 });
 
 describe("createServiceComponent", () => {

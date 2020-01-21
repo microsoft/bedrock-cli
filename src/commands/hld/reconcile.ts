@@ -4,7 +4,7 @@ import { writeFileSync } from "fs";
 import yaml from "js-yaml";
 import path from "path";
 import process from "process";
-import shelljs from "shelljs";
+import shelljs, { TestOptions } from "shelljs";
 import { promisify } from "util";
 import { Bedrock } from "../../config";
 import { TraefikIngressRoute } from "../../lib/traefik/ingress-route";
@@ -78,55 +78,23 @@ export const reconcileHldDecorator = (command: commander.Command): void => {
     .description("Reconcile a HLD with the services tracked in bedrock.yaml.")
     .action(async (repositoryName, hldPath, bedrockApplicationRepoPath) => {
       try {
-        if (typeof repositoryName !== "string") {
-          throw new Error(
-            `repository-name must be of type 'string', ${typeof repositoryName} given`
-          );
-        }
+        validateInputs(repositoryName, hldPath, bedrockApplicationRepoPath);
+        checkForFabrikate(shelljs.which);
 
-        if (typeof hldPath !== "string") {
-          throw new Error(
-            `hld-path must be of type 'string', ${typeof hldPath} given`
-          );
-        }
+        const absHldPath = testAndGetAbsPath(
+          shelljs.test,
+          logger.info,
+          hldPath,
+          "HLD"
+        );
 
-        if (typeof bedrockApplicationRepoPath !== "string") {
-          throw new Error(
-            `bedrock-application-repo-path must be of type 'string', ${typeof bedrockApplicationRepoPath} given`
-          );
-        }
+        const absBedrockPath = testAndGetAbsPath(
+          shelljs.test,
+          logger.info,
+          bedrockApplicationRepoPath,
+          "Bedrock Application"
+        );
 
-        const fabrikateInstalled = shelljs.which("fab");
-
-        if (fabrikateInstalled === "") {
-          throw new Error(
-            `Error: Fabrikate not installed. Please fetch and install the latest version: https://github.com/microsoft/fabrikate/releases`
-          );
-        }
-
-        const absHldPath = path.resolve(hldPath);
-
-        if (
-          !shelljs.test("-e", absHldPath) &&
-          !shelljs.test("-d", absHldPath)
-        ) {
-          throw new Error("Error: could not validate hld path.");
-        }
-
-        logger.info(`Found HLD at ${absHldPath}`);
-
-        const absBedrockPath = path.resolve(bedrockApplicationRepoPath);
-
-        if (
-          !shelljs.test("-e", absBedrockPath) &&
-          !shelljs.test("-d", absBedrockPath)
-        ) {
-          throw new Error(
-            "Error: could not validate bedrock application path."
-          );
-        }
-
-        logger.info(`Found bedrock application at ${absHldPath}`);
         const bedrockConfig = Bedrock(absBedrockPath);
 
         logger.info(
@@ -396,4 +364,51 @@ export const createStaticComponent = async (
 ) => {
   const createConfigAndStaticComponentCommand = `cd ${ringPathInHld} && mkdir -p config static && fab add static --path ./static --method local --type static && touch ./config/common.yaml`;
   await execCmd(createConfigAndStaticComponentCommand);
+};
+
+export const validateInputs = (
+  repositoryName: any,
+  hldPath: any,
+  bedrockApplicationRepoPath: any
+) => {
+  if (typeof repositoryName !== "string") {
+    throw new Error(
+      `repository-name must be of type 'string', ${typeof repositoryName} given`
+    );
+  }
+
+  if (typeof hldPath !== "string") {
+    throw new Error(
+      `hld-path must be of type 'string', ${typeof hldPath} given`
+    );
+  }
+
+  if (typeof bedrockApplicationRepoPath !== "string") {
+    throw new Error(
+      `bedrock-application-repo-path must be of type 'string', ${typeof bedrockApplicationRepoPath} given`
+    );
+  }
+};
+
+export const testAndGetAbsPath = (
+  test: (flags: TestOptions, path: string) => boolean,
+  log: (logline: string) => void,
+  possiblyRelativePath: string,
+  pathType: string
+): string => {
+  const absPath = path.resolve(possiblyRelativePath);
+  if (!test("-e", absPath) && !test("-d", absPath)) {
+    throw new Error(`Error: could not validate ${pathType} path.`);
+  }
+  log(`Found ${pathType} at ${absPath}`);
+  return absPath;
+};
+
+export const checkForFabrikate = (which: (path: string) => string) => {
+  const fabrikateInstalled = which("fab");
+  if (fabrikateInstalled === "") {
+    throw new Error(
+      `Error: Fabrikate not installed. Please fetch and install the latest version: https://github.com/microsoft/fabrikate/releases`
+    );
+  }
 };
