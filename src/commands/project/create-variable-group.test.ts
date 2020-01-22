@@ -1,4 +1,3 @@
-// imports
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -13,6 +12,7 @@ import {
 import { IBedrockFile } from "../../types";
 import {
   create,
+  execute,
   setVariableGroupInBedrockFile,
   validateRequiredArguments
 } from "./create-variable-group";
@@ -29,7 +29,7 @@ const registryName = uuid();
 const variableGroupName = uuid();
 const hldRepoUrl = uuid();
 const servicePrincipalId = uuid();
-const servicePrincipalPassword = uuid();
+const servicePrincipalPassword: string = uuid();
 const tenant = uuid();
 
 const orgName = uuid();
@@ -46,8 +46,7 @@ describe("validateRequiredArguments", () => {
   test("Should fail when all required arguments specified with empty values", async () => {
     const opts: IAzureDevOpsOpts = {};
 
-    const errors: string[] = await validateRequiredArguments(
-      "",
+    const errors: string[] = validateRequiredArguments(
       "",
       "",
       "",
@@ -56,13 +55,12 @@ describe("validateRequiredArguments", () => {
       opts
     );
     logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(9);
+    expect(errors.length).toBe(8);
   });
 
   test("Should fail when all required arguments are not specified", async () => {
     const opts: IAzureDevOpsOpts = {};
-    const errors: string[] = await validateRequiredArguments(
-      undefined,
+    const errors: string[] = validateRequiredArguments(
       undefined,
       undefined,
       undefined,
@@ -71,26 +69,11 @@ describe("validateRequiredArguments", () => {
       opts
     );
     logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(9);
-  });
-
-  test("Should fail when variableGroupName  argument is not specified", async () => {
-    const errors: string[] = await validateRequiredArguments(
-      undefined,
-      registryName,
-      hldRepoUrl,
-      servicePrincipalId,
-      servicePrincipalPassword,
-      tenant,
-      accessopts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(1);
+    expect(errors.length).toBe(8);
   });
 
   test("Should fail when registryName argument is not specified", async () => {
-    const errors: string[] = await validateRequiredArguments(
-      variableGroupName,
+    const errors: string[] = validateRequiredArguments(
       undefined,
       hldRepoUrl,
       servicePrincipalId,
@@ -103,8 +86,7 @@ describe("validateRequiredArguments", () => {
   });
 
   test("Should fail when hldRepoUrl argument is not specified", async () => {
-    const errors: string[] = await validateRequiredArguments(
-      variableGroupName,
+    const errors: string[] = validateRequiredArguments(
       registryName,
       undefined,
       servicePrincipalId,
@@ -117,8 +99,7 @@ describe("validateRequiredArguments", () => {
   });
 
   test("Should fail when servicePrincipalId argument is not specified", async () => {
-    const errors: string[] = await validateRequiredArguments(
-      variableGroupName,
+    const errors: string[] = validateRequiredArguments(
       registryName,
       hldRepoUrl,
       undefined,
@@ -131,8 +112,7 @@ describe("validateRequiredArguments", () => {
   });
 
   test("Should fail when servicePrincipalPassword argument is not specified", async () => {
-    const errors: string[] = await validateRequiredArguments(
-      variableGroupName,
+    const errors: string[] = validateRequiredArguments(
       registryName,
       hldRepoUrl,
       servicePrincipalId,
@@ -145,8 +125,7 @@ describe("validateRequiredArguments", () => {
   });
 
   test("Should fail when tenant argument is not specified", async () => {
-    const errors: string[] = await validateRequiredArguments(
-      variableGroupName,
+    const errors: string[] = validateRequiredArguments(
       registryName,
       hldRepoUrl,
       servicePrincipalId,
@@ -156,6 +135,45 @@ describe("validateRequiredArguments", () => {
     );
     logger.info(`length: ${errors.length}`);
     expect(errors.length).toBe(1);
+  });
+});
+
+describe("test execute function", () => {
+  it("missing variable name", async () => {
+    const exitFn = jest.fn();
+    await execute(
+      "",
+      {
+        hldRepoUrl,
+        orgName,
+        personalAccessToken,
+        project,
+        registryName,
+        servicePrincipalId,
+        servicePrincipalPassword,
+        tenant
+      },
+      exitFn
+    );
+    expect(exitFn).toBeCalledTimes(1);
+  });
+  it("missing registry name", async () => {
+    const exitFn = jest.fn();
+    await execute(
+      variableGroupName,
+      {
+        hldRepoUrl,
+        orgName,
+        personalAccessToken,
+        project,
+        registryName: undefined,
+        servicePrincipalId,
+        servicePrincipalPassword,
+        tenant
+      },
+      exitFn
+    );
+    expect(exitFn).toBeCalledTimes(1);
   });
 });
 
@@ -205,7 +223,6 @@ describe("create", () => {
 
 describe("setVariableGroupInBedrockFile", () => {
   test("Should fail with empty arguments", async () => {
-    const projectPath = process.cwd();
     let invalidGroupNameError: Error | undefined;
     try {
       logger.info("calling create");
@@ -217,7 +234,6 @@ describe("setVariableGroupInBedrockFile", () => {
   });
 
   test("Should fail with empty variable group name", async () => {
-    const projectPath = process.cwd();
     let invalidGroupNameError: Error | undefined;
     try {
       logger.info("calling create");
@@ -229,7 +245,6 @@ describe("setVariableGroupInBedrockFile", () => {
   });
 
   test("Should fail with empty directory", async () => {
-    const projectPath = process.cwd();
     let invalidGroupNameError: Error | undefined;
     try {
       logger.info("calling create");
@@ -259,12 +274,6 @@ describe("setVariableGroupInBedrockFile", () => {
     // Create random directory to initialize
     const randomTmpDir = path.join(os.tmpdir(), uuid());
     fs.mkdirSync(randomTmpDir);
-
-    const bedrockFileData: IBedrockFile = {
-      rings: {}, // rings is optional but necessary to create a bedrock file in config.write method
-      services: {}, // service property is not optional so set it to null
-      variableGroups: undefined
-    };
 
     await setVariableGroupInBedrockFile(randomTmpDir, variableGroupName);
 

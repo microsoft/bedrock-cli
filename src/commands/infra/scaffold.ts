@@ -5,8 +5,87 @@ import yaml from "js-yaml";
 import path from "path";
 import { Config } from "../../config";
 import { logger } from "../../logger";
+import { IConfigYaml } from "../../types";
 import { validateRemoteSource } from "./generate";
 import * as infraCommon from "./infra_common";
+
+const DEFINITION_YAML = "definition.yaml";
+
+interface ICommandOptions {
+  [key: string]: string;
+}
+
+export const validateValues = (
+  config: IConfigYaml,
+  opts: ICommandOptions
+): boolean => {
+  if (
+    !config.azure_devops ||
+    !config.azure_devops.access_token ||
+    !config.azure_devops.infra_repository
+  ) {
+    logger.warn(
+      "The infrastructure repository containing the remote terraform template repo and access token was not specified. Checking passed arguments."
+    );
+
+    if (!opts.name || !opts.source || !opts.version || !opts.template) {
+      logger.error(
+        "You must specify each of the variables 'name', 'source', 'version', 'template' in order to scaffold out a deployment."
+      );
+      return false;
+    }
+    logger.info(
+      "All required options are configured via command line for scaffolding, expecting public remote repository for terraform templates or PAT embedded in source URL."
+    );
+  }
+  return true;
+};
+
+// Construct the source based on the the passed configurations of spk-config.yaml
+export const constructSource = (config: IConfigYaml) => {
+  const devops = config.azure_devops!;
+  const source = `https://spk:${devops.access_token}@${devops.infra_repository}`;
+  logger.info(
+    `Infrastructure repository detected from initialized spk-config.yaml.`
+  );
+  return source;
+};
+
+export const execute = async (
+  config: IConfigYaml,
+  opts: ICommandOptions,
+  exitFn: (status: number) => void
+) => {
+  if (!validateValues(config, opts)) {
+    exitFn(1);
+  } else {
+    opts.source = opts.source || constructSource(config);
+
+    try {
+      /* scaffoldDefinition will take in a definition object with a
+          null configuration. Hence, the first index is "" */
+      const scaffoldDefinition = ["", opts.source, opts.template, opts.version];
+      const sourceFolder = await infraCommon.repoCloneRegex(opts.source);
+      const sourcePath = path.join(infraCommon.spkTemplatesPath, sourceFolder);
+      await validateRemoteSource(scaffoldDefinition);
+      await copyTfTemplate(
+        path.join(sourcePath, opts.template),
+        opts.name,
+        false
+      );
+      await validateVariablesTf(
+        path.join(sourcePath, opts.template, "variables.tf")
+      );
+      await scaffold(opts.name, opts.source, opts.version, opts.template);
+      await removeTemplateFiles(opts.name);
+      exitFn(0);
+    } catch (err) {
+      logger.error("Error occurred while generating scaffold");
+      logger.error(err);
+      exitFn(1);
+    }
+  }
+};
 
 /**
  * Adds the init command to the commander command object
@@ -31,67 +110,9 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
       "-t, --template <path to variables.tf> ",
       "Location of the variables.tf for the terraform deployment"
     )
-    .action(async opts => {
-      try {
-        const config = Config();
-        if (
-          !config.azure_devops ||
-          !config.azure_devops.access_token ||
-          !config.azure_devops.infra_repository
-        ) {
-          logger.warn(
-            "The infrastructure repository containing the remote terraform template repo and access token was not specified. Checking passed arguments."
-          );
-          if (opts.name && opts.source && opts.version && opts.template) {
-            logger.info(
-              "All required options are configured via command line for scaffolding, expecting public remote repository for terraform templates or PAT embedded in source URL."
-            );
-          } else {
-            logger.error(
-              "You must specify each of the variables 'name', 'source', 'version', 'template' in order to scaffold out a deployment."
-            );
-          }
-        } else {
-          if (!opts.source) {
-            // Construct the source based on the the passed configurations of spk-config.yaml
-            opts.source =
-              "https://spk:" +
-              config.azure_devops.access_token +
-              "@" +
-              config.azure_devops.infra_repository;
-            logger.info(
-              `Infrastructure repository detected from initialized spk-config.yaml.`
-            );
-          }
-        }
-        /* scaffoldDefinition will take in a definition object with a
-           null configuration. Hence, the first index is "" */
-        const scaffoldDefinition = [
-          "",
-          opts.source,
-          opts.template,
-          opts.version
-        ];
-        const sourceFolder = await infraCommon.repoCloneRegex(opts.source);
-        const sourcePath = path.join(
-          infraCommon.spkTemplatesPath,
-          sourceFolder
-        );
-        await validateRemoteSource(scaffoldDefinition);
-        await copyTfTemplate(
-          path.join(sourcePath, opts.template),
-          opts.name,
-          false
-        );
-        await validateVariablesTf(
-          path.join(sourcePath, opts.template, "variables.tf")
-        );
-        await scaffold(opts.name, opts.source, opts.version, opts.template);
-        await removeTemplateFiles(opts.name);
-      } catch (err) {
-        logger.error("Error occurred while generating scaffold");
-        logger.error(err);
-      }
+    .action(async (opts: ICommandOptions) => {
+      const config = Config();
+      await execute(config, opts, process.exit);
     });
 };
 
@@ -111,7 +132,7 @@ export const validateVariablesTf = async (
       return false;
     }
     logger.info(
-      `Terraform variables.tf file found. Attempting to generate definition.yaml file.`
+      `Terraform variables.tf file found. Attempting to generate ${DEFINITION_YAML} file.`
     );
   } catch (_) {
     logger.error(`Unable to validate Terraform variables.tf.`);
@@ -207,18 +228,18 @@ export const copyTfTemplate = async (
  *
  * @param envPath path so the directory of Terraform templates
  */
-export const removeTemplateFiles = async (envPath: string): Promise<void> => {
+export const removeTemplateFiles = async (envPath: string) => {
   // Remove template files after parsing
-  fs.readdir(envPath, (err, files) => {
-    if (err) {
-      throw err;
-    }
-    for (const file of files) {
-      if (file !== "definition.yaml") {
-        fs.unlinkSync(path.join(envPath, file));
-      }
-    }
-  });
+  try {
+    const files = await fs.readdirSync(envPath);
+    files
+      .filter(f => f !== DEFINITION_YAML)
+      .forEach(f => {
+        fs.unlinkSync(path.join(envPath, f));
+      });
+  } catch (e) {
+    logger.error(`cannot read ${envPath}`);
+  }
 };
 
 /**
@@ -371,15 +392,12 @@ export const scaffold = async (
         );
         const definitionYaml = yaml.safeDump(baseDef);
         if (baseDef) {
-          fs.mkdir(name, (e: any) => {
-            const confPath: string = path.format({
-              base: "definition.yaml",
-              dir: name,
-              root: "/ignored"
-            });
-            fs.writeFileSync(confPath, definitionYaml, "utf8");
-            return true;
+          const confPath: string = path.format({
+            base: DEFINITION_YAML,
+            dir: name,
+            root: "/ignored"
           });
+          fs.writeFileSync(confPath, definitionYaml, "utf8");
         } else {
           logger.error(`Unable to generate cluster definition.`);
         }

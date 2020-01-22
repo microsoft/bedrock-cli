@@ -1,0 +1,47 @@
+{
+  "command": "create-variable-group <variable-group-name>",
+  "alias": "cvg",
+  "description": "Create a new variable group in Azure DevOps project with specific variables (ACR name, HLD Repo name, Personal Access Token, Service Principal id, Service Principal password, and Azure AD tenant id)",
+  "options": [
+    {
+      "arg": "-r, --registry-name <registry-name>",
+      "description": "The name of the existing Azure Container Registry.",
+      "required": true
+    },
+    {
+      "arg": "-d, --hld-repo-url <hld-repo-url>",
+      "description": "The high level definition (HLD) git repo url; falls back to azure_devops.org in spk config.",
+      "required": true
+    },
+    {
+      "arg": "-u, --service-principal-id <service-principal-id>",
+      "description": "Azure service principal id with `contributor` role in Azure Container Registry.",
+      "required": true
+    },
+    {
+      "arg": "-p, --service-principal-password <service-principal-password>",
+      "description": "The Azure service principal password.",
+      "required": true
+    },
+    {
+      "arg": "-t, --tenant <tenant>",
+      "description": "The Azure AD tenant id of service principal.",
+      "required": true
+    },
+    {
+      "arg": "--org-name <organization-name>",
+      "description": "Azure DevOps organization name; falls back to azure_devops.org in spk config.",
+      "required": true
+    },
+    {
+      "arg": "--project <project>",
+      "description": "Azure DevOps project name; falls back to azure_devops.project in spk config.",
+      "required": true
+    },
+    {
+      "arg": "--personal-access-token <personal-access-token>",
+      "description": "Azure DevOps Personal access token; falls back to azure_devops.access_token in spk config.",
+      "required": true
+    }
+  ]
+}

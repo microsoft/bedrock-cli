@@ -1,9 +1,22 @@
+jest.mock("./generate");
+
+import uuid = require("uuid");
+import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
+import { validateRemoteSource } from "./generate";
 import {
-  disableVerboseLogging,
-  enableVerboseLogging,
-  logger
-} from "../../logger";
-import { generateClusterDefinition, parseVariablesTf } from "./scaffold";
+  constructSource,
+  execute,
+  generateClusterDefinition,
+  parseVariablesTf,
+  validateValues
+} from "./scaffold";
+
+const mockYaml = {
+  azure_devops: {
+    access_token: "token123",
+    infra_repository: "repoABC"
+  }
+};
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -11,6 +24,55 @@ beforeAll(() => {
 
 afterAll(() => {
   disableVerboseLogging();
+});
+
+describe("test validate function", () => {
+  it("empty config yaml", () => {
+    const result = validateValues(
+      {},
+      {
+        name: uuid(),
+        source: "http://example@host",
+        template: uuid(),
+        version: uuid()
+      }
+    );
+    expect(result).toBe(true); // because source if defined
+  });
+  it("empty config yaml and source is missing", () => {
+    const result = validateValues(
+      {},
+      {
+        name: uuid(),
+        template: uuid(),
+        version: uuid()
+      }
+    );
+    expect(result).toBe(false); // because source if defined
+  });
+});
+
+describe("test constructSource function", () => {
+  it("validate result", () => {
+    const source = constructSource(mockYaml);
+    expect(source).toBe("https://spk:token123@repoABC");
+  });
+});
+
+describe("test execute function", () => {
+  it("missing config yaml", async () => {
+    const exitFn = jest.fn();
+    await execute({}, {}, exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
+  it("missing opt ", async () => {
+    (validateRemoteSource as jest.Mock).mockReturnValue(true);
+    const exitFn = jest.fn();
+    await execute(mockYaml, {}, exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
 });
 
 describe("Validate parsing of sample variables.tf file", () => {
