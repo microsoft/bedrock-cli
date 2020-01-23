@@ -209,7 +209,7 @@ export const create = async (
       description: "Created from spk CLI",
       name: variableGroupName,
       type: "Vsts",
-      variables: [vars]
+      variables: vars
     };
     return await addVariableGroup(variableGroupData, accessOpts);
   } catch (err) {

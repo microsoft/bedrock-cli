@@ -143,7 +143,7 @@ export interface IVariableGroupData {
   name: string;
   description: string;
   type: string;
-  variables: IVariableGroupDataVariable[];
+  variables: IVariableGroupDataVariable;
   key_vault_provider?: {
     name: string;
     service_endpoint: IServiceEndpointData;
