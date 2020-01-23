@@ -1,48 +1,51 @@
 import commander from "commander";
 
+import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
   generateDefaultHldComponentYaml,
   generateGitIgnoreFile,
   generateHldAzurePipelinesYaml
 } from "../../lib/fileutils";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
+import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
+import decorator from "./init.decorator.json";
 
-/**
- * Adds the init command to the hld command object
- *
- * @param command Commander command object to decorate
- */
-export const initCommandDecorator = (command: commander.Command): void => {
-  command
-    .command("init")
-    .alias("i")
-    .description(
-      "Initialize your hld repository. Will add the manifest-generation.yaml file to your working directory/repository if it does not already exist."
-    )
-    .option(
-      "--git-push",
-      "SPK CLI will try to commit and push these changes to a new origin/branch.",
-      false
-    )
-    .action(async opts => {
-      const { gitPush = false } = opts;
-      const projectPath = process.cwd();
-      try {
-        // Type check all parsed command line args here.
-        if (typeof gitPush !== "boolean") {
-          throw new Error(
-            `gitPush must be of type boolean, ${typeof gitPush} given.`
-          );
-        }
-        await initialize(projectPath, gitPush);
-      } catch (err) {
-        logger.error(
-          `Error occurred while initializing hld repository ${projectPath}`
-        );
-        logger.error(err);
-      }
+// values that we need to pull out from command operator
+interface ICommandOptions {
+  gitPush: boolean;
+}
+
+export const execute = async (
+  projectPath: string,
+  gitPush: boolean,
+  exitFn: (status: number) => Promise<void>
+) => {
+  try {
+    if (!hasValue(projectPath)) {
+      throw new Error("project path is not provided");
+    }
+    await initialize(projectPath, gitPush);
+    await exitFn(0);
+  } catch (err) {
+    logger.error(
+      `Error occurred while initializing hld repository ${projectPath}`
+    );
+    logger.error(err);
+    await exitFn(1);
+  }
+};
+
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+    const projectPath = process.cwd();
+    // gitPush will is always true or false. It shall not be
+    // undefined because default value is set in the commander decorator
+    await execute(projectPath, opts.gitPush, async (status: number) => {
+      await exitCmd(logger);
+      process.exit(status);
     });
+  });
 };
 
 export const initialize = async (rootProjectPath: string, gitPush: boolean) => {

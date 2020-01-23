@@ -1,5 +1,5 @@
 import { Command } from "../command";
-import { initCommandDecorator } from "./init";
+import { commandDecorator as initCommandDecorator } from "./init";
 import { installHldToManifestPipelineDecorator } from "./pipeline";
 import { reconcileHldDecorator } from "./reconcile";
 export const hldCommand = Command(

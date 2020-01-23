@@ -1,0 +1,13 @@
+{
+  "command": "init",
+  "alias": "i",
+  "description": "Initialize High Level Definition repository. Add manifest-generation.yaml file to working directory/repository if it does not already exist.",
+  "options": [
+    {
+      "arg": "--git-push",
+      "description": "SPK CLI will try to commit and push these changes to a new origin/branch.",
+      "required": false,
+      "defaultValue": false
+    }
+  ]
+}
