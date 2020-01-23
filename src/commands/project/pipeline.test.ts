@@ -8,12 +8,7 @@ import {
   queueBuild
 } from "../../lib/pipelines/pipelines";
 
-import { logger } from "@azure/identity";
-import {
-  installLifecyclePipeline,
-  isValidConfig,
-  requiredPipelineVariables
-} from "./pipeline";
+import { installLifecyclePipeline, isValidConfig } from "./pipeline";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -48,30 +43,6 @@ describe("validate pipeline config", () => {
         isValidConfig.apply(undefined, configValuesWithInvalidValue as any)
       ).toBe(false);
     }
-  });
-});
-
-describe("required pipeline variables", () => {
-  it("should use have the proper pipeline vars vars", () => {
-    const variables = requiredPipelineVariables(
-      "somePAT",
-      "buildScriptUrl",
-      "hldRepoUrl"
-    );
-
-    expect(Object.keys(variables).length).toBe(3);
-
-    expect(variables.PAT.value).toBe("somePAT");
-    expect(variables.PAT.isSecret).toBe(true);
-    expect(variables.PAT.allowOverride).toBe(true);
-
-    expect(variables.BUILD_SCRIPT_URL.value).toBe("buildScriptUrl");
-    expect(variables.BUILD_SCRIPT_URL.isSecret).toBe(false);
-    expect(variables.BUILD_SCRIPT_URL.allowOverride).toBe(true);
-
-    expect(variables.HLD_REPO.value).toBe("hldRepoUrl");
-    expect(variables.HLD_REPO.isSecret).toBe(false);
-    expect(variables.HLD_REPO.allowOverride).toBe(true);
   });
 });
 

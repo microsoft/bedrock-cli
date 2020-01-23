@@ -55,7 +55,7 @@ export interface IBedrockFile {
 }
 
 export interface IBedrockServiceConfig {
-  displayName?:  string;
+  displayName?: string;
   middlewares?: string[];
   helm: IHelmConfig;
   disableRouteScaffold?: boolean;

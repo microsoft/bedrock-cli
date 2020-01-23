@@ -8,7 +8,7 @@ import {
 import { ITaskAgentApi } from "azure-devops-node-api/TaskAgentApi";
 import { Config } from "../../config";
 import { logger } from "../../logger";
-import { IVariableGroupData } from "../../types";
+import { IVariableGroupData, IVariableGroupDataVariable } from "../../types";
 import { getBuildApi, getWebApi } from "../azdoClient";
 import { IAzureDevOpsOpts } from "../git";
 import { IServiceEndpoint } from "./azdoInterfaces";

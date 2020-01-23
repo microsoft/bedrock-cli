@@ -281,7 +281,8 @@ describe("Adding a new service to a Bedrock file", () => {
           helm: helmConfig,
           middlewares: []
         }
-      }
+      },
+      variableGroups: []
     };
 
     expect(writeSpy).toBeCalledWith(

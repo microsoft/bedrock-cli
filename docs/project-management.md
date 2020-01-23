@@ -1,6 +1,8 @@
 # Project Management
 
-Create and manage components for a Bedrock project.
+Create and manage components for a Bedrock project. All project management
+commands will need to run in the order as listed below in the
+[commands](#Commands) section due to dependencies.
 
 Usage:
 
@@ -11,12 +13,17 @@ spk project [command] [options]
 Commands:
 
 - [Project Management](#project-management)
+
   - [Prerequisites](#prerequisites)
   - [Commands](#commands)
+
     - [init](#init)
     - [create-variable-group](#create-variable-group)
       - [Command Prerequisites](#command-prerequisites)
     - [install-lifecycle-pipeline](#install-lifecycle-pipeline)
+
+    **Please note all project management commands must run in the order as
+    listed above.**
 
 Global options:
 

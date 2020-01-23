@@ -5,7 +5,12 @@ import * as os from "os";
 import path from "path";
 import { getSecret } from "./lib/azure/keyvault";
 import { logger } from "./logger";
-import { IBedrockFile, IConfigYaml, IMaintainersFile } from "./types";
+import {
+  IAzurePipelinesYaml,
+  IBedrockFile,
+  IConfigYaml,
+  IMaintainersFile
+} from "./types";
 
 ////////////////////////////////////////////////////////////////////////////////
 // State
@@ -211,19 +216,27 @@ export const MaintainersAsync = (fileDirectory: string = process.cwd()) =>
  * @param file config file object to serialize and write out
  */
 export const write = (
-  file: IBedrockFile | IMaintainersFile,
-  targetDirectory = process.cwd()
+  file: IBedrockFile | IMaintainersFile | IAzurePipelinesYaml,
+  targetDirectory = process.cwd(),
+  fileName?: string
 ) => {
   const asYaml = yaml.safeDump(file, { lineWidth: Number.MAX_SAFE_INTEGER });
   if ("rings" in file) {
     // Is bedrock.yaml
     return fs.writeFileSync(path.join(targetDirectory, "bedrock.yaml"), asYaml);
-  } else {
+  } else if ("services" in file) {
     // Is maintainers file
     return fs.writeFileSync(
       path.join(targetDirectory, "maintainers.yaml"),
       asYaml
     );
+  } else {
+    // Is azure pipelines yaml file
+    if (typeof fileName === "undefined") {
+      throw new Error(`Pipeline yaml file name is undefined`);
+    }
+
+    return fs.writeFileSync(path.join(targetDirectory, fileName), asYaml);
   }
 };
 

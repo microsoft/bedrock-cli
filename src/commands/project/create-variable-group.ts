@@ -1,8 +1,9 @@
 import { VariableGroup } from "azure-devops-node-api/interfaces/ReleaseInterfaces";
 import commander from "commander";
+import fs from "fs";
 import path from "path";
 import { echo } from "shelljs";
-import { Bedrock, Config, write } from "../../config";
+import { Bedrock, Config, readYaml, write } from "../../config";
 import {
   build as buildCmd,
   validateForRequiredValues
@@ -12,6 +13,7 @@ import { addVariableGroup } from "../../lib/pipelines/variableGroup";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import {
+  IAzurePipelinesYaml,
   IBedrockFile,
   IVariableGroupData,
   IVariableGroupDataVariable
@@ -119,9 +121,12 @@ export const execute = async (
           accessOpts
         );
 
-        // set the variable group name
         const projectPath = process.cwd();
+        // set the variable group name
         await setVariableGroupInBedrockFile(projectPath, variableGroup.name!);
+
+        // update hld-lifecycle.yaml with variable groups in bedrock.yaml
+        await updateLifeCyclePipeline(projectPath);
 
         // print newly created variable group
         echo(JSON.stringify(variableGroup, null, 2));
@@ -206,7 +211,6 @@ export const create = async (
       type: "Vsts",
       variables: [vars]
     };
-
     return await addVariableGroup(variableGroupData, accessOpts);
   } catch (err) {
     throw err; // TOFIX: are we just rethrowing error?
@@ -231,27 +235,92 @@ export const setVariableGroupInBedrockFile = async (
   }
 
   const absProjectRoot = path.resolve(rootProjectPath);
-  logger.info(`Creating variable group ${variableGroupName}`);
+  logger.info(`Setting variable group ${variableGroupName}`);
 
   let bedrockFile: IBedrockFile | undefined;
 
-  // Get bedrock.yaml if it already exists
-  try {
-    bedrockFile = Bedrock(rootProjectPath);
-  } catch (err) {
-    logger.info(
-      `No bedrock.yaml found at ${absProjectRoot}, creating a new file to add variable group`
-    );
-    bedrockFile = {
-      rings: {}, // rings is optional but necessary to create a bedrock file in config.write method
-      services: {} // service property is not optional so set it to null
-    };
+  // Get bedrock.yaml
+  bedrockFile = Bedrock(rootProjectPath);
+
+  if (typeof bedrockFile === "undefined") {
+    throw new Error(`Bedrock file does not exist.`);
   }
 
-  // to be sure that variableGroups is not undefined.
-  bedrockFile.variableGroups = bedrockFile.variableGroups || [];
-  // add new variabe group
-  bedrockFile.variableGroups.push(variableGroupName);
+  logger.verbose(
+    `Bedrock file content in ${rootProjectPath}: \n ${JSON.stringify(
+      bedrockFile
+    )}`
+  );
 
+  // add new variabe group
+  bedrockFile.variableGroups = [
+    ...(bedrockFile.variableGroups ?? []),
+    variableGroupName
+  ];
+
+  // Write out
   write(bedrockFile, absProjectRoot);
+};
+
+/**
+ * Sets the variable group name in a default bedrock.yaml
+ *
+ * @param rootProjectPath Path to project files
+ */
+export const updateLifeCyclePipeline = async (rootProjectPath: string) => {
+  if (!hasValue(rootProjectPath)) {
+    throw new Error("Project root path is not valid");
+  }
+
+  const fileName: string = "hld-lifecycle.yaml";
+  const absProjectRoot = path.resolve(rootProjectPath);
+  let bedrockFile: IBedrockFile;
+  let pipelineFile: IAzurePipelinesYaml | undefined;
+
+  // Get bedrock.yaml
+  bedrockFile = Bedrock(rootProjectPath);
+
+  pipelineFile = readYaml(path.join(absProjectRoot, fileName));
+
+  if (typeof pipelineFile === "undefined") {
+    throw new Error("${fileName} file does not exist in ${absProjectRoot}.");
+  }
+
+  logger.verbose(`${fileName} content: \n ${JSON.stringify(pipelineFile)}`);
+
+  logger.debug(
+    `Setting variable groups ${JSON.stringify(
+      bedrockFile.variableGroups
+    )} in lifecycle pipeline yaml file ${fileName}`
+  );
+
+  pipelineFile.variables = [
+    ...(bedrockFile.variableGroups ?? []).map(groupName => {
+      return {
+        group: groupName
+      };
+    })
+  ];
+
+  // Write out
+  write(pipelineFile, absProjectRoot, fileName);
+};
+
+/**
+ * Checks if the default bedrock.yaml exists
+ *
+ * @param rootProjectPath Path to generate/update the the bedrock.yaml file in
+ */
+export const isBedrockFileExists = async (rootProjectPath: string) => {
+  if (typeof rootProjectPath === "undefined" || rootProjectPath === "") {
+    throw new Error("Project root path is not valid");
+  }
+
+  const absProjectPath = path.resolve(rootProjectPath);
+
+  // Check if a bedrock.yaml already exists
+  const bedrockFilePath = path.join(absProjectPath, "bedrock.yaml");
+  const exists = fs.existsSync(bedrockFilePath);
+  logger.verbose(`bedrockFilePath path: ${bedrockFilePath}, exists: ${exists}`);
+  return exists;
 };

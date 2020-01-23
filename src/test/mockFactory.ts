@@ -74,7 +74,8 @@ export const createTestBedrockYaml = (
       "./zookeeper": {
         helm: zookeeperHelmConfig
       }
-    }
+    },
+    variableGroups: []
   };
 
   return asString ? yaml.dump(data) : data;
