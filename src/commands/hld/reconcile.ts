@@ -264,13 +264,17 @@ const createIngressRouteForRing = (
     staticComponentPathInRing,
     "ingress-route.yaml"
   );
-  // TODO: figure out a way to grab the port from _somewhere_; store in bedrock.yaml?
-  const ingressRoute = TraefikIngressRoute(serviceName, ring, 8000, {
-    middlewares: [
-      middlewares.metadata.name,
-      ...(serviceConfig.middlewares ?? [])
-    ]
-  });
+  const ingressRoute = TraefikIngressRoute(
+    serviceName,
+    ring,
+    serviceConfig.k8sServicePort,
+    {
+      middlewares: [
+        middlewares.metadata.name,
+        ...(serviceConfig.middlewares ?? [])
+      ]
+    }
+  );
 
   const routeYaml = yaml.safeDump(ingressRoute, {
     lineWidth: Number.MAX_SAFE_INTEGER

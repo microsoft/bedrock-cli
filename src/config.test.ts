@@ -18,7 +18,8 @@ describe("Bedrock", () => {
               chart: "elastic",
               repository: "some-repo"
             }
-          }
+          },
+          k8sServicePort: 1337
         },
         "foo/b": {
           helm: {
@@ -27,7 +28,8 @@ describe("Bedrock", () => {
               path: "some/path",
               sha: "cef8361c62e7a91887625336eb13a8f90dbcf8df"
             }
-          }
+          },
+          k8sServicePort: 1337
         }
       }
     };

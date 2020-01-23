@@ -85,6 +85,11 @@ export const createCommandDecorator = (command: commander.Command): void => {
       "Traefik2 middlewares you wish to to be injected into your Traefik2 IngressRoutes",
       ""
     )
+    .option(
+      "--k8s-service-port <port>",
+      "Kubernetes service port which this service is exposed with; will be used to configure Traefik2 IngressRoutes",
+      "80"
+    )
     .action(async (serviceName, opts) => {
       const bedrock = await BedrockAsync().catch(err => {
         logger.warn(err);
@@ -92,17 +97,18 @@ export const createCommandDecorator = (command: commander.Command): void => {
       });
       const {
         displayName,
+        gitPush,
         helmChartChart,
         helmChartRepository,
         helmConfigBranch,
-        helmConfigPath,
         helmConfigGit,
-        packagesDir,
-        maintainerName,
+        helmConfigPath,
         maintainerEmail,
+        maintainerName,
         middlewares,
-        gitPush
+        packagesDir
       } = opts;
+      const k8sPort = Number(opts.k8sServicePort);
       const variableGroupName =
         opts.variableGroupName ?? (bedrock?.variableGroups ?? [])[0] ?? ""; // fall back to bedrock.yaml when <variable-group-name> argument is not specified; default to empty string
 
@@ -122,27 +128,35 @@ export const createCommandDecorator = (command: commander.Command): void => {
             middlewares,
             gitPush,
             variableGroupName,
-            displayName
+            displayName,
+            k8sPort
           )
         ) {
           throw Error(`Invalid configuration provided`);
         }
 
-        await createService(projectPath, serviceName, packagesDir, gitPush, {
-          displayName,
-          helmChartChart,
-          helmChartRepository,
-          helmConfigBranch,
-          helmConfigGit,
-          helmConfigPath,
-          maintainerEmail,
-          maintainerName,
-          middlewares: (middlewares as string)
-            .split(",")
-            .map(str => str.trim()),
-          variableGroups:
-            variableGroupName.length > 0 ? [variableGroupName] : []
-        });
+        await createService(
+          projectPath,
+          serviceName,
+          packagesDir,
+          gitPush,
+          k8sPort,
+          {
+            displayName,
+            helmChartChart,
+            helmChartRepository,
+            helmConfigBranch,
+            helmConfigGit,
+            helmConfigPath,
+            maintainerEmail,
+            maintainerName,
+            middlewares: (middlewares as string)
+              .split(",")
+              .map(str => str.trim()),
+            variableGroups:
+              variableGroupName.length > 0 ? [variableGroupName] : []
+          }
+        );
       } catch (err) {
         logger.error(
           `Error occurred adding service ${serviceName} to project ${projectPath}`
@@ -181,7 +195,8 @@ export const isValidConfig = (
   middlewares: any,
   gitPush: any,
   variableGroupName: any,
-  displayName: any
+  displayName: any,
+  k8sPort: any
 ): boolean => {
   const missingConfig = [];
 
@@ -251,6 +266,16 @@ export const isValidConfig = (
       `variableGroupName must be of type 'string', ${typeof variableGroupName} given.`
     );
   }
+  // k8sPort has to be a positive integer
+  if (
+    typeof k8sPort !== "number" ||
+    !Number.isInteger(k8sPort) ||
+    k8sPort < 0
+  ) {
+    missingConfig.push(
+      `k8s-port must be a positive integer, parsed ${k8sPort} from input.`
+    );
+  }
 
   if (missingConfig.length > 0) {
     logger.error("Error in configuration: " + missingConfig.join(" "));
@@ -272,6 +297,7 @@ export const createService = async (
   serviceName: string,
   packagesDir: string,
   gitPush: boolean,
+  k8sServicePort: number,
   opts?: {
     displayName?: string;
     helmChartChart?: string;
@@ -362,7 +388,8 @@ export const createService = async (
     newServiceRelativeDir,
     displayName,
     helmConfig,
-    middlewares
+    middlewares,
+    k8sServicePort
   );
 
   // If requested, create new git branch, commit, and push

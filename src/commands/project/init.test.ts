@@ -35,9 +35,10 @@ describe("Initializing a blank/new bedrock repository", () => {
     }
 
     // ensure service specific files do not get created
-    const filepathsShouldNotExist = ["Dockerfile", "azure-pipelines.yaml"].map(
-      filename => path.join(randomTmpDir, filename)
-    );
+    const filepathsShouldNotExist = [
+      "Dockerfile",
+      "azure-pipelines.yaml"
+    ].map(filename => path.join(randomTmpDir, filename));
     for (const filepath of filepathsShouldNotExist) {
       expect(fs.existsSync(filepath)).toBe(false);
     }
@@ -65,7 +66,8 @@ describe("initializing an existing file does not modify it", () => {
               path: "./",
               sha: "bar"
             }
-          }
+          },
+          k8sServicePort: 1337
         }
       }
     };

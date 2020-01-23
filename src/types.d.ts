@@ -59,6 +59,7 @@ export interface IBedrockServiceConfig {
   middlewares?: string[];
   helm: IHelmConfig;
   disableRouteScaffold?: boolean;
+  k8sServicePort: number; // the service port for the k8s service Traefik2 IngressRoutes will point to
 }
 
 /**

@@ -169,7 +169,8 @@ describe("addChartToRing", () => {
           git,
           path
         }
-      }
+      },
+      k8sServicePort: 1337
     };
 
     /* tslint:disable-next-line: no-string-literal */
@@ -198,7 +199,8 @@ describe("addChartToRing", () => {
           path,
           sha
         }
-      }
+      },
+      k8sServicePort: 1337
     };
 
     /* tslint:disable-next-line: no-string-literal */
@@ -225,7 +227,8 @@ describe("addChartToRing", () => {
           chart,
           repository
         }
-      }
+      },
+      k8sServicePort: 1337
     };
 
     /* tslint:disable-next-line: no-string-literal */
@@ -277,7 +280,8 @@ describe("reconcile tests", () => {
               path,
               sha
             }
-          }
+          },
+          k8sServicePort: 1337
         }
       }
     };
@@ -323,7 +327,8 @@ describe("reconcile tests", () => {
               path,
               sha
             }
-          }
+          },
+          k8sServicePort: 1337
         }
       }
     };

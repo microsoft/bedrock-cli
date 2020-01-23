@@ -261,13 +261,17 @@ describe("Adding a new service to a Bedrock file", () => {
         repository: "somehelmrepository"
       }
     };
+    const traefikMiddlewares = ["foo", "bar"];
+    const k8sServicePort = 8080;
 
     const writeSpy = jest.spyOn(fs, "writeFileSync");
     addNewServiceToBedrockFile(
       bedrockFilePath,
       servicePath,
       svcDisplayName,
-      helmConfig
+      helmConfig,
+      traefikMiddlewares,
+      k8sServicePort
     );
 
     const defaultBedrockFileObject = createTestBedrockYaml(false);
@@ -279,7 +283,8 @@ describe("Adding a new service to a Bedrock file", () => {
         ["./" + servicePath]: {
           displayName: svcDisplayName,
           helm: helmConfig,
-          middlewares: []
+          k8sServicePort,
+          middlewares: traefikMiddlewares
         }
       },
       variableGroups: []

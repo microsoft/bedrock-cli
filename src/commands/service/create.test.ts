@@ -3,7 +3,7 @@ import os from "os";
 import path from "path";
 import { promisify } from "util";
 import uuid from "uuid/v4";
-import { Bedrock } from "../../config";
+import { Bedrock, BedrockAsync } from "../../config";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import {
   disableVerboseLogging,
@@ -39,7 +39,8 @@ describe("validate pipeline config", () => {
     "my,middleware,string",
     true,
     "testVariableGroup",
-    "testDisplayName"
+    "testDisplayName",
+    80
   ];
 
   it("config is valid", () => {
@@ -81,7 +82,14 @@ describe("Adding a service to a repo directory", () => {
     );
 
     // addService call
-    await createService(randomTmpDir, serviceName, packageDir, false);
+    const k8sServicePort = 1337;
+    await createService(
+      randomTmpDir,
+      serviceName,
+      packageDir,
+      false,
+      k8sServicePort
+    );
 
     // Check temp test directory exists
     expect(fs.existsSync(randomTmpDir)).toBe(true);
@@ -100,6 +108,10 @@ describe("Adding a service to a repo directory", () => {
     }
 
     // TODO: Verify root project bedrock.yaml and maintainers.yaml has been changed too.
+    const bedrock = Bedrock(randomTmpDir);
+    const newService = bedrock.services["./" + serviceName];
+    expect(newService).toBeDefined();
+    expect(newService.k8sServicePort).toBe(k8sServicePort);
   });
 
   test("New directory is created under '/packages' directory with required service files.", async () => {
@@ -117,7 +129,7 @@ describe("Adding a service to a repo directory", () => {
     );
 
     // addService call
-    await createService(randomTmpDir, serviceName, "packages", false);
+    await createService(randomTmpDir, serviceName, "packages", false, 1337);
 
     // Check temp test directory exists
     expect(fs.existsSync(randomTmpDir)).toBe(true);
@@ -153,7 +165,7 @@ describe("Adding a service to a repo directory", () => {
     );
 
     // addService call
-    await createService(randomTmpDir, serviceName, "packages", true);
+    await createService(randomTmpDir, serviceName, "packages", true, 1337);
 
     // Check temp test directory exists
     expect(fs.existsSync(randomTmpDir)).toBe(true);
@@ -187,7 +199,7 @@ describe("Adding a service to a repo directory", () => {
     );
 
     // create service with no middleware
-    await createService(randomTmpDir, serviceName, packageDir, false);
+    await createService(randomTmpDir, serviceName, packageDir, false, 1337);
 
     // Check temp test directory exists
     expect(fs.existsSync(randomTmpDir)).toBe(true);
@@ -225,7 +237,7 @@ describe("Adding a service to a repo directory", () => {
 
     // add some middlewares
     const middlewares = ["foo", "bar", "baz"];
-    await createService(randomTmpDir, serviceName, packageDir, false, {
+    await createService(randomTmpDir, serviceName, packageDir, false, 1337, {
       middlewares
     });
 

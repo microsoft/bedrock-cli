@@ -66,13 +66,16 @@ export const createTestBedrockYaml = (
     rings: {},
     services: {
       "./": {
-        helm: service1HelmConfig
+        helm: service1HelmConfig,
+        k8sServicePort: 80
       },
       "./packages/service1": {
-        helm: service2HelmConfig
+        helm: service2HelmConfig,
+        k8sServicePort: 80
       },
       "./zookeeper": {
-        helm: zookeeperHelmConfig
+        helm: zookeeperHelmConfig,
+        k8sServicePort: 80
       }
     },
     variableGroups: []
