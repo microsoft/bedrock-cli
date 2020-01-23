@@ -24,8 +24,7 @@ describe("validate pipeline config", () => {
     "testDevopsProject",
     "testPipeline",
     "repoName",
-    "https:/repoulr",
-    "https://hldurl",
+    "https://repourl",
     "https://buildscript",
     "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
   ];
@@ -57,7 +56,6 @@ describe("create hld to manifest pipeline test", () => {
       "pipelineName",
       "repoName",
       "repoUrl",
-      "hldRepoUrl",
       "azDoProject",
       "buildScriptUrl",
       exitFn
@@ -76,7 +74,6 @@ describe("create hld to manifest pipeline test", () => {
       "pipelineName",
       "repoName",
       "repoUrl",
-      "hldRepoUrl",
       "azDoProject",
       "buildScriptUrl",
       exitFn
@@ -98,7 +95,6 @@ describe("create hld to manifest pipeline test", () => {
       "pipelineName",
       "repoName",
       "repoUrl",
-      "hldRepoUrl",
       "azDoProject",
       "buildScriptUrl",
       exitFn
@@ -119,7 +115,6 @@ describe("create hld to manifest pipeline test", () => {
       "pipelineName",
       "repoName",
       "repoUrl",
-      "hldRepoUrl",
       "azDoProject",
       "buildScriptUrl",
       exitFn
@@ -145,7 +140,6 @@ describe("create hld to manifest pipeline test", () => {
         "pipelineName",
         "repoName",
         "repoUrl",
-        "hldRepoUrl",
         "azDoProject",
         "buildScriptUrl",
         exitFn
