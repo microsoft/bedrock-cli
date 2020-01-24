@@ -150,6 +150,22 @@ function variable_group_exists () {
     fi
 }
 
+function variable_group_variable_create () {
+    id=$1
+    org=$2
+    p=$3
+    n=$4
+    v=$5
+    s=$6
+    
+    echo "Create variable '$n' in variable group"
+    if [ "$s" = "secret" ]; then
+        result=$(az pipelines variable-group variable create --id $id --org $org -p $p --name $n --value $v --secret)
+    else
+        result=$(az pipelines variable-group variable create --id $id --org $org -p $p --name $n --value $v)
+    fi
+}
+
 function storage_account_exists () {
     sa_name=$1
     rg=$2
@@ -168,6 +184,10 @@ function storage_account_exists () {
         if [ "$action" == "fail" ]; then
             exit 1
         fi
+        if [ "$action" == "create" ]; then
+            echo "Create storage account '$sa_name'"
+            az storage account create -n $sa_name -g $rg
+        fi
     fi
 }
 
@@ -184,6 +204,67 @@ function storage_account_table_exists () {
         echo "The table $sa_name does not exist"
         if [ "$action" == "fail" ]; then
             exit 1
+        fi
+        if [ "$action" == "create" ]; then
+            echo "Create table $t"
+            az storage table create -n $t --account-name $sa_name
+            total_wait_seconds=20
+            start=0
+            wait_seconds=5
+            while [ $start -lt $total_wait_seconds ]; do
+                sat_result=$(az storage table exists -n $t --account-name $sa_name)
+                sat_exists=$(echo $sat_result | jq '.exists | . == true')
+                if [ "$sat_exists" = "true"  ]; then
+                    echo "The table '$t' was created"
+                    break
+                fi
+                echo "Wait $wait_seconds seconds..."
+                sleep $wait_seconds
+                az storage table create -n $t --account-name $sa_name
+                start=$((start + wait_seconds))
+            done
+            if [ "$sat_exists" != "true" ]; then
+                echo "The table '$t' could not be created"
+                exit 1
+            fi
+        fi
+    fi
+}
+
+function storage_account_cors_enabled () {
+    sa_name=$1
+    action=$2
+    cors_enabled_result=$(az storage cors list --services t --account-name $sa_name | jq '.[] | select((.Service=="table") and (.AllowedMethods=="GET") and (.AllowedOrigins=="http://localhost:4040")) != null')
+
+    if [ "$cors_enabled_result" = "true" ]; then
+        echo "The storage account '$sa_name' has cors enabled"
+    else
+        echo "The storage account '$sa_name' does not have cors enabled"
+        if [ "$action" == "fail" ]; then
+            exit 1
+        fi
+        if [ "$action" == "enable" ]; then
+            echo "Enable cors in storage account '$sa_name'"
+            az storage cors add --methods "GET" --origins "http://localhost:4040" --services t --allowed-headers "*" --exposed-headers "*" --account-name $sa_name
+        fi
+        if [ "$action" == "wait" ]; then
+            total_wait_seconds=25
+            start=0
+            wait_seconds=5
+            while [ $start -lt $total_wait_seconds ]; do
+                cors_enabled_result=$(az storage cors list --services t --account-name $sa_name | jq '.[] | select((.Service=="table") and (.AllowedMethods=="GET") and (.AllowedOrigins=="http://localhost:4040")) != null')
+                if [ "$cors_enabled_result" = "true" ]; then
+                    echo "The storage account '$sa_name' has cors enabled"
+                    break
+                fi
+                echo "Wait $wait_seconds seconds..."
+                sleep $wait_seconds
+                start=$((start + wait_seconds))
+            done
+            if [ "$cors_enabled_result" != "true" ]; then
+                echo "The storage account '$sa_name' does not have cors enabled"
+                exit 1
+            fi
         fi
     fi
 }

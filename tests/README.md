@@ -107,8 +107,8 @@ If you wish to run these tests locally, skip ahead to
    - AZDO_ORG (e.g. `epicstuff`)
    - AZDO_PAT (e.g. Personal Access Token with **read/write/manage** access to
      AZDO_PROJECT) <-- 🔒
-   - AZ_RESOURCE_GROUP - The name of an Azure resource group (for
-     `introspection-validations.sh`)
+   - AZ_RESOURCE_GROUP - The name of an Azure resource group
+   - AZ_STORAGE_ACCOUNT - The name of an Azure storage account
    - SP_APP_ID (e.g Service Principal App Id)
    - SP_PASS (e.g Service Principal Password) <-- 🔒
    - SP_TENANT (e.g Service Principal Tenant Id)
@@ -163,7 +163,8 @@ pipeline. Instead run these steps:
    export SP_PASS=<b>REPLACE_ME</b>
    export SP_APP_ID=<b>REPLACE_ME</b>
    export SP_TENANT=<b>REPLACE_ME</b>
-   export AZ_SUBSCRIPTION_ID=<b>REPLACE_ME</b>
+   export AZ_RESOURCE_GROUP=<b>REPLACE_ME</b>
+   export AZ_STORAGE_ACCOUNT=<b>REPLACE_ME</b>
    </pre>
 4. Navigate to this directory in shell
 5. RUN --> `$ sh validations.sh`
