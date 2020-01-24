@@ -151,15 +151,24 @@ export const reconcileHld = async (
   for (const [serviceRelPath, serviceConfig] of Object.entries(
     managedServices
   )) {
-    const pathBase = path.basename(serviceRelPath);
-    const serviceName = pathBase;
-    logger.info(`Reconciling service: ${pathBase}`);
+    const serviceName =
+      serviceConfig.displayName || path.basename(serviceRelPath);
+
+    // No name, cannot generate proper routes and middlewares
+    if (serviceName === "." || !serviceName) {
+      logger.warn(
+        "Service displayName not provided or service path is `.` - not reconciling service"
+      );
+      continue;
+    }
+
+    logger.info(`Reconciling service: ${serviceName}`);
 
     // Utilizes fab add, which is idempotent.
     await dependencies.createServiceComponent(
       dependencies.exec,
       absRepositoryInHldPath,
-      pathBase
+      serviceName
     );
 
     // No rings
@@ -168,7 +177,7 @@ export const reconcileHld = async (
     }
 
     // Create ring components.
-    const svcPathInHld = path.join(absRepositoryInHldPath, pathBase);
+    const svcPathInHld = path.join(absRepositoryInHldPath, serviceName);
 
     // Will only loop over _existing_ rings in bedrock.yaml - does not cover the deletion case, ie: i remove a ring from bedrock.yaml
     for (const ring of Object.keys(managedRings)) {
@@ -326,12 +335,12 @@ export const createRepositoryComponent = async (
 export const createServiceComponent = async (
   execCmd: (commandToRun: string) => Promise<void>,
   absRepositoryInHldPath: string,
-  pathBase: string
+  serviceName: string
 ) => {
   // Fab add is idempotent.
   // mkdir -p does not fail if ${pathBase} does not exist.
   await execCmd(
-    `cd ${absRepositoryInHldPath} && mkdir -p ${pathBase} config && fab add ${pathBase} --path ./${pathBase} --method local --type component && touch ./config/common.yaml`
+    `cd ${absRepositoryInHldPath} && mkdir -p ${serviceName} config && fab add ${serviceName} --path ./${serviceName} --method local --type component && touch ./config/common.yaml`
   );
 };
 
