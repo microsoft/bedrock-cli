@@ -329,7 +329,7 @@ export const generateConfig = async (
       }
       if (typeof parentInfraConfig !== "undefined") {
         if (leafInfraConfig) {
-          const finalDefinition = await dirIteration(
+          const finalDefinition = dirIteration(
             parentInfraConfig.variables,
             leafInfraConfig.variables
           );
@@ -345,7 +345,7 @@ export const generateConfig = async (
 
           // Create a backend.tfvars for remote backend configuration
           if (parentInfraConfig.backend && leafInfraConfig.backend) {
-            const finalBackendDefinition = await dirIteration(
+            const finalBackendDefinition = dirIteration(
               parentInfraConfig.backend,
               leafInfraConfig.backend
             );
@@ -480,24 +480,28 @@ export const singleDefinitionGeneration = async (
  * @param parentObject parent definition object
  * @param leafObject leaf definition object
  */
-export const dirIteration = async (
-  parentObject: any,
-  leafObject: any
-): Promise<string[]> => {
-  for (const parentKey in parentObject) {
-    if (parentKey) {
-      for (const leafKey in leafObject) {
-        if (parentKey === leafKey) {
-          let parentVal = parentObject[parentKey];
-          parentVal = leafObject[leafKey];
-        } else {
-          // Append to parent variables block
-          const leafVal = leafObject[leafKey];
-          parentObject[leafKey] = leafVal;
-        }
-      }
+export const dirIteration = (
+  parentObject: { [key: string]: any } | undefined,
+  leafObject: { [key: string]: any } | undefined,
+): { [key: string]: any } => {
+  if (!parentObject) {
+    if (!leafObject) {
+      return {};
     }
+    // poor man clone. can we use lodash?
+    return JSON.parse(JSON.stringify(leafObject));
   }
+  if (!leafObject) {
+    return parentObject;
+  }
+
+  // parent take leaf's value
+  Object.keys(leafObject).forEach(k => {
+    if (leafObject[k]) {
+      parentObject[k] = leafObject[k];
+    }
+  });
+
   return parentObject;
 };
 

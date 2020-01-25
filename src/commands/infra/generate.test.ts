@@ -24,6 +24,126 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
+describe("test dirIteration", () => {
+  it("parentObject and leafObject are undefined", () => {
+    const result = dirIteration(undefined, undefined);
+    expect(result).toEqual({});
+  });
+  it("parentObject is undefined", () => {
+    const leafObject = {
+      "custerName": "cluster1"
+    };
+    const result = dirIteration(undefined, leafObject);
+    expect(result).toEqual(leafObject);
+  });
+  it("leafObject is undefined", () => {
+    const parentObject = {
+      "custerName": "cluster1"
+    };
+    const result = dirIteration(parentObject, undefined);
+    expect(result).toEqual(parentObject);
+  });
+  it("one variable test", () => {
+    const parentObject = {
+      "custerName": "parent"
+    };
+    const leafObject = {
+      "custerName": "left"
+    };
+    const result = dirIteration(parentObject, leafObject);
+    expect(result).toEqual(leafObject);
+  });
+  it("one variable test, parentObject without the variable", () => {
+    const parentObject = {
+    };
+    const leafObject = {
+      "custerName": "leaf"
+    };
+    const result = dirIteration(parentObject, leafObject);
+    expect(result).toEqual(leafObject);
+  });
+  it("one variable test, leafObject without the variable", () => {
+    const parentObject = {
+      "custerName": "leaf"
+    };
+    const leafObject = {
+    };
+    const result = dirIteration(parentObject, leafObject);
+    expect(result).toEqual(parentObject);
+  });
+  it("multiple variables test", () => {
+    const parentObject = {
+      "custerName": "parent",
+      "variable1": "parent1",
+      "variable2": "parent2"
+    };
+    const leafObject = {
+      "custerName": "leaf",
+      "variable1": "leaf1",
+      "variable2": "leaf2"
+    };
+    const result = dirIteration(parentObject, leafObject);
+    expect(result).toEqual(leafObject);
+  });
+  it("multiple variables test, leafObject does not values", () => {
+    const parentObject = {
+      "custerName": "parent",
+      "variable1": "parent1",
+      "variable2": "parent2"
+    };
+    const leafObject = {
+    };
+    const result = dirIteration(parentObject, leafObject);
+    expect(result).toEqual(parentObject);
+  });
+  it("multiple variables test, parentObject does not values", () => {
+    const parentObject = {
+    };
+    const leafObject = {
+      "custerName": "leaf",
+      "variable1": "leaf1",
+      "variable2": "leaf2"
+    };
+    const result = dirIteration(parentObject, leafObject);
+    expect(result).toEqual(leafObject);
+  });
+  it("multiple variables test, parentObject has more values", () => {
+    const parentObject = {
+      "custerName": "parent",
+      "variable1": "parent1",
+      "variable2": "parent2",
+      "xextra": "xextra"
+    };
+    const leafObject = {
+      "custerName": "leaf",
+      "variable1": "leaf1",
+      "variable2": "leaf2"
+    };
+    const result = dirIteration(parentObject, leafObject);
+    expect(result).toEqual({
+      "custerName": "leaf",
+      "variable1": "leaf1",
+      "variable2": "leaf2",
+      "xextra": "xextra"
+    });
+  });
+  it("multiple variables test, leafObject has more values", () => {
+    const parentObject = {
+      "custerName": "parent",
+      "variable1": "parent1",
+      "variable2": "parent2"
+    };
+    const leafObject = {
+      "custerName": "leaf",
+      "variable1": "leaf1",
+      "variable2": "leaf2",
+      "xextra": "xextra"
+    };
+    const result = dirIteration(parentObject, leafObject);
+    expect(result).toEqual(leafObject);
+  });
+})
+
 describe("Validate sources in definition.yaml files", () => {
   test("Validating that a provided project folder contains definition.yaml files with valid source, version, and template", async () => {
     let mockParentPath = "src/commands/infra/mocks/discovery-service";
