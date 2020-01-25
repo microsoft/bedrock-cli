@@ -15,8 +15,8 @@ TEST_WORKSPACE="$(pwd)/spk-env"
 [ ! -z "$SP_APP_ID" ] || { echo "Provide SP_APP_ID"; exit 1;}
 [ ! -z "$SP_PASS" ] || { echo "Provide SP_PASS"; exit 1;}
 [ ! -z "$SP_TENANT" ] || { echo "Provide SP_TENANT"; exit 1;}
-[ ! -z "$AZ_RESOURCE_GROUP" ] || { echo "Provide AZ_RESOURCE_GROUP"; exit 1;}
-[ ! -z "$AZ_STORAGE_ACCOUNT" ] || { echo "Provide AZ_STORAGE_ACCOUNT"; exit 1;}
+# [ ! -z "$AZ_RESOURCE_GROUP" ] || { echo "Provide AZ_RESOURCE_GROUP"; exit 1;}
+# [ ! -z "$AZ_STORAGE_ACCOUNT" ] || { echo "Provide AZ_STORAGE_ACCOUNT"; exit 1;}
 AZDO_ORG_URL="${AZDO_ORG_URL:-"https://dev.azure.com/$AZDO_ORG"}"
 
 echo "TEST_WORKSPACE: $TEST_WORKSPACE"
@@ -54,15 +54,15 @@ fi
 cd $TEST_WORKSPACE
 
 # Introspection Storage Account Setup
-sat_name=fabrikamdeployments
-sa_partition_key="integration-test"
+# sat_name=fabrikamdeployments
+# sa_partition_key="integration-test"
 
-storage_account_exists $AZ_STORAGE_ACCOUNT $AZ_RESOURCE_GROUP "fail"
-storage_account_cors_enabled $AZ_STORAGE_ACCOUNT "enable"
-storage_account_cors_enabled $AZ_STORAGE_ACCOUNT "wait"
-storage_account_table_exists $sat_name $AZ_STORAGE_ACCOUNT "create"
-storage_account_table_exists $sat_name $AZ_STORAGE_ACCOUNT "fail"
-sa_access_key=$(az storage account keys list -n $AZ_STORAGE_ACCOUNT -g $AZ_RESOURCE_GROUP | jq '.[0].value')
+# storage_account_exists $AZ_STORAGE_ACCOUNT $AZ_RESOURCE_GROUP "fail"
+# storage_account_cors_enabled $AZ_STORAGE_ACCOUNT "enable"
+# storage_account_cors_enabled $AZ_STORAGE_ACCOUNT "wait"
+# storage_account_table_exists $sat_name $AZ_STORAGE_ACCOUNT "create"
+# storage_account_table_exists $sat_name $AZ_STORAGE_ACCOUNT "fail"
+# sa_access_key=$(az storage account keys list -n $AZ_STORAGE_ACCOUNT -g $AZ_RESOURCE_GROUP | jq '.[0].value')
 
 # Manifest Repo Setup ------------------
 mkdir $manifests_dir
@@ -168,11 +168,11 @@ spk project create-variable-group $vg_name -r $ACR_NAME -d $hld_repo_url -u $SP_
 variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $vg_name "fail"
 
 # Add introspection variables to variable group
-variable_group_id=$(az pipelines variable-group list --org $AZDO_ORG_URL -p $AZDO_PROJECT | jq '.[] | select(.name=="fabrikam-vg") | .id')
-variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "ACCOUNT_KEY" $sa_access_key "secret"
-variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "ACCOUNT_NAME" $AZ_STORAGE_ACCOUNT
-variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "PARTITION_KEY" $sa_partition_key
-variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "TABLE_NAME" $sat_name
+# variable_group_id=$(az pipelines variable-group list --org $AZDO_ORG_URL -p $AZDO_PROJECT | jq '.[] | select(.name=="fabrikam-vg") | .id')
+# variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "ACCOUNT_KEY" $sa_access_key "secret"
+# variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "ACCOUNT_NAME" $AZ_STORAGE_ACCOUNT
+# variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "PARTITION_KEY" $sa_partition_key
+# variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "TABLE_NAME" $sat_name
 
 spk service create $FrontEnd -d $services_dir >> $TEST_WORKSPACE/log.txt
 directory_to_check="$services_full_dir/$FrontEnd"
