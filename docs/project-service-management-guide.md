@@ -80,7 +80,7 @@ This guide assumes a few things:
 
 ## Components
 
-#### Cloud Resource Diagram
+### Cloud Resource Diagram
 
 ![spk resources](/docs/images/spk-resource-diagram.png "Bedrock SPK Resources")
 
