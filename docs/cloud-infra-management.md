@@ -1,7 +1,7 @@
 # Cloud Infra Management
 
 Manage and update Bedrock infrastructure. For more information on the
-`spk infra` design, refer to the infrasrtucture design docs
+`spk infra` design, refer to the infrastructure design docs
 [here](./infra/README.md).
 
 Usage:
@@ -86,15 +86,13 @@ Options:
   -h, --help                                     Usage information
 ```
 
-#### scaffold sample
+#### scaffold example
 
 ```
 spk infra scaffold --name discovery-service --source https://github.com/microsoft/bedrock --version "v0.12.0" --template /cluster/environments/azure-simple
 ```
 
-Output:
-
-definition.yaml
+definition.yaml output:
 
 ```yaml
 name: discovery-service
@@ -139,11 +137,9 @@ variables:
 
 ### generate
 
-Generates a deployment folder based on scaffolded project with a definition.yaml
-
 Generates a deployment folder of an infrastructure scaffolded project containing
-a `definition.yaml` that contains a `source`, `template` and `version` to obtain
-and complete the terraform template files.
+a `definition.yaml` with a `source`, `template` and `version` to obtain and
+complete the Terraform template files.
 
 It will do the following:
 

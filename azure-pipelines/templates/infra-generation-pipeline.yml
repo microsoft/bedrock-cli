@@ -1,0 +1,143 @@
+trigger:
+  branches:
+    include:
+    - master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: 'spk-infra-hld-vg'
+
+steps:
+- checkout: self
+  persistCredentials: true
+  clean: true
+
+- bash: |
+    curl $BEDROCK_BUILD_SCRIPT > build.sh
+    chmod +x ./build.sh
+  displayName: Download Bedrock orchestration script
+  env:
+    BEDROCK_BUILD_SCRIPT: https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh
+
+- script: |
+    dpkg --configure -a
+    curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+    az extension add --name azure-devops
+    az --version
+    wget https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip -q
+    unzip -q terraform_$(tf_version)_linux_amd64.zip
+    sudo mv terraform /usr/local/bin
+    terraform -version
+  displayName: 'Install az-cli, az devops extension, and Terraform'
+
+- script: |
+    . build.sh --source-only
+    init
+    get_os_spk
+    get_spk_version
+    download_spk
+    echo 'SPK Version: '
+    spk --version
+    set -e
+    echo "GENERATING $PROJECT_DIRECTORY"
+    cd $PROJECT_DIRECTORY
+    spk infra generate -p $CLUSTER
+  env:
+    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+    ARM_TENANT_ID: $(ARM_TENANT_ID)
+    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+  displayName: 'SPK'
+
+- script: |
+    . build.sh --source-only
+    init
+    cd $PROJECT_DIRECTORY-generated/$CLUSTER
+    terraform init -backend-config=./backend.tfvars
+  displayName: 'Terraform init'
+
+- script: |
+    . build.sh --source-only
+    init
+    cd $PROJECT_DIRECTORY-generated/$CLUSTER
+    terraform plan -var-file=./spk.tfvars
+  env:
+    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+    ARM_TENANT_ID: $(ARM_TENANT_ID)
+    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+  displayName: 'Terraform plan'
+
+- script: |
+    # Exit on error
+    set -e
+
+    # Retrieve most recent commit hash from HLD repo
+    commit_hash=$(git rev-parse HEAD)
+    echo "Commit Hash: $commit_hash"
+
+    # Clone Generated Repo and copy generated components over
+    echo "Cloning Generated Repo: $GENERATED_REPO"
+    git clone $GENERATED_REPO
+    repo_url=$GENERATED_REPO
+
+    # Extract repo name from url
+    repo_url=$GENERATED_REPO
+    repo=${repo_url##*/}
+    repo_name=${repo%.*}
+
+    cd "$repo_name"
+    rsync -rv --exclude=.terraform $HOME/$PROJECT_DIRECTORY-generated .
+
+    # Set git identity
+    git config user.email "admin@azuredevops.com"
+    git config user.name "Automated Account"
+
+    # Following variables have to be set for TeamCity
+    export GIT_AUTHOR_NAME="Automated Account"
+    export GIT_COMMITTER_NAME="Automated Account"
+    export EMAIL="admin@azuredevops.com"
+
+    # Add generated files to repository
+    git status
+    git add .
+    git commit -m "Adding generated components for $PROJECT_DIRECTORY/$CLUSTER"
+
+    # Create a new branch
+    PR_BRANCH_NAME=pr_$commit_hash
+    git checkout -b $PR_BRANCH_NAME
+
+    # Git Push
+    repo_url=$GENERATED_REPO
+    repo_url="${repo_url#http://}"
+    repo_url="${repo_url#https://}"
+    echo "$repo_url"
+    echo "GIT PUSH: https://<ACCESS_TOKEN_SECRET>@$repo_url"
+    git push "https://$ACCESS_TOKEN_SECRET@$repo_url" $PR_BRANCH_NAME
+
+    # Create PR
+    # If using GitHub repos:
+    echo "CREATE PULL REQUEST"
+    if [[ $GENERATED_REPO == *"github"* ]]; then
+      echo "Installing Hub"
+      sudo add-apt-repository ppa:cpick/hub
+      sudo apt-get update
+      sudo apt-get install hub
+      export GITHUB_TOKEN=$ACCESS_TOKEN_SECRET
+      hub pull-request -m "Adding Generated Components for $PROJECT_DIRECTORY/$CLUSTER"
+    elif [[ $GENERATED_REPO == *"azure"* ]] || [[ $GENERATED_REPO == *"visualstudio"* ]]; then
+    # If using AzDo repos:
+    # You will need to specify variables $AZDO_ORG_NAME and $AZDO_PROJECT_NAME
+      export AZURE_DEVOPS_EXT_PAT=$ACCESS_TOKEN_SECRET
+      az devops configure --defaults organization=$AZDO_ORG_NAME project=$AZDO_PROJECT_NAME
+      echo "Making pull request for $PR_BRANCH_NAME against master"
+      az repos pr create --description "Automated PR for $PR_BRANCH_NAME against master"
+    else
+      echo "Unable to create pull request."
+      exit 1
+    fi
+  env:
+    ACCESS_TOKEN_SECRET: $(ACCESS_TOKEN_SECRET)
+  displayName: 'Commit and Push to Generated Repository'
