@@ -4,8 +4,9 @@ import mockFs from "mock-fs";
 import os from "os";
 import path from "path";
 import uuid from "uuid/v4";
-import { Bedrock, readYaml, write } from "../../config";
+import { readYaml, write } from "../../config";
 import { IAzureDevOpsOpts } from "../../lib/git";
+import * as pipelineVariableGroup from "../../lib/pipelines/variableGroup";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
@@ -207,14 +208,25 @@ describe("create", () => {
     expect(invalidDataError).toBeDefined();
   });
 
-  test("Should pass with empty variable group arguments", async () => {
+  test("Should pass with variable group arguments", async () => {
+    // mock the function that calls the Azdo project's Task API
+    // because unit test is unable to reach this API.
+    // all the validation of parameters passed into create
+    // function succeeds
+    const doAddVariableGroupMock = jest.spyOn(
+      pipelineVariableGroup,
+      "doAddVariableGroup"
+    );
+    doAddVariableGroupMock.mockImplementation(() => {
+      return Promise.resolve({});
+    });
+
     const accessOpts: IAzureDevOpsOpts = {
       orgName,
       personalAccessToken,
       project
     };
 
-    let invalidGroupError: Error | undefined;
     try {
       logger.info("calling create");
       await create(
@@ -227,9 +239,9 @@ describe("create", () => {
         accessOpts
       );
     } catch (err) {
-      invalidGroupError = err;
+      // should not reach here
+      expect(true).toBe(false);
     }
-    expect(invalidGroupError).toBeDefined();
   });
 });
 

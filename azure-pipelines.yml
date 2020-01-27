@@ -43,6 +43,7 @@ steps:
   - script: |
       yarn test
     displayName: "YARN TEST"
+    timeoutInMinutes: 3
 
   - task: PublishCodeCoverageResults@1
     inputs:
