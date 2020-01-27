@@ -17,6 +17,7 @@ TEST_WORKSPACE="$(pwd)/spk-env"
 [ ! -z "$SP_APP_ID" ] || { echo "Provide SP_APP_ID"; exit 1;}
 [ ! -z "$SP_PASS" ] || { echo "Provide SP_PASS"; exit 1;}
 [ ! -z "$SP_TENANT" ] || { echo "Provide SP_TENANT"; exit 1;}
+[ ! -z "$AZ_STORAGE_ACCOUNT" ] || { echo "Provide AZ_STORAGE_ACCOUNT"; exit 1;}
 AZDO_ORG_URL="${AZDO_ORG_URL:-"https://dev.azure.com/$AZDO_ORG"}"
 
 echo "TEST_WORKSPACE: $TEST_WORKSPACE"
@@ -26,10 +27,10 @@ echo "AZDO_ORG: $AZDO_ORG"
 echo "AZDO_ORG_URL: $AZDO_ORG_URL"
 echo "AZ_RESOURCE_GROUP: $AZ_RESOURCE_GROUP"
 echo "ACR_NAME: $ACR_NAME"
+echo "AZ_STORAGE_ACCOUNT: $AZ_STORAGE_ACCOUNT"
 
 vg_name=fabrikam-vg
-sa_name=fabrikamsatst
-sat_name=fabrikamdeployments
+sat_name=fabrikamtestdeployments
 sa_location=westus
 kv_name=fabrikamkv
 kv_location=westus
@@ -40,9 +41,10 @@ echo "SPK Version: $(spk --version)"
 echo "Running from $(pwd)"
 
 # spk deployment onboard validation test
-storage_account_exists $sa_name $AZ_RESOURCE_GROUP "delete"
-spk deployment onboard -s $sa_name -t $sat_name -l $sa_location -r $AZ_RESOURCE_GROUP --subscription-id $AZ_SUBSCRIPTION_ID --service-principal-id $SP_APP_ID --service-principal-password $SP_PASS --tenant-id $SP_TENANT
-storage_account_exists $sa_name $AZ_RESOURCE_GROUP "fail"
-storage_account_table_exists $sat_name $sa_name "fail"
+storage_account_exists $AZ_STORAGE_ACCOUNT $AZ_RESOURCE_GROUP "fail"
+storage_account_table_exists $sat_name $AZ_STORAGE_ACCOUNT "delete"
+spk deployment onboard -s $AZ_STORAGE_ACCOUNT -t $sat_name -l $sa_location -r $AZ_RESOURCE_GROUP --subscription-id $AZ_SUBSCRIPTION_ID --service-principal-id $SP_APP_ID --service-principal-password $SP_PASS --tenant-id $SP_TENANT
+storage_account_table_exists $sat_name $AZ_STORAGE_ACCOUNT "fail"
+storage_account_table_exists $sat_name $AZ_STORAGE_ACCOUNT "delete"
 
 echo "Successfully reached the end of the introspection validations script."
