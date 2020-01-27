@@ -65,6 +65,11 @@ Commands:
 
 ## Getting Started
 
+To utilize `spk` as your bedrock project and service management tool, follow the
+[Managing a bedrock project with spk guide](/docs/project-service-management-guide.md).
+
+Otherwise, generally:
+
 To start using `spk` you'll need to:
 
 1. Configure `spk` in `spk-config.yaml`. Refer to [this](./spk-config.yaml)

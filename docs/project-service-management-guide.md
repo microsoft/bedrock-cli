@@ -232,6 +232,9 @@ application repositories
   spk project install-lifecycle-pipeline
   ```
 
+**NOTE** `spk project` command documentation can be found
+[here](/docs/project-management.md).
+
 ##### Adding a Service to a Application Repository
 
 - [Clone the repository.](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-new-repo?view=azure-devops#clone-the-repo-to-your-computer)
@@ -250,6 +253,9 @@ application repositories
   ```
   spk service install-build-pipeline $SERVICE_NAME
   ```
+
+**NOTE** `spk service` command documentation can be found
+[here](/docs/service-management.md).
 
 ##### Creating a Service Revision
 
@@ -270,6 +276,9 @@ application repositories
   ```
   spk service create-revision
   ```
+
+**NOTE** `spk service` command documentation can be found
+[here](/docs/service-management.md).
 
 ### Varible Groups
 
