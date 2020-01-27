@@ -1,5 +1,20 @@
 # RELEASE NOTES
 
+## [0.4.0] - 2020-01-25
+
+### Added
+
+- Ability to disable ingress route creation
+- Ability to specify ports for traefik ingress routes
+- Generation of traefik strip-prefix middleware
+- Ability to specify per-service middleware injection for Traefik2 IngressRoutes
+- Extend bedrock.yaml services to incorporate display name
+
+### Changed
+
+- Syntax for some operations. Please refer to documentation.
+- Various bug fixes
+
 ## [0.3.0] - 2019-11-24
 
 ### Added
@@ -12,7 +27,7 @@
 
 ### Changed
 
-- Syntax for from operations. Please refer to documentation.
+- Syntax for some operations. Please refer to documentation.
 
 ## [0.2.0] - 2019-10-29
 
