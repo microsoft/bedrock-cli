@@ -1,8 +1,8 @@
 import commander from "commander";
 import fs from "fs";
 import path from "path";
-import shelljs from "shelljs";
 import { Bedrock, write } from "../../config";
+import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
   generateGitIgnoreFile,
   generateHldLifecyclePipelineYaml
@@ -10,53 +10,45 @@ import {
 import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
 import { IBedrockFile, IHelmConfig, IMaintainersFile } from "../../types";
+import decorator from "./init.decorator.json";
 
-/**
- * Adds the init command to the commander command object
- *
- * @param command Commander command object to decorate
- */
-export const initCommandDecorator = (command: commander.Command): void => {
-  command
-    .command("init")
-    .alias("i")
-    .description(
-      "Initialize your spk repository. Will add starter bedrock.yaml, maintainers.yaml, hld-lifecycle.yaml, and .gitignore files to your project."
-    )
-    .option(
-      "-r, --default-ring <branch-name>",
-      "Specify a default ring; this corresponds to a default branch which you wish to push initial revisions to",
-      "master"
-    )
-    .action(async opts => {
-      const { defaultRing } = opts;
-      const projectPath = process.cwd();
+// values that we need to pull out from command operator
+interface ICommandOptions {
+  defaultRing: string;
+}
 
-      try {
-        let bedrockFile: IBedrockFile | undefined;
-        try {
-          bedrockFile = Bedrock();
-        } catch (err) {
-          logger.info(err);
-        }
+export const execute = async (
+  opts: ICommandOptions,
+  exitFn: (status: number) => Promise<void>
+) => {
+  // defaultRing shall always have value (not undefined nor null)
+  // because it has default value as "master"
+  const defaultRing = opts.defaultRing;
+  const projectPath = process.cwd();
 
-        // Type check all parsed command line args here.
-        if (typeof defaultRing !== "string") {
-          throw new Error(
-            `--default-ring must be of type 'string', '${defaultRing}' of type '${typeof defaultRing}' given`
-          );
-        }
+  try {
+    const _ = Bedrock(); // TOFIX: Is this to check if Bedrock config exist?
+  } catch (err) {
+    logger.info(err);
+  }
 
-        await initialize(projectPath, {
-          defaultRing
-        });
-      } catch (err) {
-        logger.error(
-          `Error occurred while initializing project ${projectPath}`
-        );
-        logger.error(err);
-      }
+  try {
+    await initialize(projectPath, { defaultRing });
+    await exitFn(0);
+  } catch (err) {
+    logger.error(`Error occurred while initializing project ${projectPath}`);
+    logger.error(err);
+    await exitFn(1);
+  }
+};
+
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+    await execute(opts, async (status: number) => {
+      await exitCmd(logger);
+      process.exit(status);
     });
+  });
 };
 
 /**
@@ -70,45 +62,19 @@ export const initCommandDecorator = (command: commander.Command): void => {
  */
 export const initialize = async (
   rootProjectPath: string,
-  opts?: {
-    defaultRing?: string;
-  }
+  opts?: ICommandOptions
 ) => {
-  const { defaultRing } = opts || {};
   const absProjectRoot = path.resolve(rootProjectPath);
   logger.info(`Initializing project Bedrock project ${absProjectRoot}`);
 
+  const defaultRing = opts ? [opts.defaultRing] : [];
   // Initialize all paths
-  await generateBedrockFile(
-    absProjectRoot,
-    [],
-    defaultRing ? [defaultRing] : []
-  );
-  await generateMaintainersFile(absProjectRoot, []);
+  await generateBedrockFile(absProjectRoot, [], defaultRing);
+  await generateMaintainersFile(absProjectRoot, []); // TOFIX: packagePaths is hardcoded to []
   await generateHldLifecyclePipelineYaml(absProjectRoot);
   generateGitIgnoreFile(absProjectRoot, "spk.log");
 
   logger.info(`Project initialization complete!`);
-};
-
-/**
- * Helper function for listing files/dirs in a path
- *
- * @param dir path-like string; what you would pass to ls in bash
- */
-const ls = async (dir: string): Promise<string[]> => {
-  const lsRet = shelljs.ls(dir);
-  if (lsRet.code !== 0) {
-    logger.error(lsRet.stderr);
-    throw new Error(
-      `Error listing files in ${dir}; Ensure this directory exists or specify a different one with the --packages-dir option.`
-    );
-  }
-
-  // Returned object includes piping functions as well; strings represent the actual output of the function
-  const filesAndDirectories = lsRet.filter(out => typeof out === "string");
-
-  return filesAndDirectories;
 };
 
 /**
@@ -199,8 +165,19 @@ const generateBedrockFile = async (
   const absPackagePaths = packagePaths.map(p => path.resolve(p));
   logger.info(`Generating bedrock.yaml file in ${absProjectPath}`);
 
+  const base: IBedrockFile = {
+    rings: defaultRings.reduce<{ [ring: string]: { isDefault: boolean } }>(
+      (defaults, ring) => {
+        defaults[ring] = { isDefault: true };
+        return defaults;
+      },
+      {}
+    ),
+    services: {}
+  };
+
   // Populate bedrock file
-  const bedrockFile: IBedrockFile = absPackagePaths.reduce<IBedrockFile>(
+  const bedrockFile = absPackagePaths.reduce<IBedrockFile>(
     (file, absPackagePath) => {
       const relPathToPackageFromRoot = path.relative(
         absProjectPath,
@@ -221,16 +198,7 @@ const generateBedrockFile = async (
       };
       return file;
     },
-    {
-      rings: defaultRings.reduce<{ [ring: string]: { isDefault: boolean } }>(
-        (defaults, ring) => {
-          defaults[ring] = { isDefault: true };
-          return defaults;
-        },
-        {}
-      ),
-      services: {}
-    }
+    base
   );
 
   // Check if a bedrock.yaml already exists; skip write if present

@@ -1,6 +1,6 @@
 import { Command } from "../command";
 import { commandDecorator as createVariableGroupCommandDecorator } from "./create-variable-group";
-import { initCommandDecorator } from "./init";
+import { commandDecorator as initCommandDecorator } from "./init";
 import { deployLifecyclePipelineCommandDecorator } from "./pipeline";
 
 export const projectCommand = Command(
