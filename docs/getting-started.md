@@ -183,6 +183,9 @@ repository.
   spk hld install-manifest-pipeline
   ```
 
+**NOTE** `spk hld` command documentation can be found
+[here](/docs/hld-management.md).
+
 #### Application Repositories
 
 These repositories hold the application code and its associated Dockerfiles.
