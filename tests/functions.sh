@@ -222,11 +222,11 @@ function storage_account_table_exists () {
             done
         fi
      else
-        echo "The table $sa_name does not exist"
-        if [ "$action" == "fail" ]; then
+        echo "Check if $t exists"
+        if [ "$action" = "fail" ]; then
             exit 1
         fi
-        if [ "$action" == "create" ]; then
+        if [ "$action" = "create" ]; then
             echo "Create table $t"
             az storage table create -n $t --account-name $sa_name
             total_wait_seconds=20
