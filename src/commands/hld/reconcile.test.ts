@@ -174,7 +174,7 @@ describe("addChartToRing", () => {
     };
 
     /* tslint:disable-next-line: no-string-literal */
-    const addHelmChartCommand = `fab add chart --source ${git} --path ${path} --branch ${branch}`;
+    const addHelmChartCommand = `fab add chart --source ${git} --path ${path} --branch ${branch} --type helm`;
 
     const expectedInvocation = `cd ${ringPath} && ${addHelmChartCommand}`;
 
@@ -204,7 +204,7 @@ describe("addChartToRing", () => {
     };
 
     /* tslint:disable-next-line: no-string-literal */
-    const addHelmChartCommand = `fab add chart --source ${git} --path ${path} --version ${sha}`;
+    const addHelmChartCommand = `fab add chart --source ${git} --path ${path} --version ${sha} --type helm`;
 
     const expectedInvocation = `cd ${ringPath} && ${addHelmChartCommand}`;
 
@@ -232,7 +232,7 @@ describe("addChartToRing", () => {
     };
 
     /* tslint:disable-next-line: no-string-literal */
-    const addHelmChartCommand = `fab add chart --source ${repository} --path ${chart}`;
+    const addHelmChartCommand = `fab add chart --source ${repository} --path ${chart} --type helm`;
 
     const expectedInvocation = `cd ${ringPath} && ${addHelmChartCommand}`;
 

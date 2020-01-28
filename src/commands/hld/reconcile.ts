@@ -363,9 +363,9 @@ export const addChartToRing = async (
   if ("git" in chart) {
     const chartVersioning =
       "branch" in chart ? `--branch ${chart.branch}` : `--version ${chart.sha}`;
-    addHelmChartCommand = `fab add chart --source ${chart.git} --path ${chart.path} ${chartVersioning}`;
+    addHelmChartCommand = `fab add chart --source ${chart.git} --path ${chart.path} ${chartVersioning} --type helm`;
   } else if ("repository" in chart) {
-    addHelmChartCommand = `fab add chart --source ${chart.repository} --path ${chart.chart}`;
+    addHelmChartCommand = `fab add chart --source ${chart.repository} --path ${chart.chart} --type helm`;
   }
 
   await execCmd(`cd ${ringPathInHld} && ${addHelmChartCommand}`);
