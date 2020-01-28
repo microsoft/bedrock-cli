@@ -45,8 +45,7 @@ export const execute = async (
 export const commandDecorator = (command: commander.Command): void => {
   buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
     await execute(opts, async (status: number) => {
-      await exitCmd(logger);
-      process.exit(status);
+      await exitCmd(logger, process.exit, status);
     });
   });
 };
