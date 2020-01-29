@@ -1,5 +1,14 @@
 # RELEASE NOTES
 
+## [0.4.1] - 2020-01-29
+
+### Changed
+
+- Resolved [bug](https://github.com/microsoft/bedrock/issues/916) around
+  `spk hld reconcile`
+- Resolved [bug](https://github.com/microsoft/bedrock/issues/905) around unit
+  test failure
+
 ## [0.4.0] - 2020-01-25
 
 ### Added
