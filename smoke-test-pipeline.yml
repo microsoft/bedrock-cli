@@ -37,10 +37,18 @@ stages:
       failOnStderr: true
     - bash: |
         echo "FUNC_SCRIPT: $FUNC_SCRIPT"
-        curl $FUNC_SCRIPT >| functions.sh
+        curl --fail $FUNC_SCRIPT > function.sh 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo "Error finding FUNC_SCRIPT: $FUNC_SCRIPT"
+            exit 1
+        fi
         chmod +x ./functions.sh
         echo "TEST_SCRIPT: $TEST_SCRIPT"
-        curl $TEST_SCRIPT >| validations.sh
+        curl --fail $TEST_SCRIPT > validations.sh 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo "Error finding TEST_SCRIPT: $TEST_SCRIPT"
+            exit 1
+        fi
         chmod +x ./validations.sh
       displayName: "Download integration test scripts"
       env:
@@ -105,10 +113,25 @@ stages:
       failOnStderr: true
     - bash: |
         echo "FUNC_SCRIPT: $FUNC_SCRIPT"
-        curl $FUNC_SCRIPT >| functions.sh
+        curl $FUNC_SCRIPT > functions.sh 2>/dev/null 
+        if [ $? -ne 0 ]; then
+            echo "Error finding FUNC_SCRIPT: $FUNC_SCRIPT"
+            exit 1
+        fi
         chmod +x ./functions.sh
         echo "TEST_SCRIPT2: $TEST_SCRIPT2"
-        curl $TEST_SCRIPT2 >| infra-validations.sh
+        curl $TEST_SCRIPT2 > infra-validations.sh 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo "Error finding TEST_SCRIPT2: $TEST_SCRIPT2"
+            exit 1
+        fi
+        chmod +x ./infra-validations.sh
+        echo "INFRA_YML: $INFRA_YML"
+        curl $INFRA_YML > infra-generation-pipeline.yml 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo "Error finding INFRA_YML: $INFRA_YML"
+            exit 1
+        fi
         chmod +x ./infra-validations.sh
       displayName: "Download integration test scripts"
       env:
