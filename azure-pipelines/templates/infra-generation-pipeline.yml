@@ -7,7 +7,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-- group: 'spk-infra-hld-vg'
+  - group: 'spk-infra-hld-vg'
 
 steps:
 - checkout: self
@@ -78,14 +78,9 @@ steps:
     commit_hash=$(git rev-parse HEAD)
     echo "Commit Hash: $commit_hash"
 
-    # Git Clone Config
-    repo_url=$GENERATED_REPO
-    repo_url="${repo_url#http://}"
-    repo_url="${repo_url#https://}"
-
     # Clone Generated Repo and copy generated components over
     echo "Cloning Generated Repo: $GENERATED_REPO"
-    git clone "https://$ACCESS_TOKEN_SECRET@$repo_url" 
+    git clone $GENERATED_REPO
     repo_url=$GENERATED_REPO
 
     # Extract repo name from url
@@ -120,14 +115,12 @@ steps:
     repo_url="${repo_url#https://}"
     echo "$repo_url"
     echo "GIT PUSH: https://<ACCESS_TOKEN_SECRET>@$repo_url"
-    echo $PR_BRANCH_NAME
     git push "https://$ACCESS_TOKEN_SECRET@$repo_url" $PR_BRANCH_NAME
 
     # Create PR
     # If using GitHub repos:
     echo "CREATE PULL REQUEST"
     if [[ $GENERATED_REPO == *"github"* ]]; then
-      echo "GitHub repo detected"
       echo "Installing Hub"
       sudo add-apt-repository ppa:cpick/hub
       sudo apt-get update
@@ -137,7 +130,6 @@ steps:
     elif [[ $GENERATED_REPO == *"azure"* ]] || [[ $GENERATED_REPO == *"visualstudio"* ]]; then
     # If using AzDo repos:
     # You will need to specify variables $AZDO_ORG_NAME and $AZDO_PROJECT_NAME
-      echo "Azure repo detected"
       export AZURE_DEVOPS_EXT_PAT=$ACCESS_TOKEN_SECRET
       az devops configure --defaults organization=$AZDO_ORG_NAME project=$AZDO_PROJECT_NAME
       echo "Making pull request for $PR_BRANCH_NAME against master"
