@@ -1,5 +1,5 @@
 import { Command } from "../command";
-import { generateCommandDecorator } from "./generate";
+import { commandDecorator as generateCommandDecorator } from "./generate";
 import { scaffoldCommandDecorator } from "./scaffold";
 import { validateCommandDecorator } from "./validate";
 

@@ -1,5 +1,6 @@
 import path from "path";
 import { loadConfigurationFromLocalEnv, readYaml } from "../../config";
+import { removeDir } from "../../lib/ioUtil";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
@@ -7,7 +8,10 @@ import {
 } from "../../logger";
 import { IInfraConfigYaml } from "../../types";
 import {
+  DefinitionYAMLExistence,
   dirIteration,
+  execute,
+  fetchValues,
   generateConfig,
   generateTfvars,
   validateDefinition,
@@ -22,6 +26,113 @@ beforeAll(() => {
 
 afterAll(() => {
   disableVerboseLogging();
+  removeDir("src/commands/infra/mocks/discovery-service-generated");
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.restoreAllMocks();
+});
+
+describe("test fetchValues function", () => {
+  it("with project value", () => {
+    const result = fetchValues({
+      project: "test"
+    });
+    expect(result).toBe("test");
+  });
+  it("without project value", () => {
+    const result = fetchValues({
+      project: undefined
+    });
+    expect(result).toBe(process.cwd());
+  });
+});
+
+describe("fetch execute function", () => {
+  it("negative time, expected exit code to be 1", async () => {
+    const exitFn = jest.fn();
+    await execute(
+      {
+        project: "test"
+      },
+      exitFn
+    );
+
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
+  it("with project value", async () => {
+    const validateDefinitionMock = jest.spyOn(generate, "validateDefinition");
+    validateDefinitionMock.mockImplementation(
+      () => DefinitionYAMLExistence.BOTH_EXIST
+    );
+
+    const validateRemoteSourceMock = jest.spyOn(
+      generate,
+      "validateRemoteSource"
+    );
+    validateRemoteSourceMock.mockImplementation(() => Promise.resolve());
+
+    const validateTemplateSourcesMock = jest.spyOn(
+      generate,
+      "validateTemplateSources"
+    );
+    validateTemplateSourcesMock.mockImplementation(() => {
+      return {};
+    });
+
+    const generateConfigMock = jest.spyOn(generate, "generateConfig");
+    generateConfigMock.mockImplementation(async () => Promise.resolve());
+
+    const exitFn = jest.fn();
+    await execute(
+      {
+        project: "test"
+      },
+      exitFn
+    );
+
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[0]]);
+    jest.clearAllMocks();
+  });
+});
+
+describe("test generateTfvars function", () => {
+  it("undefined as data", () => {
+    expect(generateTfvars(undefined)).toEqual([]);
+  });
+  it("one value as data", () => {
+    expect(
+      generateTfvars({
+        hello: "world"
+      })
+    ).toEqual(['hello = "world"']);
+  });
+  it("one value with quote as data", () => {
+    expect(
+      generateTfvars({
+        hello: '"world'
+      })
+    ).toEqual(['hello = "\\"world"']);
+  });
+  it("one key with quote as data", () => {
+    expect(
+      generateTfvars({
+        'h"ello': "world"
+      })
+    ).toEqual(['h"ello = "world"']);
+  });
+  it("multiple values as data", () => {
+    expect(
+      generateTfvars({
+        key1: "value1",
+        key2: "value2",
+        key3: "value3"
+      })
+    ).toEqual(['key1 = "value1"', 'key2 = "value2"', 'key3 = "value3"']);
+  });
 });
 
 describe("test dirIteration", () => {
@@ -31,188 +142,203 @@ describe("test dirIteration", () => {
   });
   it("parentObject is undefined", () => {
     const leafObject = {
-      "custerName": "cluster1"
+      custerName: "cluster1"
     };
     const result = dirIteration(undefined, leafObject);
     expect(result).toEqual(leafObject);
   });
   it("leafObject is undefined", () => {
     const parentObject = {
-      "custerName": "cluster1"
+      custerName: "cluster1"
     };
     const result = dirIteration(parentObject, undefined);
     expect(result).toEqual(parentObject);
   });
   it("one variable test", () => {
     const parentObject = {
-      "custerName": "parent"
+      custerName: "parent"
     };
     const leafObject = {
-      "custerName": "left"
+      custerName: "leaf"
     };
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual(leafObject);
   });
   it("one variable test, parentObject without the variable", () => {
-    const parentObject = {
-    };
+    const parentObject = {};
     const leafObject = {
-      "custerName": "leaf"
+      custerName: "leaf"
     };
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual(leafObject);
   });
   it("one variable test, leafObject without the variable", () => {
     const parentObject = {
-      "custerName": "leaf"
+      custerName: "leaf"
     };
-    const leafObject = {
-    };
+    const leafObject = {};
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual(parentObject);
   });
   it("multiple variables test", () => {
     const parentObject = {
-      "custerName": "parent",
-      "variable1": "parent1",
-      "variable2": "parent2"
+      custerName: "parent",
+      variable1: "parent1",
+      variable2: "parent2"
     };
     const leafObject = {
-      "custerName": "leaf",
-      "variable1": "leaf1",
-      "variable2": "leaf2"
+      custerName: "leaf",
+      variable1: "leaf1",
+      variable2: "leaf2"
     };
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual(leafObject);
   });
   it("multiple variables test, leafObject does not values", () => {
     const parentObject = {
-      "custerName": "parent",
-      "variable1": "parent1",
-      "variable2": "parent2"
+      custerName: "parent",
+      variable1: "parent1",
+      variable2: "parent2"
     };
-    const leafObject = {
-    };
+    const leafObject = {};
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual(parentObject);
   });
   it("multiple variables test, parentObject does not values", () => {
-    const parentObject = {
-    };
+    const parentObject = {};
     const leafObject = {
-      "custerName": "leaf",
-      "variable1": "leaf1",
-      "variable2": "leaf2"
+      custerName: "leaf",
+      variable1: "leaf1",
+      variable2: "leaf2"
     };
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual(leafObject);
   });
   it("multiple variables test, parentObject has more values", () => {
     const parentObject = {
-      "custerName": "parent",
-      "variable1": "parent1",
-      "variable2": "parent2",
-      "xextra": "xextra"
+      custerName: "parent",
+      variable1: "parent1",
+      variable2: "parent2",
+      xextra: "xextra"
     };
     const leafObject = {
-      "custerName": "leaf",
-      "variable1": "leaf1",
-      "variable2": "leaf2"
+      custerName: "leaf",
+      variable1: "leaf1",
+      variable2: "leaf2"
     };
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual({
-      "custerName": "leaf",
-      "variable1": "leaf1",
-      "variable2": "leaf2",
-      "xextra": "xextra"
+      custerName: "leaf",
+      variable1: "leaf1",
+      variable2: "leaf2",
+      xextra: "xextra"
     });
   });
   it("multiple variables test, leafObject has more values", () => {
     const parentObject = {
-      "custerName": "parent",
-      "variable1": "parent1",
-      "variable2": "parent2"
+      custerName: "parent",
+      variable1: "parent1",
+      variable2: "parent2"
     };
     const leafObject = {
-      "custerName": "leaf",
-      "variable1": "leaf1",
-      "variable2": "leaf2",
-      "xextra": "xextra"
+      custerName: "leaf",
+      variable1: "leaf1",
+      variable2: "leaf2",
+      xextra: "xextra"
     };
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual(leafObject);
   });
-})
+});
 
 describe("Validate sources in definition.yaml files", () => {
-  test("Validating that a provided project folder contains definition.yaml files with valid source, version, and template", async () => {
-    let mockParentPath = "src/commands/infra/mocks/discovery-service";
-    let mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
-    const expectedArrayWest = [
-      "A",
-      "https://github.com/yradsmikham/spk-source",
-      "cluster/environments/azure-single-keyvault",
-      "v0.0.2"
-    ];
-    let sourceConfiguration = await validateDefinition(
+  test("definition.yaml of leaf override parent's variable", async () => {
+    const mockParentPath = "src/commands/infra/mocks/discovery-service";
+    const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
+    const expectedSourceWest = {
+      source: "https://github.com/yradsmikham/spk-source",
+      template: "cluster/environments/azure-single-keyvault",
+      version: "v0.0.2"
+    };
+    const sourceConfiguration = validateDefinition(
       mockParentPath,
       mockProjectPath
     );
-    let returnArray = await validateTemplateSources(
+    expect(sourceConfiguration).toEqual(DefinitionYAMLExistence.BOTH_EXIST);
+    const sourceData = validateTemplateSources(
       sourceConfiguration,
       path.join(mockParentPath, `definition.yaml`),
       path.join(mockProjectPath, `definition.yaml`)
     );
-    expect(returnArray).toEqual(expectedArrayWest);
-    await generateConfig(mockParentPath, mockProjectPath, returnArray);
-
-    mockProjectPath = "src/commands/infra/mocks/discovery-service/east";
-    const expectedArrayEast = [
-      "B",
-      "https://github.com/yradsmikham/spk-source",
-      "cluster/environments/azure-single-keyvault",
-      "v0.0.1"
-    ];
-    sourceConfiguration = await validateDefinition(
+    expect(sourceData).toEqual(expectedSourceWest);
+    await generateConfig(
+      mockParentPath,
+      mockProjectPath,
+      sourceConfiguration,
+      sourceData
+    );
+  });
+  test("without parent's definition.yaml", async () => {
+    const mockParentPath = "src/commands/infra/mocks/discovery-service";
+    const mockProjectPath = "src/commands/infra/mocks/discovery-service/east";
+    const expectedSourceEast = {
+      source: "https://github.com/yradsmikham/spk-source",
+      template: "cluster/environments/azure-single-keyvault",
+      version: "v0.0.1"
+    };
+    const sourceConfiguration = validateDefinition(
       mockParentPath,
       mockProjectPath
     );
-    returnArray = await validateTemplateSources(
+    expect(sourceConfiguration).toEqual(DefinitionYAMLExistence.PARENT_ONLY);
+    const sourceData = validateTemplateSources(
       sourceConfiguration,
       path.join(mockParentPath, `definition.yaml`),
       path.join(mockProjectPath, `definition.yaml`)
     );
-
-    expect(returnArray).toEqual(expectedArrayEast);
-    await generateConfig(mockParentPath, mockProjectPath, returnArray);
-
-    mockProjectPath = "src/commands/infra/mocks/discovery-service/central";
-    const expectedArrayCentral = [
-      "A",
-      "https://github.com/yradsmikham/spk-source",
-      "cluster/environments/azure-single-keyvault",
-      "v0.0.1"
-    ];
-    sourceConfiguration = await validateDefinition(
+    expect(sourceData).toEqual(expectedSourceEast);
+    await generateConfig(
+      mockParentPath,
+      mockProjectPath,
+      sourceConfiguration,
+      sourceData
+    );
+  });
+  test("git source, template and version are missing in project path", async () => {
+    const mockParentPath = "src/commands/infra/mocks/discovery-service";
+    const mockProjectPath =
+      "src/commands/infra/mocks/discovery-service/central";
+    const expectedSourceCentral = {
+      source: "https://github.com/yradsmikham/spk-source",
+      template: "cluster/environments/azure-single-keyvault",
+      version: "v0.0.1"
+    };
+    const sourceConfiguration = validateDefinition(
       mockParentPath,
       mockProjectPath
     );
-    returnArray = await validateTemplateSources(
+    expect(sourceConfiguration).toEqual(DefinitionYAMLExistence.BOTH_EXIST);
+    const sourceData = validateTemplateSources(
       sourceConfiguration,
       path.join(mockParentPath, `definition.yaml`),
       path.join(mockProjectPath, `definition.yaml`)
     );
-
-    expect(returnArray).toEqual(expectedArrayCentral);
-    await generateConfig(mockParentPath, mockProjectPath, returnArray);
-
-    mockParentPath = "src/commands/infra/mocks";
-    sourceConfiguration = await validateDefinition(
+    expect(sourceData).toEqual(expectedSourceCentral);
+    await generateConfig(
       mockParentPath,
-      mockParentPath
+      mockProjectPath,
+      sourceConfiguration,
+      sourceData
     );
-
-    expect(sourceConfiguration).toEqual("");
+  });
+  test("without parent's and project's definition.yaml", async () => {
+    const mockParentPath = "src/commands/infra/mocks";
+    try {
+      validateDefinition(mockParentPath, mockParentPath);
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeDefined();
+    }
   });
 });
 
@@ -220,17 +346,21 @@ describe("Validate remote git source", () => {
   test("Validating that a git source is cloned to .spk/templates", async () => {
     const mockParentPath = "src/commands/infra/mocks/discovery-service";
     const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
-    const sourceConfiguration = await validateDefinition(
+    const sourceConfiguration = validateDefinition(
       mockParentPath,
       mockProjectPath
     );
-    const sourceArray = await validateTemplateSources(
+    const source = validateTemplateSources(
       sourceConfiguration,
       path.join(mockParentPath, `definition.yaml`),
       path.join(mockProjectPath, `definition.yaml`)
     );
-    const sourceBoolean = await validateRemoteSource(sourceArray);
-    expect(sourceBoolean).toBe(false);
+    try {
+      await validateRemoteSource(source);
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeDefined();
+    }
   });
 });
 
@@ -320,7 +450,7 @@ describe("Validate replacement of variables between parent and leaf definitions"
       parentInfraConfig.variables,
       leafInfraConfig.variables
     );
-    const combinedSpkTfvarsObject = await generateTfvars(finalDefinition);
+    const combinedSpkTfvarsObject = generateTfvars(finalDefinition);
     expect(combinedSpkTfvarsObject).toStrictEqual(finalArray);
   });
 });
@@ -332,7 +462,7 @@ describe("Validate spk.tfvars file", () => {
       path.join(mockProjectPath, `definition.yaml`)
     );
     const infraConfig = loadConfigurationFromLocalEnv(data);
-    const spkTfvarsObject = await generateTfvars(infraConfig.variables);
+    const spkTfvarsObject = generateTfvars(infraConfig.variables);
     expect(spkTfvarsObject).toContain('gitops_poll_interval = "5m"');
   });
 });
@@ -344,7 +474,7 @@ describe("Validate backend.tfvars file", () => {
       path.join(mockProjectPath, `definition.yaml`)
     );
     const infraConfig = loadConfigurationFromLocalEnv(data);
-    const backendTfvarsObject = await generateTfvars(infraConfig.backend);
+    const backendTfvarsObject = generateTfvars(infraConfig.backend);
     expect(backendTfvarsObject).toContain(
       'storage_account_name = "storage-account-name"'
     );

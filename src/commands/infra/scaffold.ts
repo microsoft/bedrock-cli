@@ -6,7 +6,7 @@ import path from "path";
 import { Config } from "../../config";
 import { logger } from "../../logger";
 import { IConfigYaml } from "../../types";
-import { validateRemoteSource } from "./generate";
+import { ISourceInformation, validateRemoteSource } from "./generate";
 import * as infraCommon from "./infra_common";
 
 const DEFINITION_YAML = "definition.yaml";
@@ -64,7 +64,11 @@ export const execute = async (
     try {
       /* scaffoldDefinition will take in a definition object with a
           null configuration. Hence, the first index is "" */
-      const scaffoldDefinition = ["", opts.source, opts.template, opts.version];
+      const scaffoldDefinition: ISourceInformation = {
+        source: opts.source,
+        template: opts.template,
+        version: opts.version
+      };
       const sourceFolder = await infraCommon.repoCloneRegex(opts.source);
       const sourcePath = path.join(infraCommon.spkTemplatesPath, sourceFolder);
       await validateRemoteSource(scaffoldDefinition);
