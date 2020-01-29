@@ -191,7 +191,7 @@ repository.
 These repositories hold the application code and its associated Dockerfiles.
 Additionally, these repositories can hold one (single application) or more
 (monorepository) applications depending on usecase and configuration. Typically,
-each repository shold be configured with a "hld-lifecycle" Azure DevOps pipeline
+each repository should be configured with a "hld-lifecycle" Azure DevOps pipeline
 that will add all managed applications inside the repository to the High Level
 Definition Repository. Additionally, each application inside the repository
 should also have an associated Azure DevOps multi-stage pipeline that both
