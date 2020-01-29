@@ -118,10 +118,9 @@ export const exit = (
   statusCode: number
 ): Promise<void> => {
   return new Promise(resolve => {
-    log.end();
-    setTimeout(() => {
+    log.info(`--end log: ${statusCode} --`, () => {
       exitFn(statusCode);
       resolve();
-    }, 1000);
+    });
   });
 };
