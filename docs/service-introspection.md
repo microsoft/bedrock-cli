@@ -4,7 +4,7 @@ Service Introspection shows information about Bedrock deployments:
 
 - Name of the person that changed the service
 - Time the service was changed or errored
-- Deployment state of the service is
+- Deployment state of the service
 
 **Important:**
 
@@ -69,7 +69,7 @@ Options:
 ```
 
 Note: The purpose of `spk deployment validate --self-test` is to make sure that
-spk will be able to write data to the provided storage account. Once the test
+spk is able to write data to the provided storage account. Once the test
 ends, it will remove the test data that was added.
 
 ### get
@@ -88,7 +88,7 @@ Options:
   -i, --image-tag <image-tag>          Filter by a container image tag
   -e, --env <environment>              Filter by environment name
   -s, --service <service-name>         Filter by service name
-  -o, --output <output-format>         Output the information one of the following: normal, wide, JSON
+  -o, --output <output-format>         Output the information in one of the following formats: normal, wide, JSON
   -w, --watch                          Watch the deployments for a live view
   -h, --help                           Usage information
 ```
@@ -112,12 +112,12 @@ Options:
 
 ### onboard
 
-Onboard to use the service introspection tool. This will create a storage
+Prepare storage for the service introspection tool. This will create a storage
 account if it does not already exist in your subscription in the given
 `resource-group`. The storage table will also be created in a newly created or
-in an existing storage account if it does not exist already. When Azure Key
+in an existing storage account if it does not exist already. When the Azure Key
 Vault argument is specified, a secret with Azure storage access key will be
-created otherwise, the storage access key will need to be specified in
+created. Otherwise, the storage access key will need to be specified in
 environment variables manually.
 
 #### Prerequisites
