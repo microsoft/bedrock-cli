@@ -1,7 +1,11 @@
 import commander from "commander";
 import path from "path";
 import shelljs from "shelljs";
-import { BedrockAsync } from "../../config";
+import { Bedrock, bedrockFileInfo } from "../../config";
+import {
+  projectCvgDependencyErrorMessage,
+  projectInitCvgDependencyErrorMessage
+} from "../../constants";
 import {
   addNewServiceToBedrockFile,
   addNewServiceToMaintainersFile,
@@ -11,7 +15,7 @@ import {
 } from "../../lib/fileutils";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import { logger } from "../../logger";
-import { IHelmConfig, IUser } from "../../types";
+import { IBedrockFileInfo, IHelmConfig, IUser } from "../../types";
 
 /**
  * Adds the create command to the service command object
@@ -76,11 +80,6 @@ export const createCommandDecorator = (command: commander.Command): void => {
       false
     )
     .option(
-      "--variable-group-name <variable-group-name>",
-      "The Azure DevOps Variable Group.",
-      undefined
-    )
-    .option(
       "--middlewares <comma-delimitated-list-of-middleware-names>",
       "Traefik2 middlewares you wish to to be injected into your Traefik2 IngressRoutes",
       ""
@@ -91,10 +90,20 @@ export const createCommandDecorator = (command: commander.Command): void => {
       "80"
     )
     .action(async (serviceName, opts) => {
-      const bedrock = await BedrockAsync().catch(err => {
-        logger.warn(err);
+      const projectPath = process.cwd();
+      logger.verbose(`project path: ${projectPath}`);
+
+      const fileInfo: IBedrockFileInfo = await bedrockFileInfo(projectPath);
+      if (fileInfo.exist === false) {
+        logger.error(projectInitCvgDependencyErrorMessage);
         return undefined;
-      });
+      } else if (fileInfo.hasVariableGroups === false) {
+        logger.error(projectCvgDependencyErrorMessage);
+        return undefined;
+      }
+
+      const bedrock = Bedrock();
+
       const {
         displayName,
         gitPush,
@@ -109,10 +118,8 @@ export const createCommandDecorator = (command: commander.Command): void => {
         packagesDir
       } = opts;
       const k8sPort = Number(opts.k8sServicePort);
-      const variableGroupName =
-        opts.variableGroupName ?? (bedrock?.variableGroups ?? [])[0] ?? ""; // fall back to bedrock.yaml when <variable-group-name> argument is not specified; default to empty string
+      const variableGroups = bedrock?.variableGroups;
 
-      const projectPath = process.cwd();
       try {
         if (
           !isValidConfig(
@@ -127,7 +134,6 @@ export const createCommandDecorator = (command: commander.Command): void => {
             maintainerEmail,
             middlewares,
             gitPush,
-            variableGroupName,
             displayName,
             k8sPort
           )
@@ -153,8 +159,7 @@ export const createCommandDecorator = (command: commander.Command): void => {
             middlewares: (middlewares as string)
               .split(",")
               .map(str => str.trim()),
-            variableGroups:
-              variableGroupName.length > 0 ? [variableGroupName] : []
+            variableGroups
           }
         );
       } catch (err) {
@@ -180,7 +185,6 @@ export const createCommandDecorator = (command: commander.Command): void => {
  * @param maintainerEmail Email of maintainer
  * @param middlewares comma-delimitated list of Traefik2 middlewares
  * @param gitPush Push to git
- * @param variableGroupName Variable group name
  */
 export const isValidConfig = (
   helmChartChart: any,
@@ -194,7 +198,6 @@ export const isValidConfig = (
   maintainerEmail: any,
   middlewares: any,
   gitPush: any,
-  variableGroupName: any,
   displayName: any,
   k8sPort: any
 ): boolean => {
@@ -259,11 +262,6 @@ export const isValidConfig = (
   if (typeof gitPush !== "boolean") {
     missingConfig.push(
       `gitPush must be of type 'boolean', ${typeof gitPush} given.`
-    );
-  }
-  if (typeof variableGroupName !== "string") {
-    missingConfig.push(
-      `variableGroupName must be of type 'string', ${typeof variableGroupName} given.`
     );
   }
   // k8sPort has to be a positive integer

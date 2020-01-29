@@ -1,9 +1,15 @@
 import { VariableGroup } from "azure-devops-node-api/interfaces/ReleaseInterfaces";
 import commander from "commander";
-import fs from "fs";
 import path from "path";
 import { echo } from "shelljs";
-import { Bedrock, Config, readYaml, write } from "../../config";
+import {
+  Bedrock,
+  bedrockFileInfo,
+  Config,
+  readYaml,
+  write
+} from "../../config";
+import { projectInitDependencyErrorMessage } from "../../constants";
 import {
   build as buildCmd,
   exit as exitCmd,
@@ -76,72 +82,80 @@ export const execute = async (
   exitFn: (status: number) => Promise<void>
 ) => {
   if (!hasValue(variableGroupName)) {
-    exitFn(1);
-  } else {
-    try {
-      const { azure_devops } = Config();
+    return exitFn(1);
+  }
 
-      const {
-        registryName,
-        servicePrincipalId,
-        servicePrincipalPassword,
-        tenant,
-        hldRepoUrl = azure_devops?.hld_repository,
-        orgName = azure_devops?.org,
-        personalAccessToken = azure_devops?.access_token,
-        project = azure_devops?.project
-      } = opts;
+  try {
+    const projectPath = process.cwd();
+    logger.verbose(`project path: ${projectPath}`);
 
-      const accessOpts: IAzureDevOpsOpts = {
-        orgName,
-        personalAccessToken,
-        project
-      };
-
-      logger.debug(`access options: ${JSON.stringify(accessOpts)}`);
-
-      const errors = validateRequiredArguments(
-        registryName,
-        hldRepoUrl,
-        servicePrincipalId,
-        servicePrincipalPassword,
-        tenant,
-        accessOpts
-      );
-
-      if (errors.length !== 0) {
-        await exitFn(1);
-      } else {
-        const variableGroup = await create(
-          variableGroupName,
-          registryName,
-          hldRepoUrl,
-          servicePrincipalId,
-          servicePrincipalPassword,
-          tenant,
-          accessOpts
-        );
-
-        const projectPath = process.cwd();
-        // set the variable group name
-        await setVariableGroupInBedrockFile(projectPath, variableGroup.name!);
-
-        // update hld-lifecycle.yaml with variable groups in bedrock.yaml
-        await updateLifeCyclePipeline(projectPath);
-
-        // print newly created variable group
-        echo(JSON.stringify(variableGroup, null, 2));
-
-        logger.info(
-          "Successfully created a variable group in Azure DevOps project!"
-        );
-        await exitFn(0);
-      }
-    } catch (err) {
-      logger.error(`Error occurred while creating variable group`);
-      logger.error(err);
-      await exitFn(1);
+    const fileInfo = await bedrockFileInfo(projectPath);
+    if (fileInfo.exist === false) {
+      logger.error(projectInitDependencyErrorMessage);
+      return exitFn(1);
     }
+
+    const { azure_devops } = Config();
+
+    const {
+      registryName,
+      servicePrincipalId,
+      servicePrincipalPassword,
+      tenant,
+      hldRepoUrl = azure_devops?.hld_repository,
+      orgName = azure_devops?.org,
+      personalAccessToken = azure_devops?.access_token,
+      project = azure_devops?.project
+    } = opts;
+
+    const accessOpts: IAzureDevOpsOpts = {
+      orgName,
+      personalAccessToken,
+      project
+    };
+
+    logger.debug(`access options: ${JSON.stringify(accessOpts)}`);
+
+    const errors = validateRequiredArguments(
+      registryName,
+      hldRepoUrl,
+      servicePrincipalId,
+      servicePrincipalPassword,
+      tenant,
+      accessOpts
+    );
+
+    if (errors.length !== 0) {
+      return await exitFn(1);
+    }
+
+    const variableGroup = await create(
+      variableGroupName,
+      registryName,
+      hldRepoUrl,
+      servicePrincipalId,
+      servicePrincipalPassword,
+      tenant,
+      accessOpts
+    );
+
+    // set the variable group name
+    await setVariableGroupInBedrockFile(projectPath, variableGroup.name!);
+
+    // update hld-lifecycle.yaml with variable groups in bedrock.yaml
+    await updateLifeCyclePipeline(projectPath);
+
+    // print newly created variable group
+    echo(JSON.stringify(variableGroup, null, 2));
+
+    logger.info(
+      "Successfully created a variable group in Azure DevOps project!"
+    );
+    await exitFn(0);
+  } catch (err) {
+    logger.error(`Error occurred while creating variable group`);
+    logger.error(err);
+    await exitFn(1);
   }
 };
 
@@ -183,41 +197,37 @@ export const create = async (
   logger.info(
     `Creating Variable Group from group definition '${variableGroupName}'`
   );
-  try {
-    const vars: IVariableGroupDataVariable = {
-      ACR_NAME: {
-        value: registryName
-      },
-      HLD_REPO: {
-        value: hldRepoUrl
-      },
-      PAT: {
-        isSecret: true,
-        value: accessOpts.personalAccessToken
-      },
-      SP_APP_ID: {
-        isSecret: true,
-        value: servicePrincipalId
-      },
-      SP_PASS: {
-        isSecret: true,
-        value: servicePrincipalPassword
-      },
-      SP_TENANT: {
-        isSecret: true,
-        value: tenantId
-      }
-    };
-    const variableGroupData: IVariableGroupData = {
-      description: "Created from spk CLI",
-      name: variableGroupName,
-      type: "Vsts",
-      variables: vars
-    };
-    return await addVariableGroup(variableGroupData, accessOpts);
-  } catch (err) {
-    throw err; // TOFIX: are we just rethrowing error?
-  }
+  const vars: IVariableGroupDataVariable = {
+    ACR_NAME: {
+      value: registryName
+    },
+    HLD_REPO: {
+      value: hldRepoUrl
+    },
+    PAT: {
+      isSecret: true,
+      value: accessOpts.personalAccessToken
+    },
+    SP_APP_ID: {
+      isSecret: true,
+      value: servicePrincipalId
+    },
+    SP_PASS: {
+      isSecret: true,
+      value: servicePrincipalPassword
+    },
+    SP_TENANT: {
+      isSecret: true,
+      value: tenantId
+    }
+  };
+  const variableGroupData: IVariableGroupData = {
+    description: "Created from spk CLI",
+    name: variableGroupName,
+    type: "Vsts",
+    variables: vars
+  };
+  return await addVariableGroup(variableGroupData, accessOpts);
 };
 
 /**
@@ -307,23 +317,4 @@ export const updateLifeCyclePipeline = async (rootProjectPath: string) => {
 
   // Write out
   write(pipelineFile, absProjectRoot, fileName);
-};
-
-/**
- * Checks if the default bedrock.yaml exists
- *
- * @param rootProjectPath Path to generate/update the the bedrock.yaml file in
- */
-export const isBedrockFileExists = async (rootProjectPath: string) => {
-  if (typeof rootProjectPath === "undefined" || rootProjectPath === "") {
-    throw new Error("Project root path is not valid");
-  }
-
-  const absProjectPath = path.resolve(rootProjectPath);
-
-  // Check if a bedrock.yaml already exists
-  const bedrockFilePath = path.join(absProjectPath, "bedrock.yaml");
-  const exists = fs.existsSync(bedrockFilePath);
-  logger.verbose(`bedrockFilePath path: ${bedrockFilePath}, exists: ${exists}`);
-  return exists;
 };

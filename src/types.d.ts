@@ -211,3 +211,8 @@ export interface IInfraConfigYaml {
     [key: string]: any;
   };
 }
+
+interface IBedrockFileInfo {
+  exist: boolean;
+  hasVariableGroups: boolean;
+}

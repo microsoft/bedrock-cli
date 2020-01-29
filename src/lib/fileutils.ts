@@ -34,7 +34,7 @@ export const generateStarterAzurePipelinesYaml = async (
 
   const { variableGroups = [] } = opts || {};
 
-  logger.debug(`variableGroups length: ${variableGroups.length}`);
+  logger.debug(`variableGroups length: ${variableGroups?.length}`);
 
   // Check if azure-pipelines.yaml already exists; if it does, skip generation
   const azurePipelinesYamlPath = path.join(
@@ -98,7 +98,10 @@ export const starterAzurePipelines = async (opts: {
       branches: { include: branches },
       paths: { include: cleanedPaths }
     },
-    variables: [...variableGroups.map(group => ({ group })), ...variables],
+    variables: [
+      ...(variableGroups ?? []).map(group => ({ group })),
+      ...variables
+    ],
     stages: [
       {
         // Build stage

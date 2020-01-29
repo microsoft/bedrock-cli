@@ -48,7 +48,6 @@ Options:
   -m, --maintainer-name <maintainer-name>                     The name of the primary maintainer for this service. (default: "maintainer name")
   -e, --maintainer-email <maintainer-email>                   The email of the primary maintainer for this service. (default: "maintainer email")
   --git-push                                                  SPK CLI will try to commit and push these changes to a new origin/branch named after the service. (default: false)
-  --variable-group-name <variable-group-name>                 The Azure DevOps Variable Group.
   --middlewares <comma-delimitated-list-of-middleware-names>  Traefik2 middlewares you wish to to be injected into your Traefik2 IngressRoutes (default: "")
   --k8s-service-port <port>                                   Kubernetes service port which this service is exposed with; will be used to configure Traefik2 IngressRoutes (default: "80")
   -h, --help                                                  output usage information

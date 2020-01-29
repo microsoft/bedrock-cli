@@ -3,7 +3,7 @@ import os from "os";
 import path from "path";
 import { promisify } from "util";
 import uuid from "uuid/v4";
-import { Bedrock, BedrockAsync } from "../../config";
+import { Bedrock } from "../../config";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import {
   disableVerboseLogging,
@@ -38,7 +38,6 @@ describe("validate pipeline config", () => {
     "test@maintainer.com",
     "my,middleware,string",
     true,
-    "testVariableGroup",
     "testDisplayName",
     80
   ];

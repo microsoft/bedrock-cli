@@ -8,6 +8,7 @@ import { logger } from "./logger";
 import {
   IAzurePipelinesYaml,
   IBedrockFile,
+  IBedrockFileInfo,
   IConfigYaml,
   IMaintainersFile
 } from "./types";
@@ -292,5 +293,40 @@ export const saveConfiguration = async (
     logger.error(
       `Error occurred while writing config to default location ${err}`
     );
+  }
+};
+
+/**
+ * Returns bedrock file information
+ *
+ * @param rootProjectPath Path to read the bedrock.yaml file
+ */
+export const bedrockFileInfo = async (
+  rootProjectPath: string
+): Promise<IBedrockFileInfo> => {
+  if (typeof rootProjectPath === "undefined" || rootProjectPath === "") {
+    throw new Error("Project root path is not valid");
+  }
+
+  const absProjectPath = path.resolve(rootProjectPath);
+
+  let bedrockFile: IBedrockFile | undefined;
+
+  try {
+    bedrockFile = await BedrockAsync(absProjectPath);
+    logger.debug(
+      `variableGroups length: ${bedrockFile?.variableGroups?.length}`
+    );
+    logger.verbose(`bedrockFile: \n ${bedrockFile}`);
+    return {
+      exist: true,
+      hasVariableGroups: (bedrockFile?.variableGroups ?? []).length > 0
+    };
+  } catch (error) {
+    logger.error(error);
+    return {
+      exist: false,
+      hasVariableGroups: false
+    };
   }
 };
