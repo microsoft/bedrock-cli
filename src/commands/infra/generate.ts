@@ -29,8 +29,7 @@ export interface ISourceInformation {
 
 export enum DefinitionYAMLExistence {
   BOTH_EXIST,
-  PARENT_ONLY,
-  LEAF_ONLY
+  PARENT_ONLY
 }
 
 export const fetchValues = (opts: ICommandOptions): string => {
@@ -55,8 +54,8 @@ export const execute = async (
     const definitionConfig = validateDefinition(parentPath, projectPath);
     const sourceConfig = validateTemplateSources(
       definitionConfig,
-      path.join(parentPath, `definition.yaml`),
-      path.join(projectPath, `definition.yaml`)
+      parentPath,
+      projectPath
     );
     await validateRemoteSource(sourceConfig);
     await generateConfig(
@@ -114,16 +113,12 @@ export const validateDefinition = (
     return DefinitionYAMLExistence.PARENT_ONLY;
   }
 
-  if (projectPathExist) {
-    logger.warn(
-      `${DEF_YAML} was found in: ${projectPath}, but was not found in ${parentPath}`
-    );
-    return DefinitionYAMLExistence.LEAF_ONLY;
-  }
+  throw new Error(`${DEF_YAML} was not found in ${parentPath}`);
+};
 
-  throw new Error(
-    `${DEF_YAML} was not found in  ${parentPath} and ${projectPath}`
-  );
+export const getDefinitionYaml = (dir: string): IInfraConfigYaml => {
+  const parentData = readYaml<IInfraConfigYaml>(path.join(dir, DEF_YAML));
+  return loadConfigurationFromLocalEnv(parentData || {});
 };
 
 /**
@@ -136,8 +131,8 @@ export const validateDefinition = (
  */
 export const validateTemplateSources = (
   configuration: DefinitionYAMLExistence,
-  parentPath: string,
-  projectPath: string
+  parentDir: string,
+  projectDir: string
 ): ISourceInformation => {
   const sourceKeys = ["source", "template", "version"] as Array<
     keyof ISourceInformation
@@ -146,20 +141,11 @@ export const validateTemplateSources = (
   let parentInfraConfig: IInfraConfigYaml;
   let leafInfraConfig: IInfraConfigYaml;
 
-  if (
-    configuration === DefinitionYAMLExistence.PARENT_ONLY ||
-    configuration === DefinitionYAMLExistence.BOTH_EXIST
-  ) {
-    const parentData = readYaml<IInfraConfigYaml>(parentPath);
-    parentInfraConfig = loadConfigurationFromLocalEnv(parentData || {});
-  }
-
-  if (
-    configuration === DefinitionYAMLExistence.LEAF_ONLY ||
-    configuration === DefinitionYAMLExistence.BOTH_EXIST
-  ) {
-    const leafData = readYaml<IInfraConfigYaml>(projectPath);
-    leafInfraConfig = loadConfigurationFromLocalEnv(leafData || {});
+  if (configuration === DefinitionYAMLExistence.PARENT_ONLY) {
+    parentInfraConfig = getDefinitionYaml(parentDir);
+  } else if (configuration === DefinitionYAMLExistence.BOTH_EXIST) {
+    parentInfraConfig = getDefinitionYaml(parentDir);
+    leafInfraConfig = getDefinitionYaml(projectDir);
   }
 
   // setting values into source object for source, template and version
@@ -294,14 +280,8 @@ export const generateConfig = async (
     if (definitionConfig === DefinitionYAMLExistence.BOTH_EXIST) {
       /* First, search for definition.yaml in current working directory.
          If there exists a definition.yaml, then read file. */
-      const parentData = readYaml<IInfraConfigYaml>(
-        path.join(parentPath, DEF_YAML)
-      );
-      const parentInfraConfig = loadConfigurationFromLocalEnv(parentData || {});
-      const leafData = readYaml<IInfraConfigYaml>(
-        path.join(projectPath, DEF_YAML)
-      );
-      const leafInfraConfig = loadConfigurationFromLocalEnv(leafData || {});
+      const parentInfraConfig = getDefinitionYaml(parentPath);
+      const leafInfraConfig = getDefinitionYaml(projectPath);
 
       /* Iterate through parent and leaf JSON objects to find matches
       If there is a match, then replace parent key-value
@@ -400,10 +380,7 @@ export const generateConfig = async (
       }
       await copyTfTemplate(templatePath, childDirectory, true);
     } else if (definitionConfig === DefinitionYAMLExistence.PARENT_ONLY) {
-      const parentData = readYaml<IInfraConfigYaml>(
-        path.join(parentPath, DEF_YAML)
-      );
-      const parentInfraConfig = loadConfigurationFromLocalEnv(parentData || {});
+      const parentInfraConfig = getDefinitionYaml(parentPath);
       if (projectPath === parentPath) {
         createGenerated(parentDirectory);
         if (parentInfraConfig.variables) {

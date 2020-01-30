@@ -267,8 +267,8 @@ describe("Validate sources in definition.yaml files", () => {
     expect(sourceConfiguration).toEqual(DefinitionYAMLExistence.BOTH_EXIST);
     const sourceData = validateTemplateSources(
       sourceConfiguration,
-      path.join(mockParentPath, `definition.yaml`),
-      path.join(mockProjectPath, `definition.yaml`)
+      mockParentPath,
+      mockProjectPath
     );
     expect(sourceData).toEqual(expectedSourceWest);
     await generateConfig(
@@ -279,6 +279,17 @@ describe("Validate sources in definition.yaml files", () => {
     );
   });
   test("without parent's definition.yaml", async () => {
+    const mockParentPath = "src/commands/infra/mocks/missing-parent-defn";
+    const mockProjectPath = "src/commands/infra/mocks/missing-parent-defn/west";
+    try {
+      validateDefinition(mockParentPath, mockProjectPath);
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeDefined();
+    }
+  });
+
+  test("without project's definition.yaml", async () => {
     const mockParentPath = "src/commands/infra/mocks/discovery-service";
     const mockProjectPath = "src/commands/infra/mocks/discovery-service/east";
     const expectedSourceEast = {
@@ -293,8 +304,8 @@ describe("Validate sources in definition.yaml files", () => {
     expect(sourceConfiguration).toEqual(DefinitionYAMLExistence.PARENT_ONLY);
     const sourceData = validateTemplateSources(
       sourceConfiguration,
-      path.join(mockParentPath, `definition.yaml`),
-      path.join(mockProjectPath, `definition.yaml`)
+      mockParentPath,
+      mockProjectPath
     );
     expect(sourceData).toEqual(expectedSourceEast);
     await generateConfig(
@@ -320,8 +331,8 @@ describe("Validate sources in definition.yaml files", () => {
     expect(sourceConfiguration).toEqual(DefinitionYAMLExistence.BOTH_EXIST);
     const sourceData = validateTemplateSources(
       sourceConfiguration,
-      path.join(mockParentPath, `definition.yaml`),
-      path.join(mockProjectPath, `definition.yaml`)
+      mockParentPath,
+      mockProjectPath
     );
     expect(sourceData).toEqual(expectedSourceCentral);
     await generateConfig(
@@ -352,8 +363,8 @@ describe("Validate remote git source", () => {
     );
     const source = validateTemplateSources(
       sourceConfiguration,
-      path.join(mockParentPath, `definition.yaml`),
-      path.join(mockProjectPath, `definition.yaml`)
+      mockParentPath,
+      mockProjectPath
     );
     try {
       await validateRemoteSource(source);
