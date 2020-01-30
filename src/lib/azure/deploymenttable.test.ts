@@ -99,7 +99,8 @@ describe("Verify the update deployment commands", () => {
             "567",
             "hello-spk-master-1234",
             "aaaaaaa",
-            "Dev"
+            "Dev",
+            "405"
           )
           .then(someValue2 => {
             expect(mockedDB).toHaveLength(1);
@@ -110,6 +111,7 @@ describe("Verify the update deployment commands", () => {
             expect(mockedDB[0].env).toBe("dev");
             expect(mockedDB[0].p1).toBe("1234");
             expect(mockedDB[0].hldCommitId).toBe("aaaaaaa");
+            expect(mockedDB[0].pr).toBe("405");
             logger.info(`Verified that a deployment was updated`);
 
             // Verify that updating an existing deployment that has no match, does add a new element
@@ -119,13 +121,15 @@ describe("Verify the update deployment commands", () => {
                 "568",
                 "hello-spk-master-1234",
                 "aaaaaaab",
-                "Dev"
+                "Dev",
+                "405"
               )
               .then(someValue3 => {
                 expect(mockedDB).toHaveLength(2);
                 expect(mockedDB[1].p1).toBe("1234");
                 expect(mockedDB[1].p2).toBe("568");
                 expect(mockedDB[1].env).toBe("dev");
+                expect(mockedDB[1].pr).toBe("405");
                 logger.info(
                   `Verified that updating a deployment that does not match, adds a new element`
                 );
@@ -136,12 +140,14 @@ describe("Verify the update deployment commands", () => {
                     mockTableInfo,
                     "aaaaaaab",
                     "900",
-                    "manifest"
+                    "manifest",
+                    "405"
                   )
                   .then(someValue4 => {
                     expect(mockedDB).toHaveLength(2);
                     expect(mockedDB[1].p3).toBe("900");
                     expect(mockedDB[1].manifestCommitId).toBe("manifest");
+                    expect(mockedDB[1].pr).toBe("405");
 
                     // Verify manifest commit can be updated
                     update

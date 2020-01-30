@@ -36,6 +36,10 @@ export const createCommandDecorator = (command: commander.Command): void => {
     .option("--env <env>", "Release environment name")
     .option("--p3 <p3>", "Identifier for the third pipeline")
     .option(
+      "--pr <pr-id>",
+      "Pull request identifier for a PR opened/closed in the HLD"
+    )
+    .option(
       "--manifest-commit-id <manifest-commit-id>",
       "Commit Id in the manifest repository"
     )
@@ -91,7 +95,8 @@ export const createCommandDecorator = (command: commander.Command): void => {
           opts.p2,
           opts.imageTag,
           opts.hldCommitId,
-          opts.env
+          opts.env,
+          opts.pr
         );
         return;
       }
@@ -104,16 +109,13 @@ export const createCommandDecorator = (command: commander.Command): void => {
           );
           return;
         }
-        if (opts.manifestCommitId) {
-          updateHLDToManifestPipeline(
-            tableInfo,
-            opts.hldCommitId,
-            opts.p3,
-            opts.manifestCommitId
-          );
-        } else {
-          updateHLDToManifestPipeline(tableInfo, opts.hldCommitId, opts.p3);
-        }
+        updateHLDToManifestPipeline(
+          tableInfo,
+          opts.hldCommitId,
+          opts.p3,
+          opts.manifestCommitId,
+          opts.pr
+        );
         return;
       }
 

@@ -58,7 +58,8 @@ export const updateACRToHLDPipeline = (
   pipelineId: string,
   imageTag: string,
   hldCommitId: string,
-  env: string
+  env: string,
+  pr?: string
 ): Promise<any> => {
   return new Promise(resolve => {
     findMatchingDeployments(tableInfo, "imageTag", imageTag).then(entries => {
@@ -73,6 +74,9 @@ export const updateACRToHLDPipeline = (
           entry.p2 = pipelineId.toLowerCase();
           entry.hldCommitId = hldCommitId.toLowerCase();
           entry.env = env.toLowerCase();
+          if (pr) {
+            entry.pr = pr.toLowerCase();
+          }
           updateEntryInTable(tableInfo, entry)
             .then(() => {
               logger.info(
@@ -93,6 +97,9 @@ export const updateACRToHLDPipeline = (
         entryToInsert.RowKey = getRowKey();
         entryToInsert.p3 = undefined;
         entryToInsert.manifestCommitId = undefined;
+        if (pr) {
+          entryToInsert.pr = pr.toLowerCase();
+        }
         insertToTable(tableInfo, entryToInsert)
           .then(() => {
             logger.info(
@@ -113,6 +120,9 @@ export const updateACRToHLDPipeline = (
       newEntry.env = env.toLowerCase();
       newEntry.hldCommitId = hldCommitId.toLowerCase();
       newEntry.imageTag = imageTag.toLowerCase();
+      if (pr) {
+        newEntry.pr = pr.toLowerCase();
+      }
       insertToTable(tableInfo, newEntry)
         .then(() => {
           logger.info(
@@ -130,87 +140,135 @@ export const updateACRToHLDPipeline = (
 
 /**
  * Updates the HLD to manifest pipeline in storage by finding its corresponding SRC to ACR and ACR to HLD pipelines
+ * Depending on whether PR is specified or not, it performs a lookup on commit Id and PR to link it to the previous release.
  * @param tableInfo table info interface containing information about the deployment storage table
  * @param hldCommitId commit identifier into the HLD repo, used as a filter to find corresponding deployments
  * @param pipelineId identifier of the HLD to manifest pipeline
  * @param manifestCommitId manifest commit identifier
+ * @param pr pull request identifier
  */
-export const updateHLDToManifestPipeline = (
+export const updateHLDToManifestPipeline = async (
   tableInfo: IDeploymentTable,
   hldCommitId: string,
   pipelineId: string,
-  manifestCommitId?: string
+  manifestCommitId?: string,
+  pr?: string
+): Promise<any> => {
+  const entries = await findMatchingDeployments(
+    tableInfo,
+    "hldCommitId",
+    hldCommitId
+  );
+  if ((!entries || entries.length === 0) && pr) {
+    const entriesArray = await findMatchingDeployments(tableInfo, "pr", pr);
+    return updateHLDtoManifestHelper(
+      entriesArray,
+      tableInfo,
+      hldCommitId,
+      pipelineId,
+      manifestCommitId,
+      pr
+    );
+  }
+  return updateHLDtoManifestHelper(
+    entries,
+    tableInfo,
+    hldCommitId,
+    pipelineId,
+    manifestCommitId,
+    pr
+  );
+};
+
+/**
+ * Updates HLD to Manifest pipeline in storage by going through entries that could be a possible match in the storage.
+ * @param entries list of entries that this build could be linked to
+ * @param tableInfo table info interface containing information about the deployment storage table
+ * @param hldCommitId commit identifier into the HLD repo, used as a filter to find corresponding deployments
+ * @param pipelineId identifier of the HLD to manifest pipeline
+ * @param manifestCommitId manifest commit identifier
+ * @param pr pull request identifier
+ */
+export const updateHLDtoManifestHelper = (
+  entries: any,
+  tableInfo: IDeploymentTable,
+  hldCommitId: string,
+  pipelineId: string,
+  manifestCommitId?: string,
+  pr?: string
 ): Promise<any> => {
   return new Promise(resolve => {
-    findMatchingDeployments(tableInfo, "hldCommitId", hldCommitId).then(
-      entries => {
-        let entryToInsert: any;
-        for (const entry of entries) {
-          entryToInsert = entry;
-          if (
-            (entry.p3 ? entry.p3._ === pipelineId : true) &&
-            (entry.manifestCommitId
-              ? entry.manifestCommitId._ === manifestCommitId
-              : true)
-          ) {
-            entry.p3 = pipelineId.toLowerCase();
-            if (manifestCommitId) {
-              entry.manifestCommitId = manifestCommitId.toLowerCase();
-            }
-            updateEntryInTable(tableInfo, entry)
-              .then(() => {
-                logger.info(
-                  "Updated third pipeline details for its corresponding pipeline"
-                );
-                resolve(entry);
-              })
-              .catch(err => {
-                logger.error(err);
-              });
-            return;
-          }
-        }
-        if (entryToInsert) {
-          entryToInsert.p3 = pipelineId.toLowerCase();
-          if (manifestCommitId) {
-            entryToInsert.manifestCommitId = manifestCommitId.toLowerCase();
-          }
-          entryToInsert.hldCommitId = hldCommitId.toLowerCase();
-          entryToInsert.RowKey = getRowKey();
-          insertToTable(tableInfo, entryToInsert)
-            .then(() => {
-              logger.info(
-                `Added new p3 entry for hldCommitId ${hldCommitId} by finding a similar entry`
-              );
-              resolve(entryToInsert);
-            })
-            .catch(err => {
-              logger.error(err);
-            });
-          return;
-        }
-
-        const newEntry: any = {};
-        newEntry.PartitionKey = tableInfo.partitionKey;
-        newEntry.RowKey = getRowKey();
-        newEntry.p3 = pipelineId.toLowerCase();
-        newEntry.hldCommitId = hldCommitId.toLowerCase();
+    let entryToInsert: any;
+    for (const entry of entries) {
+      entryToInsert = entry;
+      if (
+        (entry.p3 ? entry.p3._ === pipelineId : true) &&
+        (entry.manifestCommitId
+          ? entry.manifestCommitId._ === manifestCommitId
+          : true)
+      ) {
+        entry.p3 = pipelineId.toLowerCase();
         if (manifestCommitId) {
-          newEntry.manifestCommitId = manifestCommitId.toLowerCase();
+          entry.manifestCommitId = manifestCommitId.toLowerCase();
         }
-        insertToTable(tableInfo, newEntry)
+        updateEntryInTable(tableInfo, entry)
           .then(() => {
             logger.info(
-              `Added new p3 entry for hldCommitId ${hldCommitId} - no matching entry was found.`
+              "Updated third pipeline details for its corresponding pipeline"
             );
-            resolve(newEntry);
+            resolve(entry);
           })
           .catch(err => {
             logger.error(err);
           });
         return;
       }
-    );
+    }
+    if (entryToInsert) {
+      entryToInsert.p3 = pipelineId.toLowerCase();
+      if (manifestCommitId) {
+        entryToInsert.manifestCommitId = manifestCommitId.toLowerCase();
+      }
+      if (pr) {
+        entryToInsert.pr = pr.toLowerCase();
+      }
+      entryToInsert.hldCommitId = hldCommitId.toLowerCase();
+      entryToInsert.RowKey = getRowKey();
+      insertToTable(tableInfo, entryToInsert)
+        .then(() => {
+          logger.info(
+            `Added new p3 entry for hldCommitId ${hldCommitId} by finding a similar entry`
+          );
+          resolve(entryToInsert);
+        })
+        .catch(err => {
+          logger.error(err);
+        });
+      return;
+    }
+
+    const newEntry: any = {};
+    newEntry.PartitionKey = tableInfo.partitionKey;
+    newEntry.RowKey = getRowKey();
+    newEntry.p3 = pipelineId.toLowerCase();
+    newEntry.hldCommitId = hldCommitId.toLowerCase();
+    if (manifestCommitId) {
+      newEntry.manifestCommitId = manifestCommitId.toLowerCase();
+    }
+    if (pr) {
+      newEntry.pr = pr.toLowerCase();
+    }
+    insertToTable(tableInfo, newEntry)
+      .then(() => {
+        logger.info(
+          `Added new p3 entry for hldCommitId ${hldCommitId} - no matching entry was found.`
+        );
+        resolve(newEntry);
+      })
+      .catch(err => {
+        logger.error(err);
+      });
+    return;
   });
 };
 
