@@ -7,6 +7,7 @@ import {
   createRingComponent,
   createServiceComponent,
   createStaticComponent,
+  execAndLog,
   IReconcileDependencies,
   reconcileHld,
   testAndGetAbsPath,
@@ -97,7 +98,7 @@ describe("testAndGetAbsPath", () => {
 
 describe("createServiceComponent", () => {
   it("should invoke the correct command for adding service to hld", () => {
-    const exec = jest.fn();
+    const exec = jest.fn().mockReturnValue(Promise.resolve({}));
     const repoInHldPath = "myMonoRepo";
     const pathBase = "myService";
 
@@ -111,7 +112,7 @@ describe("createServiceComponent", () => {
 
 describe("createRepositoryComponent", () => {
   it("should invoke the correct command for adding repository to hld", () => {
-    const exec = jest.fn();
+    const exec = jest.fn().mockReturnValue(Promise.resolve({}));
     const hldPath = `myMonoRepo`;
     const repositoryName = `myRepo`;
 
@@ -126,7 +127,7 @@ describe("createRepositoryComponent", () => {
 
 describe("createRingComponent", () => {
   it("should invoke the correct command for adding rings to hld", () => {
-    const exec = jest.fn();
+    const exec = jest.fn().mockReturnValue(Promise.resolve({}));
     const svcPathInHld = `/path/to/service`;
     const ring = `dev`;
 
@@ -141,7 +142,7 @@ describe("createRingComponent", () => {
 
 describe("createStaticComponent", () => {
   it("should invoke the correct command for creating static components", () => {
-    const exec = jest.fn();
+    const exec = jest.fn().mockReturnValue(Promise.resolve({}));
     const ringPathInHld = `/ring/path/in/hld`;
 
     const expectedInvocation = `cd ${ringPathInHld} && mkdir -p config static && fab add static --path ./static --method local --type static && touch ./config/common.yaml`;
@@ -155,7 +156,7 @@ describe("createStaticComponent", () => {
 
 describe("addChartToRing", () => {
   it("should invoke the correct command for adding a helm chart with a branch version", () => {
-    const exec = jest.fn();
+    const exec = jest.fn().mockReturnValue(Promise.resolve({}));
     const ringPath = "/path/to/ring";
 
     const branch = "v1";
@@ -185,7 +186,7 @@ describe("addChartToRing", () => {
   });
 
   it("should invoke the correct command for adding a helm chart with a git-sha", () => {
-    const exec = jest.fn();
+    const exec = jest.fn().mockReturnValue(Promise.resolve({}));
     const ringPath = "/path/to/ring";
 
     const sha = "f8a33e1d";
@@ -215,7 +216,7 @@ describe("addChartToRing", () => {
   });
 
   it("should invoke the correct command for adding a helm chart with a helm repository", () => {
-    const exec = jest.fn();
+    const exec = jest.fn().mockReturnValue(Promise.resolve({}));
     const ringPath = "/path/to/ring";
 
     const repository = "github.com/company/service";
@@ -252,14 +253,14 @@ describe("reconcile tests", () => {
 
   beforeEach(() => {
     dependencies = {
-      addChartToRing: jest.fn(),
-      createIngressRouteForRing: jest.fn(),
-      createMiddlewareForRing: jest.fn(),
-      createRepositoryComponent: jest.fn(),
-      createRingComponent: jest.fn(),
-      createServiceComponent: jest.fn(),
-      createStaticComponent: jest.fn(),
-      exec: jest.fn(),
+      addChartToRing: jest.fn().mockReturnValue(Promise.resolve({})),
+      createIngressRouteForRing: jest.fn().mockReturnValue(Promise.resolve({})),
+      createMiddlewareForRing: jest.fn().mockReturnValue(Promise.resolve({})),
+      createRepositoryComponent: jest.fn().mockReturnValue(Promise.resolve({})),
+      createRingComponent: jest.fn().mockReturnValue(Promise.resolve({})),
+      createServiceComponent: jest.fn().mockReturnValue(Promise.resolve({})),
+      createStaticComponent: jest.fn().mockReturnValue(Promise.resolve({})),
+      exec: jest.fn().mockReturnValue(Promise.resolve({})),
       test: jest.fn().mockReturnValue(false),
       writeFile: jest.fn()
     };
@@ -429,5 +430,32 @@ describe("reconcile tests", () => {
     expect(
       (dependencies.createServiceComponent as jest.Mock).mock.calls[0][2]
     ).toBe(displayName);
+  });
+});
+
+describe("execAndLog", () => {
+  test("working command", async () => {
+    let error: Error | undefined;
+    try {
+      const result = await execAndLog("ls");
+      expect((result.value?.stderr ?? "").length).toBe(0);
+      expect((result.value?.stdout ?? "").length > 0).toBe(true);
+      expect(result.error).toBeUndefined();
+    } catch (err) {
+      error = err;
+    }
+    expect(error).toBeUndefined();
+  });
+
+  test("broken command", async () => {
+    let error: Error | undefined;
+    try {
+      const result = await execAndLog("some-executable-that-does-not-exist");
+      expect(result.error).toBeDefined();
+      expect((result.value?.stderr ?? "").length > 0).toBe(true);
+    } catch (err) {
+      error = err;
+    }
+    expect(error).toBeDefined();
   });
 });

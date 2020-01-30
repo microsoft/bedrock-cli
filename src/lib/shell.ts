@@ -22,34 +22,30 @@ export const exec = async (
   opts: child_process.SpawnOptions = {}
 ): Promise<string> => {
   return new Promise<string>((resolve, reject) => {
-    const process = child_process.spawn(cmd, args, opts);
+    const child = child_process.spawn(cmd, args, opts);
     const cmdString = `${cmd} ${args.join(" ")}`;
     let stdout = "";
     let stderr = "";
 
     // Capture stdout/stderr as process runs
-    if (process.stdout) {
-      process.stdout.on("data", data => {
-        logger.debug(`stdout -> '${cmdString}' -> ${data}`.trim());
-        stdout = stdout + data;
-      });
-    }
-    if (process.stderr) {
-      process.stderr.on("data", data => {
-        logger.debug(`stderr -> '${cmdString}' -> ${data}`.trim());
-        stderr = stderr + data;
-      });
-    }
+    child.stdout?.on("data", data => {
+      logger.debug(`stdout -> '${cmdString}' -> ${data}`.trim());
+      stdout = stdout + data;
+    });
+    child.stderr?.on("data", data => {
+      logger.debug(`stderr -> '${cmdString}' -> ${data}`.trim());
+      stderr = stderr + data;
+    });
 
     // Reject on error
-    process.on("error", err => {
+    child.on("error", err => {
       logger.verbose(`'${cmdString}' encountered an error during execution`);
       logger.verbose(err);
       reject(err);
     });
 
     // Resolve promise on completion
-    process.on("exit", code => {
+    child.on("exit", code => {
       // Log completion of of command
       logger.verbose(`'${cmdString}' exited with code: ${code}`);
       if (stdout.length > 0) {
