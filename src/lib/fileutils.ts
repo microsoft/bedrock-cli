@@ -118,6 +118,36 @@ export const starterAzurePipelines = async (opts: {
                 const projectPathParts = projectPath
                   .split(path.sep)
                   .filter(p => p !== "");
+                const projectName =
+                  projectPathParts.length > 1
+                    ? projectPathParts.slice(-1)[0]
+                    : "";
+                return {
+                  script: generateYamlScript([
+                    `export BUILD_REPO_NAME=$(echo $(Build.Repository.Name)-${projectName} | tr '[:upper:]' '[:lower:]')`,
+                    `tag_name="$BUILD_REPO_NAME:$(Build.SourceBranchName)-$(Build.BuildNumber)"`,
+                    `commitId=$(Build.SourceVersion)`,
+                    `commitId=$(echo "\${commitId:0:7}")`,
+                    `service=$(Build.Repository.Name)`,
+                    `service=\${service##*/}`,
+                    `echo "Downloading SPK"`,
+                    `curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh`,
+                    `chmod +x build.sh`,
+                    `. ./build.sh --source-only`,
+                    `get_spk_version`,
+                    `download_spk`,
+                    `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p1 $(Build.BuildId) --image-tag $tag_name --commit-id $commitId --service $service`
+                  ]),
+                  displayName:
+                    "If configured, update Spektate storage with build pipeline",
+                  condition:
+                    "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''))"
+                };
+              }),
+              ...cleanedPaths.map(projectPath => {
+                const projectPathParts = projectPath
+                  .split(path.sep)
+                  .filter(p => p !== "");
                 // If a the projectPath contains more than 1 segment (a service in a
                 // mono-repo), use the last part as the project name as it will the
                 // folder containing the Dockerfile. Otherwise, its a standard service
@@ -188,6 +218,7 @@ export const starterAzurePipelines = async (opts: {
                   script: generateYamlScript([
                     `export PROJECT_NAME_LOWER=$(echo ${projectName} | tr '[:upper:]' '[:lower:]')`,
                     `export BUILD_REPO_NAME=$(echo $(Build.Repository.Name)-$PROJECT_NAME_LOWER | tr '[:upper:]' '[:lower:]')`,
+                    `export BRANCH_NAME=DEPLOY/$BUILD_REPO_NAME-$(Build.SourceBranchName)-$(Build.BuildNumber)`,
                     `# --- From https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/release.sh`,
                     `. build.sh --source-only`,
                     ``,
@@ -205,7 +236,7 @@ export const starterAzurePipelines = async (opts: {
                     `# --- End Script`,
                     ``,
                     `# Update HLD`,
-                    `git checkout -b "DEPLOY/$BUILD_REPO_NAME-$(Build.SourceBranchName)-$(Build.BuildNumber)"`,
+                    `git checkout -b "$BRANCH_NAME"`,
                     `../fab/fab set --subcomponent $PROJECT_NAME_LOWER image.tag=$(Build.SourceBranchName)-$(Build.BuildNumber)`,
                     `echo "GIT STATUS"`,
                     `git status`,
@@ -228,10 +259,27 @@ export const starterAzurePipelines = async (opts: {
                     `az extension add --name azure-devops`,
                     ``,
                     `echo 'az repos pr create --description "Updating $PROJECT_NAME_LOWER to $(Build.SourceBranchName)-$(Build.BuildNumber)."'`,
-                    `az repos pr create --description "Updating $PROJECT_NAME_LOWER to $(Build.SourceBranchName)-$(Build.BuildNumber)."`
+                    `response=$(az repos pr create --description "Updating $PROJECT_NAME_LOWER to $(Build.SourceBranchName)-$(Build.BuildNumber).")`,
+                    `pr_id=$(echo $response | jq -r '.pullRequestId')`,
+                    ``,
+                    ``,
+                    `# Update introspection storage with this information, if applicable`,
+                    `if [ -z "$(INTROSPECTION_ACCOUNT_NAME)" -o -z "$(INTROSPECTION_ACCOUNT_KEY)" -o -z "$(INTROSPECTION_TABLE_NAME)" -o -z "$(INTROSPECTION_PARTITION_KEY)" ]; then`,
+                    `echo "Introspection variables are not defined. Skipping..."`,
+                    `else`,
+                    `latest_commit=$(git rev-parse --short HEAD)`,
+                    `tag_name="$BUILD_REPO_NAME:$(Build.SourceBranchName)-$(Build.BuildNumber)"`,
+                    `echo "Downloading SPK"`,
+                    `curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh`,
+                    `chmod +x build.sh`,
+                    `. ./build.sh --source-only`,
+                    `get_spk_version`,
+                    `download_spk`,
+                    `./spk/spk deployment create  -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p2 $(Build.BuildId) --hld-commit-id $latest_commit --env $BRANCH_NAME --image-tag $tag_name --pr $pr_id`,
+                    `fi`
                   ]),
                   displayName:
-                    "Download Fabrikate, Update HLD, Push changes, Open PR",
+                    "Download Fabrikate, Update HLD, Push changes, Open PR, and if configured, push to Spektate storage",
                   env: {
                     ACCESS_TOKEN_SECRET: "$(PAT)",
                     AZURE_DEVOPS_EXT_PAT: "$(PAT)",
@@ -419,6 +467,31 @@ const manifestGenerationPipelineYaml = () => {
           REPO: "$(MANIFEST_REPO)",
           BRANCH_NAME: "$(Build.SourceBranchName)"
         }
+      },
+      {
+        script: generateYamlScript([
+          `cd "$HOME"/\${MANIFEST_REPO##*/}`,
+          `commitId=$(Build.SourceVersion)`,
+          `commitId=$(echo "\${commitId:0:7}")`,
+          `latest_commit=$(git rev-parse --short HEAD)`,
+          `echo "Downloading SPK"`,
+          `curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh`,
+          `chmod +x build.sh`,
+          `. ./build.sh --source-only`,
+          `get_spk_version`,
+          `download_spk`,
+          `message="$(Build.SourceVersionMessage)"`,
+          `if [[ $message == *"Merged PR"* ]]; then`,
+          `pr_id=$(echo $message | grep -oE '[0-9]+' | head -1 | sed -e 's/^0\+//')`,
+          `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --manifest-commit-id $latest_commit --pr pr_id`,
+          `else`,
+          `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --manifest-commit-id $latest_commit`,
+          `fi`
+        ]),
+        displayName:
+          "If configured, update manifest pipeline details in Spektate db",
+        condition:
+          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''))"
       }
     ]
   };

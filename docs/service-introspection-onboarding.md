@@ -94,13 +94,14 @@ spk variable-group create
 
 You will need the following variables:
 
-- `ACCOUNT_KEY`: Set this to the access key for your storage account
-- `ACCOUNT_NAME`: Set this to the name of your storage account
-- `PARTITION_KEY`: This field can be a distinguishing key that recognizea your
-  source repository in the storage, for eg. in this example, we're using the
-  name of the source repository `hello-bedrock`
-- `TABLE_NAME`: Set this to the name of the table in your storage account that
-  you prefer to use
+- `INTROSPECTION_ACCOUNT_KEY`: Set this to the access key for your storage
+  account
+- `INTROSPECTION_ACCOUNT_NAME`: Set this to the name of your storage account
+- `INTROSPECTION_PARTITION_KEY`: This field can be a distinguishing key that
+  recognizea your source repository in the storage, for eg. in this example,
+  we're using the name of the source repository `hello-bedrock`
+- `INTROSPECTION_TABLE_NAME`: Set this to the name of the table in your storage
+  account that you prefer to use
 
 ![](./images/variable_group.png)
 
@@ -115,6 +116,12 @@ variables:
 #### 2. CI pipeline configuration
 
 The CI pipeline runs from the source repository to build a docker image.
+
+**Important note**: If you used spk to configure your pipelines, the following
+scripts should already be present in your pipelines with the condition that
+above variables are specified in a variable group. In that case make sure the
+pipeline has added the variable group that defines the above variables, and you
+may skip the steps ahead!
 
 Paste the following task in its corresponding `azure-pipelines.yml`:
 
@@ -131,7 +138,7 @@ Paste the following task in its corresponding `azure-pipelines.yml`:
     . ./build.sh --source-only
     get_spk_version
     download_spk
-    ./spk/spk deployment create -n $(ACCOUNT_NAME) -k $(ACCOUNT_KEY) -t $(TABLE_NAME) -p $(PARTITION_KEY) --p1 $(Build.BuildId) --image-tag $tag_name --commit-id $commitId --service $service
+    ./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p1 $(Build.BuildId) --image-tag $tag_name --commit-id $commitId --service $service
 
   displayName: Update manifest pipeline details in Spektate db
 ```
@@ -168,15 +175,13 @@ Paste the following task towards the end of your release step in the release
 pipeline in the Azure DevOps portal:
 
 ```yaml
-latest_commit=$(git rev-parse --short HEAD) 
-VERSION_TO_DOWNLOAD=$(curl -s "https://api.github.com/repos/CatalystCode/spk/releases/latest" | grep "tag_name" | sed -E 's/.*"([^"]+)".*/\1/') 
-echo "Downloading SPK" 
-curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh 
-chmod +x build.sh 
-. ./build.sh --source-only 
-get_spk_version
-download_spk 
-./spk/spk deployment create  -n $(ACCOUNT_NAME) -k $(ACCOUNT_KEY) -t $(TABLE_NAME) -p $(PARTITION_KEY)  --p2 $(Release.ReleaseId) --hld-commit-id $latest_commit --env $(Release.EnvironmentName) --image-tag $(Build.BuildId)
+latest_commit=$(git rev-parse --short HEAD) curl
+https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh
+> build.sh chmod +x build.sh . ./build.sh --source-only get_spk_version
+download_spk ./spk/spk deployment create  -n $(INTROSPECTION_ACCOUNT_NAME) -k
+$(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p
+$(INTROSPECTION_PARTITION_KEY)  --p2 $(Release.ReleaseId) --hld-commit-id
+$latest_commit --env $(Release.EnvironmentName) --image-tag $(Build.BuildId)
 ```
 
 This task is similar to the one from step 1 but instead passes the information
@@ -191,15 +196,14 @@ Paste the following yaml task towards the end of your image tag release stage in
 your multi-stage `azure-pipelines.yml`:
 
 ```yaml
-latest_commit=$(git rev-parse --short HEAD) 
-tag_name=$(Build.BuildId)
-echo "Downloading SPK" 
-curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh 
-chmod +x build.sh 
-. ./build.sh --source-only 
-get_spk_version
-download_spk 
-./spk/spk deployment create  -n $(ACCOUNT_NAME) -k $(ACCOUNT_KEY) -t $(TABLE_NAME) -p $(PARTITION_KEY)  --p2 $(Build.BuildId) --hld-commit-id $latest_commit --env $(Build.SourceBranchName) --image-tag $tag_name
+latest_commit=$(git rev-parse --short HEAD) tag_name=$(Build.BuildId) echo
+"Downloading SPK" curl
+https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh
+> build.sh chmod +x build.sh . ./build.sh --source-only get_spk_version
+download_spk ./spk/spk deployment create  -n $(INTROSPECTION_ACCOUNT_NAME) -k
+$(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p
+$(INTROSPECTION_PARTITION_KEY)  --p2 $(Build.BuildId) --hld-commit-id
+$latest_commit --env $(Build.SourceBranchName) --image-tag $tag_name
 ```
 
 Make sure your variable `tag_name` in this script matches the `tag_name` in the
@@ -229,7 +233,7 @@ Paste the following task in the `azure-pipelines.yml` file **after** the
     . ./build.sh --source-only
     get_spk_version
     download_spk
-    ./spk/spk deployment create -n $(ACCOUNT_NAME) -k $(ACCOUNT_KEY) -t $(TABLE_NAME) -p $(PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --manifest-commit-id $latest_commit
+    ./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --manifest-commit-id $latest_commit
   displayName: Update manifest pipeline details in Spektate db
 ```
 

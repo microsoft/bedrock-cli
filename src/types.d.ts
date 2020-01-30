@@ -100,6 +100,7 @@ export interface IAzurePipelinesYaml {
           BEDROCK_BUILD_SCRIPT?: string;
           REPO?: string;
         };
+        condition?: string;
       }>;
     }>;
   }>;
