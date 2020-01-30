@@ -17,19 +17,12 @@ import shelljs from "shelljs";
 import uuid from "uuid/v4";
 import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
 import {
-  createTestBedrockYaml,
   createTestHldAzurePipelinesYaml,
   createTestHldLifecyclePipelineYaml,
   createTestMaintainersYaml
 } from "../test/mockFactory";
+import { IAzurePipelinesYaml, IMaintainersFile } from "../types";
 import {
-  IAzurePipelinesYaml,
-  IBedrockFile,
-  IHelmConfig,
-  IMaintainersFile
-} from "../types";
-import {
-  addNewServiceToBedrockFile,
   addNewServiceToMaintainersFile,
   generateDefaultHldComponentYaml,
   generateDockerfile,
@@ -232,69 +225,6 @@ describe("generating service gitignore file", () => {
     const expectedGitIgnoreFilePath = `${absTargetPath}/.gitignore`;
 
     expect(writeSpy).toBeCalledWith(expectedGitIgnoreFilePath, content, "utf8");
-  });
-});
-
-describe("Adding a new service to a Bedrock file", () => {
-  beforeAll(() => {
-    mockFs({
-      "bedrock.yaml": createTestBedrockYaml() as any
-    });
-  });
-
-  afterAll(() => {
-    mockFs.restore();
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it("should update existing bedrock.yml with a new service and its helm chart config", async () => {
-    const bedrockFilePath = "bedrock.yaml";
-
-    const servicePath = "packages/my-new-service";
-    const svcDisplayName = "my-new-service";
-    const helmConfig: IHelmConfig = {
-      chart: {
-        chart: "somehelmchart",
-        repository: "somehelmrepository"
-      }
-    };
-    const traefikMiddlewares = ["foo", "bar"];
-    const k8sServicePort = 8080;
-
-    const writeSpy = jest.spyOn(fs, "writeFileSync");
-    addNewServiceToBedrockFile(
-      bedrockFilePath,
-      servicePath,
-      svcDisplayName,
-      helmConfig,
-      traefikMiddlewares,
-      k8sServicePort
-    );
-
-    const defaultBedrockFileObject = createTestBedrockYaml(false);
-
-    const expected: IBedrockFile = {
-      rings: {},
-      services: {
-        ...(defaultBedrockFileObject as IBedrockFile).services,
-        ["./" + servicePath]: {
-          displayName: svcDisplayName,
-          helm: helmConfig,
-          k8sServicePort,
-          middlewares: traefikMiddlewares
-        }
-      },
-      variableGroups: []
-    };
-
-    expect(writeSpy).toBeCalledWith(
-      bedrockFilePath,
-      yaml.safeDump(expected),
-      "utf8"
-    );
   });
 });
 

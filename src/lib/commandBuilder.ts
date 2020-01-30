@@ -9,7 +9,7 @@ import { hasValue } from "./validator";
 export interface ICommandOption {
   arg: string;
   description: string;
-  required: boolean;
+  required?: boolean;
   defaultValue?: string | boolean;
 }
 
@@ -68,7 +68,7 @@ export const validateForRequiredValues = (
   values: { [key: string]: string | undefined }
 ): string[] => {
   // gather the required options
-  const requireds = decorator.options.filter(opt => opt.required);
+  const requireds = decorator.options.filter(opt => opt.required === true);
 
   // opt name to variable name mapping
   // example --org-name is orgName

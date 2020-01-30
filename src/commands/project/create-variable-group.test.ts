@@ -5,6 +5,11 @@ import os from "os";
 import path from "path";
 import uuid from "uuid/v4";
 import { readYaml, write } from "../../config";
+import {
+  create as createBedrockYaml,
+  isExists as isBedrockFileExists,
+  read as readBedrockFile
+} from "../../lib/bedrockYaml";
 import { IAzureDevOpsOpts } from "../../lib/git";
 import * as pipelineVariableGroup from "../../lib/pipelines/variableGroup";
 import {
@@ -21,8 +26,7 @@ import {
   create,
   execute,
   setVariableGroupInBedrockFile,
-  updateLifeCyclePipeline,
-  validateRequiredArguments
+  updateLifeCyclePipeline
 } from "./create-variable-group";
 
 beforeAll(() => {
@@ -53,102 +57,6 @@ const accessopts: IAzureDevOpsOpts = {
   personalAccessToken,
   project
 };
-
-describe("validateRequiredArguments", () => {
-  test("Should fail when all required arguments specified with empty values", async () => {
-    const opts: IAzureDevOpsOpts = {};
-
-    const errors: string[] = validateRequiredArguments(
-      "",
-      "",
-      "",
-      "",
-      "",
-      opts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(8);
-  });
-
-  test("Should fail when all required arguments are not specified", async () => {
-    const opts: IAzureDevOpsOpts = {};
-    const errors: string[] = validateRequiredArguments(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      opts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(8);
-  });
-
-  test("Should fail when registryName argument is not specified", async () => {
-    const errors: string[] = validateRequiredArguments(
-      undefined,
-      hldRepoUrl,
-      servicePrincipalId,
-      servicePrincipalPassword,
-      tenant,
-      accessopts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(1);
-  });
-
-  test("Should fail when hldRepoUrl argument is not specified", async () => {
-    const errors: string[] = validateRequiredArguments(
-      registryName,
-      undefined,
-      servicePrincipalId,
-      servicePrincipalPassword,
-      tenant,
-      accessopts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(1);
-  });
-
-  test("Should fail when servicePrincipalId argument is not specified", async () => {
-    const errors: string[] = validateRequiredArguments(
-      registryName,
-      hldRepoUrl,
-      undefined,
-      servicePrincipalPassword,
-      tenant,
-      accessopts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(1);
-  });
-
-  test("Should fail when servicePrincipalPassword argument is not specified", async () => {
-    const errors: string[] = validateRequiredArguments(
-      registryName,
-      hldRepoUrl,
-      servicePrincipalId,
-      undefined,
-      tenant,
-      accessopts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(1);
-  });
-
-  test("Should fail when tenant argument is not specified", async () => {
-    const errors: string[] = validateRequiredArguments(
-      registryName,
-      hldRepoUrl,
-      servicePrincipalId,
-      servicePrincipalPassword,
-      undefined,
-      accessopts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(1);
-  });
-});
 
 describe("test execute function", () => {
   it("missing variable name", async () => {
@@ -296,28 +204,12 @@ describe("setVariableGroupInBedrockFile", () => {
 
   test("Should pass adding a valid variable group name when bedrock file exists with empty variableGroups", async () => {
     // Create random directory to initialize
-    const randomTmpDir = path.join(os.tmpdir(), uuid());
-    fs.mkdirSync(randomTmpDir);
-
-    // create bedrock file to simulate the the use case that `spk project init` ran before
-    const bedrockFileData: IBedrockFile = {
-      rings: {},
-      services: {},
-      variableGroups: []
-    };
-
-    const asYaml = yaml.safeDump(bedrockFileData, {
-      lineWidth: Number.MAX_SAFE_INTEGER
-    });
-
-    fs.writeFileSync(path.join(randomTmpDir, "bedrock.yaml"), asYaml);
+    const randomTmpDir = createBedrockYaml();
 
     await setVariableGroupInBedrockFile(randomTmpDir, variableGroupName);
 
-    const bedrockFilePath = path.join(randomTmpDir, "bedrock.yaml");
-    expect(fs.existsSync(bedrockFilePath)).toBe(true);
-
-    const bedrockFile = readYaml<IBedrockFile>(bedrockFilePath);
+    expect(isBedrockFileExists(randomTmpDir)).toBe(true);
+    const bedrockFile = readBedrockFile(randomTmpDir);
 
     logger.info(`filejson: ${JSON.stringify(bedrockFile)}`);
     expect(bedrockFile.variableGroups![0]).toBe(variableGroupName);
@@ -325,8 +217,6 @@ describe("setVariableGroupInBedrockFile", () => {
 
   test("Should pass adding a valid variable group name when bedrock file exists when variableGroups length is > 0", async () => {
     // Create random directory to initialize
-    const randomTmpDir = path.join(os.tmpdir(), uuid());
-    fs.mkdirSync(randomTmpDir);
 
     const prevariableGroupName = uuid();
     logger.info(`prevariableGroupName: ${prevariableGroupName}`);
@@ -336,14 +226,11 @@ describe("setVariableGroupInBedrockFile", () => {
       variableGroups: [prevariableGroupName]
     };
 
-    write(bedrockFileData, randomTmpDir);
-
+    const randomTmpDir = createBedrockYaml("", bedrockFileData);
     await setVariableGroupInBedrockFile(randomTmpDir, variableGroupName);
+    expect(isBedrockFileExists(randomTmpDir)).toBe(true);
 
-    const filePath = path.join(randomTmpDir, "bedrock.yaml");
-    expect(fs.existsSync(filePath)).toBe(true);
-
-    const bedrockFile = readYaml<IBedrockFile>(filePath);
+    const bedrockFile = readBedrockFile(randomTmpDir);
     logger.info(`filejson: ${JSON.stringify(bedrockFile)}`);
     expect(bedrockFile.variableGroups![0]).toBe(prevariableGroupName);
     expect(bedrockFile.variableGroups![1]).toBe(variableGroupName);

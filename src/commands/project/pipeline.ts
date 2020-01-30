@@ -9,6 +9,12 @@ import {
   projectCvgDependencyErrorMessage,
   projectInitCvgDependencyErrorMessage
 } from "../../constants";
+import { isExists as isBedrockFileExists } from "../../lib/bedrockYaml";
+import {
+  build as buildCmd,
+  exit as exitCmd,
+  validateForRequiredValues
+} from "../../lib/commandBuilder";
 import { BUILD_SCRIPT_URL } from "../../lib/constants";
 import {
   getOriginUrl,
@@ -22,247 +28,186 @@ import {
   queueBuild
 } from "../../lib/pipelines/pipelines";
 import { logger } from "../../logger";
-import { IBedrockFileInfo } from "../../types";
+import { IBedrockFileInfo, IConfigYaml } from "../../types";
+import decorator from "./pipeline.decorator.json";
 
-export const deployLifecyclePipelineCommandDecorator = (
-  command: commander.Command
-): void => {
-  command
-    .command("install-lifecycle-pipeline")
-    .alias("p")
-    .description(
-      "Install the hld lifecycle pipeline to your Azure DevOps instance"
-    )
-    .option(
-      "-n, --pipeline-name <pipeline-name>",
-      "Name of the pipeline to be created"
-    )
-    .option(
-      "-p, --personal-access-token <personal-access-token>",
-      "Personal Access Token"
-    )
-    .option("-o, --org-name <org-name>", "Organization Name for Azure DevOps")
-    .option("-r, --repo-name <repo-name>", "Repository Name in Azure DevOps")
-    .option("-u, --repo-url <repo-url>", "Repository URL")
-    .option("-d, --devops-project <devops-project>", "Azure DevOps Project")
-    .option(
-      "-b, --build-script-url <build-script-url>",
-      `Build Script URL. By default it is '${BUILD_SCRIPT_URL}'.`
-    )
-    .action(async opts => {
-      const projectPath = process.cwd();
-      logger.verbose(`project path: ${projectPath}`);
+export interface ICommandOptions {
+  orgName: string | undefined;
+  personalAccessToken: string | undefined;
+  devopsProject: string | undefined;
+  pipelineName: string | undefined;
+  repoName: string | undefined;
+  repoUrl: string | undefined;
+  buildScriptUrl: string | undefined;
+}
 
-      const fileInfo: IBedrockFileInfo = await bedrockFileInfo(projectPath);
-      if (fileInfo.exist === false) {
-        logger.error(projectInitCvgDependencyErrorMessage);
-        return;
-      } else if (fileInfo.hasVariableGroups === false) {
-        // this assumes no variable groups exists in lifecycle pipeline when bedrock files does not have any variable groups
-        logger.error(projectCvgDependencyErrorMessage);
-        return;
-      }
-
-      const gitOriginUrl = await getOriginUrl();
-      const { azure_devops } = Config();
-
-      const {
-        orgName = azure_devops && azure_devops.org,
-        personalAccessToken = azure_devops && azure_devops.access_token,
-        devopsProject = azure_devops && azure_devops.project,
-        pipelineName = getRepositoryName(gitOriginUrl) + "-lifecycle",
-        repoName = getRepositoryName(gitOriginUrl),
-        repoUrl = getRepositoryUrl(gitOriginUrl),
-        buildScriptUrl = BUILD_SCRIPT_URL
-      } = opts;
-
-      if (
-        !isValidConfig(
-          orgName,
-          devopsProject,
-          pipelineName,
-          repoName,
-          repoUrl,
-          buildScriptUrl,
-          personalAccessToken
-        )
-      ) {
-        process.exit(1);
-      }
-
-      try {
-        await installLifecyclePipeline(
-          orgName,
-          personalAccessToken,
-          pipelineName,
-          repoName,
-          repoUrl,
-          devopsProject,
-          buildScriptUrl,
-          process.exit
-        );
-      } catch (err) {
-        logger.error(
-          `Error occurred installing pipeline for HLD to Manifest pipeline`
-        );
-        logger.error(err);
-        process.exit(1);
-      }
-    });
+export const validate = async (projectPath: string) => {
+  const exist = isBedrockFileExists(projectPath);
+  if (exist === false) {
+    throw new Error(
+      "Please run `spk project init` command before running this command to initialize the project."
+    );
+  }
 };
 
 /**
+ * Returns values that are needed for this command.
  *
- * Validates the pipeline configuration
- * @param orgName URL to the Azure DevOps organization that you are using.
- * @param devopsProject Name of the devops project
- * @param pipelineName Name of this build pipeline in AzDo
- * @param repoName Name of repo
- * @param repoUrl Repo URL
- * @param buildScriptUrl Build Script URL
- * @param personalAccessToken Personal Access token with access to the HLD repository and materialized manifest repository.
+ * @param opts Options object from commander.
+ * @param gitOriginUrl Git origin URL which is used to set values
+ *        for pipeline, repoName and repoUrl
+ * @param spkConfig SPK Configuration for getting default values.
+ * @returns values that are needed for this command.
  */
-export const isValidConfig = (
-  orgName: any,
-  devopsProject: any,
-  pipelineName: any,
-  repoName: any,
-  repoUrl: any,
-  buildScriptUrl: any,
-  personalAccessToken: any
-): boolean => {
-  const missingConfig = [];
+export const fetchValidateValues = (
+  opts: ICommandOptions,
+  gitOriginUrl: string,
+  spkConfig: IConfigYaml | undefined
+): ICommandOptions | null => {
+  if (!spkConfig) {
+    throw new Error("SPK Config is missing");
+  }
+  const azure_devops = spkConfig?.azure_devops;
 
-  logger.debug(`orgName: ${orgName}`);
-  logger.debug(`personalAccessToken: XXXXXXXXXXXXXXXXX`);
-  logger.debug(`pipelineName: ${pipelineName}`);
-  logger.debug(`repoName: ${repoName}`);
-  logger.debug(`repoUrl: ${repoUrl}`);
-  logger.debug(`devopsProject: ${devopsProject}`);
-  logger.debug(`buildScriptUrl: ${buildScriptUrl}`);
+  const values: ICommandOptions = {
+    buildScriptUrl: opts.buildScriptUrl || BUILD_SCRIPT_URL,
+    devopsProject: opts.devopsProject || azure_devops?.project,
+    orgName: opts.orgName || azure_devops?.org,
+    personalAccessToken: opts.personalAccessToken || azure_devops?.access_token,
+    pipelineName:
+      opts.pipelineName || getRepositoryName(gitOriginUrl) + "-lifecycle",
+    repoName: opts.repoName || getRepositoryName(gitOriginUrl),
+    repoUrl: opts.repoUrl || getRepositoryUrl(gitOriginUrl)
+  };
 
-  if (typeof pipelineName !== "string") {
-    missingConfig.push(
-      `--pipeline-name must be of type 'string', ${typeof pipelineName} given.`
-    );
-  }
-  if (typeof personalAccessToken !== "string") {
-    missingConfig.push(
-      `--personal-access-token must be of type 'string', ${typeof personalAccessToken} given.`
-    );
-  }
-  if (typeof orgName !== "string") {
-    missingConfig.push(
-      `--org-url must be of type 'string', ${typeof orgName} given.`
-    );
-  }
-  if (typeof repoName !== "string") {
-    missingConfig.push(
-      `--repo-name must be of type 'string', ${typeof repoName} given.`
-    );
-  }
-  if (typeof repoUrl !== "string") {
-    missingConfig.push(
-      `--repo-url must be of type 'string', ${typeof repoUrl} given.`
-    );
-  }
-  if (typeof devopsProject !== "string") {
-    missingConfig.push(
-      `--devops-project must be of type 'string', ${typeof devopsProject} given.`
-    );
-  }
-  if (typeof buildScriptUrl !== "string") {
-    missingConfig.push(
-      `--build-script-url must be of type 'string', ${typeof buildScriptUrl} given.`
-    );
-  }
+  const map: { [key: string]: string | undefined } = {};
+  (Object.keys(values) as Array<keyof ICommandOptions>).forEach(key => {
+    const val = values[key];
+    if (key === "personalAccessToken") {
+      logger.debug(`${key}: XXXXXXXXXXXXXXXXX`);
+    } else {
+      logger.debug(`${key}: ${val}`);
+    }
+    map[key] = val;
+  });
 
-  if (missingConfig.length > 0) {
-    logger.error("Error in configuration: " + missingConfig.join(" "));
-    return false;
+  const error = validateForRequiredValues(decorator, map);
+  return error.length > 0 ? null : values;
+};
+
+/**
+ * Executes the command.
+ *
+ * @param opts Options object from commander.
+ * @param projectPath Project path which is the current directory.
+ * @param exitFn Exit function.
+ */
+export const execute = async (
+  opts: ICommandOptions,
+  projectPath: string,
+  exitFn: (status: number) => Promise<void>
+) => {
+  if (!projectPath) {
+    logger.error("Project Path is missing");
+    await exitFn(1);
+    return;
   }
 
-  return true;
+  const fileInfo: IBedrockFileInfo = await bedrockFileInfo(projectPath);
+  if (fileInfo.exist === false) {
+    logger.error(projectInitCvgDependencyErrorMessage);
+    await exitFn(1);
+    return;
+  }
+  if (fileInfo.hasVariableGroups === false) {
+    logger.error(projectCvgDependencyErrorMessage);
+    await exitFn(1);
+    return;
+  }
+
+  logger.verbose(`project path: ${projectPath}`);
+
+  try {
+    await validate(projectPath);
+    const gitOriginUrl = await getOriginUrl();
+    const values = fetchValidateValues(opts, gitOriginUrl, Config());
+
+    if (values === null) {
+      await exitFn(1);
+    } else {
+      await installLifecyclePipeline(values);
+      await exitFn(0);
+    }
+  } catch (err) {
+    logger.error(
+      `Error occurred installing pipeline for HLD to Manifest pipeline`
+    );
+    logger.error(err);
+    await exitFn(1);
+  }
+};
+
+export const commandDecorator = (command: commander.Command) => {
+  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+    await execute(opts, process.cwd(), async (status: number) => {
+      await exitCmd(logger, process.exit, status);
+    });
+  });
+};
+
+const createPipeline = async (
+  values: ICommandOptions,
+  devopsClient: IBuildApi
+): Promise<BuildDefinition> => {
+  const definition = definitionForAzureRepoPipeline({
+    branchFilters: ["master"], // I believe this is intentional. Our pipelines are triggered only by merges into the master branch.
+    maximumConcurrentBuilds: 1,
+    pipelineName: values.pipelineName!,
+    repositoryName: values.repoName!,
+    repositoryUrl: values.repoUrl!,
+    variables: requiredPipelineVariables(values.buildScriptUrl!),
+    yamlFileBranch: "master", // I believe this is intentional. Our pipelines are triggered only by merges into the master branch.
+    yamlFilePath: "hld-lifecycle.yaml" // TOFIX: hardcoded?
+  });
+
+  try {
+    return await createPipelineForDefinition(
+      devopsClient,
+      values.devopsProject!,
+      definition
+    );
+  } catch (err) {
+    logger.error(
+      `Error occurred during pipeline creation for ${values.pipelineName}`
+    );
+    throw err; // catch by other catch block
+  }
 };
 
 /**
  * Install the project hld lifecycle pipeline in an azure devops org.
  *
- * @param orgName
- * @param personalAccessToken
- * @param pipelineName
- * @param repositoryName
- * @param repositoryUrl
- * @param project
- * @param buildScriptUrl Build Script URL
- * @param exitFn
+ * @param values Values from command line. These values are pre-checked
+ * @param exitFn Exit function
  */
-export const installLifecyclePipeline = async (
-  orgName: string,
-  personalAccessToken: string,
-  pipelineName: string,
-  repositoryName: string,
-  repositoryUrl: string,
-  project: string,
-  buildScriptUrl: string,
-  exitFn: (status: number) => void
-) => {
-  let devopsClient: IBuildApi | undefined;
-  let builtDefinition: BuildDefinition | undefined;
+export const installLifecyclePipeline = async (values: ICommandOptions) => {
+  const devopsClient = await getBuildApiClient(
+    values.orgName!,
+    values.personalAccessToken!
+  );
+  logger.info("Fetched DevOps Client");
 
-  try {
-    devopsClient = await getBuildApiClient(orgName, personalAccessToken);
-    logger.info("Fetched DevOps Client");
-  } catch (err) {
-    logger.error(err);
-    return exitFn(1);
-  }
-
-  const definition = definitionForAzureRepoPipeline({
-    branchFilters: ["master"],
-    maximumConcurrentBuilds: 1,
-    /* tslint:disable-next-line object-literal-shorthand */
-    pipelineName,
-    repositoryName,
-    repositoryUrl,
-    variables: requiredPipelineVariables(buildScriptUrl),
-    yamlFileBranch: "master",
-    yamlFilePath: "hld-lifecycle.yaml"
-  });
-
-  try {
-    logger.debug(
-      `Creating pipeline for project '${project}' with definition '${JSON.stringify(
-        definition
-      )}'`
-    );
-    builtDefinition = await createPipelineForDefinition(
-      devopsClient,
-      project,
-      definition
-    );
-  } catch (err) {
-    logger.error(`Error occurred during pipeline creation for ${pipelineName}`);
-    logger.error(err);
-    return exitFn(1);
-  }
-  if (typeof builtDefinition.id === "undefined") {
-    const builtDefnString = JSON.stringify(builtDefinition);
+  const pipeline = await createPipeline(values, devopsClient);
+  if (typeof pipeline.id === "undefined") {
+    const builtDefnString = JSON.stringify(pipeline);
     throw Error(
       `Invalid BuildDefinition created, parameter 'id' is missing from ${builtDefnString}`
     );
   }
+  logger.info(`Created pipeline for ${values.pipelineName}`);
+  logger.info(`Pipeline ID: ${pipeline.id}`);
 
-  logger.info(`Created pipeline for ${pipelineName}`);
-  logger.info(`Pipeline ID: ${builtDefinition.id}`);
-
-  try {
-    await queueBuild(devopsClient, project, builtDefinition.id);
-  } catch (err) {
-    logger.error(`Error occurred when queueing build for ${pipelineName}`);
-    logger.error(err);
-    return exitFn(1);
-  }
+  await queueBuild(devopsClient, values.devopsProject!, pipeline.id);
 };
 
 /**
@@ -270,7 +215,6 @@ export const installLifecyclePipeline = async (
  * @param buildScriptUrl Build Script URL
  * @returns Object containing the necessary run-time variables for the lifecycle pipeline.
  */
-
 export const requiredPipelineVariables = (
   buildScriptUrl: string
 ): { [key: string]: BuildDefinitionVariable } => {

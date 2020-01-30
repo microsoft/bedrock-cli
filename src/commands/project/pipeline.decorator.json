@@ -1,0 +1,42 @@
+{
+  "command": "install-lifecycle-pipeline",
+  "alias": "p",
+  "description": "Install the hld lifecycle pipeline to your Azure DevOps instance",
+  "options": [
+    {
+      "arg": "-n, --pipeline-name <pipeline-name>",
+      "description": "Name of the pipeline to be created",
+      "required": true
+    },
+    {
+      "arg": "-p, --personal-access-token <personal-access-token>",
+      "description": "Personal Access Token",
+      "required": true
+    },
+    {
+      "arg": "-o, --org-name <org-name>",
+      "description": "Organization Name for Azure DevOps",
+      "required": true
+    },
+    {
+      "arg": "-r, --repo-name <repo-name>",
+      "description": "Repository Name in Azure DevOps",
+      "required": true
+    },
+    {
+      "arg": "-u, --repo-url <repo-url>",
+      "description": "Repository URL",
+      "required": true
+    },
+    {
+      "arg": "-d, --devops-project <devops-project>",
+      "description": "Azure DevOps Project",
+      "required": true
+    },
+    {
+      "arg": "-b, --build-script-url <build-script-url>",
+      "description": "Build Script URL. By default it is https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh.",
+      "required": true
+    }
+  ]
+}

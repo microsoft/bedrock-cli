@@ -88,6 +88,10 @@ describe("Tests Command Builder's validation function", () => {
           arg: "-c --option-c <optionC>",
           description: "description for optionC",
           required: true
+        },
+        {
+          arg: "-d --option-d <optionD>",
+          description: "description for optionD" // required is not defined, treated as false
         }
       ]
     };
