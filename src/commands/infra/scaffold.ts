@@ -4,41 +4,50 @@ import fsextra from "fs-extra";
 import yaml from "js-yaml";
 import path from "path";
 import { Config } from "../../config";
+import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { logger } from "../../logger";
 import { IConfigYaml } from "../../types";
 import { ISourceInformation, validateRemoteSource } from "./generate";
 import * as infraCommon from "./infra_common";
+import decorator from "./scaffold.decorator.json";
 
-const DEFINITION_YAML = "definition.yaml";
+export const DEFINITION_YAML = "definition.yaml";
+export const VARIABLES_TF = "variables.tf";
+export const BACKEND_TFVARS = "backend.tfvars";
 
-interface ICommandOptions {
-  [key: string]: string;
+export interface ICommandOptions {
+  name: string;
+  source: string;
+  template: string;
+  version: string;
 }
 
-export const validateValues = (
-  config: IConfigYaml,
-  opts: ICommandOptions
-): boolean => {
+/**
+ * Validates if the values that are passed in are good.
+ *
+ * @param config Configuration
+ * @param opts Command Line options that are passed in
+ */
+export const validateValues = (config: IConfigYaml, opts: ICommandOptions) => {
   if (
     !config.azure_devops ||
     !config.azure_devops.access_token ||
     !config.azure_devops.infra_repository
   ) {
-    logger.warn(
-      "The infrastructure repository containing the remote terraform template repo and access token was not specified. Checking passed arguments."
-    );
+    logger.warn(`The infrastructure repository containing the remote terraform \
+template repo and access token was not specified. Checking passed arguments.`);
 
-    if (!opts.name || !opts.source || !opts.version || !opts.template) {
-      logger.error(
-        "You must specify each of the variables 'name', 'source', 'version', 'template' in order to scaffold out a deployment."
-      );
-      return false;
+    if (!opts.source) {
+      // since access_token and infra_repository are missing, we cannot construct source for them
+      throw new Error("Value for source is missing.");
     }
-    logger.info(
-      "All required options are configured via command line for scaffolding, expecting public remote repository for terraform templates or PAT embedded in source URL."
-    );
   }
-  return true;
+  if (!opts.name || !opts.version || !opts.template) {
+    throw new Error("Values for name, version and/or 'template are missing.");
+  }
+  logger.info(`All required options are configured via command line for \
+scaffolding, expecting public remote repository for terraform templates \
+or PAT embedded in source URL.`);
 };
 
 // Construct the source based on the the passed configurations of spk-config.yaml
@@ -54,40 +63,35 @@ export const constructSource = (config: IConfigYaml) => {
 export const execute = async (
   config: IConfigYaml,
   opts: ICommandOptions,
-  exitFn: (status: number) => void
+  exitFn: (status: number) => Promise<void>
 ) => {
-  if (!validateValues(config, opts)) {
-    exitFn(1);
-  } else {
+  try {
+    validateValues(config, opts);
     opts.source = opts.source || constructSource(config);
 
-    try {
-      /* scaffoldDefinition will take in a definition object with a
-          null configuration. Hence, the first index is "" */
-      const scaffoldDefinition: ISourceInformation = {
-        source: opts.source,
-        template: opts.template,
-        version: opts.version
-      };
-      const sourceFolder = await infraCommon.repoCloneRegex(opts.source);
-      const sourcePath = path.join(infraCommon.spkTemplatesPath, sourceFolder);
-      await validateRemoteSource(scaffoldDefinition);
-      await copyTfTemplate(
-        path.join(sourcePath, opts.template),
-        opts.name,
-        false
-      );
-      await validateVariablesTf(
-        path.join(sourcePath, opts.template, "variables.tf")
-      );
-      await scaffold(opts.name, opts.source, opts.version, opts.template);
-      await removeTemplateFiles(opts.name);
-      exitFn(0);
-    } catch (err) {
-      logger.error("Error occurred while generating scaffold");
-      logger.error(err);
-      exitFn(1);
-    }
+    /* scaffoldDefinition will take in a definition object with a
+        null configuration. Hence, the first index is "" */
+    const scaffoldDefinition: ISourceInformation = {
+      source: opts.source,
+      template: opts.template,
+      version: opts.version
+    };
+    const sourceFolder = await infraCommon.repoCloneRegex(opts.source);
+    const sourcePath = path.join(infraCommon.spkTemplatesPath, sourceFolder);
+    await validateRemoteSource(scaffoldDefinition);
+    await copyTfTemplate(
+      path.join(sourcePath, opts.template),
+      opts.name,
+      false
+    );
+    validateVariablesTf(path.join(sourcePath, opts.template, "variables.tf"));
+    await scaffold(opts);
+    removeTemplateFiles(opts.name);
+    await exitFn(0);
+  } catch (err) {
+    logger.error("Error occurred while generating scaffold");
+    logger.error(err);
+    await exitFn(1);
   }
 };
 
@@ -96,28 +100,13 @@ export const execute = async (
  *
  * @param command Commander command object to decorate
  */
-export const scaffoldCommandDecorator = (command: commander.Command): void => {
-  command
-    .command("scaffold")
-    .alias("s")
-    .description("Create initial scaffolding for cluster deployment.")
-    .option("-n, --name <name>", "Cluster name for scaffolding")
-    .option(
-      "-s, --source <cluster definition github repo>",
-      "Source URL for the repository containing the terraform deployment"
-    )
-    .option(
-      "-v, --version <repository version>",
-      "Version or tag for the repository so a fixed version is referenced"
-    )
-    .option(
-      "-t, --template <path to variables.tf> ",
-      "Location of the variables.tf for the terraform deployment"
-    )
-    .action(async (opts: ICommandOptions) => {
-      const config = Config();
-      await execute(config, opts, process.exit);
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+    const config = Config();
+    await execute(config, opts, async (status: number) => {
+      await exitCmd(logger, process.exit, status);
     });
+  });
 };
 
 /**
@@ -125,24 +114,19 @@ export const scaffoldCommandDecorator = (command: commander.Command): void => {
  *
  * @param templatePath Path to the variables.tf file
  */
-export const validateVariablesTf = async (
-  templatePath: string
-): Promise<boolean> => {
+export const validateVariablesTf = (templatePath: string) => {
   try {
     if (!fs.existsSync(templatePath)) {
-      logger.error(
-        `Provided Terraform variables.tf path is invalid or cannot be found: ${templatePath}`
+      throw new Error(
+        `Provided Terraform ${VARIABLES_TF} path is invalid or cannot be found: ${templatePath}`
       );
-      return false;
     }
     logger.info(
-      `Terraform variables.tf file found. Attempting to generate ${DEFINITION_YAML} file.`
+      `Terraform ${VARIABLES_TF} file found. Attempting to generate ${DEFINITION_YAML} file.`
     );
   } catch (_) {
-    logger.error(`Unable to validate Terraform variables.tf.`);
-    return false;
+    throw new Error(`Unable to validate Terraform ${VARIABLES_TF}.`);
   }
-  return true;
 };
 
 /**
@@ -150,35 +134,15 @@ export const validateVariablesTf = async (
  *
  * @param dir Path to the backend.tfvars file
  */
-export const validateBackendTfvars = async (name: string): Promise<boolean> => {
-  const backendConfig = path.join(name, "backend.tfvars");
-  logger.info(backendConfig);
+export const validateBackendTfvars = (dir: string): boolean => {
+  const backendConfig = path.join(dir, BACKEND_TFVARS);
+
   if (fs.existsSync(backendConfig)) {
     logger.info(`A remote backend configuration was found : ${backendConfig}`);
     return true;
-  } else {
-    logger.info(`No remote backend configuration was found.`);
-    return false;
   }
-};
-
-/**
- * Renames any .tfvars file by appending ".backup"
- *
- * @param dir path to template directory
- */
-export const renameTfvars = async (dir: string): Promise<void> => {
-  try {
-    const tfFiles = fs.readdirSync(dir);
-    tfFiles.forEach(file => {
-      if (file === "terraform.tfvars") {
-        fs.renameSync(path.join(dir, file), path.join(dir, file + ".backup"));
-      }
-    });
-  } catch (err) {
-    logger.error(`Unable to rename .tfvars files.`);
-    logger.error(err);
-  }
+  logger.info(`No remote backend configuration was found.`);
+  return false;
 };
 
 /**
@@ -191,14 +155,14 @@ export const copyTfTemplate = async (
   templatePath: string,
   envName: string,
   generation: boolean
-): Promise<boolean> => {
+) => {
   try {
     if (generation === true) {
       await fsextra.copy(templatePath, envName, {
         filter: file => {
           if (
             file.indexOf("terraform.tfvars") !== -1 ||
-            file.indexOf("backend.tfvars") !== -1
+            file.indexOf(BACKEND_TFVARS) !== -1
           ) {
             return false;
           }
@@ -221,10 +185,8 @@ export const copyTfTemplate = async (
     logger.error(
       `Unable to find Terraform environment. Please check template path.`
     );
-    logger.error(err);
-    return false;
+    throw err;
   }
-  return true;
 };
 
 /**
@@ -232,10 +194,10 @@ export const copyTfTemplate = async (
  *
  * @param envPath path so the directory of Terraform templates
  */
-export const removeTemplateFiles = async (envPath: string) => {
+export const removeTemplateFiles = (envPath: string) => {
   // Remove template files after parsing
   try {
-    const files = await fs.readdirSync(envPath);
+    const files = fs.readdirSync(envPath);
     files
       .filter(f => f !== DEFINITION_YAML)
       .forEach(f => {
@@ -243,6 +205,7 @@ export const removeTemplateFiles = async (envPath: string) => {
       });
   } catch (e) {
     logger.error(`cannot read ${envPath}`);
+    // TOFIX: I guess we are ok with files not removed.
   }
 };
 
@@ -266,13 +229,13 @@ export const removeTemplateFiles = async (envPath: string) => {
  *
  * @param {string} data string containing the contents of a variable.tf file
  */
-export const parseVariablesTf = (data: string) => {
+export const parseVariablesTf = (data: string): { [key: string]: string } => {
   // split the input on the keyword 'variable'
   const splitRegex = /^variable/gm;
   const blocks = data.split(splitRegex);
   // iterate through each 'block' and extract the variable name and any possible
   // default value.  if no default value found, null is used in it's place
-  const fields: { [name: string]: string | "" } = {};
+  const fields: { [key: string]: string } = {};
   const fieldSplitRegex = /\"\s{0,}\{/;
   const defaultRegex = /default\s{0,}=\s{0,}(.*)/;
   blocks.forEach(b => {
@@ -303,8 +266,10 @@ export const parseVariablesTf = (data: string) => {
  *
  * @param backendTfvarData path to the directory of backend.tfvars
  */
-export const parseBackendTfvars = (backendData: string) => {
-  const backend: { [name: string]: string | "" } = {};
+export const parseBackendTfvars = (
+  backendData: string
+): { [key: string]: string } => {
+  const backend: { [key: string]: string | "" } = {};
   const block = backendData.replace(/\=/g, ":").split("\n");
   block.forEach(b => {
     const elt = b.split(":");
@@ -320,36 +285,32 @@ export const parseBackendTfvars = (backendData: string) => {
 /**
  * Generates cluster definition as definition object
  *
- * @param name name of destination directory
- * @param source git url of source repo
- * @param template name of Terraform environment
- * @param version a tag/branch/release of source repo
+ * @param values Values from command line
  * @param backendTfvars path to directory that contains backend.tfvars
  * @param vartfData path to the variables.tf file
  */
-export const generateClusterDefinition = async (
-  name: string,
-  source: string,
-  template: string,
-  version: string,
+export const generateClusterDefinition = (
+  values: ICommandOptions,
   backendData: string,
   vartfData: string
-) => {
-  const fields: { [name: string]: string | null } = parseVariablesTf(vartfData);
-  const def: { [name: string]: string | null | any } = {
-    name,
-    source,
-    template,
-    version
+): { [key: string]: string | { [key: string]: string } } => {
+  const fields = parseVariablesTf(vartfData);
+
+  // map of string to string or map of string to string
+  const def: { [key: string]: string | { [key: string]: string } } = {
+    name: values.name,
+    source: values.source,
+    template: values.template,
+    version: values.version
   };
   if (backendData !== "") {
     const backend = parseBackendTfvars(backendData);
     def.backend = backend;
   }
   if (Object.keys(fields).length > 0) {
-    const fieldDict: { [name: string]: string | null } = {};
+    const fieldDict: { [key: string]: string } = {};
     Object.keys(fields).forEach(key => {
-      fieldDict[key] = fields[key] ? fields[key] : "<insert value>";
+      fieldDict[key] = fields[key] || "<insert value>";
     });
     def.variables = fieldDict;
   }
@@ -360,45 +321,30 @@ export const generateClusterDefinition = async (
  * Given a Bedrock template, source URL, and version, this function creates a
  * primary base definition for generating cluster definitions from.
  *
- * @param name Name of the cluster definition
- * @param bedrockSource The source repo for the bedrock definition
- * @param bedrockVersion The version of the repo used
- * @param tfVariableFile Path to the variable file to parse
+ * @param values Values from command line
  */
-export const scaffold = async (
-  name: string,
-  bedrockSource: string,
-  bedrockVersion: string,
-  template: string
-): Promise<boolean> => {
+export const scaffold = async (values: ICommandOptions) => {
   try {
-    const tfVariableFile = path.join(name, "variables.tf");
-    const backendTfvarsFile = path.join(name, "backend.tfvars");
-    const backendBool = await validateBackendTfvars(name);
-    let backendData = "";
-    if (backendBool === true) {
-      backendData = fs.readFileSync(backendTfvarsFile, "utf8");
-    }
+    const tfVariableFile = path.join(values.name, VARIABLES_TF);
+    const backendTfvarsFile = path.join(values.name, BACKEND_TFVARS);
+
+    const backendData = validateBackendTfvars(values.name)
+      ? fs.readFileSync(backendTfvarsFile, "utf8")
+      : "";
+
     // Identify which environment the user selected
     if (fs.existsSync(tfVariableFile)) {
-      logger.info(`A variables.tf file found : ${tfVariableFile}`);
+      logger.info(`A ${VARIABLES_TF} file found : ${tfVariableFile}`);
+
       const data: string = fs.readFileSync(tfVariableFile, "utf8");
+
       if (data) {
-        const baseDef: {
-          [name: string]: string | null | any;
-        } = await generateClusterDefinition(
-          name,
-          bedrockSource,
-          template,
-          bedrockVersion,
-          backendData,
-          data
-        );
+        const baseDef = generateClusterDefinition(values, backendData, data);
         const definitionYaml = yaml.safeDump(baseDef);
         if (baseDef) {
           const confPath: string = path.format({
             base: DEFINITION_YAML,
-            dir: name,
+            dir: values.name,
             root: "/ignored"
           });
           fs.writeFileSync(confPath, definitionYaml, "utf8");
@@ -411,7 +357,6 @@ export const scaffold = async (
     }
   } catch (err) {
     logger.warn("Unable to create scaffold");
-    logger.error(err);
+    throw err;
   }
-  return false;
 };

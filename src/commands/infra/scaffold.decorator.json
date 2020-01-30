@@ -1,0 +1,31 @@
+{
+  "command": "scaffold",
+  "alias": "s",
+  "description": "Create initial scaffolding for cluster deployment.",
+  "options": [
+    {
+      "arg": "-n, --name <name>",
+      "description": "Cluster name for scaffolding",
+      "required": true,
+      "defaultValue": ""
+    },
+    {
+      "arg": "-s, --source <cluster definition github repo>",
+      "description": "Source URL for the repository containing the terraform deployment",
+      "required": false,
+      "defaultValue": ""
+    },
+    {
+      "arg": "-v, --version <repository version>",
+      "description": "Version or tag for the repository so a fixed version is referenced",
+      "required": true,
+      "defaultValue": ""
+    },
+    {
+      "arg": "-t, --template <path to variables.tf> ",
+      "description": "Location of the variables.tf for the terraform deployment",
+      "required": true,
+      "defaultValue": ""
+    }
+  ]
+}

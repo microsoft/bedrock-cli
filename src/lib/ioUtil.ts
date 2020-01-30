@@ -23,15 +23,26 @@ export const createTempDir = (parent?: string): string => {
  * @param dir Directory name
  */
 export const removeDir = (dir: string) => {
-  fs.readdirSync(dir).forEach(item => {
-    const curPath = path.join(dir, item);
+  const folder = path.resolve(dir);
+  fs.readdirSync(folder).forEach(item => {
+    const curPath = path.join(folder, item);
     if (fs.statSync(curPath).isDirectory()) {
       removeDir(curPath);
     } else {
       fs.unlinkSync(curPath);
     }
   });
-  fs.rmdirSync(dir);
+  fs.rmdirSync(folder);
+};
+
+/**
+ * Returns true if directory is empty.
+ *
+ * @param dir Directory to be inspected.
+ * @return true if directory is empty.
+ */
+export const isDirEmpty = (dir: string): boolean => {
+  return fs.readdirSync(dir).length === 0;
 };
 
 /**
@@ -52,5 +63,6 @@ export const getMissingFilenames = (
     )
     .filter(
       f => !fs.existsSync(f) // keep those files that do not exist
-    );
+    )
+    .map(f => path.basename(f));
 };
