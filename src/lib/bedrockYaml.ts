@@ -70,7 +70,10 @@ export const read = (dir: string): IBedrockFile => {
  * @param svcDisplayName Service Display Name
  * @param helmConfig Helm Configuration
  * @param middlewares List of middlewares
- * @param k8sServicePort Kubernetes Service Port
+ * @param k8sBackendPort Kubernetes Service Port
+ * @param k8sBackend Kubernetes Backend Service name
+ * @param pathPrefix Pathprefix for IngressRoute
+ * @param pathPrefixMajorVersion PathPrefix major version
  */
 export const addNewService = (
   dir: string,
@@ -78,7 +81,10 @@ export const addNewService = (
   svcDisplayName: string,
   helmConfig: IHelmConfig,
   middlewares: string[],
-  k8sServicePort: number
+  k8sBackendPort: number,
+  k8sBackend: string,
+  pathPrefix: string,
+  pathPrefixMajorVersion: string
 ) => {
   const absPath = path.resolve(dir);
   const data = read(absPath);
@@ -86,8 +92,11 @@ export const addNewService = (
   data.services["./" + newServicePath] = {
     displayName: svcDisplayName,
     helm: helmConfig,
-    k8sServicePort,
-    middlewares
+    k8sBackend,
+    k8sBackendPort,
+    middlewares,
+    pathPrefix,
+    pathPrefixMajorVersion
   };
 
   const asYaml = yaml.safeDump(data, {

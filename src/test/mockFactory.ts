@@ -67,15 +67,15 @@ export const createTestBedrockYaml = (
     services: {
       "./": {
         helm: service1HelmConfig,
-        k8sServicePort: 80
+        k8sBackendPort: 80
       },
       "./packages/service1": {
         helm: service2HelmConfig,
-        k8sServicePort: 80
+        k8sBackendPort: 80
       },
       "./zookeeper": {
         helm: zookeeperHelmConfig,
-        k8sServicePort: 80
+        k8sBackendPort: 80
       }
     },
     variableGroups: []

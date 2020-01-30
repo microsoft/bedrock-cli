@@ -52,7 +52,7 @@ describe("initializing an existing file does not modify it", () => {
               sha: "bar"
             }
           },
-          k8sServicePort: 1337
+          k8sBackendPort: 1337
         }
       }
     };

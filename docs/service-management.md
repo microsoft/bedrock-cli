@@ -49,14 +49,38 @@ Options:
   -e, --maintainer-email <maintainer-email>                   The email of the primary maintainer for this service. (default: "maintainer email")
   --git-push                                                  SPK CLI will try to commit and push these changes to a new origin/branch named after the service. (default: false)
   --middlewares <comma-delimitated-list-of-middleware-names>  Traefik2 middlewares you wish to to be injected into your Traefik2 IngressRoutes (default: "")
-  --k8s-service-port <port>                                   Kubernetes service port which this service is exposed with; will be used to configure Traefik2 IngressRoutes (default: "80")
-  -h, --help                                                  output usage information
+  --k8s-backend-port <port>                                   Kubernetes backend service port which this service is exposed with; will be used to configure Traefik2 IngressRoutes (default: "80")
+  --k8s-backend <backend>                                     Kubernetes backend service name; will be used to configure Traefik2 IngressRoutes (default: "")
+  --path-prefix <path-prefix>                                 The path prefix for ingress route; will be used to configure Traefik2 IngressRoutes. If omitted, then the service name will used. (default: "")
+  --path-prefix-major-version <path-prefix-major-version>     Version to be used in the path prefix; will be used to configure Traefik2 IngressRoutes. ie. 'v1' will result in a path prefix of '/v1/servicename (default: "")
+  -h, --help                                                  output usage information                                            output usage information
 ```
 
-**NOTE:**
+**NOTES:**
 
-`--helm-chart-*` and `--helm-config-*` settings are exclusive. **You may only
-use one.**
+- `--helm-chart-*` and `--helm-config-*` settings are exclusive. **You may only
+  use one.**
+- `--middlewares`, `--k8s-backend-port`, `--path-prefix`,
+  `--path-prefix-major-version`, and `--k8s-backend` are all used to configure
+  the generated Traefik2 IngressRoutes. ie.
+  `spk service create my-example-documents-service --middlewares middlewareA --k8s-backend-port 3001 --k8s-backend docs-service --path-prefix documents --path-prefix-major-version v2`
+  will result in an IngressRoute that looks like:
+  ```
+  apiVersion: traefik.containo.us/v1alpha1
+  kind: IngressRoute
+  metadata:
+    name: my-example-documents-service-master
+  spec:
+    routes:
+      - kind: Rule
+        match: 'PathPrefix(`/v2/documents`) && Headers(`Ring`, `master`)'
+        middlewares:
+          - name: my-example-documents-service-master
+          - name: middlewareA
+        services:
+          - name: docs-service
+            port: 3001
+  ```
 
 ### install-build-pipeline
 

@@ -47,7 +47,10 @@ describe("Adding a new service to a Bedrock file", () => {
       }
     };
     const traefikMiddlewares = ["foo", "bar"];
-    const k8sServicePort = 8080;
+    const k8sBackendPort = 8080;
+    const k8sBackend = "mybackendservice";
+    const pathPrefix = "ingressprefix";
+    const pathPrefixMajorVersion = "v2";
 
     const defaultBedrockFileObject = createTestBedrockYaml(
       false
@@ -62,7 +65,10 @@ describe("Adding a new service to a Bedrock file", () => {
       svcDisplayName,
       helmConfig,
       traefikMiddlewares,
-      k8sServicePort
+      k8sBackendPort,
+      k8sBackend,
+      pathPrefix,
+      pathPrefixMajorVersion
     );
 
     const expected: IBedrockFile = {
@@ -72,8 +78,11 @@ describe("Adding a new service to a Bedrock file", () => {
         ["./" + servicePath]: {
           displayName: svcDisplayName,
           helm: helmConfig,
-          k8sServicePort,
-          middlewares: traefikMiddlewares
+          k8sBackend,
+          k8sBackendPort,
+          middlewares: traefikMiddlewares,
+          pathPrefix,
+          pathPrefixMajorVersion
         }
       },
       variableGroups: []

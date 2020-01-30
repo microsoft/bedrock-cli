@@ -88,9 +88,24 @@ export const createCommandDecorator = (command: commander.Command): void => {
       ""
     )
     .option(
-      "--k8s-service-port <port>",
-      "Kubernetes service port which this service is exposed with; will be used to configure Traefik2 IngressRoutes",
+      "--k8s-backend-port <port>",
+      "Kubernetes backend service port which this service is exposed with; will be used to configure Traefik2 IngressRoutes",
       "80"
+    )
+    .option(
+      "--k8s-backend <backend>",
+      "Kubernetes backend service name; will be used to configure Traefik2 IngressRoutes",
+      ""
+    )
+    .option(
+      "--path-prefix <path-prefix>",
+      "The path prefix for ingress route; will be used to configure Traefik2 IngressRoutes. If omitted, then the service name will used.",
+      ""
+    )
+    .option(
+      "--path-prefix-major-version <path-prefix-major-version>",
+      "Version to be used in the path prefix; will be used to configure Traefik2 IngressRoutes. ie. 'v1' will result in a path prefix of '/v1/servicename",
+      ""
     )
     .action(async (serviceName, opts) => {
       const projectPath = process.cwd();
@@ -115,12 +130,15 @@ export const createCommandDecorator = (command: commander.Command): void => {
         helmConfigBranch,
         helmConfigGit,
         helmConfigPath,
+        k8sBackend,
         maintainerEmail,
         maintainerName,
         middlewares,
-        packagesDir
+        packagesDir,
+        pathPrefix,
+        pathPrefixMajorVersion
       } = opts;
-      const k8sPort = Number(opts.k8sServicePort);
+      const k8sPort = Number(opts.k8sBackendPort);
       const variableGroups = bedrock?.variableGroups;
 
       try {
@@ -138,7 +156,10 @@ export const createCommandDecorator = (command: commander.Command): void => {
             middlewares,
             gitPush,
             displayName,
-            k8sPort
+            k8sPort,
+            pathPrefix,
+            pathPrefixMajorVersion,
+            k8sBackend
           )
         ) {
           throw Error(`Invalid configuration provided`);
@@ -157,11 +178,14 @@ export const createCommandDecorator = (command: commander.Command): void => {
             helmConfigBranch,
             helmConfigGit,
             helmConfigPath,
+            k8sBackend,
             maintainerEmail,
             maintainerName,
             middlewares: (middlewares as string)
               .split(",")
               .map(str => str.trim()),
+            pathPrefix,
+            pathPrefixMajorVersion,
             variableGroups
           }
         );
@@ -177,17 +201,23 @@ export const createCommandDecorator = (command: commander.Command): void => {
 
 /**
  * Validates the pipeline configuration
- * @param helmChartChart Helm chart chart
- * @param helmChartRepository  Helm chart repository
- * @param helmConfigBranch Helm chart branch
- * @param helmConfigGit Helm git
- * @param helmConfigPath Helm config path
- * @param serviceName Service name
- * @param packagesDir Packages directory
- * @param maintainerName Name of maintainer
- * @param maintainerEmail Email of maintainer
- * @param middlewares comma-delimitated list of Traefik2 middlewares
- * @param gitPush Push to git
+ *
+ * @param helmChartChart
+ * @param helmChartRepository
+ * @param helmConfigBranch
+ * @param helmConfigGit
+ * @param helmConfigPath
+ * @param serviceName
+ * @param packagesDir
+ * @param maintainerName
+ * @param maintainerEmail
+ * @param middlewares
+ * @param gitPush
+ * @param displayName
+ * @param k8sPort
+ * @param pathPrefix
+ * @param pathPrefixMajorVersion
+ * @param k8sBackend
  */
 export const isValidConfig = (
   helmChartChart: any,
@@ -202,7 +232,10 @@ export const isValidConfig = (
   middlewares: any,
   gitPush: any,
   displayName: any,
-  k8sPort: any
+  k8sPort: any,
+  pathPrefix?: any,
+  pathPrefixMajorVersion?: any,
+  k8sBackend?: any
 ): boolean => {
   const missingConfig = [];
 
@@ -277,6 +310,21 @@ export const isValidConfig = (
       `k8s-port must be a positive integer, parsed ${k8sPort} from input.`
     );
   }
+  if (typeof k8sBackend !== "string") {
+    missingConfig.push(
+      `k8s-backend must be of type 'string', ${typeof k8sBackend} given.`
+    );
+  }
+  if (typeof pathPrefix !== "string") {
+    missingConfig.push(
+      `pathPrefix must be of type 'string', ${typeof pathPrefix} given.`
+    );
+  }
+  if (typeof pathPrefixMajorVersion !== "string") {
+    missingConfig.push(
+      `path-prefix-major-version must be of type 'string', ${typeof pathPrefixMajorVersion} given.`
+    );
+  }
 
   if (missingConfig.length > 0) {
     logger.error("Error in configuration: " + missingConfig.join(" "));
@@ -291,6 +339,9 @@ export const isValidConfig = (
  *
  * @param rootProjectPath
  * @param serviceName
+ * @param packagesDir
+ * @param gitPush
+ * @param k8sBackendPort
  * @param opts
  */
 export const createService = async (
@@ -298,7 +349,7 @@ export const createService = async (
   serviceName: string,
   packagesDir: string,
   gitPush: boolean,
-  k8sServicePort: number,
+  k8sBackendPort: number,
   opts?: {
     displayName?: string;
     helmChartChart?: string;
@@ -306,10 +357,13 @@ export const createService = async (
     helmConfigBranch?: string;
     helmConfigGit?: string;
     helmConfigPath?: string;
+    k8sBackend?: string;
     maintainerEmail?: string;
     maintainerName?: string;
-    variableGroups?: string[];
     middlewares?: string[];
+    pathPrefix?: string;
+    pathPrefixMajorVersion?: string;
+    variableGroups?: string[];
   }
 ) => {
   const {
@@ -319,10 +373,13 @@ export const createService = async (
     helmConfigBranch = "",
     helmConfigPath = "",
     helmConfigGit = "",
+    k8sBackend = "",
     maintainerName = "",
     maintainerEmail = "",
     middlewares = [],
-    variableGroups = []
+    variableGroups = [],
+    pathPrefix = "",
+    pathPrefixMajorVersion = ""
   } = opts ?? {};
 
   logger.info(
@@ -390,7 +447,10 @@ export const createService = async (
     displayName,
     helmConfig,
     middlewares,
-    k8sServicePort
+    k8sBackendPort,
+    k8sBackend,
+    pathPrefix,
+    pathPrefixMajorVersion
   );
 
   // If requested, create new git branch, commit, and push

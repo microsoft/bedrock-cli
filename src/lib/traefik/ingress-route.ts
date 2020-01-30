@@ -48,25 +48,43 @@ interface ITraefikIngressRoute {
  *
  * @param serviceName name of the service to create the IngressRoute for
  * @param ringName name of the ring to which the service belongs
- * @param opts options to specify the manifest namespace and IngressRoute entryPoints
+ * @param opts options to specify the manifest namespace, IngressRoute entryPoints, pathPrefix, backend service, and version
  */
 export const TraefikIngressRoute = (
   serviceName: string,
   ringName: string,
   servicePort: number,
   opts?: {
+    entryPoints?: TraefikEntryPoints;
+    k8sBackend?: string;
     middlewares?: string[];
     namespace?: string;
-    entryPoints?: TraefikEntryPoints;
+    pathPrefix?: string;
+    pathPrefixMajorVersion?: string;
   }
 ): ITraefikIngressRoute => {
-  const { entryPoints, middlewares = [], namespace } = opts ?? {};
+  const {
+    entryPoints,
+    k8sBackend,
+    middlewares = [],
+    namespace,
+    pathPrefix,
+    pathPrefixMajorVersion
+  } = opts ?? {};
   const name = !!ringName ? `${serviceName}-${ringName}` : serviceName;
-  const routeMatchPathPrefix = `PathPrefix(\`/${serviceName}\`)`;
+
+  const versionPath = pathPrefixMajorVersion
+    ? `/${pathPrefixMajorVersion}`
+    : "";
+  const path = pathPrefix ?? serviceName;
+
+  const routeMatchPathPrefix = `PathPrefix(\`${versionPath}/${path}\`)`;
   const routeMatchHeaders = ringName && `Headers(\`Ring\`, \`${ringName}\`)`; // no 'X-' prefix for header: https://tools.ietf.org/html/rfc6648
   const routeMatch = [routeMatchPathPrefix, routeMatchHeaders]
     .filter(matchRule => !!matchRule)
     .join(" && ");
+
+  const backendService = k8sBackend ?? name;
 
   return {
     apiVersion: "traefik.containo.us/v1alpha1",
@@ -86,7 +104,7 @@ export const TraefikIngressRoute = (
           })),
           services: [
             {
-              name,
+              name: backendService,
               port: servicePort
             }
           ]

@@ -67,9 +67,8 @@ export const initialize = async (
   logger.info(`Initializing project Bedrock project ${absProjectRoot}`);
 
   const defaultRing = opts ? [opts.defaultRing] : [];
-  // Initialize all paths
-  await generateBedrockFile(absProjectRoot, [], defaultRing);
-  await generateMaintainersFile(absProjectRoot, []); // TOFIX: packagePaths is hardcoded to []
+  await generateBedrockFile(absProjectRoot, defaultRing);
+  await generateMaintainersFile(absProjectRoot, []);
   await generateHldLifecyclePipelineYaml(absProjectRoot);
   generateGitIgnoreFile(absProjectRoot, "spk.log");
 
@@ -157,14 +156,12 @@ const generateMaintainersFile = async (
  */
 const generateBedrockFile = async (
   projectPath: string,
-  packagePaths: string[],
   defaultRings: string[] = []
 ) => {
   const absProjectPath = path.resolve(projectPath);
-  const absPackagePaths = packagePaths.map(p => path.resolve(p));
   logger.info(`Generating bedrock.yaml file in ${absProjectPath}`);
 
-  const base: IBedrockFile = {
+  const baseBedrockFile: IBedrockFile = {
     rings: defaultRings.reduce<{ [ring: string]: { isDefault: boolean } }>(
       (defaults, ring) => {
         defaults[ring] = { isDefault: true };
@@ -175,31 +172,6 @@ const generateBedrockFile = async (
     services: {}
   };
 
-  // Populate bedrock file
-  const bedrockFile = absPackagePaths.reduce<IBedrockFile>(
-    (file, absPackagePath) => {
-      const relPathToPackageFromRoot = path.relative(
-        absProjectPath,
-        absPackagePath
-      );
-
-      const helm: IHelmConfig = {
-        chart: {
-          branch: "",
-          git: "",
-          path: ""
-        }
-      };
-
-      file.services["./" + relPathToPackageFromRoot] = {
-        helm,
-        k8sServicePort: 80
-      };
-      return file;
-    },
-    base
-  );
-
   // Check if a bedrock.yaml already exists; skip write if present
   const bedrockFilePath = path.join(absProjectPath, "bedrock.yaml");
   if (fs.existsSync(bedrockFilePath)) {
@@ -208,6 +180,6 @@ const generateBedrockFile = async (
     );
   } else {
     // Write out
-    write(bedrockFile, absProjectPath);
+    write(baseBedrockFile, absProjectPath);
   }
 };
