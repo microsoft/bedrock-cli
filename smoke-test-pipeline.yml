@@ -7,13 +7,12 @@ schedules:
   displayName: M-F 7:00PM (UTC - 8:00) Pacific daily build
   always: true
 
-variables:
-- group: 'spk-vg'
-
 stages:
 - stage: integration_tests
   jobs:
   - job: rings_integration_tests
+    variables:
+    - group: 'spk-vg'
     pool:
       vmImage: 'Ubuntu 16.04'
     steps:
@@ -90,6 +89,8 @@ stages:
         artifact: test_logs
       condition: always()
   - job: infra_integration_tests
+    variables:
+    - group: 'spk-vg-testing'
     pool:
       vmImage: 'Ubuntu 16.04'
     steps:
@@ -103,7 +104,7 @@ stages:
         itemPattern: "spk*"
         artifactName: 'spk_linux_node_12'
         targetPath: '$(System.DefaultWorkingDirectory)'
-    - bash: |in 
+    - bash: | 
         shopt -s expand_aliases
         echo "Current Dir is $(pwd)"
         chmod +x spk-linux
