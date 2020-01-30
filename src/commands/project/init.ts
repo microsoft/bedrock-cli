@@ -19,12 +19,12 @@ interface ICommandOptions {
 
 export const execute = async (
   opts: ICommandOptions,
+  projectPath: string,
   exitFn: (status: number) => Promise<void>
 ) => {
   // defaultRing shall always have value (not undefined nor null)
   // because it has default value as "master"
   const defaultRing = opts.defaultRing;
-  const projectPath = process.cwd();
 
   try {
     const _ = Bedrock(); // TOFIX: Is this to check if Bedrock config exist?
@@ -44,7 +44,7 @@ export const execute = async (
 
 export const commandDecorator = (command: commander.Command): void => {
   buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
-    await execute(opts, async (status: number) => {
+    await execute(opts, process.cwd(), async (status: number) => {
       await exitCmd(logger, process.exit, status);
     });
   });
