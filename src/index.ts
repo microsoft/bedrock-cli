@@ -23,6 +23,8 @@ import { projectCommand } from "./commands/project";
 import { serviceCommand } from "./commands/service";
 import { variableGroupCommand } from "./commands/variable-group";
 
+(process as any).noDeprecation = true;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Instantiate core command object
 ////////////////////////////////////////////////////////////////////////////////
