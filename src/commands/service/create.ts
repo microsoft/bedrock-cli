@@ -1,16 +1,17 @@
 import commander from "commander";
 import path from "path";
 import shelljs from "shelljs";
-import { Bedrock, bedrockFileInfo } from "../../config";
-import {
-  projectCvgDependencyErrorMessage,
-  projectInitCvgDependencyErrorMessage
-} from "../../constants";
+import { Bedrock } from "../../config";
 import {
   addNewService as addNewServiceToBedrockFile,
+  fileInfo as bedrockFileInfo,
   YAML_NAME as BedrockFileName
 } from "../../lib/bedrockYaml";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
+import {
+  PROJECT_CVG_DEPENDENCY_ERROR_MESSAGE,
+  PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE
+} from "../../lib/constants";
 import {
   addNewServiceToMaintainersFile,
   generateDockerfile,
@@ -88,6 +89,15 @@ export const fetchValues = (opts: ICommandOptions) => {
   return values;
 };
 
+export const checkDependencies = (projectPath: string) => {
+  const fileInfo: IBedrockFileInfo = bedrockFileInfo(projectPath);
+  if (fileInfo.exist === false) {
+    throw new Error(PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE);
+  } else if (fileInfo.hasVariableGroups === false) {
+    throw new Error(PROJECT_CVG_DEPENDENCY_ERROR_MESSAGE);
+  }
+};
+
 export const execute = async (
   serviceName: string,
   opts: ICommandOptions,
@@ -103,19 +113,7 @@ export const execute = async (
   logger.verbose(`project path: ${projectPath}`);
 
   try {
-    const fileInfo: IBedrockFileInfo = await bedrockFileInfo(projectPath);
-    if (fileInfo.exist === false) {
-      logger.error(projectInitCvgDependencyErrorMessage());
-      await exitFn(1);
-      return;
-    }
-
-    if (fileInfo.hasVariableGroups === false) {
-      logger.error(projectCvgDependencyErrorMessage());
-      await exitFn(1);
-      return;
-    }
-
+    checkDependencies(projectPath);
     const values = fetchValues(opts);
     await createService(projectPath, serviceName, values);
     await exitFn(0);

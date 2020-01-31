@@ -4,6 +4,7 @@ import { promisify } from "util";
 import uuid from "uuid/v4";
 import { Bedrock } from "../../config";
 import * as config from "../../config";
+import * as bedrockYaml from "../../lib/bedrockYaml";
 import { DEFAULT_CONTENT as BedrockMockedContent } from "../../lib/bedrockYaml";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import { createTempDir, removeDir } from "../../lib/ioUtil";
@@ -115,12 +116,10 @@ describe("Test execute function", () => {
   it("Negative test: missing bedrock file", async () => {
     const testServiceName = uuid();
     const exitFn = jest.fn();
-    jest.spyOn(config, "bedrockFileInfo").mockImplementation(() =>
-      Promise.resolve({
-        exist: false,
-        hasVariableGroups: false
-      })
-    );
+    jest.spyOn(bedrockYaml, "fileInfo").mockImplementation(() => ({
+      exist: false,
+      hasVariableGroups: false
+    }));
     try {
       await execute(testServiceName, getMockValues(), exitFn);
       expect(exitFn).toBeCalledTimes(1);
@@ -132,26 +131,10 @@ describe("Test execute function", () => {
   it("Negative test: missing bedrock variable groups", async () => {
     const testServiceName = uuid();
     const exitFn = jest.fn();
-    jest.spyOn(config, "bedrockFileInfo").mockImplementation(() =>
-      Promise.resolve({
-        exist: true,
-        hasVariableGroups: false
-      })
-    );
-    try {
-      await execute(testServiceName, getMockValues(), exitFn);
-      expect(exitFn).toBeCalledTimes(1);
-      expect(exitFn.mock.calls).toEqual([[1]]);
-    } finally {
-      removeDir(testServiceName); // housekeeping
-    }
-  });
-  it("Negative test: simulated exception thrown", async () => {
-    const testServiceName = uuid();
-    const exitFn = jest.fn();
-    jest
-      .spyOn(config, "bedrockFileInfo")
-      .mockImplementation(() => Promise.reject());
+    jest.spyOn(bedrockYaml, "fileInfo").mockImplementation(() => ({
+      exist: true,
+      hasVariableGroups: false
+    }));
     try {
       await execute(testServiceName, getMockValues(), exitFn);
       expect(exitFn).toBeCalledTimes(1);

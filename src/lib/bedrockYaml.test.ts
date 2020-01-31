@@ -1,3 +1,4 @@
+import uuid from "uuid/v4";
 import { createTempDir } from "../lib/ioUtil";
 import { createTestBedrockYaml } from "../test/mockFactory";
 import { IBedrockFile, IHelmConfig } from "../types";
@@ -5,6 +6,7 @@ import {
   addNewService,
   create,
   DEFAULT_CONTENT,
+  fileInfo,
   isExists,
   read
 } from "./bedrockYaml";
@@ -89,5 +91,35 @@ describe("Adding a new service to a Bedrock file", () => {
     };
 
     expect(read(dir)).toEqual(expected);
+  });
+});
+
+describe("Bedrock file info", () => {
+  it("Should File exist and hasVariableGroups both be false", () => {
+    const dir = createTempDir();
+    const file = fileInfo(dir);
+    expect(file.exist).toEqual(false);
+    expect(file.hasVariableGroups).toEqual(false);
+  });
+
+  it("Should File exist be true and hasVariableGroups be false", () => {
+    const dir = createTempDir();
+    create(dir);
+    const file = fileInfo(dir);
+    expect(file.exist).toEqual(true);
+    expect(file.hasVariableGroups).toEqual(false);
+  });
+
+  it("Should File exist be true and hasVariableGroups be true", () => {
+    const dir = createTempDir();
+    const data = {
+      rings: {},
+      services: {},
+      variableGroups: [uuid()]
+    };
+    create(dir, data);
+    const file = fileInfo(dir);
+    expect(file.exist).toEqual(true);
+    expect(file.hasVariableGroups).toEqual(true);
   });
 });

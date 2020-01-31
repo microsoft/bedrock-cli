@@ -1,6 +1,10 @@
 import { create as createBedrockYaml } from "../../lib/bedrockYaml";
 import { createTempDir } from "../../lib/ioUtil";
-import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
+import {
+  disableVerboseLogging,
+  enableVerboseLogging,
+  logger
+} from "../../logger";
 jest.mock("../../lib/pipelines/pipelines");
 
 import {
@@ -10,11 +14,11 @@ import {
 } from "../../lib/pipelines/pipelines";
 
 import {
+  checkDependencies,
   execute,
   fetchValidateValues,
   ICommandOptions,
-  installLifecyclePipeline,
-  validate
+  installLifecyclePipeline
 } from "./pipeline";
 
 beforeAll(() => {
@@ -48,10 +52,10 @@ const mockMissingValues: ICommandOptions = {
 const gitUrl = "https://github.com/CatalystCode/spk.git";
 
 describe("test valid function", () => {
-  it("negative test", () => {
+  it("negative test", async () => {
     try {
       const tmpDir = createBedrockYaml();
-      validate(tmpDir);
+      await checkDependencies(tmpDir);
       expect(true).toBe(false);
     } catch (e) {
       expect(e).not.toBeNull();

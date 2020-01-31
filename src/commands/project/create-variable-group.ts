@@ -2,19 +2,14 @@ import { VariableGroup } from "azure-devops-node-api/interfaces/ReleaseInterface
 import commander from "commander";
 import path from "path";
 import { echo } from "shelljs";
-import {
-  Bedrock,
-  bedrockFileInfo,
-  Config,
-  readYaml,
-  write
-} from "../../config";
-import { projectInitDependencyErrorMessage } from "../../constants";
+import { Bedrock, Config, readYaml, write } from "../../config";
+import { fileInfo as bedrockFileInfo } from "../../lib/bedrockYaml";
 import {
   build as buildCmd,
   exit as exitCmd,
   validateForRequiredValues
 } from "../../lib/commandBuilder";
+import { PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE } from "../../lib/constants";
 import { IAzureDevOpsOpts } from "../../lib/git";
 import { addVariableGroup } from "../../lib/pipelines/variableGroup";
 import { hasValue } from "../../lib/validator";
@@ -22,6 +17,7 @@ import { logger } from "../../logger";
 import {
   IAzurePipelinesYaml,
   IBedrockFile,
+  IBedrockFileInfo,
   IVariableGroupData,
   IVariableGroupDataVariable
 } from "../../types";
@@ -38,6 +34,13 @@ interface ICommandOptions {
   personalAccessToken: string | undefined;
   project: string | undefined;
 }
+
+export const checkDependencies = (projectPath: string) => {
+  const fileInfo: IBedrockFileInfo = bedrockFileInfo(projectPath);
+  if (fileInfo.exist === false) {
+    throw new Error(PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE);
+  }
+};
 
 /**
  * Executes the command.
@@ -59,12 +62,7 @@ export const execute = async (
     const projectPath = process.cwd();
     logger.verbose(`project path: ${projectPath}`);
 
-    const fileInfo = await bedrockFileInfo(projectPath);
-    if (fileInfo.exist === false) {
-      logger.error(projectInitDependencyErrorMessage);
-      await exitFn(1);
-      return;
-    }
+    checkDependencies(projectPath);
 
     const { azure_devops } = Config();
 

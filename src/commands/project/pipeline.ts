@@ -4,17 +4,17 @@ import {
   BuildDefinitionVariable
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
-import { bedrockFileInfo, Config } from "../../config";
-import {
-  projectCvgDependencyErrorMessage,
-  projectInitCvgDependencyErrorMessage
-} from "../../constants";
-import { isExists as isBedrockFileExists } from "../../lib/bedrockYaml";
+import { Config } from "../../config";
+import { fileInfo as bedrockFileInfo } from "../../lib/bedrockYaml";
 import {
   build as buildCmd,
   exit as exitCmd,
   validateForRequiredValues
 } from "../../lib/commandBuilder";
+import {
+  PROJECT_CVG_DEPENDENCY_ERROR_MESSAGE,
+  PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE
+} from "../../lib/constants";
 import { BUILD_SCRIPT_URL } from "../../lib/constants";
 import {
   getOriginUrl,
@@ -41,12 +41,12 @@ export interface ICommandOptions {
   buildScriptUrl: string | undefined;
 }
 
-export const validate = async (projectPath: string) => {
-  const exist = isBedrockFileExists(projectPath);
-  if (exist === false) {
-    throw new Error(
-      "Please run `spk project init` command before running this command to initialize the project."
-    );
+export const checkDependencies = (projectPath: string) => {
+  const file: IBedrockFileInfo = bedrockFileInfo(projectPath);
+  if (file.exist === false) {
+    throw new Error(PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE);
+  } else if (file.hasVariableGroups === false) {
+    throw new Error(PROJECT_CVG_DEPENDENCY_ERROR_MESSAGE);
   }
 };
 
@@ -113,22 +113,10 @@ export const execute = async (
     return;
   }
 
-  const fileInfo: IBedrockFileInfo = await bedrockFileInfo(projectPath);
-  if (fileInfo.exist === false) {
-    logger.error(projectInitCvgDependencyErrorMessage);
-    await exitFn(1);
-    return;
-  }
-  if (fileInfo.hasVariableGroups === false) {
-    logger.error(projectCvgDependencyErrorMessage);
-    await exitFn(1);
-    return;
-  }
-
   logger.verbose(`project path: ${projectPath}`);
 
   try {
-    await validate(projectPath);
+    checkDependencies(projectPath);
     const gitOriginUrl = await getOriginUrl();
     const values = fetchValidateValues(opts, gitOriginUrl, Config());
 
