@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import uuid from "uuid/v4";
 import {
   createTempDir,
   getMissingFilenames,
@@ -26,6 +27,9 @@ describe("test createTempDir function", () => {
 });
 
 describe("test removeDir", () => {
+  it("non exist directory", () => {
+    removeDir(uuid()); // no exception thrown
+  });
   it("empty directory", () => {
     const name = createTempDir();
     removeDir(name);

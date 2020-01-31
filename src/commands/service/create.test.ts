@@ -1,10 +1,12 @@
 import fs from "fs";
-import os from "os";
 import path from "path";
 import { promisify } from "util";
 import uuid from "uuid/v4";
 import { Bedrock } from "../../config";
+import * as config from "../../config";
+import { DEFAULT_CONTENT as BedrockMockedContent } from "../../lib/bedrockYaml";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
+import { createTempDir, removeDir } from "../../lib/ioUtil";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
@@ -14,7 +16,7 @@ import {
   createTestBedrockYaml,
   createTestMaintainersYaml
 } from "../../test/mockFactory";
-import { createService, isValidConfig } from "./create";
+import { createService, execute, fetchValues, ICommandValues } from "./create";
 jest.mock("../../lib/gitutils");
 
 beforeAll(() => {
@@ -25,38 +27,137 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
-describe("validate pipeline config", () => {
-  const configValues: any[] = [
-    "testHelmChart",
-    "testHelmRepo",
-    "testHelmConfigBranch",
-    "testHelmConfigGit",
-    "/test/path",
-    "testService",
-    "test/packages",
-    "test-maintainer",
-    "test@maintainer.com",
-    "my,middleware,string",
-    true,
-    "testDisplayName",
-    80,
-    "pathPrefix",
-    "version",
-    "backend"
-  ];
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
-  it("config is valid", () => {
-    expect(isValidConfig.apply(undefined, configValues as any)).toBe(true);
+const mockValues: ICommandValues = {
+  displayName: "",
+  gitPush: false,
+  helmChartChart: "",
+  helmChartRepository: "",
+  helmConfigBranch: "",
+  helmConfigGit: "",
+  helmConfigPath: "",
+  k8sBackend: "",
+  k8sBackendPort: "80",
+  k8sPort: 80,
+  maintainerEmail: "",
+  maintainerName: "",
+  middlewares: "",
+  middlewaresArray: [],
+  packagesDir: "",
+  pathPrefix: "",
+  pathPrefixMajorVersion: "",
+  variableGroups: []
+};
+
+const getMockValues = (): ICommandValues => {
+  // TOFIX: if possible, can we use lodash?
+  return JSON.parse(JSON.stringify(mockValues));
+};
+
+const validateDirNFiles = (
+  dir: string,
+  serviceName: string,
+  values: ICommandValues
+) => {
+  // Check temp test directory exists
+  expect(fs.existsSync(dir)).toBe(true);
+
+  // Check service directory exists
+  const serviceDirPath = path.join(dir, values.packagesDir, serviceName);
+  expect(fs.existsSync(serviceDirPath)).toBe(true);
+
+  // Verify new azure-pipelines created
+  const filepaths = ["azure-pipelines.yaml", "Dockerfile"].map(filename =>
+    path.join(serviceDirPath, filename)
+  );
+
+  for (const filepath of filepaths) {
+    expect(fs.existsSync(filepath)).toBe(true);
+  }
+};
+
+describe("Test fetchValues function", () => {
+  it("Negative test: invalid port", () => {
+    const values = getMockValues();
+    values.k8sBackendPort = "abc";
+    try {
+      fetchValues(values);
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeDefined();
+    }
   });
+  it("Postive test: with middlewares value", () => {
+    jest.spyOn(config, "Bedrock").mockReturnValueOnce(BedrockMockedContent);
+    const mocked = getMockValues();
+    mocked.middlewares = "mid1, mid2"; // space after comma is intentional, expecting trimming to happen
+    const result = fetchValues(mocked);
+    expect(result.middlewaresArray).toEqual(["mid1", "mid2"]);
+  });
+  it("Postive test", () => {
+    const mocked = getMockValues();
+    jest.spyOn(config, "Bedrock").mockReturnValueOnce(BedrockMockedContent);
+    const result = fetchValues(mocked);
+    expect(result).toEqual(mocked);
+  });
+});
 
-  it("undefined parameters", () => {
-    for (const i of configValues.keys()) {
-      const configValuesWithInvalidValue = configValues.map((value, j) =>
-        i === j ? undefined : value
-      );
-      expect(
-        isValidConfig.apply(undefined, configValuesWithInvalidValue as any)
-      ).toBe(false);
+describe("Test execute function", () => {
+  it("Negative test: without service name", async () => {
+    const exitFn = jest.fn();
+    await execute("", getMockValues(), exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
+  it("Negative test: missing bedrock file", async () => {
+    const testServiceName = uuid();
+    const exitFn = jest.fn();
+    jest.spyOn(config, "bedrockFileInfo").mockImplementation(() =>
+      Promise.resolve({
+        exist: false,
+        hasVariableGroups: false
+      })
+    );
+    try {
+      await execute(testServiceName, getMockValues(), exitFn);
+      expect(exitFn).toBeCalledTimes(1);
+      expect(exitFn.mock.calls).toEqual([[1]]);
+    } finally {
+      removeDir(testServiceName); // housekeeping
+    }
+  });
+  it("Negative test: missing bedrock variable groups", async () => {
+    const testServiceName = uuid();
+    const exitFn = jest.fn();
+    jest.spyOn(config, "bedrockFileInfo").mockImplementation(() =>
+      Promise.resolve({
+        exist: true,
+        hasVariableGroups: false
+      })
+    );
+    try {
+      await execute(testServiceName, getMockValues(), exitFn);
+      expect(exitFn).toBeCalledTimes(1);
+      expect(exitFn.mock.calls).toEqual([[1]]);
+    } finally {
+      removeDir(testServiceName); // housekeeping
+    }
+  });
+  it("Negative test: simulated exception thrown", async () => {
+    const testServiceName = uuid();
+    const exitFn = jest.fn();
+    jest
+      .spyOn(config, "bedrockFileInfo")
+      .mockImplementation(() => Promise.reject());
+    try {
+      await execute(testServiceName, getMockValues(), exitFn);
+      expect(exitFn).toBeCalledTimes(1);
+      expect(exitFn.mock.calls).toEqual([[1]]);
+    } finally {
+      removeDir(testServiceName); // housekeeping
     }
   });
 });
@@ -65,8 +166,7 @@ describe("Adding a service to a repo directory", () => {
   let randomTmpDir: string = "";
   beforeEach(async () => {
     // Create random directory to initialize
-    randomTmpDir = path.join(os.tmpdir(), uuid());
-    fs.mkdirSync(randomTmpDir);
+    randomTmpDir = createTempDir();
   });
 
   test("New directory is created under root directory with required service files.", async () => {
@@ -75,45 +175,23 @@ describe("Adding a service to a repo directory", () => {
     );
     await writeSampleBedrockFileToDir(path.join(randomTmpDir, "bedrock.yaml"));
 
-    const packageDir = "";
-
+    const values = getMockValues();
+    values.packagesDir = "";
+    values.k8sPort = 1337;
     const serviceName = uuid();
 
     logger.info(
       `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
     );
 
-    // addService call
-    const k8sBackendPort = 1337;
-    await createService(
-      randomTmpDir,
-      serviceName,
-      packageDir,
-      false,
-      k8sBackendPort
-    );
-
-    // Check temp test directory exists
-    expect(fs.existsSync(randomTmpDir)).toBe(true);
-
-    // Check service directory exists
-    const serviceDirPath = path.join(randomTmpDir, packageDir, serviceName);
-    expect(fs.existsSync(serviceDirPath)).toBe(true);
-
-    // Verify new azure-pipelines created
-    const filepaths = ["azure-pipelines.yaml", "Dockerfile"].map(filename =>
-      path.join(serviceDirPath, filename)
-    );
-
-    for (const filepath of filepaths) {
-      expect(fs.existsSync(filepath)).toBe(true);
-    }
+    await createService(randomTmpDir, serviceName, values);
+    validateDirNFiles(randomTmpDir, serviceName, values);
 
     // TODO: Verify root project bedrock.yaml and maintainers.yaml has been changed too.
     const bedrock = Bedrock(randomTmpDir);
     const newService = bedrock.services["./" + serviceName];
     expect(newService).toBeDefined();
-    expect(newService.k8sBackendPort).toBe(k8sBackendPort);
+    expect(newService.k8sBackendPort).toBe(values.k8sPort);
   });
 
   test("New directory is created under '/packages' directory with required service files.", async () => {
@@ -122,32 +200,18 @@ describe("Adding a service to a repo directory", () => {
     );
     await writeSampleBedrockFileToDir(path.join(randomTmpDir, "bedrock.yaml"));
 
-    const packageDir = "packages";
+    const values = getMockValues();
+    values.packagesDir = "packages";
+    values.k8sPort = 1337;
     const serviceName = uuid();
-    const variableGroupName = uuid();
 
     logger.info(
       `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
     );
 
     // addService call
-    await createService(randomTmpDir, serviceName, "packages", false, 1337);
-
-    // Check temp test directory exists
-    expect(fs.existsSync(randomTmpDir)).toBe(true);
-
-    // Check service directory exists
-    const serviceDirPath = path.join(randomTmpDir, packageDir, serviceName);
-    expect(fs.existsSync(serviceDirPath)).toBe(true);
-
-    // Verify new azure-pipelines and Dockerfile created
-    const filepaths = ["azure-pipelines.yaml", "Dockerfile"].map(filename =>
-      path.join(serviceDirPath, filename)
-    );
-
-    for (const filepath of filepaths) {
-      expect(fs.existsSync(filepath)).toBe(true);
-    }
+    await createService(randomTmpDir, serviceName, values);
+    validateDirNFiles(randomTmpDir, serviceName, values);
 
     // TODO: Verify root project bedrock.yaml and maintainers.yaml has been changed too.
   });
@@ -158,32 +222,18 @@ describe("Adding a service to a repo directory", () => {
     );
     await writeSampleBedrockFileToDir(path.join(randomTmpDir, "bedrock.yaml"));
 
-    const packageDir = "packages";
+    const values = getMockValues();
+    values.packagesDir = "packages";
+    values.gitPush = true;
+    values.k8sPort = 1337;
     const serviceName = uuid();
-    const variableGroupName = uuid();
 
     logger.info(
       `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
     );
 
-    // addService call
-    await createService(randomTmpDir, serviceName, "packages", true, 1337);
-
-    // Check temp test directory exists
-    expect(fs.existsSync(randomTmpDir)).toBe(true);
-
-    // Check service directory exists
-    const serviceDirPath = path.join(randomTmpDir, packageDir, serviceName);
-    expect(fs.existsSync(serviceDirPath)).toBe(true);
-
-    // Verify new azure-pipelines and Dockerfile created
-    const filepaths = ["azure-pipelines.yaml", "Dockerfile"].map(filename =>
-      path.join(serviceDirPath, filename)
-    );
-
-    for (const filepath of filepaths) {
-      expect(fs.existsSync(filepath)).toBe(true);
-    }
+    await createService(randomTmpDir, serviceName, values);
+    validateDirNFiles(randomTmpDir, serviceName, values);
 
     expect(checkoutCommitPushCreatePRLink).toHaveBeenCalled();
   });
@@ -194,23 +244,17 @@ describe("Adding a service to a repo directory", () => {
     );
     await writeSampleBedrockFileToDir(path.join(randomTmpDir, "bedrock.yaml"));
 
-    const packageDir = "";
+    const values = getMockValues();
+    values.k8sPort = 1337;
     const serviceName = uuid();
     logger.info(
       `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
     );
 
     // create service with no middleware
-    await createService(randomTmpDir, serviceName, packageDir, false, 1337);
+    await createService(randomTmpDir, serviceName, values);
+    validateDirNFiles(randomTmpDir, serviceName, values);
 
-    // Check temp test directory exists
-    expect(fs.existsSync(randomTmpDir)).toBe(true);
-
-    // Check service directory exists
-    const serviceDirPath = path.join(randomTmpDir, packageDir, serviceName);
-    expect(fs.existsSync(serviceDirPath)).toBe(true);
-
-    // get bedrock config
     const bedrockConfig = Bedrock(randomTmpDir);
 
     // check the added service has an empty list for middlewares
@@ -231,26 +275,18 @@ describe("Adding a service to a repo directory", () => {
     );
     await writeSampleBedrockFileToDir(path.join(randomTmpDir, "bedrock.yaml"));
 
-    const packageDir = "";
+    const values = getMockValues();
+    values.k8sPort = 1337;
+    values.middlewaresArray = ["foo", "bar", "baz"];
+
     const serviceName = uuid();
     logger.info(
       `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
     );
 
-    // add some middlewares
-    const middlewares = ["foo", "bar", "baz"];
-    await createService(randomTmpDir, serviceName, packageDir, false, 1337, {
-      middlewares
-    });
+    await createService(randomTmpDir, serviceName, values);
+    validateDirNFiles(randomTmpDir, serviceName, values);
 
-    // Check temp test directory exists
-    expect(fs.existsSync(randomTmpDir)).toBe(true);
-
-    // Check service directory exists
-    const serviceDirPath = path.join(randomTmpDir, packageDir, serviceName);
-    expect(fs.existsSync(serviceDirPath)).toBe(true);
-
-    // get bedrock config
     const bedrockConfig = Bedrock(randomTmpDir);
 
     // check that the added service has the expected middlewares
@@ -260,8 +296,10 @@ describe("Adding a service to a repo directory", () => {
       if (servicePath.includes(serviceName)) {
         expect(service.middlewares).toBeDefined();
         expect(Array.isArray(service.middlewares)).toBe(true);
-        expect(service.middlewares?.length).toBe(middlewares.length);
-        expect(service.middlewares).toStrictEqual(middlewares);
+        expect(service.middlewares?.length).toBe(
+          values.middlewaresArray.length
+        );
+        expect(service.middlewares).toStrictEqual(values.middlewaresArray);
       }
     }
   });
