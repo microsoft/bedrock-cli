@@ -14,6 +14,19 @@ interface ICommandOption {
 }
 
 describe("Tests Command Builder's build function", () => {
+  it("Declaration with no options", () => {
+    const descriptor: ICommandBuildElements = {
+      alias: "cbt",
+      command: "command-build-test",
+      description: "description of command"
+    };
+
+    const cmd = build(new commander.Command(), descriptor);
+
+    expect(cmd.description()).toBe("description of command");
+    expect(cmd.alias()).toBe("cbt");
+    expect(cmd.options.length).toBe(0);
+  });
   it("Sanity tests", () => {
     const descriptor: ICommandBuildElements = {
       alias: "cbt",
@@ -56,7 +69,7 @@ describe("Tests Command Builder's build function", () => {
     expect(cmd.alias()).toBe("cbt");
 
     cmd.options.forEach((opt: ICommandOption, i: number) => {
-      const declared = descriptor.options[i];
+      const declared = (descriptor.options || [])[i];
       expect(opt.flags).toBe(declared.arg);
       expect(opt.description).toBe(declared.description);
 
@@ -68,6 +81,17 @@ describe("Tests Command Builder's build function", () => {
 });
 
 describe("Tests Command Builder's validation function", () => {
+  it("Validation tests", () => {
+    const descriptor: ICommandBuildElements = {
+      alias: "cbt",
+      command: "command-build-test",
+      description: "description of command"
+    };
+
+    const errors = validateForRequiredValues(descriptor, {});
+
+    expect(errors.length).toBe(0);
+  });
   it("Validation tests", () => {
     const descriptor: ICommandBuildElements = {
       alias: "cbt",

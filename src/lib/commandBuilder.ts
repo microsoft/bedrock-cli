@@ -20,7 +20,7 @@ export interface ICommandBuildElements {
   command: string;
   alias: string;
   description: string;
-  options: ICommandOption[];
+  options?: ICommandOption[];
 }
 
 interface ICommandVariableName2Opt {
@@ -44,7 +44,7 @@ export const build = (
     .alias(decorator.alias)
     .description(decorator.description);
 
-  decorator.options.forEach(opt => {
+  (decorator.options || []).forEach(opt => {
     if (opt.defaultValue !== undefined) {
       cmd.option(opt.arg, opt.description, opt.defaultValue);
     } else {
@@ -68,7 +68,12 @@ export const validateForRequiredValues = (
   values: { [key: string]: string | undefined }
 ): string[] => {
   // gather the required options
-  const requireds = decorator.options.filter(opt => opt.required === true);
+  const requireds = (decorator.options || []).filter(opt => opt.required);
+
+  // no required variables hence return empty error array
+  if (requireds.length === 0) {
+    return [];
+  }
 
   // opt name to variable name mapping
   // example --org-name is orgName

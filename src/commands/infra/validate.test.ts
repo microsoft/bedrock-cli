@@ -1,7 +1,6 @@
 import child_process from "child_process";
 import fs from "fs";
 import yaml from "js-yaml";
-import os from "os";
 import * as path from "path";
 import { promisify } from "util";
 import { Config, defaultConfigFile, loadConfiguration } from "../../config";
@@ -11,10 +10,12 @@ import {
   logger
 } from "../../logger";
 import {
+  execute,
   validateAzure,
   validateEnvVariables,
   validatePrereqs
 } from "./validate";
+import * as validate from "./validate";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -24,6 +25,39 @@ beforeAll(() => {
 afterAll(() => {
   disableVerboseLogging();
   jest.setTimeout(5000);
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.restoreAllMocks();
+});
+
+describe("test execute function", () => {
+  it("positive tests", async () => {
+    const exitFn = jest.fn();
+    const validatePrereqsMock = jest.spyOn(validate, "validatePrereqs");
+    validatePrereqsMock.mockImplementation(() => true);
+    const validateAzureMock = jest.spyOn(validate, "validateAzure");
+    validateAzureMock.mockImplementation(() => Promise.resolve(true));
+    const validateEnvVariablesMock = jest.spyOn(
+      validate,
+      "validateEnvVariables"
+    );
+    validateEnvVariablesMock.mockImplementation(() => true);
+    await execute(exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[0]]);
+  });
+  it("negative tests", async () => {
+    const exitFn = jest.fn();
+    const validatePrereqsMock = jest.spyOn(validate, "validatePrereqs");
+    validatePrereqsMock.mockImplementation(() => {
+      throw new Error("dummy");
+    });
+    await execute(exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
 });
 
 describe("Validating executable prerequisites", () => {
@@ -39,7 +73,7 @@ describe("Validating executable prerequisites", () => {
     fs.writeFileSync(defaultConfigFile(), yaml.safeDump(data));
 
     const fakeBinaries: string[] = ["ydawgie"];
-    const value = await validatePrereqs(fakeBinaries, false);
+    const value = validatePrereqs(fakeBinaries, false);
     expect(value).toBe(false);
   });
 });
@@ -53,7 +87,8 @@ describe("Validating executable prerequisites in spk-config", () => {
     process.env.test_key = "my_storage_key";
     loadConfiguration(filename);
     const fakeBinaries: string[] = ["ydawgie"];
-    await validatePrereqs(fakeBinaries, true);
+    validatePrereqs(fakeBinaries, true);
+
     expect(Config().infra!).toBeDefined();
     expect(Config().infra!.checks!).toBeDefined();
     expect(Config().infra!.checks!.ydawgie!).toBe(false);

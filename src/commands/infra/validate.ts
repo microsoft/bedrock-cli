@@ -4,7 +4,10 @@ import emoji from "node-emoji";
 import shelljs from "shelljs";
 import { promisify } from "util";
 import { Config } from "../../config";
+import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { logger } from "../../logger";
+import { IConfigYaml } from "../../types";
+import decorator from "./validate.decorator.json";
 
 const binaries: string[] = ["terraform", "git", "az", "helm"];
 const envVar: string[] = [
@@ -14,44 +17,39 @@ const envVar: string[] = [
   "ARM_TENANT_ID"
 ];
 
-/**
- * Adds the validate command to the commander command object
- *
- * @param command Commander command object to decorate
- */
-export const validateCommandDecorator = (command: commander.Command): void => {
-  command
-    .command("validate")
-    .alias("v")
-    .description(
-      "Validate will verify that all infrastructure deployment prerequisites have been correctly installed."
-    )
-    .action(async opts => {
-      try {
-        if (await validatePrereqs(binaries, false)) {
+export const execute = async (exitFn: (status: number) => Promise<void>) => {
+  try {
+    if (validatePrereqs(binaries, false)) {
+      logger.info(
+        emoji.emojify(
+          "Installation of Prerequisites verified: :white_check_mark:"
+        )
+      );
+      if (await validateAzure(false)) {
+        logger.info(
+          emoji.emojify("Azure account verified: :white_check_mark:")
+        );
+        if (validateEnvVariables(envVar, false)) {
           logger.info(
-            emoji.emojify(
-              "Installation of Prerequisites verified: :white_check_mark:"
-            )
+            emoji.emojify("Environment variables verified: :white_check_mark:")
           );
-          if (await validateAzure(false)) {
-            logger.info(
-              emoji.emojify("Azure account verified: :white_check_mark:")
-            );
-            if (await validateEnvVariables(envVar, false)) {
-              logger.info(
-                emoji.emojify(
-                  "Environment variables verified: :white_check_mark:"
-                )
-              );
-            }
-          }
         }
-      } catch (err) {
-        logger.error(`Error validating init prerequisites`);
-        logger.error(err);
       }
+    }
+    await exitFn(0);
+  } catch (err) {
+    logger.error(`Error validating init prerequisites`);
+    logger.error(err);
+    await exitFn(1);
+  }
+};
+
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async () => {
+    execute(async (status: number) => {
+      await exitCmd(logger, process.exit, status);
     });
+  });
 };
 
 /**
@@ -59,17 +57,14 @@ export const validateCommandDecorator = (command: commander.Command): void => {
  *
  * @param executables Array of exectuables to check for in PATH
  */
-export const validatePrereqs = async (
+export const validatePrereqs = (
   executables: string[],
   globalInit: boolean
-): Promise<boolean> => {
+): boolean => {
   const config = Config();
-  if (!config.infra) {
-    config.infra = {};
-  }
-  if (!config.infra.checks) {
-    config.infra.checks = {};
-  }
+  config.infra = config.infra || {};
+  config.infra.checks = config.infra.checks || {};
+
   // Validate executables in PATH
   for (const i of executables) {
     if (!shelljs.which(i)) {
@@ -94,13 +89,9 @@ export const validatePrereqs = async (
  */
 export const validateAzure = async (globalInit: boolean): Promise<boolean> => {
   const config = Config();
-  // Validate authentication with Azure
-  if (!config.infra) {
-    config.infra = {};
-  }
-  if (!config.infra.checks) {
-    config.infra.checks = {};
-  }
+  config.infra = config.infra || {};
+  config.infra.checks = config.infra.checks || {};
+
   try {
     await promisify(child_process.exec)("az account show -o none");
   } catch (err) {
@@ -123,18 +114,14 @@ export const validateAzure = async (globalInit: boolean): Promise<boolean> => {
  *
  * @param variables Array of environment vairables to check for
  */
-export const validateEnvVariables = async (
+export const validateEnvVariables = (
   variables: string[],
   globalInit: boolean
-): Promise<boolean> => {
+): boolean => {
   const config = Config();
+  config.infra = config.infra || {};
+  config.infra.checks = config.infra.checks || {};
 
-  if (!config.infra) {
-    config.infra = {};
-  }
-  if (!config.infra.checks) {
-    config.infra.checks = {};
-  }
   // Validate environment variables
   for (const i of variables) {
     if (!process.env[i]) {
