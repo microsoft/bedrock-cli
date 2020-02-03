@@ -1,5 +1,19 @@
 # RELEASE NOTES
 
+## [0.5.0] - 2020-02-03
+
+### Added
+
+- Ability to offer overrides for ingress route path prefixes and major version
+  in `bedrock.yaml`
+- Updated pipelines to include introspection storage update scripts
+
+### Changed
+
+- Changes to standardize the utilization of variable groups across lifecycle and
+  service pipelines project
+- Various bug fixes and refactoring
+
 ## [0.4.1] - 2020-01-29
 
 ### Changed
