@@ -1,0 +1,47 @@
+{
+  "command": "install-manifest-pipeline",
+  "alias": "p",
+  "description": "Install the manifest generation pipeline to your Azure DevOps instance. Default values are set in spk-config.yaml and can be loaded via spk init or overriden via option flags.",
+  "options": [
+    {
+      "arg": "-n, --pipeline-name <pipeline-name>",
+      "description": "Name of the pipeline to be created",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-p, --personal-access-token <personal-access-token>",
+      "description": "Personal Access Token",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-o, --org-name <org-name>",
+      "description": "Organization Name for Azure DevOps",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-r, --hld-name <hld-name>",
+      "description": "HLD Repository Name in Azure DevOps",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-u, --hld-url <hld-url>",
+      "description": "HLD Repository URL",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-m, --manifest-url <manifest-url>",
+      "description": "Manifest Repository URL",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-d, --devops-project <devops-project>",
+      "description": "Azure DevOps Project",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-b, --build-script-url <build-script-url>",
+      "description": "Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'.",
+      "defaultValue": "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh"
+    }
+  ]
+}

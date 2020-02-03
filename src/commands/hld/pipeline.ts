@@ -5,6 +5,7 @@ import {
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
 import { Config } from "../../config";
+import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { BUILD_SCRIPT_URL } from "../../lib/constants";
 import { getRepositoryName } from "../../lib/gitutils";
 import {
@@ -15,132 +16,118 @@ import {
   queueBuild
 } from "../../lib/pipelines/pipelines";
 import { logger } from "../../logger";
+import decorator from "./pipeline.decorator.json";
 
-export const installHldToManifestPipelineDecorator = (
-  command: commander.Command
-): void => {
-  command
-    .command("install-manifest-pipeline")
-    .alias("p")
-    .description(
-      "Install the manifest generation pipeline to your Azure DevOps instance. Default values are set in spk-config.yaml and can be loaded via spk init or overriden via option flags."
-    )
-    .option(
-      "-n, --pipeline-name <pipeline-name>",
-      "Name of the pipeline to be created"
-    )
-    .option(
-      "-p, --personal-access-token <personal-access-token>",
-      "Personal Access Token"
-    )
-    .option("-o, --org-name <org-name>", "Organization Name for Azure DevOps")
-    .option("-r, --hld-name <hld-name>", "HLD Repository Name in Azure DevOps")
-    .option("-u, --hld-url <hld-url>", "HLD Repository URL")
-    .option("-m, --manifest-url <manifest-url>", "Manifest Repository URL")
-    .option("-d, --devops-project <devops-project>", "Azure DevOps Project")
-    .option(
-      "-b, --build-script-url <build-script-url>",
-      `Build Script URL. By default it is '${BUILD_SCRIPT_URL}'.`
-    )
-    .action(async opts => {
-      const { azure_devops } = Config();
+export interface ICommandOptions {
+  pipelineName: string;
+  personalAccessToken: string;
+  orgName: string;
+  hldName: string;
+  hldUrl: string;
+  manifestUrl: string;
+  devopsProject: string;
+  buildScriptUrl: string;
+}
 
-      const {
-        hldUrl = azure_devops?.hld_repository,
-        manifestUrl = azure_devops?.manifest_repository
-      } = opts;
+export const emptyStringIfUndefined = (val: string | undefined) => {
+  return val ? val : "";
+};
 
-      try {
-        const {
-          orgName = azure_devops?.org,
-          personalAccessToken = azure_devops?.access_token,
-          devopsProject = azure_devops?.project,
-          hldName = getRepositoryName(hldUrl),
-          pipelineName = hldName + "-to-" + getRepositoryName(manifestUrl),
-          buildScriptUrl = BUILD_SCRIPT_URL
-        } = opts;
+export const populateValues = (opts: ICommandOptions) => {
+  // NOTE: all the values in opts are defaulted to ""
 
-        if (
-          !isValidConfig(
-            orgName,
-            devopsProject,
-            pipelineName,
-            manifestUrl,
-            hldName,
-            hldUrl,
-            buildScriptUrl,
-            personalAccessToken
-          )
-        ) {
-          throw Error(`Invalid configuration provided`);
-        }
+  // exception will be thrown if spk's config.yaml is missing
+  const { azure_devops } = Config();
 
-        await installHldToManifestPipeline(
-          orgName,
-          personalAccessToken,
-          hldName,
-          hldUrl,
-          manifestUrl,
-          devopsProject,
-          pipelineName,
-          buildScriptUrl,
-          process.exit
-        );
-      } catch (err) {
-        logger.error(
-          `Error occurred installing pipeline for HLD to Manifest pipeline`
-        );
-        logger.error(err);
-        process.exit(1);
-      }
+  opts.hldUrl =
+    opts.hldUrl || emptyStringIfUndefined(azure_devops?.hld_repository);
+
+  opts.manifestUrl =
+    opts.manifestUrl ||
+    emptyStringIfUndefined(azure_devops?.manifest_repository);
+
+  opts.hldName = opts.hldName || getRepositoryName(opts.hldUrl);
+
+  opts.orgName = opts.orgName || emptyStringIfUndefined(azure_devops?.org);
+
+  opts.personalAccessToken =
+    opts.personalAccessToken ||
+    emptyStringIfUndefined(azure_devops?.access_token);
+
+  opts.devopsProject =
+    opts.devopsProject || emptyStringIfUndefined(azure_devops?.project);
+
+  opts.pipelineName =
+    opts.hldName + "-to-" + getRepositoryName(opts.manifestUrl);
+
+  opts.buildScriptUrl = opts.buildScriptUrl || BUILD_SCRIPT_URL;
+
+  logger.debug(`orgName: ${opts.orgName}`);
+  logger.debug(`personalAccessToken: XXXXXXXXXXXXXXXXX`);
+  logger.debug(`devopsProject: ${opts.devopsProject}`);
+  logger.debug(`pipelineName: ${opts.pipelineName}`);
+  logger.debug(`manifestUrl: ${opts.manifestUrl}`);
+  logger.debug(`hldName: ${opts.hldName}`);
+  logger.debug(`hldUrl: ${opts.hldUrl}`);
+  logger.debug(`buildScriptUrl: ${opts.buildScriptUrl}`);
+  return opts;
+};
+
+export const execute = async (
+  opts: ICommandOptions,
+  exitFn: (status: number) => Promise<void>
+) => {
+  try {
+    populateValues(opts);
+    await installHldToManifestPipeline(opts);
+    await exitFn(0);
+  } catch (err) {
+    logger.error(
+      `Error occurred installing pipeline for HLD to Manifest pipeline`
+    );
+    logger.error(err);
+    await exitFn(1);
+  }
+};
+
+export const commandDecorator = (command: commander.Command) => {
+  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+    await execute(opts, async (status: number) => {
+      await exitCmd(logger, process.exit, status);
     });
+  });
 };
 
 /**
  * Install a HLD to Manifest pipeline. The Azure Pipelines yaml should
  * be merged into the HLD repository before this function is to be invoked.
- * @param orgName URL to the Azure DevOps organization that you are using.
- * @param personalAccessToken Personal Access token with access to the HLD repository and materialized manifest repository.
- * @param hldRepoName Name of the HLD repository
- * @param hldRepoUrl URL to the HLD repository
- * @param manifestRepoUrl URL to the materialized manifest repository
- * @param project Azure DevOps project that the HLD and Materialized manifest repository is in
- * @param pipelineName Name of this build pipeline in AzDo
- * @param buildScriptUrl Build Script URL
+ *
+ * @param values Values for command Options
  */
-export const installHldToManifestPipeline = async (
-  orgName: string,
-  personalAccessToken: string,
-  hldRepoName: string,
-  hldRepoUrl: string,
-  manifestRepoUrl: string,
-  project: string,
-  pipelineName: string,
-  buildScriptUrl: string,
-  exitFn: (status: number) => void
-) => {
+export const installHldToManifestPipeline = async (values: ICommandOptions) => {
   let devopsClient;
   let builtDefinition;
 
   try {
-    devopsClient = await getBuildApiClient(orgName, personalAccessToken);
+    devopsClient = await getBuildApiClient(
+      values.orgName,
+      values.personalAccessToken
+    );
     logger.info("Fetched DevOps Client");
   } catch (err) {
-    logger.error(err);
-    return exitFn(1);
+    throw err; // caller will catch and exit
   }
 
   const definition = definitionForAzureRepoPipeline({
     branchFilters: ["master"],
     maximumConcurrentBuilds: 1,
-    /* tslint:disable-next-line object-literal-shorthand */
-    pipelineName: pipelineName,
-    repositoryName: hldRepoName,
-    repositoryUrl: hldRepoUrl,
+    pipelineName: values.pipelineName,
+    repositoryName: values.hldName,
+    repositoryUrl: values.hldUrl,
     variables: requiredPipelineVariables(
-      personalAccessToken,
-      buildScriptUrl,
-      manifestRepoUrl
+      values.personalAccessToken,
+      values.buildScriptUrl,
+      values.manifestUrl
     ),
     yamlFileBranch: "master",
     yamlFilePath: `manifest-generation.yaml`
@@ -149,116 +136,31 @@ export const installHldToManifestPipeline = async (
   try {
     builtDefinition = await createPipelineForDefinition(
       devopsClient as IBuildApi,
-      project,
+      values.devopsProject,
       definition
     );
   } catch (err) {
-    logger.error(`Error occurred during pipeline creation for ${pipelineName}`);
-    logger.error(err);
-    return exitFn(1);
+    logger.error(
+      `Error occurred during pipeline creation for ${values.pipelineName}`
+    );
+    throw err; // caller will catch and exit
   }
 
-  logger.info(`Created pipeline for ${pipelineName}`);
+  logger.info(`Created pipeline for ${values.pipelineName}`);
   logger.info(`Pipeline ID: ${(builtDefinition as BuildDefinition).id}`);
 
   try {
     await queueBuild(
       devopsClient as IBuildApi,
-      project,
-      (builtDefinition as BuildDefinition).id as number
+      values.devopsProject,
+      builtDefinition.id as number
     );
   } catch (err) {
-    logger.error(`Error occurred when queueing build for ${pipelineName}`);
-    logger.error(err);
-    return exitFn(1);
-  }
-};
-
-/**
- * Validates the pipeline configuration
- * @param orgName URL to the Azure DevOps organization that you are using.
- * @param devopsProject Name of the devops project
- * @param pipelineName Name of this build pipeline in AzDo
- * @param manifestUrl URL of the manifest
- * @param hldName Name of the HLD
- * @param hldUrl  URL of the HLD
- * @param buildScriptUrl Build Script URL
- * @param personalAccessToken Personal Access token with access to the HLD repository and materialized manifest repository.
- */
-export const isValidConfig = (
-  orgName: any,
-  devopsProject: any,
-  pipelineName: any,
-  manifestUrl: any,
-  hldName: any,
-  hldUrl: any,
-  buildScriptUrl: any,
-  personalAccessToken: any
-): boolean => {
-  const missingConfig = [];
-
-  logger.debug(`orgName: ${orgName}`);
-  logger.debug(`personalAccessToken: XXXXXXXXXXXXXXXXX`);
-  logger.debug(`devopsProject: ${devopsProject}`);
-  logger.debug(`pipelineName: ${pipelineName}`);
-  logger.debug(`manifestUrl: ${manifestUrl}`);
-  logger.debug(`hldName: ${hldName}`);
-  logger.debug(`hldUrl: ${hldUrl}`);
-  logger.debug(`buildScriptUrl: ${buildScriptUrl}`);
-
-  if (typeof pipelineName !== "string") {
-    missingConfig.push(
-      `--pipeline-name must be of type 'string', ${typeof pipelineName} given.`
+    logger.error(
+      `Error occurred when queueing build for ${values.pipelineName}`
     );
+    throw err; // caller will catch and exit
   }
-
-  if (typeof personalAccessToken !== "string") {
-    missingConfig.push(
-      `--personal-access-token must be of type 'string', ${typeof personalAccessToken} given.`
-    );
-  }
-
-  if (typeof orgName !== "string") {
-    missingConfig.push(
-      `--org-url must be of type 'string', ${typeof orgName} given.`
-    );
-  }
-
-  if (typeof hldName !== "string") {
-    missingConfig.push(
-      `--hld-name must be of type 'string', ${typeof hldName} given.`
-    );
-  }
-
-  if (typeof hldUrl !== "string") {
-    missingConfig.push(
-      `--hld-url must be of type 'string', ${typeof hldUrl} given.`
-    );
-  }
-
-  if (typeof manifestUrl !== "string") {
-    missingConfig.push(
-      `--manifest-url must be of type 'string', ${typeof manifestUrl} given.`
-    );
-  }
-
-  if (typeof devopsProject !== "string") {
-    missingConfig.push(
-      `--devops-project must be of type 'string', ${typeof devopsProject} given.`
-    );
-  }
-  if (typeof buildScriptUrl !== "string") {
-    missingConfig.push(
-      `--build-script must be of type 'string', ${typeof buildScriptUrl} given.`
-    );
-  }
-
-  if (missingConfig.length > 0) {
-    logger.error("Error in configuration: " + missingConfig.join(" "));
-    return false;
-  }
-
-  return true;
 };
 
 /**

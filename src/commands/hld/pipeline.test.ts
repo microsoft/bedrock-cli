@@ -1,3 +1,7 @@
+import { Config, loadConfiguration } from "../../config";
+import * as config from "../../config";
+import { BUILD_SCRIPT_URL } from "../../lib/constants";
+import { getRepositoryName } from "../../lib/gitutils";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 
 jest.mock("../../lib/pipelines/pipelines");
@@ -7,12 +11,43 @@ import {
   getBuildApiClient,
   queueBuild
 } from "../../lib/pipelines/pipelines";
+import { IConfigYaml } from "../../types";
 
 import {
+  emptyStringIfUndefined,
+  execute,
+  ICommandOptions,
   installHldToManifestPipeline,
-  isValidConfig,
+  populateValues,
   requiredPipelineVariables
 } from "./pipeline";
+import * as pipeline from "./pipeline";
+
+const MOCKED_VALUES: ICommandOptions = {
+  buildScriptUrl: "buildScriptUrl",
+  devopsProject: "project",
+  hldName: "hldName",
+  hldUrl: "https://dev.azure.com/test/fabrikam/_git/hld",
+  manifestUrl: "https://dev.azure.com/test/fabrikam/_git/materialized",
+  orgName: "orgName",
+  personalAccessToken: "personalAccessToken",
+  pipelineName: "pipelineName"
+};
+
+const MOCKED_CONFIG = {
+  azure_devops: {
+    access_token: "mocked_access_token",
+    hld_repository: "https://dev.azure.com/mocked/fabrikam/_git/hld",
+    manifest_repository:
+      "https://dev.azure.com/mocked/fabrikam/_git/materialized",
+    org: "mocked_org",
+    project: "mocked_project"
+  }
+};
+
+const getMockObject = (): ICommandOptions => {
+  return JSON.parse(JSON.stringify(MOCKED_VALUES));
+};
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -20,6 +55,90 @@ beforeAll(() => {
 
 afterAll(() => {
   disableVerboseLogging();
+});
+
+describe("test emptyStringIfUndefined function", () => {
+  it("pass in undefined", () => {
+    expect(emptyStringIfUndefined(undefined)).toBe("");
+  });
+  it("send in empty string", () => {
+    expect(emptyStringIfUndefined("")).toBe("");
+  });
+  it("send in string", () => {
+    expect(emptyStringIfUndefined("test")).toBe("test");
+  });
+});
+
+describe("test populateValues function", () => {
+  it("with all values in command opts", () => {
+    jest.spyOn(config, "Config").mockImplementationOnce(
+      (): IConfigYaml => {
+        return MOCKED_CONFIG;
+      }
+    );
+    const mockedObject = getMockObject();
+    expect(populateValues(mockedObject)).toEqual(mockedObject);
+  });
+  it("without any values in command opts", () => {
+    jest.spyOn(config, "Config").mockImplementationOnce(
+      (): IConfigYaml => {
+        return MOCKED_CONFIG;
+      }
+    );
+    const values = populateValues({
+      buildScriptUrl: "",
+      devopsProject: "",
+      hldName: "",
+      hldUrl: "",
+      manifestUrl: "",
+      orgName: "",
+      personalAccessToken: "",
+      pipelineName: ""
+    });
+
+    expect(values.buildScriptUrl).toBe(BUILD_SCRIPT_URL);
+    expect(values.devopsProject).toBe(MOCKED_CONFIG.azure_devops.project);
+    expect(values.hldName).toBe(
+      getRepositoryName(MOCKED_CONFIG.azure_devops.hld_repository)
+    );
+    expect(values.hldUrl).toBe(MOCKED_CONFIG.azure_devops.hld_repository);
+    expect(values.manifestUrl).toBe(
+      MOCKED_CONFIG.azure_devops.manifest_repository
+    );
+    expect(values.orgName).toBe(MOCKED_CONFIG.azure_devops.org);
+    expect(values.personalAccessToken).toBe(
+      MOCKED_CONFIG.azure_devops.access_token
+    );
+    expect(values.pipelineName).toBe(
+      getRepositoryName(MOCKED_CONFIG.azure_devops.hld_repository) +
+        "-to-" +
+        getRepositoryName(MOCKED_CONFIG.azure_devops.manifest_repository)
+    );
+  });
+});
+
+describe("test execute function", () => {
+  it("positive test", async () => {
+    jest.spyOn(config, "Config").mockImplementationOnce(
+      (): IConfigYaml => {
+        return MOCKED_CONFIG;
+      }
+    );
+    const exitFn = jest.fn();
+    jest
+      .spyOn(pipeline, "installHldToManifestPipeline")
+      .mockReturnValueOnce(Promise.resolve());
+
+    await execute(MOCKED_VALUES, exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[0]]);
+  });
+  it("negative test", async () => {
+    const exitFn = jest.fn();
+    await execute(MOCKED_VALUES, exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
 });
 
 describe("required pipeline variables", () => {
@@ -46,113 +165,45 @@ describe("required pipeline variables", () => {
   });
 });
 
-describe("validate pipeline config", () => {
-  const configValues: any[] = [
-    "testOrg",
-    "testDevopsProject",
-    "testPipeline",
-    "https://manifestulr",
-    "testHld",
-    "https://hldurl",
-    "https://buildscript",
-    "af8e99c1234ef93e8c4365b1dc9bd8d9ba987d3"
-  ];
-
-  it("config is valid", () => {
-    expect(isValidConfig.apply(undefined, configValues as any)).toBe(true);
-  });
-
-  it("undefined values", () => {
-    for (const i of configValues.keys()) {
-      const configValuesWithInvalidValue = configValues.map((value, j) =>
-        i === j ? undefined : value
-      );
-      expect(
-        isValidConfig.apply(undefined, configValuesWithInvalidValue as any)
-      ).toBe(false);
-    }
-  });
-});
-
 describe("create hld to manifest pipeline test", () => {
   it("should create a pipeline", async () => {
     (createPipelineForDefinition as jest.Mock).mockReturnValue({ id: 10 });
-
-    const exitFn = jest.fn();
-    await installHldToManifestPipeline(
-      "orgName",
-      "personalAccessToken",
-      "hldRepoName",
-      "hldRepoUrl",
-      "manifestRepoUrl",
-      "project",
-      "pipelineName",
-      "buildScriptUrl",
-      exitFn
-    );
-
-    expect(exitFn).toBeCalledTimes(0);
+    await installHldToManifestPipeline(getMockObject());
   });
 
   it("should fail if the build client cant be instantiated", async () => {
-    (getBuildApiClient as jest.Mock).mockReturnValue(Promise.reject());
-
-    const exitFn = jest.fn();
-    await installHldToManifestPipeline(
-      "orgName",
-      "personalAccessToken",
-      "hldRepoName",
-      "hldRepoUrl",
-      "manifestRepoUrl",
-      "project",
-      "pipelineName",
-      "buildScriptUrl",
-      exitFn
-    );
-
-    expect(exitFn).toBeCalledTimes(1);
+    (getBuildApiClient as jest.Mock).mockReturnValue(Promise.reject("Error"));
+    try {
+      await installHldToManifestPipeline(getMockObject());
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeDefined();
+    }
   });
 
   it("should fail if the pipeline definition cannot be created", async () => {
     (getBuildApiClient as jest.Mock).mockReturnValue({});
     (createPipelineForDefinition as jest.Mock).mockReturnValue(
-      Promise.reject()
+      Promise.reject("Error")
     );
-
-    const exitFn = jest.fn();
-    await installHldToManifestPipeline(
-      "orgName",
-      "personalAccessToken",
-      "hldRepoName",
-      "hldRepoUrl",
-      "manifestRepoUrl",
-      "project",
-      "pipelineName",
-      "buildScriptUrl",
-      exitFn
-    );
-
-    expect(exitFn).toBeCalledTimes(1);
+    try {
+      await installHldToManifestPipeline(getMockObject());
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeDefined();
+    }
   });
 
   it("should fail if a build cannot be queued on the pipeline", async () => {
     (getBuildApiClient as jest.Mock).mockReturnValue({});
     (createPipelineForDefinition as jest.Mock).mockReturnValue({ id: 10 });
-    (queueBuild as jest.Mock).mockReturnValue(Promise.reject());
+    (queueBuild as jest.Mock).mockReturnValue(Promise.reject("Error"));
 
-    const exitFn = jest.fn();
-    await installHldToManifestPipeline(
-      "orgName",
-      "personalAccessToken",
-      "hldRepoName",
-      "hldRepoUrl",
-      "manifestRepoUrl",
-      "project",
-      "pipelineName",
-      "buildScriptUrl",
-      exitFn
-    );
-
-    expect(exitFn).toBeCalledTimes(1);
+    try {
+      await installHldToManifestPipeline(getMockObject());
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeDefined();
+    }
   });
 });
