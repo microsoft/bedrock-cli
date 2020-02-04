@@ -44,7 +44,7 @@ Options:
   -p, --helm-config-path <helm-path>                          bedrock custom helm chart configuration path. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
   -g, --helm-config-git <helm-git>                            bedrock helm chart configuration git repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
   -d, --packages-dir <dir>                                    The directory containing the mono-repo packages. (default: "")
-  -n, --display-name <display-name>                           Display name of the service. (default: "")
+  -n, --display-name <display-name>                           Display name of the service. Argument is required if  <service-name> is the current directory (i.e. "spk service create ."). (default: "")
   -m, --maintainer-name <maintainer-name>                     The name of the primary maintainer for this service. (default: "maintainer name")
   -e, --maintainer-email <maintainer-email>                   The email of the primary maintainer for this service. (default: "maintainer email")
   --git-push                                                  SPK CLI will try to commit and push these changes to a new origin/branch named after the service. (default: false)

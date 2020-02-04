@@ -109,7 +109,13 @@ export const execute = async (
     await exitFn(1);
     return;
   }
-
+  if (serviceName === "." && opts.displayName === "") {
+    logger.error(
+      `If specifying the current directory as service name, please incluce a display name using '-n'`
+    );
+    await exitFn(1);
+    return;
+  }
   const projectPath = process.cwd();
   logger.verbose(`project path: ${projectPath}`);
 

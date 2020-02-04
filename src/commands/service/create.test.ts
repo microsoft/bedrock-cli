@@ -126,6 +126,12 @@ describe("Test execute function", () => {
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
+  it("Negative test: service name is cwd and missing display name", async () => {
+    const exitFn = jest.fn();
+    await execute(".", getMockValues(), exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
   it("Negative test: missing bedrock file", async () => {
     const testServiceName = uuid();
     const exitFn = jest.fn();
