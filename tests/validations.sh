@@ -158,7 +158,7 @@ variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $vg_name "fail"
 
 spk service create $FrontEnd -d $services_dir >> $TEST_WORKSPACE/log.txt
 directory_to_check="$services_full_dir/$FrontEnd"
-file_we_expect=(".gitignore" "azure-pipelines.yaml" "Dockerfile" )
+file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" )
 validate_directory $directory_to_check "${file_we_expect[@]}"
 
 spk service create $BackEnd -d $services_dir >> $TEST_WORKSPACE/log.txt

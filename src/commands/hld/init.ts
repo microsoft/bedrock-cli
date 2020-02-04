@@ -48,7 +48,7 @@ export const commandDecorator = (command: commander.Command): void => {
 };
 
 export const initialize = async (rootProjectPath: string, gitPush: boolean) => {
-  // Create azure-pipelines.yaml for hld repository, if required.
+  // Create manifest-generation.yaml for hld repository, if required.
   logger.info("Initializing bedrock HLD repository.");
 
   generateHldAzurePipelinesYaml(rootProjectPath);

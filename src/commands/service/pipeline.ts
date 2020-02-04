@@ -7,7 +7,7 @@ import commander from "commander";
 import path from "path";
 import { Config } from "../../config";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
-import { BUILD_SCRIPT_URL } from "../../lib/constants";
+import { BUILD_SCRIPT_URL, SERVICE_PIPELINE_FILENAME } from "../../lib/constants";
 import {
   getOriginUrl,
   getRepositoryName,
@@ -101,9 +101,9 @@ export const installBuildUpdatePipeline = async (
     // if a packages dir is supplied, its a mono-repo
     const yamlFilePath = values.packagesDir
       ? // if a packages dir is supplied, concat <packages-dir>/<service-name>
-        path.join(values.packagesDir, serviceName, "azure-pipelines.yaml")
+        path.join(values.packagesDir, serviceName, SERVICE_PIPELINE_FILENAME)
       : // if no packages dir, then just concat with the service directory.
-        path.join(serviceName, "azure-pipelines.yaml");
+        path.join(serviceName, SERVICE_PIPELINE_FILENAME);
 
     const definition = definitionForAzureRepoPipeline({
       branchFilters: ["master"],

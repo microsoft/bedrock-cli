@@ -10,6 +10,7 @@ import {
   isExists as isBedrockFileExists,
   read as readBedrockFile
 } from "../../lib/bedrockYaml";
+import { PROJECT_PIPELINE_FILENAME } from "../../lib/constants";
 import { IAzureDevOpsOpts } from "../../lib/git";
 import * as pipelineVariableGroup from "../../lib/pipelines/variableGroup";
 import {
@@ -289,7 +290,7 @@ describe("updateLifeCyclePipeline", () => {
 
     write(defaultBedrockFileObject, randomTmpDir);
 
-    const hldFilePath = path.join(randomTmpDir, "hld-lifecycle.yaml");
+    const hldFilePath = path.join(randomTmpDir, PROJECT_PIPELINE_FILENAME);
 
     const hldLifeCycleFile: IAzurePipelinesYaml = createTestHldLifecyclePipelineYaml(
       false
@@ -326,7 +327,7 @@ describe("updateLifeCyclePipeline", () => {
 
     write(defaultBedrockFileObject, randomTmpDir);
 
-    const hldFilePath = path.join(randomTmpDir, "hld-lifecycle.yaml");
+    const hldFilePath = path.join(randomTmpDir, PROJECT_PIPELINE_FILENAME);
 
     const hldLifeCycleFile: IAzurePipelinesYaml = createTestHldLifecyclePipelineYaml(
       false

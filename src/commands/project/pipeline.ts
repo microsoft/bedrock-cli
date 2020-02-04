@@ -12,10 +12,11 @@ import {
   validateForRequiredValues
 } from "../../lib/commandBuilder";
 import {
+  BUILD_SCRIPT_URL,
   PROJECT_CVG_DEPENDENCY_ERROR_MESSAGE,
-  PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE
+  PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE,
+  PROJECT_PIPELINE_FILENAME
 } from "../../lib/constants";
-import { BUILD_SCRIPT_URL } from "../../lib/constants";
 import {
   getOriginUrl,
   getRepositoryName,
@@ -148,14 +149,14 @@ const createPipeline = async (
   devopsClient: IBuildApi
 ): Promise<BuildDefinition> => {
   const definition = definitionForAzureRepoPipeline({
-    branchFilters: ["master"], // I believe this is intentional. Our pipelines are triggered only by merges into the master branch.
+    branchFilters: ["master"], // hld reconcile pipeline is triggered only by merges into the master branch.
     maximumConcurrentBuilds: 1,
     pipelineName: values.pipelineName!,
     repositoryName: values.repoName!,
     repositoryUrl: values.repoUrl!,
     variables: requiredPipelineVariables(values.buildScriptUrl!),
-    yamlFileBranch: "master", // I believe this is intentional. Our pipelines are triggered only by merges into the master branch.
-    yamlFilePath: "hld-lifecycle.yaml" // TOFIX: hardcoded?
+    yamlFileBranch: "master", // Pipeline is defined in master
+    yamlFilePath: PROJECT_PIPELINE_FILENAME // Pipeline definition lives in root directory.
   });
 
   try {

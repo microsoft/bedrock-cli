@@ -12,7 +12,7 @@ validate_directory () {
     #Get first arg then shift over to get array arg
     actual_files=( $(find $1 -maxdepth 1 -type f) ); shift
     # actual_files=("$1"/*); shift
-    local expected_files=( "$@" ) #"${2[@]}" #("azure-pipelines.yaml" "Dockerfile" )
+    local expected_files=( "$@" ) #"${2[@]}" #("build-update-hld.yaml" "Dockerfile" )
 
     # Get the base filenames for comparison
     actual_base_files=()
@@ -52,7 +52,7 @@ validate_directory () {
 
 validate_service () {
     echo "Checking directory `$1`"
-    local files=( ".gitignore" "azure-pipelines.yaml" "Dockerfile" )
+    local files=( ".gitignore" "build-update-hld.yaml" "Dockerfile" )
     for i in "${files[@]}"
     do
         :

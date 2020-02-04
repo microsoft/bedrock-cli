@@ -16,7 +16,7 @@ import {
   addNewServiceToMaintainersFile,
   generateDockerfile,
   generateGitIgnoreFile,
-  generateStarterAzurePipelinesYaml
+  generateServiceBuildAndUpdatePipelineYaml
 } from "../../lib/fileutils";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import { isPortNumberString } from "../../lib/validator";
@@ -45,6 +45,7 @@ export interface ICommandOptions {
 export interface ICommandValues extends ICommandOptions {
   k8sPort: number;
   middlewaresArray: string[];
+  ringNames: string[];
   variableGroups: string[];
 }
 
@@ -53,10 +54,9 @@ export const fetchValues = (opts: ICommandOptions) => {
     throw new Error("value for --k8s-service-port is not a valid port number");
   }
 
-  let variableGroups: string[] = [];
-
   const bedrock = Bedrock();
-  variableGroups = bedrock.variableGroups || [];
+  const variableGroups = bedrock.variableGroups ?? [];
+  const rings = Object.keys(bedrock.rings);
 
   let middlewaresArray: string[] = [];
   if (opts.middlewares && opts.middlewares.trim()) {
@@ -81,6 +81,7 @@ export const fetchValues = (opts: ICommandOptions) => {
     packagesDir: opts.packagesDir,
     pathPrefix: opts.pathPrefix,
     pathPrefixMajorVersion: opts.pathPrefixMajorVersion,
+    ringNames: rings,
     variableGroups
   };
 
@@ -146,10 +147,7 @@ export const commandDecorator = (command: commander.Command): void => {
  *
  * @param rootProjectPath
  * @param serviceName
- * @param packagesDir
- * @param gitPush
- * @param k8sBackendPort
- * @param opts
+ * @param values
  */
 export const createService = async (
   rootProjectPath: string,
@@ -172,10 +170,31 @@ export const createService = async (
 
   shelljs.mkdir("-p", newServiceDir);
 
+  const pipelineServiceName = values.displayName
+    ? values.displayName
+    : serviceName; // displayName takes priority over serviceName (which could be '.')
+  // Sanity check
+  if (
+    pipelineServiceName === "." ||
+    pipelineServiceName === "./" ||
+    pipelineServiceName === "./."
+  ) {
+    logger.error(
+      `Cannot create service pipeline due to serviceName being '.'. Please include a displayName if you are trying to create a service in your project root directory.`
+    );
+    throw new Error(
+      "Cannot create service pipeline due to serviceName being '.'. Please include a displayName if you are trying to create a service in your project root directory."
+    );
+  }
+
   // Create azure pipelines yaml in directory
-  await generateStarterAzurePipelinesYaml(rootProjectPath, newServiceDir, {
-    variableGroups: values.variableGroups
-  });
+  generateServiceBuildAndUpdatePipelineYaml(
+    rootProjectPath,
+    values.ringNames,
+    pipelineServiceName,
+    newServiceDir,
+    values.variableGroups
+  );
 
   // Create empty .gitignore file in directory
   generateGitIgnoreFile(newServiceDir, "");

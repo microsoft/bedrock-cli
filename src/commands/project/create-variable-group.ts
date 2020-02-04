@@ -9,7 +9,7 @@ import {
   exit as exitCmd,
   validateForRequiredValues
 } from "../../lib/commandBuilder";
-import { PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE } from "../../lib/constants";
+import { PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE, PROJECT_PIPELINE_FILENAME } from "../../lib/constants";
 import { IAzureDevOpsOpts } from "../../lib/git";
 import { addVariableGroup } from "../../lib/pipelines/variableGroup";
 import { hasValue } from "../../lib/validator";
@@ -257,7 +257,7 @@ export const updateLifeCyclePipeline = async (rootProjectPath: string) => {
     throw new Error("Project root path is not valid");
   }
 
-  const fileName: string = "hld-lifecycle.yaml";
+  const fileName: string = PROJECT_PIPELINE_FILENAME;
   const absProjectRoot = path.resolve(rootProjectPath);
 
   // Get bedrock.yaml

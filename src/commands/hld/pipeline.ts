@@ -6,7 +6,10 @@ import {
 import commander from "commander";
 import { Config } from "../../config";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
-import { BUILD_SCRIPT_URL } from "../../lib/constants";
+import {
+  BUILD_SCRIPT_URL,
+  RENDER_HLD_PIPELINE_FILENAME
+} from "../../lib/constants";
 import { getRepositoryName } from "../../lib/gitutils";
 import {
   createPipelineForDefinition,
@@ -130,7 +133,7 @@ export const installHldToManifestPipeline = async (values: ICommandOptions) => {
       values.manifestUrl
     ),
     yamlFileBranch: "master",
-    yamlFilePath: `manifest-generation.yaml`
+    yamlFilePath: RENDER_HLD_PIPELINE_FILENAME
   } as IAzureRepoPipelineConfig);
 
   try {

@@ -1,4 +1,5 @@
 import yaml from "js-yaml";
+import { VM_IMAGE } from "../lib/constants";
 import {
   IAzurePipelinesYaml,
   IBedrockFile,
@@ -8,6 +9,182 @@ import {
 
 // Helper to concat list of script commands to a multi line string
 const generateYamlScript = (lines: string[]): string => lines.join("\n");
+
+export const createTestServiceBuildAndUpdatePipelineYaml = (
+  asString = true,
+  serviceName: string = "my-service",
+  relativeServicePathFormatted: string = "./my-service",
+  ringBranches: string[] = ["master", "qa", "test"],
+  variableGroups: string[] = []
+): IAzurePipelinesYaml | string => {
+  // tslint:disable: object-literal-sort-keys
+  const data: IAzurePipelinesYaml = {
+    trigger: {
+      branches: { include: ringBranches },
+      paths: { include: [relativeServicePathFormatted] } // Only building for a single service's path.
+    },
+    variables: [...(variableGroups ?? []).map(group => ({ group }))],
+    stages: [
+      {
+        // Build stage
+        stage: "build",
+        jobs: [
+          {
+            job: "run_build_push_acr",
+            pool: {
+              vmImage: VM_IMAGE
+            },
+            steps: [
+              {
+                script: generateYamlScript([
+                  `echo "az login --service-principal --username $(SP_APP_ID) --password $(SP_PASS) --tenant $(SP_TENANT)"`,
+                  `az login --service-principal --username "$(SP_APP_ID)" --password "$(SP_PASS)" --tenant "$(SP_TENANT)"`
+                ]),
+                displayName: "Azure Login"
+              },
+              {
+                script: generateYamlScript([
+                  `export BUILD_REPO_NAME=$(echo $(Build.Repository.Name)-${serviceName} | tr '[:upper:]' '[:lower:]')`,
+                  `tag_name="$BUILD_REPO_NAME:$(Build.SourceBranchName)-$(Build.BuildNumber)"`,
+                  `commitId=$(Build.SourceVersion)`,
+                  `commitId=$(echo "\${commitId:0:7}")`,
+                  `service=$(Build.Repository.Name)`,
+                  `service=\${service##*/}`,
+                  `echo "Downloading SPK"`,
+                  `curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh`,
+                  `chmod +x build.sh`,
+                  `. ./build.sh --source-only`,
+                  `get_spk_version`,
+                  `download_spk`,
+                  `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p1 $(Build.BuildId) --image-tag $tag_name --commit-id $commitId --service $service`
+                ]),
+                displayName:
+                  "If configured, update Spektate storage with build pipeline",
+                condition:
+                  "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''))"
+              },
+              {
+                script: generateYamlScript([
+                  `export BUILD_REPO_NAME=$(echo $(Build.Repository.Name)-${serviceName} | tr '[:upper:]' '[:lower:]')`,
+                  `echo "Image Name: $BUILD_REPO_NAME"`,
+                  `cd ${relativeServicePathFormatted}`,
+                  `echo "az acr build -r $(ACR_NAME) --image $BUILD_REPO_NAME:$(Build.SourceBranchName)-$(Build.BuildNumber) ."`,
+                  `az acr build -r $(ACR_NAME) --image $BUILD_REPO_NAME:$(Build.SourceBranchName)-$(Build.BuildNumber) .`
+                ]),
+                displayName: "ACR Build and Publish"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        // Update HLD Stage
+        stage: "hld_update",
+        dependsOn: "build",
+        condition:
+          "and(succeeded('build'), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/DEPLOY/'),eq(variables['Build.SourceBranchName'],'master')))",
+        jobs: [
+          {
+            job: "update_image_tag",
+            pool: {
+              vmImage: VM_IMAGE
+            },
+            steps: [
+              {
+                script: generateYamlScript([
+                  `# Download build.sh`,
+                  `curl $BEDROCK_BUILD_SCRIPT > build.sh`,
+                  `chmod +x ./build.sh`
+                ]),
+                displayName: "Download bedrock bash scripts",
+                env: {
+                  BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)"
+                }
+              },
+              {
+                script: generateYamlScript([
+                  `export SERVICE_NAME_LOWER=$(echo ${serviceName} | tr '[:upper:]' '[:lower:]')`,
+                  `export BUILD_REPO_NAME=$(echo $(Build.Repository.Name)-$SERVICE_NAME_LOWER | tr '[:upper:]' '[:lower:]')`,
+                  `export BRANCH_NAME=DEPLOY/$BUILD_REPO_NAME-$(Build.SourceBranchName)-$(Build.BuildNumber)`,
+                  `# --- From https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/release.sh`,
+                  `. build.sh --source-only`,
+                  ``,
+                  `# Initialization`,
+                  `verify_access_token`,
+                  `init`,
+                  `helm init`,
+                  ``,
+                  `# Fabrikate`,
+                  `get_fab_version`,
+                  `download_fab`,
+                  ``,
+                  `# Clone HLD repo`,
+                  `git_connect`,
+                  `# --- End Script`,
+                  ``,
+                  `# Update HLD`,
+                  `git checkout -b "$BRANCH_NAME"`,
+                  `../fab/fab set --subcomponent $SERVICE_NAME_LOWER image.tag=$(Build.SourceBranchName)-$(Build.BuildNumber)`,
+                  `echo "GIT STATUS"`,
+                  `git status`,
+                  `echo "GIT ADD (git add -A)"`,
+                  `git add -A`,
+                  ``,
+                  `# Set git identity`,
+                  `git config user.email "admin@azuredevops.com"`,
+                  `git config user.name "Automated Account"`,
+                  ``,
+                  `# Commit changes`,
+                  `echo "GIT COMMIT"`,
+                  `git commit -m "Updating $SERVICE_NAME_LOWER image tag to $(Build.SourceBranchName)-$(Build.BuildNumber)."`,
+                  ``,
+                  `# Git Push`,
+                  `git_push`,
+                  ``,
+                  `# Open PR via az repo cli`,
+                  `echo 'az extension add --name azure-devops'`,
+                  `az extension add --name azure-devops`,
+                  ``,
+                  `echo 'az repos pr create --description "Updating $SERVICE_NAME_LOWER to $(Build.SourceBranchName)-$(Build.BuildNumber)."'`,
+                  `response=$(az repos pr create --description "Updating $SERVICE_NAME_LOWER to $(Build.SourceBranchName)-$(Build.BuildNumber).")`,
+                  `pr_id=$(echo $response | jq -r '.pullRequestId')`,
+                  ``,
+                  ``,
+                  `# Update introspection storage with this information, if applicable`,
+                  `if [ -z "$(INTROSPECTION_ACCOUNT_NAME)" -o -z "$(INTROSPECTION_ACCOUNT_KEY)" -o -z "$(INTROSPECTION_TABLE_NAME)" -o -z "$(INTROSPECTION_PARTITION_KEY)" ]; then`,
+                  `echo "Introspection variables are not defined. Skipping..."`,
+                  `else`,
+                  `latest_commit=$(git rev-parse --short HEAD)`,
+                  `tag_name="$BUILD_REPO_NAME:$(Build.SourceBranchName)-$(Build.BuildNumber)"`,
+                  `echo "Downloading SPK"`,
+                  `curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh`,
+                  `chmod +x build.sh`,
+                  `. ./build.sh --source-only`,
+                  `get_spk_version`,
+                  `download_spk`,
+                  `./spk/spk deployment create  -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p2 $(Build.BuildId) --hld-commit-id $latest_commit --env $BRANCH_NAME --image-tag $tag_name --pr $pr_id`,
+                  `fi`
+                ]),
+                displayName:
+                  "Download Fabrikate, Update HLD, Push changes, Open PR, and if configured, push to Spektate storage",
+                env: {
+                  ACCESS_TOKEN_SECRET: "$(PAT)",
+                  AZURE_DEVOPS_EXT_PAT: "$(PAT)",
+                  REPO: "$(HLD_REPO)"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+  // tslint:enable: object-literal-sort-keys
+
+  return asString
+    ? yaml.safeDump(data, { lineWidth: Number.MAX_SAFE_INTEGER })
+    : data;
+};
 
 export const createTestMaintainersYaml = (
   asString = true
@@ -96,7 +273,7 @@ export const createTestHldLifecyclePipelineYaml = (
     },
     variables: [],
     pool: {
-      vmImage: "ubuntu-latest"
+      vmImage: VM_IMAGE
     },
     steps: [
       {
@@ -187,7 +364,7 @@ export const createTestHldAzurePipelinesYaml = (
       }
     },
     pool: {
-      vmImage: "Ubuntu-16.04"
+      vmImage: VM_IMAGE
     },
     steps: [
       {
