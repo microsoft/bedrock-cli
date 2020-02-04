@@ -38,6 +38,9 @@ describe("Initializing a project to use spk with a config file", () => {
     );
     const key = await config.introspection!.azure!.key;
     expect(key).toBe(process.env.test_key);
+    expect(config.introspection!.azure!.table_name!).toBe(
+      process.env.test_name + "+" + process.env.test_key
+    );
     logger.info("Able to initialize a basic config file");
   });
 });

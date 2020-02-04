@@ -20,7 +20,7 @@ introspection:
     name: "spektate"
   azure: # This is the storage account for the service introspection tool
     account_name: "${env:test_name}"
-    table_name: "table-name"
+    table_name: "${env:test_name}+${env:test_key}"
     partition_key: "partition-key"
     key: "${env:test_key}"
     # Following is needed if using spk to onboard to use introspection tool

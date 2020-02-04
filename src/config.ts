@@ -49,19 +49,7 @@ export const loadConfigurationFromLocalEnv = <T>(configObj: T): T => {
   const iterate = (obj: any) => {
     if (obj != null && obj !== undefined) {
       for (const [key, value] of Object.entries(obj)) {
-        const regexp = /\${env:([a-zA-Z_$][a-zA-Z_$0-9]+)}/g;
-        const match = regexp.exec(value as any);
-        if (match && match.length >= 2) {
-          const matchValue = match[1];
-          if (process.env[matchValue]) {
-            obj[key] = process.env[matchValue];
-          } else {
-            logger.error(`Env variable needs to be defined for ${matchValue}`);
-            throw Error(
-              `Environment variable needs to be defined for ${matchValue} since it's referenced in the config file.`
-            );
-          }
-        }
+        obj[key] = updateVariableWithLocalEnv(value as string);
         if (typeof obj[key] === "object") {
           iterate(obj[key]);
         }
@@ -71,6 +59,30 @@ export const loadConfigurationFromLocalEnv = <T>(configObj: T): T => {
 
   iterate(configObj);
   return configObj;
+};
+
+/**
+ * Updates env variable(s) from process.env
+ * Supports multiple per value
+ * @param value Value from config file to be replaced with env vars
+ */
+export const updateVariableWithLocalEnv = (value: string): string => {
+  const regexp = /\${env:([a-zA-Z_$][a-zA-Z_$0-9]+)}/;
+  let matches = regexp.exec(value);
+  while (matches) {
+    if (matches.length > 1) {
+      if (process.env[matches[1]]) {
+        value = value.replace(matches[0], process.env[matches[1]] as string);
+      } else {
+        logger.error(`Env variable needs to be defined for ${matches[1]}`);
+        throw Error(
+          `Environment variable needs to be defined for ${matches[1]} since it's referenced in the config file.`
+        );
+      }
+      matches = regexp.exec(value);
+    }
+  }
+  return value;
 };
 
 const getKeyVaultSecret = async (
