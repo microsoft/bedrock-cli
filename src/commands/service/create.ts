@@ -131,7 +131,7 @@ export const execute = async (
  *
  * @param command Commander command object to decorate
  */
-export const createCommandDecorator = (command: commander.Command): void => {
+export const commandDecorator = (command: commander.Command): void => {
   buildCmd(command, decorator).action(
     async (serviceName: string, opts: ICommandOptions) => {
       await execute(serviceName, opts, async (status: number) => {

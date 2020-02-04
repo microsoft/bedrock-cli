@@ -4,15 +4,30 @@ jest.mock("../../lib/pipelines/pipelines");
 
 import {
   createPipelineForDefinition,
+  definitionForAzureRepoPipeline,
   getBuildApiClient,
   queueBuild
 } from "../../lib/pipelines/pipelines";
 
 import {
+  execute,
+  fetchValues,
+  ICommandOptions,
   installBuildUpdatePipeline,
-  isValidConfig,
   requiredPipelineVariables
 } from "./pipeline";
+import * as pipeline from "./pipeline";
+
+const MOCKED_VALUES: ICommandOptions = {
+  buildScriptUrl: "buildScriptUrl",
+  devopsProject: "project",
+  orgName: "orgName",
+  packagesDir: "packagesDir",
+  personalAccessToken: "personalAccessToken",
+  pipelineName: "pipelineName",
+  repoName: "repositoryName",
+  repoUrl: "https://dev.azure.com/test/fabrikam/_git/app"
+};
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -22,128 +37,52 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
-/**
- * Validates the pipeline configuration
- * @param pipelineName Name of pipeline
- * @param personalAccessToken Personal access token
- * @param orgName Name of organization
- * @param repoName Name of repository
- * @param repoUrl URL of repository
- * @param devopsProject DevOps project
- * @param buildScriptUrl URL of build script
- */
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
-describe("validate pipeline config", () => {
-  it("config is valid", () => {
-    expect(
-      isValidConfig(
-        "testPipeline",
-        "KD93U3KFJKD039932",
-        "testOrg",
-        "testRepo",
-        "http://test/repo",
-        "testProject",
-        "http://build/script.sh"
-      )
-    ).toBe(true);
+const getMockedValues = () => {
+  return JSON.parse(JSON.stringify(MOCKED_VALUES));
+};
+
+describe("test fetchValues function", () => {
+  it("with all values set", async () => {
+    const mockedVals = getMockedValues();
+    const values = await fetchValues("serviceName", mockedVals);
+    expect(values).toEqual(mockedVals);
   });
-
-  it("invalid pipelineName", () => {
-    expect(
-      isValidConfig(
-        undefined,
-        "KD93U3KFJKD039932",
-        "testOrg",
-        "testRepo",
-        "http://test/repo",
-        "testProject",
-        "http://build/script.sh"
-      )
-    ).toBe(false);
+  it("missing packagesDir value", async () => {
+    const mockedVals = getMockedValues();
+    mockedVals.packagesDir = undefined;
+    const values = await fetchValues("serviceName", mockedVals);
+    expect(values).toEqual(mockedVals);
   });
-
-  it("invalid personalAccessToken", () => {
-    expect(
-      isValidConfig(
-        "testPipeline",
-        undefined,
-        "testOrg",
-        "testRepo",
-        "http://test/repo",
-        "testProject",
-        "http://build/script.sh"
-      )
-    ).toBe(false);
+  it("check that pipelineName is set when it is not provided ", async () => {
+    const mockedVals = getMockedValues();
+    mockedVals.pipelineName = "";
+    const serviceName = "AAAService";
+    const values = await fetchValues(serviceName, mockedVals);
+    expect(values.pipelineName).toBe(`${serviceName}-pipeline`);
   });
+});
 
-  it("invalid orgName", () => {
-    expect(
-      isValidConfig(
-        "testPipeline",
-        "KD93U3KFJKD039932",
-        undefined,
-        "testRepo",
-        "http://test/repo",
-        "testProject",
-        "http://build/script.sh"
-      )
-    ).toBe(false);
+describe("test execute function", () => {
+  it("positive test: with all values set", async () => {
+    const exitFn = jest.fn();
+    jest
+      .spyOn(pipeline, "installBuildUpdatePipeline")
+      .mockReturnValueOnce(Promise.resolve());
+
+    await execute("serviceName", getMockedValues(), exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[0]]);
   });
-
-  it("invalid repoName", () => {
-    expect(
-      isValidConfig(
-        "testPipeline",
-        "KD93U3KFJKD039932",
-        "testOrg",
-        undefined,
-        "http://test/repo",
-        "testProject",
-        "http://build/script.sh"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid repoUrl", () => {
-    expect(
-      isValidConfig(
-        "testPipeline",
-        "KD93U3KFJKD039932",
-        "testOrg",
-        "testRepo",
-        undefined,
-        "testProject",
-        "http://build/script.sh"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid devOpsProject", () => {
-    expect(
-      isValidConfig(
-        "testPipeline",
-        "KD93U3KFJKD039932",
-        "testOrg",
-        "testRepo",
-        "http://test/repo",
-        undefined,
-        "http://build/script.sh"
-      )
-    ).toBe(false);
-  });
-
-  it("invalid buildScriptUrl", () => {
-    expect(
-      isValidConfig(
-        "testPipeline",
-        "KD93U3KFJKD039932",
-        "testOrg",
-        "testRepo",
-        "http://test/repo",
-        "testProject",
-        undefined
-      )
-    ).toBe(false);
+  it("negative test: definitionForAzureRepoPipeline without return id", async () => {
+    const exitFn = jest.fn();
+    (createPipelineForDefinition as jest.Mock).mockReturnValueOnce({}); // without id
+    await execute("serviceName", getMockedValues(), exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
   });
 });
 
@@ -161,87 +100,42 @@ describe("required pipeline variables", () => {
 
 describe("create pipeline tests", () => {
   it("should create a pipeline", async () => {
-    (createPipelineForDefinition as jest.Mock).mockReturnValue({ id: 10 });
-
-    const exitFn = jest.fn();
-    await installBuildUpdatePipeline(
-      "serviceName",
-      "orgName",
-      "personalAccessToken",
-      "pipelineName",
-      "repositoryName",
-      "repositoryUrl",
-      "project",
-      "packagesDir",
-      "buildScriptUrl",
-      exitFn
-    );
-
-    expect(exitFn).toBeCalledTimes(0);
+    (createPipelineForDefinition as jest.Mock).mockReturnValueOnce({ id: 10 });
+    await installBuildUpdatePipeline("serviceName", MOCKED_VALUES);
   });
-
   it("should fail if the build client cant be instantiated", async () => {
-    (getBuildApiClient as jest.Mock).mockReturnValue(Promise.reject());
+    (getBuildApiClient as jest.Mock).mockReturnValueOnce(Promise.reject());
 
-    const exitFn = jest.fn();
-    await installBuildUpdatePipeline(
-      "serviceName",
-      "orgName",
-      "personalAccessToken",
-      "pipelineName",
-      "repositoryName",
-      "repositoryUrl",
-      "project",
-      "packagesDir",
-      "buildScriptUrl",
-      exitFn
-    );
-
-    expect(exitFn).toBeCalledTimes(1);
+    try {
+      await installBuildUpdatePipeline("serviceName", MOCKED_VALUES);
+      expect(true).toBe(false);
+    } catch (_) {
+      // expecting exception to be thrown
+    }
   });
-
   it("should fail if the pipeline definition cannot be created", async () => {
-    (getBuildApiClient as jest.Mock).mockReturnValue({});
-    (createPipelineForDefinition as jest.Mock).mockReturnValue(
+    (getBuildApiClient as jest.Mock).mockReturnValueOnce({});
+    (createPipelineForDefinition as jest.Mock).mockReturnValueOnce(
       Promise.reject()
     );
 
-    const exitFn = jest.fn();
-    await installBuildUpdatePipeline(
-      "serviceName",
-      "orgName",
-      "personalAccessToken",
-      "pipelineName",
-      "repositoryName",
-      "repositoryUrl",
-      "project",
-      "packagesDir",
-      "buildScriptUrl",
-      exitFn
-    );
-
-    expect(exitFn).toBeCalledTimes(1);
+    try {
+      await installBuildUpdatePipeline("serviceName", MOCKED_VALUES);
+      expect(true).toBe(false);
+    } catch (_) {
+      // expecting exception to be thrown
+    }
   });
-
   it("should fail if a build cannot be queued on the pipeline", async () => {
-    (getBuildApiClient as jest.Mock).mockReturnValue({});
-    (createPipelineForDefinition as jest.Mock).mockReturnValue({ id: 10 });
-    (queueBuild as jest.Mock).mockReturnValue(Promise.reject());
+    (getBuildApiClient as jest.Mock).mockReturnValueOnce({});
+    (createPipelineForDefinition as jest.Mock).mockReturnValueOnce({ id: 10 });
+    (queueBuild as jest.Mock).mockReturnValueOnce(Promise.reject());
 
-    const exitFn = jest.fn();
-    await installBuildUpdatePipeline(
-      "serviceName",
-      "orgName",
-      "personalAccessToken",
-      "pipelineName",
-      "repositoryName",
-      "repositoryUrl",
-      "project",
-      "packagesDir",
-      "buildScriptUrl",
-      exitFn
-    );
-
-    expect(exitFn).toBeCalledTimes(1);
+    try {
+      await installBuildUpdatePipeline("serviceName", MOCKED_VALUES);
+      expect(true).toBe(false);
+    } catch (_) {
+      // expecting exception to be thrown
+    }
   });
 });

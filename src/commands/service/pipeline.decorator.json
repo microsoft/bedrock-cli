@@ -1,0 +1,46 @@
+{
+  "command": "install-build-pipeline <service-name>",
+  "alias": "p",
+  "description": "Install the build and push to acr pipeline for a service to your Azure DevOps instance",
+  "options": [
+    {
+      "arg": "-n, --pipeline-name <pipeline-name>",
+      "description": "Name of the pipeline to be created",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-p, --personal-access-token <personal-access-token>",
+      "description": "Personal Access Token",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-o, --org-name <org-name>",
+      "description": "Organization Name for Azure DevOps",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-r, --repo-name <repo-name>",
+      "description": "Repository Name in Azure DevOps",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-u, --repo-url <repo-url>",
+      "description": "Repository URL",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-d, --devops-project <devops-project>",
+      "description": "Azure DevOps Project",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-b, --build-script-url <build-script-url>",
+      "description": "Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'.",
+      "defaultValue": "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh"
+    },
+    {
+      "arg": "-l, --packages-dir <packages-dir>",
+      "description": "The mono-repository directory containing this service definition. ie. '--packages-dir packages' if my-service is located under ./packages/my-service. Omitting this option implies this is a not a mono-repository."
+    }
+  ]
+}

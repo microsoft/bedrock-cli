@@ -1,7 +1,7 @@
 import { Command } from "../command";
-import { createCommandDecorator } from "./create";
+import { commandDecorator as createCommandDecorator } from "./create";
 import { createServiceRevisionCommandDecorator } from "./create-revision";
-import { installBuildPipelineCommandDecorator } from "./pipeline";
+import { commandDecorator as installBuildPipelineCommandDecorator } from "./pipeline";
 
 export const serviceCommand = Command(
   "service",
