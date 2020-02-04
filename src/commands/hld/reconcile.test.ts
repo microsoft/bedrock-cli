@@ -1,3 +1,4 @@
+import { create as createBedrockYaml } from "../../lib/bedrockYaml";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 
 import {
@@ -8,11 +9,13 @@ import {
   createServiceComponent,
   createStaticComponent,
   execAndLog,
+  execute,
   IReconcileDependencies,
   reconcileHld,
   testAndGetAbsPath,
   validateInputs
 } from "./reconcile";
+import * as reconcile from "./reconcile";
 
 import { IBedrockFile, IBedrockServiceConfig } from "../../types";
 
@@ -24,22 +27,45 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
+describe("test execute function", () => {
+  it("negative test", async () => {
+    const exitFn = jest.fn();
+    await execute("10", "hld-path", "app-path", exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
+  it("positive test", async () => {
+    const exitFn = jest.fn();
+    const dir = createBedrockYaml();
+    jest.spyOn(reconcile, "checkForFabrikate").mockReturnValueOnce();
+    jest.spyOn(reconcile, "testAndGetAbsPath").mockReturnValueOnce(dir);
+    jest.spyOn(reconcile, "testAndGetAbsPath").mockReturnValueOnce(dir);
+    jest
+      .spyOn(reconcile, "reconcileHld")
+      .mockReturnValueOnce(Promise.resolve());
+
+    await execute("repo-name", "hld-path", "app-path", exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[0]]);
+  });
+});
+
 describe("validateInputs", () => {
   it("should not accept an invalid input for repository-name", () => {
     expect(() => {
-      validateInputs(10, "hld-path", "app-path");
+      validateInputs("", "hld-path", "app-path");
     }).toThrow();
   });
 
   it("should not accept an invalid input for hld-path", () => {
     expect(() => {
-      validateInputs("repo-name", 10, "app-path");
+      validateInputs("repo-name", "", "app-path");
     }).toThrow();
   });
 
   it("should not accept an invalid input for bedrock-application-repo-path", () => {
     expect(() => {
-      validateInputs("repo-name", "repo-name", 10);
+      validateInputs("repo-name", "repo-name", "");
     }).toThrow();
   });
 

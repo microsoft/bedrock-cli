@@ -1,0 +1,6 @@
+{
+  "command": "reconcile <repository-name> <hld-path> <bedrock-application-repo-path>",
+  "alias": "r",
+  "description": "Reconcile a HLD with the services tracked in bedrock.yaml.",
+  "options": []
+}

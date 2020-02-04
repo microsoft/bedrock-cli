@@ -7,6 +7,7 @@ import process from "process";
 import shelljs, { TestOptions } from "shelljs";
 import { Bedrock } from "../../config";
 import { assertIsStringWithContent } from "../../lib/assertions";
+import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { TraefikIngressRoute } from "../../lib/traefik/ingress-route";
 import {
   ITraefikMiddleware,
@@ -14,6 +15,7 @@ import {
 } from "../../lib/traefik/middleware";
 import { logger } from "../../logger";
 import { IBedrockFile, IBedrockServiceConfig } from "../../types";
+import decorator from "./reconcile.decorator.json";
 
 /**
  * IExecResult represents the possible return value of a Promise based wrapper
@@ -105,63 +107,82 @@ export interface IReconcileDependencies {
   ) => ITraefikMiddleware;
 }
 
-export const reconcileHldDecorator = (command: commander.Command): void => {
-  command
-    .command(
-      "reconcile <repository-name> <hld-path> <bedrock-application-repo-path>"
-    )
-    .alias("r")
-    .description("Reconcile a HLD with the services tracked in bedrock.yaml.")
-    .action(async (repositoryName, hldPath, bedrockApplicationRepoPath) => {
-      try {
-        validateInputs(repositoryName, hldPath, bedrockApplicationRepoPath);
-        checkForFabrikate(shelljs.which);
+export const execute = async (
+  repositoryName: string,
+  hldPath: string,
+  bedrockApplicationRepoPath: string,
+  exitFn: (status: number) => Promise<void>
+) => {
+  try {
+    validateInputs(repositoryName, hldPath, bedrockApplicationRepoPath);
+    checkForFabrikate(shelljs.which);
 
-        const absHldPath = testAndGetAbsPath(
-          shelljs.test,
-          logger.info,
-          hldPath,
-          "HLD"
-        );
+    const absHldPath = testAndGetAbsPath(
+      shelljs.test,
+      logger.info,
+      hldPath,
+      "HLD"
+    );
 
-        const absBedrockPath = testAndGetAbsPath(
-          shelljs.test,
-          logger.info,
-          bedrockApplicationRepoPath,
-          "Bedrock Application"
-        );
+    const absBedrockPath = testAndGetAbsPath(
+      shelljs.test,
+      logger.info,
+      bedrockApplicationRepoPath,
+      "Bedrock Application"
+    );
 
-        const bedrockConfig = Bedrock(absBedrockPath);
+    const bedrockConfig = Bedrock(absBedrockPath);
 
-        logger.info(
-          `Attempting to reconcile HLD with services tracked in bedrock.yaml`
-        );
+    logger.info(
+      `Attempting to reconcile HLD with services tracked in bedrock.yaml`
+    );
 
-        const reconcileDependencies: IReconcileDependencies = {
-          addChartToRing,
-          createIngressRouteForRing,
-          createMiddlewareForRing,
-          createRepositoryComponent,
-          createRingComponent,
-          createServiceComponent,
-          createStaticComponent,
-          exec: execAndLog,
-          test: shelljs.test,
-          writeFile: writeFileSync
-        };
+    const reconcileDependencies: IReconcileDependencies = {
+      addChartToRing,
+      createIngressRouteForRing,
+      createMiddlewareForRing,
+      createRepositoryComponent,
+      createRingComponent,
+      createServiceComponent,
+      createStaticComponent,
+      exec: execAndLog,
+      test: shelljs.test,
+      writeFile: writeFileSync
+    };
 
-        await reconcileHld(
-          reconcileDependencies,
-          bedrockConfig,
-          repositoryName,
-          absHldPath
-        );
-      } catch (err) {
-        logger.error(`An error occurred while reconciling HLD`);
-        logger.error(err);
-        process.exit(1);
-      }
-    });
+    await reconcileHld(
+      reconcileDependencies,
+      bedrockConfig,
+      repositoryName,
+      absHldPath
+    );
+    await exitFn(0);
+  } catch (err) {
+    logger.error(`An error occurred while reconciling HLD`);
+    logger.error(err);
+    await exitFn(1);
+  }
+};
+
+export const commandDecorator = (command: commander.Command) => {
+  buildCmd(command, decorator).action(
+    async (
+      repositoryName: string,
+      hldPath: string,
+      bedrockApplicationRepoPath: string
+    ) => {
+      // command will ensure that repositoryName,
+      // hldPath and bedrockApplicationRepoPath are string type.
+      await execute(
+        repositoryName,
+        hldPath,
+        bedrockApplicationRepoPath,
+        async (status: number) => {
+          await exitCmd(logger, process.exit, status);
+        }
+      );
+    }
+  );
 };
 
 export const reconcileHld = async (
@@ -464,9 +485,9 @@ export const createStaticComponent = async (
 };
 
 export const validateInputs = (
-  repositoryName: any,
-  hldPath: any,
-  bedrockApplicationRepoPath: any
+  repositoryName: string,
+  hldPath: string,
+  bedrockApplicationRepoPath: string
 ) => {
   assertIsStringWithContent(repositoryName, "repository-name");
   assertIsStringWithContent(hldPath, "hld-path");
