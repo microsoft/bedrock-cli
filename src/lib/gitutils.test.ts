@@ -246,6 +246,22 @@ describe("getOriginUrl", () => {
 });
 
 describe("getRepositoryName", () => {
+  it("returns the repository name for a visualstudio.com HTTPS origin url.", async () => {
+    const originUrl =
+      "https://some-org.visualstudio.com/some-project/_git/some-repo";
+    const repositoryName = getRepositoryName(originUrl);
+
+    expect(repositoryName).toEqual(`some-repo`);
+  });
+
+  it("returns the repository name for a visualstudio.com SSH origin url.", async () => {
+    const originUrl =
+      "foobar@vs-ssh.visualstudio.com:v3/some-org/some-project/some-repo";
+    const repositoryName = getRepositoryName(originUrl);
+
+    expect(repositoryName).toEqual(`some-repo`);
+  });
+
   it("returns the repository name for an AzDo HTTPS origin url.", async () => {
     const originUrl =
       "https://user@dev.azure.com/myorg/spk-test-project/_git/new-repo";
@@ -289,6 +305,26 @@ describe("getRepositoryName", () => {
 });
 
 describe("getRepositoryUrl", () => {
+  it("return a proper repo url for a visualstudio.com HTTP origin url.", async () => {
+    const originUrl =
+      "https://some-org.visualstudio.com/some-project/_git/some-repo";
+    const repositoryUrl = getRepositoryUrl(originUrl);
+
+    expect(repositoryUrl).toEqual(
+      `https://some-org.visualstudio.com/some-project/_git/some-repo`
+    );
+  });
+
+  it("return a proper repo url for a visualstudio.com SSH origin url.", async () => {
+    const originUrl =
+      "foobar@vs-ssh.visualstudio.com:v3/some-org/some-project/some-repo";
+    const repositoryUrl = getRepositoryUrl(originUrl);
+
+    expect(repositoryUrl).toEqual(
+      `https://some-org.visualstudio.com/some-project/_git/some-repo`
+    );
+  });
+
   it("return a proper repo url for an AzDo HTTP origin url.", async () => {
     const originUrl =
       "https://user@dev.azure.com/myorg/spk-test-project/_git/new-repo";
@@ -336,6 +372,38 @@ describe("getRepositoryUrl", () => {
 });
 
 describe("getPullRequestLink", () => {
+  it("return a proper PR url for a visualstudio.com SSH origin url.", async () => {
+    const originUrl =
+      "foobar@vs-ssh.visualstudio.com:v3/some-org/some-project/some-repo";
+    const branchName = "master";
+    const newBranchName = "foobar";
+    const pullRequestUrl = await getPullRequestLink(
+      branchName,
+      newBranchName,
+      originUrl
+    );
+
+    expect(pullRequestUrl).toEqual(
+      `https://some-org.visualstudio.com/some-project/_git/some-repo/pullrequestcreate?sourceRef=${newBranchName}&targetRef=${branchName}`
+    );
+  });
+
+  it("return a proper PR url for a visualstudio.com HTTP origin url.", async () => {
+    const originUrl =
+      "https://some-org.visualstudio.com/some-project/_git/some-repo";
+    const branchName = "master";
+    const newBranchName = "foobar";
+    const pullRequestUrl = await getPullRequestLink(
+      branchName,
+      newBranchName,
+      originUrl
+    );
+
+    expect(pullRequestUrl).toEqual(
+      `https://some-org.visualstudio.com/some-project/_git/some-repo/pullrequestcreate?sourceRef=${newBranchName}&targetRef=${branchName}`
+    );
+  });
+
   it("return a proper PR url for an AzDo HTTP origin url.", async () => {
     const originUrl =
       "https://user@dev.azure.com/myorg/spk-test-project/_git/new-repo";

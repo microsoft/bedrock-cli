@@ -132,13 +132,16 @@ export const getOriginUrl = async (): Promise<string> => {
  * @param originUrl
  */
 export const getRepositoryName = (originUrl: string) => {
-  const gitComponents = GitUrlParse(originUrl);
-  if (gitComponents.resource.includes("dev.azure.com")) {
+  const { resource, name } = GitUrlParse(originUrl);
+  if (resource.includes("dev.azure.com")) {
     logger.debug("azure devops repo found.");
-    return gitComponents.name;
-  } else if (gitComponents.resource === "github.com") {
+    return name;
+  } else if (resource.includes("visualstudio.com")) {
+    logger.debug("visualstudio.com repo found");
+    return name;
+  } else if (resource === "github.com") {
     logger.debug("github repo found.");
-    return gitComponents.name;
+    return name;
   } else {
     throw Error(
       "Could not determine origin repository, or it is not a supported type."
@@ -152,13 +155,27 @@ export const getRepositoryName = (originUrl: string) => {
  * @param originUrl
  */
 export const getRepositoryUrl = (originUrl: string) => {
-  const gitComponents = GitUrlParse(originUrl);
-  if (gitComponents.resource.includes("dev.azure.com")) {
+  const { resource, organization, owner, name, protocol } = GitUrlParse(
+    originUrl
+  );
+  if (resource.includes("dev.azure.com")) {
     logger.debug("azure devops repo found.");
-    return `https://dev.azure.com/${gitComponents.organization}/${gitComponents.owner}/_git/${gitComponents.name}`;
-  } else if (gitComponents.resource === "github.com") {
+    return `https://dev.azure.com/${organization}/${owner}/_git/${name}`;
+  } else if (resource.includes("visualstudio.com")) {
+    logger.debug(`visualstudio.com repo found`);
+    switch (protocol.toLowerCase()) {
+      case "ssh":
+        return `https://${organization}.visualstudio.com/${owner}/_git/${name}`;
+      case "https":
+        return `https://${resource}/${owner}/_git/${name}`;
+      default:
+        throw Error(
+          `Invalid protocol found in git remote '${originUrl}'. Expected one of 'ssh' or 'https' found '${protocol}'`
+        );
+    }
+  } else if (resource === "github.com") {
     logger.debug("github repo found.");
-    return `https://github.com/${gitComponents.organization}/${gitComponents.name}`;
+    return `https://github.com/${organization}/${name}`;
   } else {
     throw Error(
       "Could not determine origin repository, or it is not a supported type."
@@ -180,13 +197,27 @@ export const getPullRequestLink = async (
   originUrl: string
 ): Promise<string> => {
   try {
-    const gitComponents = GitUrlParse(originUrl);
-    if (gitComponents.resource.includes("dev.azure.com")) {
+    const { protocol, organization, name, owner, resource } = GitUrlParse(
+      originUrl
+    );
+    if (resource.includes("dev.azure.com")) {
       logger.debug("azure devops repo found.");
-      return `https://dev.azure.com/${gitComponents.organization}/${gitComponents.owner}/_git/${gitComponents.name}/pullrequestcreate?sourceRef=${newBranch}&targetRef=${baseBranch}`;
-    } else if (gitComponents.resource === "github.com") {
+      return `https://dev.azure.com/${organization}/${owner}/_git/${name}/pullrequestcreate?sourceRef=${newBranch}&targetRef=${baseBranch}`;
+    } else if (resource.includes("visualstudio.com")) {
+      logger.debug("visualstudio.com repo found");
+      switch (protocol.toLowerCase()) {
+        case "ssh":
+          return `https://${organization}.visualstudio.com/${owner}/_git/${name}/pullrequestcreate?sourceRef=${newBranch}&targetRef=${baseBranch}`;
+        case "https":
+          return `https://${resource}/${owner}/_git/${name}/pullrequestcreate?sourceRef=${newBranch}&targetRef=${baseBranch}`;
+        default:
+          throw Error(
+            `Invalid protocol found in git remote '${originUrl}'. Expected one of 'ssh' or 'https' found '${protocol}'`
+          );
+      }
+    } else if (resource === "github.com") {
       logger.debug("github repo found.");
-      return `https://github.com/${gitComponents.organization}/${gitComponents.name}/compare/${baseBranch}...${newBranch}?expand=1`;
+      return `https://github.com/${organization}/${name}/compare/${baseBranch}...${newBranch}?expand=1`;
     } else {
       logger.error(
         "Could not determine origin repository, or it is not a supported type."
