@@ -146,7 +146,9 @@ export const getDeployments = async (
     deploymentId
   ).then((deployments: Deployment[]) => {
     if (outputFormat === OUTPUT_FORMAT.JSON) {
-      logger.info(JSON.stringify(deployments, null, 2));
+      // Use console.log since it helps piping output to a file using > filename.json
+      // tslint:disable-next-line: no-console
+      console.log(JSON.stringify(deployments, null, 2));
     } else {
       printDeployments(deployments, outputFormat, limit);
     }
@@ -381,8 +383,9 @@ export const printDeployments = (
         break;
       }
     }
-
-    logger.info("\n" + table.toString());
+    // Use console.log since it helps piping output to a file using > filename.txt
+    // tslint:disable-next-line: no-console
+    console.log("\n" + table.toString());
     return table;
   } else {
     logger.info("No deployments found for specified filters.");
