@@ -1,5 +1,11 @@
 # RELEASE NOTES
 
+## [0.5.1] - 2020-02-05
+
+### Changed
+
+- Various bug fixes and refactoring
+
 ## [0.5.0] - 2020-02-03
 
 ### Added
