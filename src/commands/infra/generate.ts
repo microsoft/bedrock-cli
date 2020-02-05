@@ -254,7 +254,6 @@ export const validateRemoteSource = async (
       await gitClone(source, sourcePath);
     }
     // Checkout tagged version
-    logger.info(`Checking out template version: ${version}`);
     await gitCheckout(sourcePath, version);
   } catch (err) {
     logger.error(err);
@@ -545,9 +544,7 @@ export const generateTfvars = (
   if (!definition) {
     return [];
   }
-  return Object.keys(definition).map(
-    k => `${k} = "${definition[k].replace(/"/g, '\\"')}"`
-  );
+  return Object.keys(definition).map(k => `${k} = "${definition[k]}"`);
 };
 
 /**

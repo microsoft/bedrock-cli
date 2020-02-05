@@ -123,13 +123,6 @@ describe("test generateTfvars function", () => {
       })
     ).toEqual(['hello = "world"']);
   });
-  it("one value with quote as data", () => {
-    expect(
-      generateTfvars({
-        hello: '"world'
-      })
-    ).toEqual(['hello = "\\"world"']);
-  });
   it("one key with quote as data", () => {
     expect(
       generateTfvars({
