@@ -1,5 +1,5 @@
 import commander from "commander";
-import { Logger } from "winston";
+import { Logger, transports } from "winston";
 import { logger } from "../logger";
 import { hasValue } from "./validator";
 
@@ -123,6 +123,11 @@ export const exit = (
   statusCode: number
 ): Promise<void> => {
   return new Promise(resolve => {
+    logger.transports.forEach(t => {
+      if (t instanceof transports.Console) {
+        t.silent = true;
+      }
+    });
     log.info(`--end log: ${statusCode} --`, () => {
       exitFn(statusCode);
       resolve();

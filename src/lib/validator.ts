@@ -28,7 +28,7 @@ export const isIntegerString = (val: unknown): val is string => {
   if (val === undefined || val === null || val === "") {
     return false;
   }
-  return /^[1-9]\d+$/.test(val);
+  return /^[1-9]\d*$/.test(val);
 };
 
 /**

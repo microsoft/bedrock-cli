@@ -1,0 +1,52 @@
+{
+  "command": "get",
+  "alias": "g",
+  "description": "Get the list of deployments and filter with these options: service name, environment, build ID, commit ID, container image tag.",
+  "options": [
+    {
+      "arg": "-b, --build-id <build-id>",
+      "description": "Filter by the build ID of the source repository",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-c, --commit-id <commit-id>",
+      "description": "Filter by a commit ID from the source repository",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-d, --deployment-id <deployment-id>",
+      "description": "Filter by the deployment ID of the source repository",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-i, --image-tag <image-tag>",
+      "description": "Filter by a container image tag",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-e, --env <environment>",
+      "description": "Filter by environment name",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-s, --service <service-name>",
+      "description": "Filter by service name",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-t, --top <top>",
+      "description": "Return only top N most recent deployments",
+      "defaultValue": ""
+    },
+    {
+      "arg": "-o, --output <output-format>",
+      "description": "Output the information one of the following: normal, wide, JSON",
+      "defaultValue": "normal"
+    },
+    {
+      "arg": "-w, --watch",
+      "description": "Watch the deployments for a live view",
+      "defaultValue": false
+    }
+  ]
+}

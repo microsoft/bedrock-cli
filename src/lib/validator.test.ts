@@ -25,6 +25,7 @@ describe("Tests on validator helper functions", () => {
     expect(isIntegerString("010")).toBe(false);
     expect(isIntegerString("10.0")).toBe(false);
     expect(isIntegerString("80")).toBe(true);
+    expect(isIntegerString("1")).toBe(true); // single digit test
   });
   it("Test isPortNumberString function", () => {
     expect(isPortNumberString("")).toBe(false);
