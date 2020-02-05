@@ -1,14 +1,12 @@
 import yaml from "js-yaml";
 import { VM_IMAGE } from "../lib/constants";
+import { generateYamlScript } from "../lib/fileutils";
 import {
   IAzurePipelinesYaml,
   IBedrockFile,
   IHelmConfig,
   IMaintainersFile
 } from "../types";
-
-// Helper to concat list of script commands to a multi line string
-const generateYamlScript = (lines: string[]): string => lines.join("\n");
 
 export const createTestServiceBuildAndUpdatePipelineYaml = (
   asString = true,

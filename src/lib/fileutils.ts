@@ -10,8 +10,14 @@ import {
 import { logger } from "../logger";
 import { IAzurePipelinesYaml, IMaintainersFile, IUser } from "../types";
 
-// Helper to concat list of script commands to a multi line string
-const generateYamlScript = (lines: string[]): string => lines.join("\n");
+/**
+ * Concatenates all lines into a single string and injects `set -e` to the top
+ * of it
+ *
+ * @param lines lines of script to execute
+ */
+export const generateYamlScript = (lines: string[]): string =>
+  ["set -e", ...lines].join("\n");
 
 /**
  * Creates the service multistage build and update image tag pipeline.
@@ -20,7 +26,7 @@ const generateYamlScript = (lines: string[]): string => lines.join("\n");
  * @param projectRoot Full path to the root of the project (where the bedrock.yaml file exists)
  * @param ringBranches Branches to trigger builds off of. Should be all the defined rings for this service.
  * @param serviceName
- * @param servicePath Full path to service direcory
+ * @param servicePath Full path to service directory
  * @param variableGroups Azure DevOps variable group names
  */
 export const generateServiceBuildAndUpdatePipelineYaml = (

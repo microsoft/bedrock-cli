@@ -37,6 +37,7 @@ import {
   generateHldAzurePipelinesYaml,
   generateHldLifecyclePipelineYaml,
   generateServiceBuildAndUpdatePipelineYaml,
+  generateYamlScript,
   serviceBuildAndUpdatePipeline
 } from "./fileutils";
 
@@ -425,23 +426,30 @@ describe("serviceBuildUpdatePipeline", () => {
       );
       expect(hasCorrectIncludes).toBe(true);
 
-      let hasCorrecctVariableGroup1: boolean = false;
-      let hasCorrecctVariableGroup2: boolean = false;
+      let hasCorrectVariableGroup1: boolean = false;
+      let hasCorrectVariableGroup2: boolean = false;
       for (const [key, value] of Object.entries(azureYaml.variables!)) {
         const item: { group: string } = value as { group: string };
 
         if (item.group === variableGroups[0]) {
-          hasCorrecctVariableGroup1 = true;
+          hasCorrectVariableGroup1 = true;
         }
 
         if (item.group === variableGroups[1]) {
-          hasCorrecctVariableGroup2 = true;
+          hasCorrectVariableGroup2 = true;
         }
       }
 
       expect(hasCorrectIncludes).toBe(true);
-      expect(hasCorrecctVariableGroup1).toBe(true);
-      expect(hasCorrecctVariableGroup2).toBe(true);
+      expect(hasCorrectVariableGroup1).toBe(true);
+      expect(hasCorrectVariableGroup2).toBe(true);
     }
+  });
+});
+
+describe("generateYamlScript", () => {
+  test("'set -e' is injected as the first line", async () => {
+    const generated = generateYamlScript(["foo", "bar", "baz"]);
+    expect(generated.startsWith("set -e\n")).toBe(true);
   });
 });
