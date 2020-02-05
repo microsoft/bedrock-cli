@@ -12,7 +12,6 @@ spk infra [command] [options]
 
 Commands:
 
-- [validate](#validate)
 - [scaffold](#scaffold)
 - [generate](#generate)
 
@@ -32,28 +31,7 @@ ARM_TENANT_ID
 Instructions on how to specify environment variables can be found
 [here](../README.md).
 
-Other prerequisites are installed via the [`validate` command](#validate).
-
 ## Commands
-
-### validate
-
-Initializes the environment to deploy Bedrock infrastructure.
-
-It will do the following:
-
-- Verifies if prerequisites (e.g. terraform, git, helm, az cli) are installed
-- Verifies that user is logged into Azure via CLI
-- Check for environment variables (e.g. ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID,
-  ARM_CLIENT_SECRET, ARM_TENANT_ID)
-
-```
-Usage:
-spk infra validate|v [options]
-
-Options:
-   -h, --help  Usage information
-```
 
 ### scaffold
 
@@ -65,7 +43,6 @@ deployments.
 
 It will do the following:
 
-- Check if `spk infra validate` succeeded
 - Create a new folder with the `<name>` you provided.
 - Provide an infrastructure deployment scaffold based on a `<source>` git url
   for a terraform deployment, `<version>` respective to the repository of which

@@ -5,7 +5,7 @@ import { Config } from "../../config";
 import { getRepositoryName } from "../../lib/gitutils";
 import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
-import { validatePrereqs } from "../infra/validate";
+import { validatePrereqs } from "../init";
 
 export interface IIntrospectionManifest {
   githubUsername?: string;

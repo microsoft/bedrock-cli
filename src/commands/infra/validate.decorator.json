@@ -1,6 +1,0 @@
-{
-  "command": "validate",
-  "alias": "v",
-  "description": "Validate will verify that all infrastructure deployment prerequisites have been correctly installed.",
-  "options": []
-}

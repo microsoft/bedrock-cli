@@ -1,11 +1,8 @@
 import commander from "commander";
-import { loadConfiguration, saveConfiguration } from "../config";
+import shelljs from "shelljs";
+import { Config, loadConfiguration, saveConfiguration } from "../config";
 import { logger } from "../logger";
-import {
-  validateAzure,
-  validateEnvVariables,
-  validatePrereqs
-} from "./infra/validate";
+
 /**
  * Adds the init command to the commander command object
  * @param command Commander command object to decorate
@@ -25,27 +22,41 @@ export const initCommandDecorator = (command: commander.Command): void => {
           return;
         }
         loadConfiguration(opts.file);
-
-        await validatePrereqs(["terraform", "git", "az", "helm"], true);
-
-        await validateAzure(true);
-
-        await validateEnvVariables(
-          [
-            "ARM_SUBSCRIPTION_ID",
-            "ARM_CLIENT_ID",
-            "ARM_CLIENT_SECRET",
-            "ARM_TENANT_ID"
-          ],
-          true
-        );
-
         await saveConfiguration(opts.file);
-
         logger.info("Successfully initialized the spk tool!");
       } catch (err) {
         logger.error(`Error occurred while initializing`);
         logger.error(err);
       }
     });
+};
+
+/**
+ * Validates that prerequisites are installed
+ *
+ * @param executables Array of exectuables to check for in PATH
+ */
+export const validatePrereqs = (
+  executables: string[],
+  globalInit: boolean
+): boolean => {
+  const config = Config();
+  config.infra = config.infra || {};
+  config.infra.checks = config.infra.checks || {};
+
+  // Validate executables in PATH
+  for (const i of executables) {
+    if (!shelljs.which(i)) {
+      config.infra.checks[i] = false;
+      if (globalInit === true) {
+        logger.warn(i + " not installed.");
+      } else {
+        logger.error(":no_entry_sign: '" + i + "'" + " not installed");
+        return false;
+      }
+    } else {
+      config.infra.checks[i] = true;
+    }
+  }
+  return true;
 };

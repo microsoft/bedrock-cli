@@ -8,7 +8,7 @@ import {
   enableVerboseLogging,
   logger
 } from "../../logger";
-import { validatePrereqs } from "../infra/validate";
+import { validatePrereqs } from "../init";
 import {
   extractManifestRepositoryInformation,
   getEnvVars,

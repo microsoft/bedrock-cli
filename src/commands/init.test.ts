@@ -9,6 +9,7 @@ import {
   saveConfiguration
 } from "../config";
 import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
+import { validatePrereqs } from "./init";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -94,5 +95,20 @@ describe("Writing to default config location", () => {
       expect(true).toBeFalsy();
     }
     logger.info("Able to write to default config location");
+  });
+});
+
+describe("Validating executable prerequisites in spk-config", () => {
+  test("Validate that exectuable boolean matches in spk-config", async () => {
+    // Iterate through an array of non-existent binaries to create a force fail. If fails, then test pass
+    const filename = path.resolve("src/commands/mocks/spk-config.yaml");
+    process.env.test_name = "my_storage_account";
+    process.env.test_key = "my_storage_key";
+    loadConfiguration(filename);
+    const fakeBinaries: string[] = ["foobar"];
+    await validatePrereqs(fakeBinaries, true);
+    expect(Config().infra!).toBeDefined();
+    expect(Config().infra!.checks!).toBeDefined();
+    expect(Config().infra!.checks!.foobar!).toBe(false);
   });
 });
