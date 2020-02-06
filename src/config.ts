@@ -8,7 +8,6 @@ import { logger } from "./logger";
 import {
   IAzurePipelinesYaml,
   IBedrockFile,
-  IBedrockFileInfo,
   IConfigYaml,
   IMaintainersFile
 } from "./types";

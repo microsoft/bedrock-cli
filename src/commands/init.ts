@@ -1,62 +1,48 @@
 import commander from "commander";
-import shelljs from "shelljs";
-import { Config, loadConfiguration, saveConfiguration } from "../config";
+import { loadConfiguration, saveConfiguration } from "../config";
+import { build as buildCmd, exit as exitCmd } from "../lib/commandBuilder";
+import { hasValue } from "../lib/validator";
 import { logger } from "../logger";
+import decorator from "./init.decorator.json";
+
+interface ICommandOptions {
+  file: string | undefined;
+}
+
+/**
+ * Executes the command, can all exit function with 0 or 1
+ * when command completed successfully or failed respectively.
+ *
+ * @param opts option value from commander
+ * @param exitFn exit function
+ */
+export const execute = async (
+  opts: ICommandOptions,
+  exitFn: (status: number) => Promise<void>
+) => {
+  try {
+    if (!hasValue(opts.file)) {
+      throw new Error("File that stores configuration is not provided.");
+    }
+    loadConfiguration(opts.file);
+    await saveConfiguration(opts.file);
+    logger.info("Successfully initialized the spk tool!");
+    await exitFn(0);
+  } catch (err) {
+    logger.error(`Error occurred while initializing`);
+    logger.error(err);
+    await exitFn(1);
+  }
+};
 
 /**
  * Adds the init command to the commander command object
  * @param command Commander command object to decorate
  */
-export const initCommandDecorator = (command: commander.Command): void => {
-  command
-    .command("init")
-    .alias("i")
-    .description("Initialize the spk tool for the first time.")
-    .option("-f, --file <config-file-path>", "Path to the config file.")
-    .action(async opts => {
-      try {
-        if (!opts.file) {
-          logger.error(
-            "You need to specify a file that stores configuration. "
-          );
-          return;
-        }
-        loadConfiguration(opts.file);
-        await saveConfiguration(opts.file);
-        logger.info("Successfully initialized the spk tool!");
-      } catch (err) {
-        logger.error(`Error occurred while initializing`);
-        logger.error(err);
-      }
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+    await execute(opts, async (status: number) => {
+      await exitCmd(logger, process.exit, status);
     });
-};
-
-/**
- * Validates that prerequisites are installed
- *
- * @param executables Array of exectuables to check for in PATH
- */
-export const validatePrereqs = (
-  executables: string[],
-  globalInit: boolean
-): boolean => {
-  const config = Config();
-  config.infra = config.infra || {};
-  config.infra.checks = config.infra.checks || {};
-
-  // Validate executables in PATH
-  for (const i of executables) {
-    if (!shelljs.which(i)) {
-      config.infra.checks[i] = false;
-      if (globalInit === true) {
-        logger.warn(i + " not installed.");
-      } else {
-        logger.error(":no_entry_sign: '" + i + "'" + " not installed");
-        return false;
-      }
-    } else {
-      config.infra.checks[i] = true;
-    }
-  }
-  return true;
+  });
 };

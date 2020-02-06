@@ -1,3 +1,7 @@
+import shelljs from "shelljs";
+import { Config } from "../config";
+import { logger } from "../logger";
+
 /**
  * Values to be validated
  */
@@ -55,4 +59,34 @@ export const validateForNonEmptyValue = (
   validValue: IValidationValue
 ): string => {
   return hasValue(validValue.value) ? "" : validValue.error;
+};
+
+/**
+ * Validates that prerequisites are installed
+ *
+ * @param executables Array of exectuables to check for in PATH
+ */
+export const validatePrereqs = (
+  executables: string[],
+  globalInit: boolean
+): boolean => {
+  const config = Config();
+  config.infra = config.infra || {};
+  config.infra.checks = config.infra.checks || {};
+
+  // Validate executables in PATH
+  for (const i of executables) {
+    if (!shelljs.which(i)) {
+      config.infra.checks[i] = false;
+      if (globalInit === true) {
+        logger.warn(i + " not installed.");
+      } else {
+        logger.error(":no_entry_sign: '" + i + "'" + " not installed");
+        return false;
+      }
+    } else {
+      config.infra.checks[i] = true;
+    }
+  }
+  return true;
 };

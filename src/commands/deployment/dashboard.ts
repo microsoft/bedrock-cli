@@ -4,8 +4,8 @@ import open = require("open");
 import { Config } from "../../config";
 import { getRepositoryName } from "../../lib/gitutils";
 import { exec } from "../../lib/shell";
+import { validatePrereqs } from "../../lib/validator";
 import { logger } from "../../logger";
-import { validatePrereqs } from "../init";
 
 export interface IIntrospectionManifest {
   githubUsername?: string;

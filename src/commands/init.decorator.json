@@ -1,0 +1,11 @@
+{
+  "command": "init",
+  "alias": "i",
+  "description": "Initialize the spk tool for the first time.",
+  "options": [
+    {
+      "arg": "-f, --file <config-file-path>",
+      "description": "Path to the config file."
+    }
+  ]
+}
