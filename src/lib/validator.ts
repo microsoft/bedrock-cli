@@ -15,8 +15,11 @@ export interface IValidationValue {
  *
  * @param val Value to inspect
  */
-export const hasValue = (val: undefined | null | string): val is string => {
-  return val !== undefined && val !== null && val !== "";
+export const hasValue = (val: unknown): val is string => {
+  if (typeof val !== "string") {
+    return false;
+  }
+  return val.trim() !== "";
 };
 
 /**
@@ -26,10 +29,7 @@ export const hasValue = (val: undefined | null | string): val is string => {
  * @param val Value to inspect
  */
 export const isIntegerString = (val: unknown): val is string => {
-  if (typeof val !== "string") {
-    return false;
-  }
-  if (val === undefined || val === null || val === "") {
+  if (!hasValue(val)) {
     return false;
   }
   return /^[1-9]\d*$/.test(val);

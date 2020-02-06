@@ -1,5 +1,5 @@
 import { Command } from "../command";
-import { createCommandDecorator } from "./create";
+import { commandDecorator as createCommandDecorator } from "./create";
 import { commandDecorator as dashboardCommandDecorator } from "./dashboard";
 import { commandDecorator as getCommandDecorator } from "./get";
 import { onboardCommandDecorator } from "./onboard";

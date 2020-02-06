@@ -1,0 +1,65 @@
+{
+  "command": "create",
+  "alias": "c",
+  "description": "Insert the deployment in storage from pipelines",
+  "options": [
+    {
+      "arg": "-k, --access-key <access-key>",
+      "description": "Access key of the storage account"
+    },
+    {
+      "arg": "-n, --name <account-name>",
+      "description": "Name of the storage account"
+    },
+    {
+      "arg": "-p, --partition-key <partition-key>",
+      "description": "Partition key for the storage account"
+    },
+    {
+      "arg": "-t, --table-name <table-name>",
+      "description": "Name of table in storage account"
+    },
+    {
+      "arg": "--p1 <p1>",
+      "description": "Identifier for the first pipeline",
+      "defaultValue": ""
+    },
+    {
+      "arg": "--image-tag <image-tag>",
+      "description": "Image tag"
+    },
+    {
+      "arg": "--commit-id <commit-id>",
+      "description": "Commit Id in source repository"
+    },
+    {
+      "arg": "--service <service>",
+      "description": "Service name"
+    },
+    {
+      "arg": "--p2 <p2>",
+      "description": "Identifier for the second pipeline"
+    },
+    {
+      "arg": "--hld-commit-id <hld-commit-id>",
+      "description": "Commit id in HLD repository"
+    },
+    {
+      "arg": "--env <env>",
+      "description": "Release environment name",
+      "defaultValue": ""
+    },
+    {
+      "arg": "--p3 <p3>",
+      "description": "Identifier for the third pipeline"
+    },
+    {
+      "arg": "--pr <pr-id>",
+      "description": "Pull request identifier for a PR opened/closed in the HLD"
+    },
+    {
+      "arg": "--manifest-commit-id <manifest-commit-id>",
+      "description": "Commit Id in the manifest repository"
+    }
+  ]
+}
