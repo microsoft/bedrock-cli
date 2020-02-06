@@ -112,15 +112,13 @@ export const pushBranch = async (branchName: string): Promise<void> => {
  * @param absRepositoryPath The Absolute Path to the Repository to fetch the origin
  */
 export const getOriginUrl = async (
-  absRepositoryPath?: string
+  absRepositoryPath = "."
 ): Promise<string> => {
   try {
-    const repositoryPath =
-      absRepositoryPath !== undefined ? absRepositoryPath : ".";
     const originUrl = await exec(
       "git",
       ["config", "--get", "remote.origin.url"],
-      { cwd: repositoryPath }
+      { cwd: absRepositoryPath }
     );
 
     const safeLoggingUrl = safeGitUrlForLogging(originUrl);
