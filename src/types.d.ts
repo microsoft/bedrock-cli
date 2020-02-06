@@ -220,3 +220,7 @@ interface IBedrockFileInfo {
   exist: boolean;
   hasVariableGroups: boolean;
 }
+
+export interface IAccessYaml {
+  [gitRepositoryUrl: string]: string;
+}

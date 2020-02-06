@@ -16,6 +16,7 @@ import path from "path";
 import shelljs from "shelljs";
 import uuid from "uuid/v4";
 import {
+  ACCESS_FILENAME,
   PROJECT_PIPELINE_FILENAME,
   RENDER_HLD_PIPELINE_FILENAME,
   SERVICE_PIPELINE_FILENAME,
@@ -31,6 +32,7 @@ import {
 import { IAzurePipelinesYaml, IMaintainersFile } from "../types";
 import {
   addNewServiceToMaintainersFile,
+  generateAccessYaml,
   generateDefaultHldComponentYaml,
   generateDockerfile,
   generateGitIgnoreFile,
@@ -51,6 +53,44 @@ afterAll(() => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+});
+
+describe("generateAccessYaml", () => {
+  const targetDirectory = "hld-repository";
+  const serviceDirectory = "my-service";
+  const writeSpy = jest.spyOn(fs, "writeFileSync");
+
+  beforeEach(() => {
+    mockFs({
+      "hld-repository": {
+        "my-service": {}
+      }
+    });
+  });
+
+  afterEach(() => {
+    mockFs.restore();
+  });
+
+  it("should generate the access.yaml in the filepath.", async () => {
+    const absTargetPath = path.resolve(
+      path.join(targetDirectory, serviceDirectory)
+    );
+    const expectedFilePath = path.join(absTargetPath, ACCESS_FILENAME);
+    const gitRepoUrl =
+      "https://fabrikam@dev.azure.com/someorg/someproject/_git/fabrikam2019";
+
+    generateAccessYaml(absTargetPath, gitRepoUrl);
+
+    expect(writeSpy).toBeCalledWith(
+      expectedFilePath,
+      yaml.safeDump({
+        gitRepoUrl: "ACCESS_TOKEN_SECRET"
+      }),
+      "utf8"
+    );
+    expect(writeSpy).toBeCalled();
+  });
 });
 
 describe("generateServiceBuildAndUpdatePipelineYaml", () => {
