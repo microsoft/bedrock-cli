@@ -1,6 +1,6 @@
 import { Command } from "../command";
 import { createCommandDecorator } from "./create";
-import { dashboardCommandDecorator } from "./dashboard";
+import { commandDecorator as dashboardCommandDecorator } from "./dashboard";
 import { commandDecorator as getCommandDecorator } from "./get";
 import { onboardCommandDecorator } from "./onboard";
 import { validateCommandDecorator } from "./validate";

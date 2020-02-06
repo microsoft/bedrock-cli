@@ -1,0 +1,17 @@
+{
+  "command": "dashboard",
+  "alias": "d",
+  "description": "Launch the service introspection dashboard",
+  "options": [
+    {
+      "arg": "-p, --port <port>",
+      "description": "Port to launch the dashboard on",
+      "defaultValue": "4040"
+    },
+    {
+      "arg": "-r, --remove-all",
+      "description": "Removes previously launched instances of the dashboard",
+      "defaultValue": false
+    }
+  ]
+}

@@ -2,10 +2,13 @@ import commander from "commander";
 import GitUrlParse from "git-url-parse";
 import open = require("open");
 import { Config } from "../../config";
+import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { getRepositoryName } from "../../lib/gitutils";
 import { exec } from "../../lib/shell";
-import { validatePrereqs } from "../../lib/validator";
+import { isPortNumberString, validatePrereqs } from "../../lib/validator";
 import { logger } from "../../logger";
+import { IConfigYaml } from "../../types";
+import decorator from "./dashboard.decorator.json";
 
 export interface IIntrospectionManifest {
   githubUsername?: string;
@@ -13,50 +16,85 @@ export interface IIntrospectionManifest {
 }
 
 /**
+ * Command line option values from commander
+ */
+export interface ICommandOptions {
+  port: string;
+  removeAll: boolean;
+}
+
+/**
+ * Validates port and spk configuration
+ *
+ * @param config SPK Configuration
+ * @param opts Command Line option values
+ */
+export const validateValues = (config: IConfigYaml, opts: ICommandOptions) => {
+  if (opts.port) {
+    if (!isPortNumberString(opts.port)) {
+      throw new Error("value for port option has to be a valid port number");
+    }
+  }
+
+  if (
+    !config.introspection ||
+    !config.azure_devops ||
+    !config.azure_devops.org ||
+    !config.azure_devops.project ||
+    !config.introspection.azure ||
+    !config.introspection.azure.key ||
+    !config.introspection.azure.account_name ||
+    !config.introspection.azure.table_name ||
+    !config.introspection.azure.partition_key
+  ) {
+    throw new Error(
+      "You need to specify configuration for your introspection storage account and DevOps pipeline to run this dashboard. Please initialize the spk tool with the right configuration"
+    );
+  }
+};
+
+/**
+ * Executes the command, can all exit function with 0 or 1
+ * when command completed successfully or failed respectively.
+ *
+ * @param opts validated option values
+ * @param exitFn exit function
+ */
+export const execute = async (
+  opts: ICommandOptions,
+  exitFn: (status: number) => Promise<void>
+) => {
+  try {
+    const config = Config();
+    validateValues(config, opts);
+    const portNumber = parseInt(opts.port, 10);
+
+    if (await launchDashboard(config, portNumber, opts.removeAll)) {
+      await open("http://localhost:" + opts.port);
+    }
+    await exitFn(0);
+  } catch (err) {
+    logger.error(err);
+    await exitFn(1);
+  }
+};
+
+/**
  * Adds the onboard command to the commander command object
  * @param command Commander command object to decorate
  */
-export const dashboardCommandDecorator = (command: commander.Command): void => {
-  command
-    .command("dashboard")
-    .alias("d")
-    .description("Launch the service introspection dashboard")
-    .option("-p, --port <port>", "Port to launch the dashboard on", 4040)
-    .option(
-      "-r, --remove-all",
-      "Removes previously launched instances of the dashboard",
-      false
-    )
-    .action(async opts => {
-      const config = Config();
-      if (
-        !config.introspection ||
-        !config.azure_devops ||
-        !config.azure_devops.org ||
-        !config.azure_devops.project ||
-        !config.introspection.azure ||
-        !config.introspection.azure.key ||
-        !config.introspection.azure.account_name ||
-        !config.introspection.azure.table_name ||
-        !config.introspection.azure.partition_key
-      ) {
-        logger.error(
-          "You need to specify configuration for your introspection storage account and DevOps pipeline to run this dashboard. Please initialize the spk tool with the right configuration"
-        );
-        return;
-      }
-      if (await launchDashboard(opts.port, opts.removeAll)) {
-        await open("http://localhost:" + opts.port);
-      }
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+    await execute(opts, async (status: number) => {
+      await exitCmd(logger, process.exit, status);
     });
+  });
 };
 
 /**
  * Cleans previously launched spk dashboard docker containers
  */
-export const cleanDashboarContainers = async () => {
-  const config = Config();
-
+export const cleanDashboarContainers = async (config: IConfigYaml) => {
   let dockerOutput = await exec("docker", [
     "ps",
     "-a",
@@ -77,22 +115,24 @@ export const cleanDashboarContainers = async () => {
 
 /**
  * Launches an instance of the spk dashboard
+ *
  * @param port the port number to launch the dashboard
+ * @param removeAll true to remove all previously launched instances of the dashboard
  */
 export const launchDashboard = async (
+  config: IConfigYaml,
   port: number,
   removeAll: boolean
 ): Promise<string> => {
   try {
-    if (!(await validatePrereqs(["docker"], false))) {
-      return "";
-    }
-    // Clean previous dashboard containers
-    if (removeAll) {
-      await cleanDashboarContainers();
+    if (!validatePrereqs(["docker"], false)) {
+      throw new Error("Requirements to launch dashboard are not met");
     }
 
-    const config = Config();
+    if (removeAll) {
+      await cleanDashboarContainers(config);
+    }
+
     const dockerRepository = config.introspection!.dashboard!.image!;
     logger.info("Pulling dashboard docker image");
     await exec("docker", ["pull", dockerRepository]);
@@ -101,7 +141,7 @@ export const launchDashboard = async (
       "run",
       "-d",
       "--rm",
-      ...(await getEnvVars()),
+      ...(await getEnvVars(config)),
       "-p",
       port + ":80",
       dockerRepository
@@ -109,7 +149,7 @@ export const launchDashboard = async (
     return containerId;
   } catch (err) {
     logger.error(`Error occurred while launching dashboard ${err}`);
-    return "";
+    throw err;
   }
 };
 
@@ -117,9 +157,8 @@ export const launchDashboard = async (
  * Creates and returns an array of env vars that need to be passed into the
  * docker run command
  */
-export const getEnvVars = async (): Promise<string[]> => {
-  const config = Config();
-  const key = await Config().introspection!.azure!.key;
+export const getEnvVars = async (config: IConfigYaml): Promise<string[]> => {
+  const key = await config.introspection!.azure!.key;
   const envVars = [];
   envVars.push("-e");
   envVars.push("REACT_APP_PIPELINE_ORG=" + config.azure_devops!.org!);
@@ -167,7 +206,7 @@ export const getEnvVars = async (): Promise<string[]> => {
     );
   }
 
-  const manifestRepo = extractManifestRepositoryInformation();
+  const manifestRepo = extractManifestRepositoryInformation(config);
   if (manifestRepo) {
     envVars.push("-e");
     envVars.push("REACT_APP_MANIFEST=" + manifestRepo.manifestRepoName);
@@ -187,10 +226,10 @@ export const getEnvVars = async (): Promise<string[]> => {
  * `azure_devops.manifest_repository` which is required to fetch cluster sync
  * information on dashboard
  */
-export const extractManifestRepositoryInformation = ():
-  | IIntrospectionManifest
-  | undefined => {
-  const { azure_devops } = Config();
+export const extractManifestRepositoryInformation = (
+  config: IConfigYaml
+): IIntrospectionManifest | undefined => {
+  const { azure_devops } = config;
   if (azure_devops!.manifest_repository) {
     const manifestRepoName = getRepositoryName(
       azure_devops!.manifest_repository
