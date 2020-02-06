@@ -29,7 +29,7 @@ import {
   createTestMaintainersYaml,
   createTestServiceBuildAndUpdatePipelineYaml
 } from "../test/mockFactory";
-import { IAzurePipelinesYaml, IMaintainersFile } from "../types";
+import { IAccessYaml, IAzurePipelinesYaml, IMaintainersFile } from "../types";
 import {
   addNewServiceToMaintainersFile,
   generateAccessYaml,
@@ -80,13 +80,14 @@ describe("generateAccessYaml", () => {
     const gitRepoUrl =
       "https://fabrikam@dev.azure.com/someorg/someproject/_git/fabrikam2019";
 
+    const accessYaml: IAccessYaml = {};
+    accessYaml[gitRepoUrl] = "ACCESS_TOKEN_SECRET";
+
     generateAccessYaml(absTargetPath, gitRepoUrl);
 
     expect(writeSpy).toBeCalledWith(
       expectedFilePath,
-      yaml.safeDump({
-        gitRepoUrl: "ACCESS_TOKEN_SECRET"
-      }),
+      yaml.safeDump(accessYaml),
       "utf8"
     );
     expect(writeSpy).toBeCalled();

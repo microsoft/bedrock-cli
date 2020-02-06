@@ -8,6 +8,7 @@ import shelljs, { TestOptions } from "shelljs";
 import { Bedrock } from "../../config";
 import { assertIsStringWithContent } from "../../lib/assertions";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
+import { generateAccessYaml } from "../../lib/fileutils";
 import { getOriginUrl } from "../../lib/gitutils";
 import { TraefikIngressRoute } from "../../lib/traefik/ingress-route";
 import {
@@ -64,10 +65,19 @@ export interface IReconcileDependencies {
 
   test: (option: shelljs.TestOptions, path: string) => boolean;
 
-  gitOrigin: (path?: string) => Promise<string>;
+  getGitOrigin: (path?: string) => Promise<string>;
+
+  generateAccessYaml: (
+    absRepositoryPathInHldPath: string,
+    originUrl: string
+  ) => void;
 
   createAccessYaml: (
-    gitOrigin: (path?: string) => Promise<string>,
+    getGitOrigin: (path?: string) => Promise<string>,
+    writeAccessYaml: (
+      absRepositoryPathInHldPath: string,
+      originUrl: string
+    ) => void,
     absBedrockApplicationPath: string,
     absRepositoryPathInHldPath: string
   ) => void;
@@ -156,7 +166,8 @@ export const execute = async (
       createServiceComponent,
       createStaticComponent,
       exec: execAndLog,
-      gitOrigin: getOriginUrl,
+      generateAccessYaml,
+      getGitOrigin: getOriginUrl,
       test: shelljs.test,
       writeFile: writeFileSync
     };
@@ -219,7 +230,8 @@ export const reconcileHld = async (
 
   // Create access.yaml containing the bedrock application repo's URL in access.yaml.
   await dependencies.createAccessYaml(
-    dependencies.gitOrigin,
+    dependencies.getGitOrigin,
+    dependencies.generateAccessYaml,
     absBedrockPath,
     absRepositoryInHldPath
   );
@@ -337,14 +349,22 @@ export const execAndLog = async (
   return result;
 };
 
-const createAccessYaml = async (
-  gitOrigin: (path?: string) => Promise<string>,
+export const createAccessYaml = async (
+  getGitOrigin: (path?: string) => Promise<string>,
+  writeAccessYaml: (
+    absRepositoryPathInHldPath: string,
+    originUrl: string
+  ) => void,
   absBedrockApplicationPath: string,
-  absRepositoryPathInHld: string
+  absRepositoryPathInHldPath: string
 ) => {
-  const originUrl = await gitOrigin(absBedrockApplicationPath);
+  const originUrl = await getGitOrigin(absBedrockApplicationPath);
 
-  // callSomeFunction(originUrl, absRepositorypathInHld);
+  logger.info(
+    `Writing access.yaml for ${originUrl} to ${absRepositoryPathInHldPath}`
+  );
+
+  writeAccessYaml(absRepositoryPathInHldPath, originUrl);
 };
 
 const createIngressRouteForRing = (

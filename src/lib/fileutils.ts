@@ -25,9 +25,8 @@ export const generateAccessYaml = (
   accessYamlPath: string,
   gitRepoUrl: string
 ) => {
-  const accessYaml: IAccessYaml = {
-    gitRepoUrl: "ACCESS_TOKEN_SECRET"
-  };
+  const accessYaml: IAccessYaml = {};
+  accessYaml[gitRepoUrl] = "ACCESS_TOKEN_SECRET";
 
   const filePath = path.resolve(path.join(accessYamlPath, ACCESS_FILENAME));
 

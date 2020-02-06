@@ -4,6 +4,7 @@ import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import {
   addChartToRing,
   checkForFabrikate,
+  createAccessYaml,
   createRepositoryComponent,
   createRingComponent,
   createServiceComponent,
@@ -133,6 +134,26 @@ describe("createServiceComponent", () => {
     createServiceComponent(exec, repoInHldPath, pathBase);
     expect(exec).toBeCalled();
     expect(exec).toBeCalledWith(expectedInvocation);
+  });
+});
+
+describe("createAccessYaml", () => {
+  it("should invoke the correct command for writing access yaml", async () => {
+    const gitUrl = "https://dev.azure.com/foo/bar";
+    const absBedrockPath = "/abs/bedrock/path";
+    const absRepoPathInHld = "/abs/hld/repo/";
+    const getGitOrigin = jest.fn().mockReturnValue(Promise.resolve(gitUrl));
+    const writeAccessYaml = jest.fn();
+
+    await createAccessYaml(
+      getGitOrigin,
+      writeAccessYaml,
+      absBedrockPath,
+      absRepoPathInHld
+    );
+
+    expect(getGitOrigin).toBeCalledWith(absBedrockPath);
+    expect(writeAccessYaml).toBeCalledWith(absRepoPathInHld, gitUrl);
   });
 });
 
@@ -280,6 +301,7 @@ describe("reconcile tests", () => {
   beforeEach(() => {
     dependencies = {
       addChartToRing: jest.fn().mockReturnValue(Promise.resolve({})),
+      createAccessYaml: jest.fn(),
       createIngressRouteForRing: jest.fn().mockReturnValue(Promise.resolve({})),
       createMiddlewareForRing: jest.fn().mockReturnValue(Promise.resolve({})),
       createRepositoryComponent: jest.fn().mockReturnValue(Promise.resolve({})),
@@ -287,6 +309,8 @@ describe("reconcile tests", () => {
       createServiceComponent: jest.fn().mockReturnValue(Promise.resolve({})),
       createStaticComponent: jest.fn().mockReturnValue(Promise.resolve({})),
       exec: jest.fn().mockReturnValue(Promise.resolve({})),
+      generateAccessYaml: jest.fn(),
+      getGitOrigin: jest.fn(),
       test: jest.fn().mockReturnValue(false),
       writeFile: jest.fn()
     };
@@ -315,9 +339,16 @@ describe("reconcile tests", () => {
   });
 
   it("executes the appropriate functions for creating or updating a HLD", async () => {
-    await reconcileHld(dependencies, bedrockYaml, "service", "./path/to/hld");
+    await reconcileHld(
+      dependencies,
+      bedrockYaml,
+      "service",
+      "./path/to/hld",
+      "./path/to/app"
+    );
 
     expect(dependencies.createRepositoryComponent).toHaveBeenCalled();
+    expect(dependencies.createAccessYaml).toHaveBeenCalled();
     expect(dependencies.createServiceComponent).toHaveBeenCalledTimes(1);
     expect(dependencies.createRingComponent).toHaveBeenCalledTimes(2);
     expect(dependencies.addChartToRing).toHaveBeenCalledTimes(2);
@@ -330,7 +361,13 @@ describe("reconcile tests", () => {
     // bedrock yaml fixture
     bedrockYaml.rings = {};
 
-    await reconcileHld(dependencies, bedrockYaml, "service", "./path/to/hld");
+    await reconcileHld(
+      dependencies,
+      bedrockYaml,
+      "service",
+      "./path/to/hld",
+      "./path/to/app"
+    );
 
     expect(dependencies.createRepositoryComponent).toHaveBeenCalled();
     expect(dependencies.createServiceComponent).toHaveBeenCalledTimes(1);
@@ -360,9 +397,16 @@ describe("reconcile tests", () => {
       }
     };
 
-    await reconcileHld(dependencies, bedrockYaml, "service", "./path/to/hld");
+    await reconcileHld(
+      dependencies,
+      bedrockYaml,
+      "service",
+      "./path/to/hld",
+      "./path/to/app"
+    );
 
     expect(dependencies.createRepositoryComponent).toHaveBeenCalled();
+    expect(dependencies.createAccessYaml).toHaveBeenCalled();
     expect(dependencies.createServiceComponent).toHaveBeenCalledTimes(1);
     expect(dependencies.createRingComponent).toHaveBeenCalledTimes(1);
     expect(dependencies.addChartToRing).toHaveBeenCalledTimes(1);
@@ -376,7 +420,13 @@ describe("reconcile tests", () => {
   it("does not create a ring, if one already exists", async () => {
     bedrockYaml.rings = {};
 
-    await reconcileHld(dependencies, bedrockYaml, "service", "./path/to/hld");
+    await reconcileHld(
+      dependencies,
+      bedrockYaml,
+      "service",
+      "./path/to/hld",
+      "./path/to/app"
+    );
 
     expect(dependencies.createRingComponent).not.toHaveBeenCalled();
     expect(dependencies.createStaticComponent).not.toHaveBeenCalled();
@@ -399,7 +449,13 @@ describe("reconcile tests", () => {
       }
     };
 
-    await reconcileHld(dependencies, bedrockYaml, "service", "./path/to/hld");
+    await reconcileHld(
+      dependencies,
+      bedrockYaml,
+      "service",
+      "./path/to/hld",
+      "./path/to/app"
+    );
 
     expect(dependencies.createServiceComponent).not.toHaveBeenCalled();
   });
@@ -422,7 +478,13 @@ describe("reconcile tests", () => {
       }
     };
 
-    await reconcileHld(dependencies, bedrockYaml, "service", "./path/to/hld");
+    await reconcileHld(
+      dependencies,
+      bedrockYaml,
+      "service",
+      "./path/to/hld",
+      "./path/to/app"
+    );
     expect(dependencies.createServiceComponent).toHaveBeenCalled();
 
     // Second argument of first invocation of createServiceComponent is the service name
@@ -449,7 +511,13 @@ describe("reconcile tests", () => {
       }
     };
 
-    await reconcileHld(dependencies, bedrockYaml, "service", "./path/to/hld");
+    await reconcileHld(
+      dependencies,
+      bedrockYaml,
+      "service",
+      "./path/to/hld",
+      "./path/to/app"
+    );
     expect(dependencies.createServiceComponent).toHaveBeenCalled();
 
     // Second argument of first invocation of createServiceComponent is the service name

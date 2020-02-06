@@ -222,11 +222,32 @@ describe("getOriginUrl", () => {
 
     expect(originUrlResponse).toEqual(originUrl);
     expect(exec).toHaveBeenCalledTimes(1);
-    expect(exec).toHaveBeenCalledWith("git", [
-      "config",
-      "--get",
-      "remote.origin.url"
-    ]);
+    expect(exec).toHaveBeenCalledWith(
+      "git",
+      ["config", "--get", "remote.origin.url"],
+      { cwd: "." }
+    );
+  });
+
+  it("should call exec with the proper git arguments", async () => {
+    const originUrl = "foo";
+    const repoPath = "/repo/path";
+
+    when(exec as jest.Mock)
+      .calledWith("git", ["config", "--get", "remote.origin.url"], {
+        cwd: repoPath
+      })
+      .mockReturnValue(originUrl);
+
+    const originUrlResponse = await getOriginUrl(repoPath);
+
+    expect(originUrlResponse).toEqual(originUrl);
+    expect(exec).toHaveBeenCalledTimes(1);
+    expect(exec).toHaveBeenCalledWith(
+      "git",
+      ["config", "--get", "remote.origin.url"],
+      { cwd: repoPath }
+    );
   });
 
   it("should return an error when exec throws an error", async () => {
