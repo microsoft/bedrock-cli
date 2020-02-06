@@ -87,21 +87,14 @@ export const createServiceRevisionCommandDecorator = (
           logger.info(
             `No source-branch provided, parsing the current branch for git client`
           );
-          sourceBranch = await getCurrentBranch()
-            .then(branch => {
-              if (branch.length === 0) {
-                throw Error(
-                  `Zero length branch string parsed from git client; cannot automate PR`
-                );
-              }
-              return branch;
-            })
-            .catch(err => {
-              logger.error(
-                `Unable to parse current branch from git client. Ensure 'git rev-parse --abbrev-ref HEAD' returns a proper response`
+          sourceBranch = await getCurrentBranch().then(branch => {
+            if (branch.length === 0) {
+              throw Error(
+                `Zero length branch string parsed from git client; cannot automate PR`
               );
-              throw err;
-            });
+            }
+            return branch;
+          });
         }
 
         // Make sure the user isn't trying to make a PR for a branch against itself

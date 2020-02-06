@@ -40,6 +40,27 @@ export const generateAccessYaml = (
 };
 
 /**
+ * Outputs a bash string for a _safe_ source branch string -- a string where all
+ * '/' and '.' in the string have been replaced with a '-'`
+ */
+
+export const SAFE_SOURCE_BRANCH = `$(echo $(Build.SourceBranchName) | tr / - | tr . -)`;
+
+/**
+ * Outputs a bash string for a _safe_ image tag -- a string where all
+ * '/' and '.' in the string have been replaced with a '-'`
+ */
+export const IMAGE_TAG = `${SAFE_SOURCE_BRANCH}-$(Build.BuildNumber)`;
+
+/**
+ * Outputs a bash string of `<repository>-<service-name>` in lowercase
+ *
+ * @param serviceName name of the service being built
+ */
+export const BUILD_REPO_NAME = (serviceName: string) =>
+  `$(echo $(Build.Repository.Name)-${serviceName} | tr '[:upper:]' '[:lower:]')`;
+
+/**
  * Concatenates all lines into a single string and injects `set -e` to the top
  * of it
  *
@@ -143,8 +164,8 @@ export const serviceBuildAndUpdatePipeline = (
               },
               {
                 script: generateYamlScript([
-                  `export BUILD_REPO_NAME=$(echo $(Build.Repository.Name)-${serviceName} | tr '[:upper:]' '[:lower:]')`,
-                  `tag_name="$BUILD_REPO_NAME:$(Build.SourceBranchName)-$(Build.BuildNumber)"`,
+                  `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
+                  `tag_name="$BUILD_REPO_NAME:${IMAGE_TAG}"`,
                   `commitId=$(Build.SourceVersion)`,
                   `commitId=$(echo "\${commitId:0:7}")`,
                   `service=$(Build.Repository.Name)`,
@@ -164,11 +185,11 @@ export const serviceBuildAndUpdatePipeline = (
               },
               {
                 script: generateYamlScript([
-                  `export BUILD_REPO_NAME=$(echo $(Build.Repository.Name)-${serviceName} | tr '[:upper:]' '[:lower:]')`,
+                  `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
                   `echo "Image Name: $BUILD_REPO_NAME"`,
                   `cd ${relativeServicePathFormatted}`,
-                  `echo "az acr build -r $(ACR_NAME) --image $BUILD_REPO_NAME:$(Build.SourceBranchName)-$(Build.BuildNumber) ."`,
-                  `az acr build -r $(ACR_NAME) --image $BUILD_REPO_NAME:$(Build.SourceBranchName)-$(Build.BuildNumber) .`
+                  `echo "az acr build -r $(ACR_NAME) --image $BUILD_REPO_NAME:${IMAGE_TAG} ."`,
+                  `az acr build -r $(ACR_NAME) --image $BUILD_REPO_NAME:${IMAGE_TAG} .`
                 ]),
                 displayName: "ACR Build and Publish"
               }
@@ -203,8 +224,9 @@ export const serviceBuildAndUpdatePipeline = (
               {
                 script: generateYamlScript([
                   `export SERVICE_NAME_LOWER=$(echo ${serviceName} | tr '[:upper:]' '[:lower:]')`,
-                  `export BUILD_REPO_NAME=$(echo $(Build.Repository.Name)-$SERVICE_NAME_LOWER | tr '[:upper:]' '[:lower:]')`,
-                  `export BRANCH_NAME=DEPLOY/$BUILD_REPO_NAME-$(Build.SourceBranchName)-$(Build.BuildNumber)`,
+                  `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
+                  `export BRANCH_NAME=DEPLOY/$BUILD_REPO_NAME-${IMAGE_TAG}`,
+                  `export FAB_SAFE_SERVICE_NAME=$(SERVICE_NAME_LOWER | tr . - | tr / -)`,
                   `# --- From https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/release.sh`,
                   `. build.sh --source-only`,
                   ``,
@@ -223,7 +245,7 @@ export const serviceBuildAndUpdatePipeline = (
                   ``,
                   `# Update HLD`,
                   `git checkout -b "$BRANCH_NAME"`,
-                  `../fab/fab set --subcomponent $SERVICE_NAME_LOWER image.tag=$(Build.SourceBranchName)-$(Build.BuildNumber)`,
+                  `../fab/fab set --subcomponent $(Build.Repository.Name).$FAB_SAFE_SERVICE_NAME.${SAFE_SOURCE_BRANCH}.chart image.tag=${IMAGE_TAG}`,
                   `echo "GIT STATUS"`,
                   `git status`,
                   `echo "GIT ADD (git add -A)"`,
@@ -235,7 +257,7 @@ export const serviceBuildAndUpdatePipeline = (
                   ``,
                   `# Commit changes`,
                   `echo "GIT COMMIT"`,
-                  `git commit -m "Updating $SERVICE_NAME_LOWER image tag to $(Build.SourceBranchName)-$(Build.BuildNumber)."`,
+                  `git commit -m "Updating $SERVICE_NAME_LOWER image tag to ${IMAGE_TAG}."`,
                   ``,
                   `# Git Push`,
                   `git_push`,
@@ -244,8 +266,8 @@ export const serviceBuildAndUpdatePipeline = (
                   `echo 'az extension add --name azure-devops'`,
                   `az extension add --name azure-devops`,
                   ``,
-                  `echo 'az repos pr create --description "Updating $SERVICE_NAME_LOWER to $(Build.SourceBranchName)-$(Build.BuildNumber)."'`,
-                  `response=$(az repos pr create --description "Updating $SERVICE_NAME_LOWER to $(Build.SourceBranchName)-$(Build.BuildNumber).")`,
+                  `echo 'az repos pr create --description "Updating $SERVICE_NAME_LOWER to ${IMAGE_TAG}."'`,
+                  `response=$(az repos pr create --description "Updating $SERVICE_NAME_LOWER to ${IMAGE_TAG}.")`,
                   `pr_id=$(echo $response | jq -r '.pullRequestId')`,
                   ``,
                   ``,
@@ -254,7 +276,7 @@ export const serviceBuildAndUpdatePipeline = (
                   `echo "Introspection variables are not defined. Skipping..."`,
                   `else`,
                   `latest_commit=$(git rev-parse --short HEAD)`,
-                  `tag_name="$BUILD_REPO_NAME:$(Build.SourceBranchName)-$(Build.BuildNumber)"`,
+                  `tag_name="$BUILD_REPO_NAME:${IMAGE_TAG}"`,
                   `echo "Downloading SPK"`,
                   `curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh`,
                   `chmod +x build.sh`,

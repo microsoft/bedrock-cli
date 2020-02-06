@@ -34,7 +34,10 @@ export const getCurrentBranch = async (
     });
     return branch;
   } catch (err) {
-    throw Error("Unable to determine current branch: " + err);
+    logger.error(err);
+    throw Error(
+      `Unable to parse current branch from git client. Ensure 'git branch --show-current' returns a proper response`
+    );
   }
 };
 
