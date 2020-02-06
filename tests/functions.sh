@@ -383,3 +383,191 @@ function validate_file () {
         exit 1
     fi
 }
+
+function create_spk_project_and_service () {
+
+    local spk=$3
+    local TEST_WORKSPACE=$4
+    local repo_dir_name=$5
+    local var_group_name=$6
+    local helm_repo_url=$7
+
+    # echo "Creating local app repo for '$repo_dir_name' at '$TEST_WORKSPACE/$repo_dir_name'"
+    cd $TEST_WORKSPACE
+    mkdir $repo_dir_name
+    cd $repo_dir_name
+    git init 
+
+    $spk project init #>> $TEST_WORKSPACE/log.txt
+    file_we_expect=("spk.log" ".gitignore" "bedrock.yaml" "maintainers.yaml" "hld-lifecycle.yaml")
+    validate_directory "$TEST_WORKSPACE/$repo_dir_name" "${file_we_expect[@]}"
+
+    # Does variable group already exist? Delete if so
+    variable_group_exists $1 $2 $var_group_name "delete"
+
+    # Create variable group
+    echo "spk project create-variable-group $var_group_name -r $ACR_NAME -d $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --project $2 --personal-access-token $ACCESS_TOKEN_SECRET"
+    $spk project create-variable-group $var_group_name -r $ACR_NAME -d $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --project $2 --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
+
+    # Verify the variable group was created. Fail if not
+    variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $var_group_name "fail"
+
+    # $spk service create . -n "$repo_dir_name-service" -p chart -g "$1/$2/_git/$repo_dir_name" -b master >> $TEST_WORKSPACE/log.txt
+    echo "$spk service create . -n "$repo_dir_name-service" -p "$repo_dir_name/chart" -g $helm_repo_url -b master"
+    $spk service create . -n "$repo_dir_name-service" -p "$repo_dir_name/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
+    directory_to_check="$TEST_WORKSPACE/$repo_dir_name"
+    file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" "maintainers.yaml" "hld-lifecycle.yaml" "spk.log" "bedrock.yaml") 
+    validate_directory $directory_to_check "${file_we_expect[@]}"
+}   
+
+function create_helm_chart_v2 () {
+    mkdir chart
+    cd chart
+    touch Chart.yaml
+    eval "echo \"$(cat $1//test.Chart.yaml)\"" > Chart.yaml 
+    
+    touch values.yaml
+    eval "echo \"$(cat $1//test.values.yaml)\"" > values.yaml 
+
+    touch .helmignore
+echo "
+# Patterns to ignore when building packages.
+# This supports shell glob matching, relative path matching, and
+# negation (prefixed with !). Only one pattern per line.
+.DS_Store
+# Common VCS dirs
+.git/
+.gitignore
+.bzr/
+.bzrignore
+.hg/
+.hgignore
+.svn/
+# Common backup files
+*.swp
+*.bak
+*.tmp
+*~
+# Various IDEs
+.project
+.idea/
+*.tmproj
+.vscode/" >> .helmignore
+
+    mkdir templates
+    cd templates
+    touch all-in-one.yaml
+    eval "echo \"$(cat $1//test.templates.yaml)\"" > all-in-one.yaml
+
+    cd ../..
+
+}
+
+function create_access_yaml () {
+    touch access.yaml
+    echo "$1: $2" >> access.yaml
+} 
+
+function create_manifest_repo () {
+    mkdir $1
+    cd $1
+    git init
+    touch README.md
+    echo "This is the Flux Manifest Repository." >> README.md
+    file_we_expect=("README.md")
+
+    cd ..
+}
+
+function create_hld_repo () {
+    local spk=$2
+
+    mkdir $1
+    cd $1
+    git init
+    $spk hld init
+    touch component.yaml
+    file_we_expect=("spk.log" "manifest-generation.yaml" "component.yaml" ".gitignore")
+
+    cd ..
+}
+
+function create_helm_chart_repo () {
+    chart_name=$2
+    workspace_dir=$3
+    acr_registry=$4
+
+    mkdir $1
+    cd $1
+    git init
+    mkdir $chart_name
+    cd $chart_name
+
+    chart_app_name=$chart_name
+    acr_name=$acr_registry
+    create_helm_chart_v2 $workspace_dir
+
+    cd ../..
+}
+
+function push_remote_git_repo () {
+
+    local AZDO_ORG_URL=$1
+    local AZDO_PROJECT=$2
+
+    # Create the remote repo for the local repo
+    created_repo_result=$(az repos create --name "$3" --org $AZDO_ORG_URL --p $AZDO_PROJECT)
+
+    # Extract out remote repo URL from the above result
+    remote_repo_url=$(echo $created_repo_result | jq '.remoteUrl' | tr -d '"' )
+    echo "The remote_repo_url is $remote_repo_url"
+
+    # Remove the user from the URL
+    repo_url=$(getHostandPath "$remote_repo_url")
+
+    # We need to manipulate the remote url to insert a PAT token so we can add an origin git url
+    git commit -m "inital commit"
+    # git remote rm origin
+    git remote add origin https://service_account:$ACCESS_TOKEN_SECRET@$repo_url
+    echo "git push"
+    git push -u origin --all
+    
+    cd ..
+}
+
+function get_remote_repo_url () {
+    local AZDO_ORG_URL=$1
+    local AZDO_PROJECT=$2
+
+    # Create the remote repo for the local repo
+    repo_result=$(az repos show -r "$3" --org $AZDO_ORG_URL --p $AZDO_PROJECT)
+
+    # Extract out remote repo URL from the above result
+    remote_repo_url=$(echo $repo_result | jq '.webUrl' | tr -d '"' )
+
+    echo $remote_repo_url
+}
+
+function approve_pull_request_v2 () {
+    all_prs=$(az repos pr list --org $1 --p $2)
+    pr_title=$3
+
+    pr_exists=$(echo $all_prs | jq -r --arg pr_title "$pr_title" '.[].title | select(startswith($pr_title)) != null')
+    if [ "$pr_exists" != "true" ]; then
+        echo "PR for '$pr_title' not found"
+        exit 1
+    fi
+    real_title=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[].title | startswith($pr_title)) | .[].title')
+    pull_request_id=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[].title | startswith($pr_title)) | .[].pullRequestId')
+    echo "Found pull request starting with phrase '$pr_title'"
+    echo "Pull request id $pull_request_id is '$real_title'"
+
+    approve_result=$(az repos pr update --id "$pull_request_id" --auto-complete true --output json )
+
+    if [ "$(echo $approve_result | jq '.mergeStatus' | grep 'succeeded')" != "" ]; then
+        echo "PR $pull_request_id approved"
+    else
+        echo "Issue approving PR $pull_request_id"
+        exit 1
+    fi
+}
