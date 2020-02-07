@@ -63,12 +63,6 @@ tests.
 | spk hld init                      | ✅       |
 | spk hld install-manifest-pipeline | ✅       |
 
-## Ingress Route Management
-
-| Command                  | Coverage |
-| ------------------------ | -------- |
-| spk ingress-route create | 🚫       |
-
 ## Variable Group Management
 
 | Command                   | Coverage |
@@ -148,7 +142,8 @@ When testing locally you don't need to do the above set up since there is no
 pipeline. Instead run these steps:
 
 1. Login into AZ CLI
-2. Install Azure DevOps Extension (make sure you have version >= 0.17.0 installed) 
+2. Install Azure DevOps Extension (make sure you have version >= 0.17.0
+   installed)
    ```
    az extension add --name azure-devops
    ```

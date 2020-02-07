@@ -61,7 +61,6 @@ Commands:
 - [spk project](./docs/project-management.md)
 - [spk service](./docs/service-management.md)
 - [spk variable-group](./docs/variable-group.md)
-- [spk ingress-group](./docs/ingress-route-management.md)
 
 ## Getting Started
 

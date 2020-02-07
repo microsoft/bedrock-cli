@@ -17,7 +17,6 @@ import { Command, executeCommand } from "./commands/command";
 import { deploymentCommand } from "./commands/deployment";
 import { hldCommand } from "./commands/hld";
 import { infraCommand } from "./commands/infra";
-import { ingressCommand } from "./commands/ingress-route";
 import { commandDecorator as initCommandDecorator } from "./commands/init";
 import { projectCommand } from "./commands/project";
 import { serviceCommand } from "./commands/service";
@@ -43,8 +42,7 @@ const rootCommand = Command(
     serviceCommand,
     infraCommand,
     hldCommand,
-    variableGroupCommand,
-    ingressCommand
+    variableGroupCommand
   ]
 );
 
