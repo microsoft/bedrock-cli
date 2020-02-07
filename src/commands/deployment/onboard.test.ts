@@ -1,26 +1,32 @@
-// imports
 import fs from "fs";
 import yaml from "js-yaml";
-import os from "os";
 import * as path from "path";
-import uuid from "uuid/v4";
+
 import { Config, loadConfiguration } from "../../config";
 import * as config from "../../config";
 import * as keyvault from "../../lib/azure/keyvault";
 import * as storage from "../../lib/azure/storage";
+import { createTempDir } from "../../lib/ioUtil";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
   logger
 } from "../../logger";
-import { IAzureAccessOpts } from "../../types";
+import { IAzureAccessOpts, IConfigYaml } from "../../types";
 import {
+  createKeyVault,
+  execute,
+  getStorageAccessKey,
+  ICommandOptions,
   onboard,
+  populateValues,
   setConfiguration,
-  validateRequiredArguments,
+  validateAndCreateStorageAccount,
   validateStorageName,
-  validateTableName
+  validateTableName,
+  validateValues
 } from "./onboard";
+import * as onboardImpl from "./onboard";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -30,320 +36,414 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
-const storageAccountName = "teststorage";
-const storageTableName = "testtable";
-const storageResourceGroup = uuid();
-const accessOpts: IAzureAccessOpts = {
-  servicePrincipalId: uuid(),
-  servicePrincipalPassword: uuid(),
-  subscriptionId: uuid(),
-  tenantId: uuid()
+const MOCKED_VALUES: ICommandOptions = {
+  keyVaultName: "testKeyVault",
+  servicePrincipalId: "servicePrincipalId",
+  servicePrincipalPassword: "servicePrincipalPassword",
+  storageAccountName: "testaccount",
+  storageLocation: "westus",
+  storageResourceGroupName: "testResourceGroup",
+  storageTableName: "testtable",
+  subscriptionId: "subscriptionId",
+  tenantId: "tenantId"
 };
 
-const randomTmpDir = path.join(os.tmpdir(), uuid());
-fs.mkdirSync(randomTmpDir);
+const randomTmpDir = createTempDir();
 const testConfigFile = path.join(randomTmpDir, "config.yaml");
 
-jest.spyOn(config, "defaultConfigFile").mockImplementation((): string => {
-  return testConfigFile;
-});
+const getMockedValues = (): ICommandOptions => {
+  return JSON.parse(JSON.stringify(MOCKED_VALUES));
+};
 
-jest.spyOn(storage, "isStorageAccountExist").mockImplementation(
-  async (): Promise<any> => {
-    return false;
-  }
-);
+const getMockedAccessOpts = (values: ICommandOptions): IAzureAccessOpts => {
+  return {
+    servicePrincipalId: values.servicePrincipalId,
+    servicePrincipalPassword: values.servicePrincipalPassword,
+    subscriptionId: values.subscriptionId,
+    tenantId: values.tenantId
+  };
+};
 
-jest.spyOn(storage, "createStorageAccount").mockImplementation(
-  async (): Promise<any> => {
-    return {
-      location: "westus",
-      name: "testAccount"
-    };
-  }
-);
-
-jest.spyOn(keyvault, "setSecret").mockImplementation(
-  async (): Promise<any> => {
-    return true;
-  }
-);
+jest.spyOn(config, "defaultConfigFile").mockReturnValue(testConfigFile);
 
 jest.spyOn(logger, "info");
 
-describe("onboard", () => {
-  test("empty location", async () => {
-    jest.spyOn(storage, "isStorageAccountExist").mockImplementationOnce(
-      async (): Promise<any> => {
-        return false;
+const testPopulatedVal = (
+  configFn: (configYaml: IConfigYaml) => void,
+  mockedFn: (values: ICommandOptions) => void,
+  verifyFn: (values: ICommandOptions) => void
+) => {
+  const configYaml: IConfigYaml = {
+    introspection: {
+      azure: {
+        key: Promise.resolve("key")
+      }
+    }
+  };
+  configFn(configYaml);
+  jest.spyOn(config, "Config").mockReturnValueOnce(configYaml);
+  const mocked = getMockedValues();
+  mockedFn(mocked);
+
+  const values = populateValues(mocked);
+  verifyFn(values);
+};
+
+describe("test populateValues", () => {
+  it("all values are set", () => {
+    const values = populateValues(getMockedValues());
+    expect(values.keyVaultName).toBe(MOCKED_VALUES.keyVaultName);
+    expect(values.servicePrincipalId).toBe(MOCKED_VALUES.servicePrincipalId);
+    expect(values.servicePrincipalPassword).toBe(
+      MOCKED_VALUES.servicePrincipalPassword
+    );
+    expect(values.storageAccountName).toBe(MOCKED_VALUES.storageAccountName);
+    expect(values.storageLocation).toBe(MOCKED_VALUES.storageLocation);
+    expect(values.storageResourceGroupName).toBe(
+      MOCKED_VALUES.storageResourceGroupName
+    );
+    expect(values.storageTableName).toBe(MOCKED_VALUES.storageTableName);
+    expect(values.subscriptionId).toBe(MOCKED_VALUES.subscriptionId);
+    expect(values.tenantId).toBe(MOCKED_VALUES.tenantId);
+  });
+  it("storageAccountName default to config.introspection.azure.account_name", () => {
+    testPopulatedVal(
+      (configYaml: IConfigYaml) => {
+        configYaml.introspection!.azure!.account_name = "AccountName";
+      },
+      (values: ICommandOptions) => {
+        values.storageAccountName = undefined;
+      },
+      values => {
+        expect(values.storageAccountName).toBe("AccountName");
       }
     );
+  });
+  it("storageTableName default to config.introspection.azure.table_name", () => {
+    testPopulatedVal(
+      (configYaml: IConfigYaml) => {
+        configYaml.introspection!.azure!.table_name = "TableName";
+      },
+      (values: ICommandOptions) => {
+        values.storageTableName = undefined;
+      },
+      values => {
+        expect(values.storageTableName).toBe("TableName");
+      }
+    );
+  });
+  it("keyVaultName default to config.introspection.azure.key_vault_name", () => {
+    testPopulatedVal(
+      (configYaml: IConfigYaml) => {
+        configYaml.key_vault_name = "KeyVaulteName";
+      },
+      (values: ICommandOptions) => {
+        values.keyVaultName = undefined;
+      },
+      values => {
+        expect(values.keyVaultName).toBe("KeyVaulteName");
+      }
+    );
+  });
+  it("servicePrincipalId default to config.introspection.azure.service_principal_id", () => {
+    testPopulatedVal(
+      (configYaml: IConfigYaml) => {
+        configYaml.introspection!.azure!.service_principal_id =
+          "ServicePrincipalId";
+      },
+      (values: ICommandOptions) => {
+        values.servicePrincipalId = undefined;
+      },
+      values => {
+        expect(values.servicePrincipalId).toBe("ServicePrincipalId");
+      }
+    );
+  });
+  it("servicePrincipalPassword default to config.introspection.azure.service_principal_secret", () => {
+    testPopulatedVal(
+      (configYaml: IConfigYaml) => {
+        configYaml.introspection!.azure!.service_principal_secret =
+          "ServicePrincipalSecret";
+      },
+      (values: ICommandOptions) => {
+        values.servicePrincipalPassword = undefined;
+      },
+      values => {
+        expect(values.servicePrincipalPassword).toBe("ServicePrincipalSecret");
+      }
+    );
+  });
+  it("tenantId default to config.introspection.azure.tenant_id", () => {
+    testPopulatedVal(
+      (configYaml: IConfigYaml) => {
+        configYaml.introspection!.azure!.tenant_id = "tenantId";
+      },
+      (values: ICommandOptions) => {
+        values.tenantId = undefined;
+      },
+      values => {
+        expect(values.tenantId).toBe("tenantId");
+      }
+    );
+  });
+  it("subscriptionId default to config.introspection.azure.subscription_id", () => {
+    testPopulatedVal(
+      (configYaml: IConfigYaml) => {
+        configYaml.introspection!.azure!.subscription_id = "subscriptionId";
+      },
+      (values: ICommandOptions) => {
+        values.subscriptionId = undefined;
+      },
+      values => {
+        expect(values.subscriptionId).toBe("subscriptionId");
+      }
+    );
+  });
+});
 
-    let hasError = false;
+describe("test validateValues function", () => {
+  it("[-ve]: missing value - undefined", () => {
+    const vals = getMockedValues();
+    vals.servicePrincipalId = undefined;
     try {
-      await onboard(
-        "testAccount",
-        "testTable",
-        "testResourceGroup",
-        "",
-        "testKeyVault"
+      validateValues(vals);
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e).toBeDefined();
+    }
+  });
+  it("[-ve]: missing value - empty string", () => {
+    const vals = getMockedValues();
+    vals.servicePrincipalPassword = "";
+    try {
+      validateValues(vals);
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e).toBeDefined();
+    }
+  });
+  it("[-ve]: missing value - string with only spaces", () => {
+    const vals = getMockedValues();
+    vals.storageAccountName = " ";
+    try {
+      validateValues(vals);
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e).toBeDefined();
+    }
+  });
+  it("[-ve]: invalid storageAccountName value", () => {
+    const vals = getMockedValues();
+    vals.storageAccountName = "#123";
+    try {
+      validateValues(vals);
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e.message).toBe(
+        "Storage account name must be only alphanumeric characters in lowercase and must be from 3 to 24 characters long."
       );
+    }
+  });
+  it("[-ve]: invalid storageTableName value", () => {
+    const vals = getMockedValues();
+    vals.storageTableName = "# ";
+    try {
+      validateValues(vals);
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e.message).toBe(
+        "Table names must be only alphanumeric characters, cannot begin with a numeric character, case-insensitive, and must be from 3 to 63 characters long."
+      );
+    }
+  });
+});
+
+describe("test execute function", () => {
+  it("[-ve]: onboard throw exception", async () => {
+    jest
+      .spyOn(onboardImpl, "onboard")
+      .mockReturnValueOnce(Promise.reject("error"));
+    const exitFn = jest.fn();
+    await execute(getMockedValues(), exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
+  it("[+ve]: positive test", async () => {
+    jest
+      .spyOn(onboardImpl, "onboard")
+      .mockReturnValueOnce(Promise.resolve(undefined));
+    const exitFn = jest.fn();
+    await execute(getMockedValues(), exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[0]]);
+  });
+});
+
+describe("test validateAndCreateStorageAccount function", () => {
+  it("[+ve] Positive test: storage account does not exist", async () => {
+    jest
+      .spyOn(storage, "isStorageAccountExist")
+      .mockReturnValueOnce(Promise.resolve(false));
+    jest
+      .spyOn(storage, "createStorageAccount")
+      .mockReturnValueOnce(Promise.resolve({ location: "test" }));
+    const values = getMockedValues();
+    const accessOpts = getMockedAccessOpts(values);
+    await validateAndCreateStorageAccount(values, accessOpts);
+  });
+  it("[+ve] Positive test: storage account does exist", async () => {
+    jest
+      .spyOn(storage, "isStorageAccountExist")
+      .mockReturnValueOnce(Promise.resolve(true));
+    const values = getMockedValues();
+    const accessOpts = getMockedAccessOpts(values);
+    await validateAndCreateStorageAccount(values, accessOpts);
+  });
+});
+
+describe("test getStorageAccessKey function", () => {
+  it("already exist", async () => {
+    jest
+      .spyOn(storage, "getStorageAccountKey")
+      .mockReturnValueOnce(Promise.resolve("key"));
+    const values = getMockedValues();
+    const accessOpts = getMockedAccessOpts(values);
+    const storageKey = await getStorageAccessKey(values, accessOpts);
+    expect(storageKey).toBe("key");
+  });
+});
+
+describe("test createKeyVault function", () => {
+  it("[+ve] not key vault value", async () => {
+    const values = getMockedValues();
+    values.keyVaultName = undefined;
+    const accessOpts = getMockedAccessOpts(values);
+    // nothing is done
+    await createKeyVault(values, accessOpts, "accessString");
+  });
+  it("[+ve] with key vault value", async () => {
+    jest.spyOn(keyvault, "setSecret").mockReturnValueOnce(Promise.resolve());
+    const values = getMockedValues();
+    const accessOpts = getMockedAccessOpts(values);
+    await createKeyVault(values, accessOpts, "accessString");
+  });
+});
+
+describe("onboard", () => {
+  test("empty location", async () => {
+    jest
+      .spyOn(storage, "isStorageAccountExist")
+      .mockReturnValueOnce(Promise.resolve(false));
+
+    try {
+      const values = getMockedValues();
+      values.storageLocation = "";
+      await onboard(values);
+      expect(true).toBe(false);
     } catch (err) {
-      hasError = true;
       expect(err.message).toBe(
         "the following argument is required: \n -l / --storage-location"
       );
     }
-
-    expect(hasError).toBe(true);
   });
 
   test("no access key", async () => {
-    jest.spyOn(storage, "getStorageAccountKey").mockImplementationOnce(
-      async (): Promise<any> => {
-        return undefined;
-      }
-    );
+    jest
+      .spyOn(storage, "getStorageAccountKey")
+      .mockReturnValueOnce(Promise.resolve(undefined));
+    jest
+      .spyOn(onboardImpl, "validateAndCreateStorageAccount")
+      .mockReturnValueOnce(Promise.resolve(undefined));
 
-    let hasError = false;
     try {
-      await onboard(
-        "testAccount",
-        "testTable",
-        "testResourceGroup",
-        "westus",
-        "testKeyVault"
-      );
+      const values = getMockedValues();
+      await onboard(values);
+      expect(true).toBe(false);
     } catch (err) {
-      hasError = true;
       expect(err.message).toBe(
-        "Storage account testAccount access keys in resource group testResourceGroup is not defined"
+        "Storage account testaccount access keys in resource group testResourceGroup is not defined"
       );
     }
-
-    expect(hasError).toBe(true);
   });
 
-  test("create storage account", async () => {
-    jest.spyOn(storage, "getStorageAccountKey").mockImplementationOnce(
-      async (): Promise<any> => {
-        return "kZ83JRndk27402nB";
-      }
-    );
+  it("create storage account and table", async () => {
+    jest
+      .spyOn(storage, "getStorageAccountKey")
+      .mockReturnValueOnce(Promise.resolve("kZ83JRndk27402nB"));
+    jest
+      .spyOn(storage, "createTableIfNotExists")
+      .mockReturnValueOnce(Promise.resolve(true));
+    jest
+      .spyOn(storage, "isStorageAccountExist")
+      .mockReturnValueOnce(Promise.resolve(false));
+    jest
+      .spyOn(storage, "createStorageAccount")
+      .mockReturnValueOnce(Promise.resolve({ location: "test" }));
+    jest
+      .spyOn(onboardImpl, "createKeyVault")
+      .mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(onboardImpl, "setConfiguration").mockReturnValueOnce(true);
 
-    jest.spyOn(storage, "createTableIfNotExists").mockImplementationOnce(
-      async (): Promise<boolean> => {
-        return true;
-      }
-    );
-
-    // Setup test configuration file
-    let hasError = false;
-    try {
-      const data = {
-        introspection: {
-          azure: {
-            account_name: "testAccount",
-            table_name: "testTable"
-          }
+    const data = {
+      introspection: {
+        azure: {
+          account_name: "testAccount",
+          table_name: "testTable"
         }
-      };
-
-      fs.writeFileSync(testConfigFile, yaml.safeDump(data));
-      await onboard(
-        "testAccount",
-        "testTable",
-        "testResourceGroup",
-        "westus",
-        "testKeyVault"
-      );
-    } catch (err) {
-      hasError = true;
-    }
-
-    expect(hasError).toBe(false);
-  });
-});
-
-describe("validateRequiredArguments", () => {
-  test("Should fail when all required arguments specified with empty values", async () => {
-    const opts: IAzureAccessOpts = {};
-
-    const errors: string[] = await validateRequiredArguments("", "", "", opts);
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(7);
-  });
-
-  test("Should fail when all required arguments specified with undefined values", async () => {
-    const opts: IAzureAccessOpts = {};
-
-    const errors: string[] = await validateRequiredArguments(
-      undefined,
-      undefined,
-      undefined,
-      opts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(7);
-  });
-
-  test("Should fail when storageAccountName specified with undefined values", async () => {
-    const errors: string[] = await validateRequiredArguments(
-      undefined,
-      storageTableName,
-      storageResourceGroup,
-      accessOpts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(1);
-  });
-
-  test("Should fail when storageTableName specified with undefined values", async () => {
-    const errors: string[] = await validateRequiredArguments(
-      storageAccountName,
-      undefined,
-      storageResourceGroup,
-      accessOpts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(1);
-  });
-
-  test("Should fail when storageResourceGroup specified with undefined values", async () => {
-    const errors: string[] = await validateRequiredArguments(
-      storageAccountName,
-      storageTableName,
-      undefined,
-      accessOpts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(1);
-  });
-
-  test("Should fail when servicePrincipalId specified with undefined values", async () => {
-    const opts: IAzureAccessOpts = {
-      servicePrincipalId: undefined,
-      servicePrincipalPassword: uuid(),
-      subscriptionId: uuid(),
-      tenantId: uuid()
+      }
     };
-    const errors: string[] = await validateRequiredArguments(
-      storageAccountName,
-      storageTableName,
-      storageResourceGroup,
-      opts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(1);
-  });
 
-  test("Should fail when servicePrincipalPassword specified with undefined values", async () => {
-    const opts: IAzureAccessOpts = {
-      servicePrincipalId: uuid(),
-      servicePrincipalPassword: undefined,
-      subscriptionId: uuid(),
-      tenantId: uuid()
-    };
-    const errors: string[] = await validateRequiredArguments(
-      storageAccountName,
-      storageTableName,
-      storageResourceGroup,
-      opts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(1);
-  });
-
-  test("Should fail when subscriptionId specified with undefined values", async () => {
-    const opts: IAzureAccessOpts = {
-      servicePrincipalId: uuid(),
-      servicePrincipalPassword: uuid(),
-      subscriptionId: undefined,
-      tenantId: uuid()
-    };
-    const errors: string[] = await validateRequiredArguments(
-      storageAccountName,
-      storageTableName,
-      storageResourceGroup,
-      opts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(1);
-  });
-
-  test("Should fail when tenantId specified with undefined values", async () => {
-    const opts: IAzureAccessOpts = {
-      servicePrincipalId: uuid(),
-      servicePrincipalPassword: uuid(),
-      subscriptionId: uuid(),
-      tenantId: undefined
-    };
-    const errors: string[] = await validateRequiredArguments(
-      storageAccountName,
-      storageTableName,
-      storageResourceGroup,
-      opts
-    );
-    logger.info(`length: ${errors.length}`);
-    expect(errors.length).toBe(1);
+    fs.writeFileSync(testConfigFile, yaml.safeDump(data));
+    await onboard(getMockedValues());
   });
 });
 
 describe("setConfiguration", () => {
   test("Should pass updating previous storage account and table names", async () => {
-    try {
-      const data = {
-        introspection: {
-          azure: {
-            account_name: "test-storage",
-            table_name: "test-table"
-          }
+    const data = {
+      introspection: {
+        azure: {
+          account_name: "test-storage",
+          table_name: "test-table"
         }
-      };
+      }
+    };
 
-      // create config file in test location
-      fs.writeFileSync(testConfigFile, yaml.safeDump(data));
+    // create config file in test location
+    fs.writeFileSync(testConfigFile, yaml.safeDump(data));
 
-      logger.info(`testConfigFile: ${testConfigFile}`);
+    // set storage and table names
+    await setConfiguration(
+      MOCKED_VALUES.storageAccountName!,
+      MOCKED_VALUES.storageTableName!
+    );
+    loadConfiguration(testConfigFile);
 
-      // set storage and table names
-      await setConfiguration(storageAccountName, storageTableName);
-      loadConfiguration(testConfigFile);
-
-      const { azure } = Config().introspection!;
-      expect(azure!.account_name).toBe(storageAccountName);
-      expect(azure!.table_name).toBe(storageTableName);
-    } catch (err) {
-      logger.error(`dirs error: ${err}`);
-    }
+    const { azure } = Config().introspection!;
+    expect(azure!.account_name).toBe(MOCKED_VALUES.storageAccountName);
+    expect(azure!.table_name).toBe(MOCKED_VALUES.storageTableName);
   });
 
   test("Should pass updating previous undefined storage account and table names", async () => {
-    try {
-      const data = {
-        introspection: {
-          azure: {
-            account_name: undefined,
-            table_name: undefined
-          }
-        }
-      };
+    const data = {
+      introspection: {
+        azure: {}
+      }
+    };
 
-      // create config file in test location
-      fs.writeFileSync(testConfigFile, yaml.safeDump(data));
+    // create config file in test location
+    fs.writeFileSync(testConfigFile, yaml.safeDump(data));
 
-      logger.info(`testConfigFile: ${testConfigFile}`);
+    // set storage and table names
+    setConfiguration(
+      MOCKED_VALUES.storageAccountName!,
+      MOCKED_VALUES.storageTableName!
+    );
+    loadConfiguration(testConfigFile);
 
-      // set storage and table names
-      await setConfiguration(storageAccountName, storageTableName);
-      loadConfiguration(testConfigFile);
-
-      const { azure } = Config().introspection!;
-      expect(azure!.account_name).toBe(storageAccountName);
-      expect(azure!.table_name).toBe(storageTableName);
-    } catch (err) {
-      logger.error(`dirs error: ${err}`);
-    }
+    const { azure } = Config().introspection!;
+    expect(azure!.account_name).toBe(MOCKED_VALUES.storageAccountName);
+    expect(azure!.table_name).toBe(MOCKED_VALUES.storageTableName);
   });
 });
 

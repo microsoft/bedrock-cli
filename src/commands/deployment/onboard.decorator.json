@@ -1,0 +1,50 @@
+{
+  "command": "onboard",
+  "alias": "o",
+  "description": "Onboard to use the service introspection tool. This will create a storage account if it does not exist in your Azure subscription in the give resource group.",
+  "options": [
+    {
+      "arg": "-s, --storage-account-name <storage-account-name>",
+      "description": "Azure storage account name",
+      "required": true
+    },
+    {
+      "arg": "-t, --storage-table-name <storage-table-name>",
+      "description": "Azure storage table name",
+      "required": true
+    },
+    {
+      "arg": "-l, --storage-location <storage-location>",
+      "description": "Azure location to create new storage account when it does not exist"
+    },
+    {
+      "arg": "-r, --storage-resource-group-name <storage-resource-group-name>",
+      "description": "Name of the resource group to create new storage account when it does not exist",
+      "required": true
+    },
+    {
+      "arg": "-k, --key-vault-name <key-vault-name>",
+      "description": "Name of the Azure key vault"
+    },
+    {
+      "arg": "--service-principal-id <service-principal-id>",
+      "description": "Azure service principal id with `contributor` role in Azure Resource Group",
+      "required": true
+    },
+    {
+      "arg": "--service-principal-password <service-principal-password>",
+      "description": "The Azure service principal password",
+      "required": true
+    },
+    {
+      "arg": "--tenant-id <tenant-id>",
+      "description": "The Azure AD tenant id of service principal",
+      "required": true
+    },
+    {
+      "arg": "--subscription-id <subscription-id>",
+      "description": "The Azure subscription id",
+      "required": true
+    }
+  ]
+}

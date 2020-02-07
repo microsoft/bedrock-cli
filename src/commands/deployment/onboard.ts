@@ -10,213 +10,290 @@ import {
   getStorageAccountKey,
   isStorageAccountExist
 } from "../../lib/azure/storage";
+import {
+  build as buildCmd,
+  exit as exitCmd,
+  validateForRequiredValues
+} from "../../lib/commandBuilder";
 import { logger } from "../../logger";
 import { IAzureAccessOpts, IConfigYaml } from "../../types";
+import decorator from "./onboard.decorator.json";
+
+export interface ICommandOptions {
+  storageAccountName: string | undefined;
+  storageTableName: string | undefined;
+  storageLocation: string | undefined;
+  storageResourceGroupName: string | undefined;
+  keyVaultName: string | undefined;
+  servicePrincipalId: string | undefined;
+  servicePrincipalPassword: string | undefined;
+  tenantId: string | undefined;
+  subscriptionId: string | undefined;
+}
+
+/**
+ * Populates command values (if needed) to values from SPK config.
+ *
+ * @param opts values from commander
+ */
+export const populateValues = (opts: ICommandOptions) => {
+  const config = Config();
+  const { azure } = config.introspection!;
+
+  opts.storageAccountName =
+    opts.storageAccountName || azure?.account_name || undefined;
+  opts.storageTableName =
+    opts.storageTableName || azure?.table_name || undefined;
+  opts.keyVaultName = opts.keyVaultName || config.key_vault_name || undefined;
+  opts.servicePrincipalId =
+    opts.servicePrincipalId || azure?.service_principal_id || undefined;
+  opts.servicePrincipalPassword =
+    opts.servicePrincipalPassword ||
+    azure?.service_principal_secret ||
+    undefined;
+  opts.tenantId = opts.tenantId || azure?.tenant_id || undefined;
+  opts.subscriptionId =
+    opts.subscriptionId || azure?.subscription_id || undefined;
+  return opts;
+};
+
+/**
+ * Validates Account table name.
+ *
+ * @param name table name
+ */
+export const validateTableName = (name: string): boolean => {
+  const regExpression = /^[A-Za-z][A-Za-z0-9]{2,62}$/;
+  return regExpression.test(name);
+};
+
+/**
+ * Validates storage account name
+ *
+ * @param name Storage account name
+ */
+export const validateStorageName = (name: string): boolean => {
+  const regExpression = /^[0-9a-z][a-z0-9]{2,23}$/;
+  return regExpression.test(name);
+};
+
+/**
+ * Validates the values from commander.
+ *
+ * @param opts values from commander (including populated values from spk config)
+ */
+export const validateValues = (opts: ICommandOptions) => {
+  const errors = validateForRequiredValues(decorator, {
+    servicePrincipalId: opts.servicePrincipalId,
+    servicePrincipalPassword: opts.servicePrincipalPassword,
+    storageAccountName: opts.storageAccountName,
+    storageResourceGroupName: opts.storageResourceGroupName,
+    storageTableName: opts.storageTableName,
+    subscriptionId: opts.subscriptionId,
+    tenantId: opts.tenantId
+  });
+  if (errors.length > 0) {
+    throw new Error("Required values are missing");
+  }
+  if (!validateStorageName(opts.storageAccountName!)) {
+    throw new Error(
+      "Storage account name must be only alphanumeric characters in lowercase and must be from 3 to 24 characters long."
+    );
+  }
+  if (!validateTableName(opts.storageTableName!)) {
+    throw new Error(
+      "Table names must be only alphanumeric characters, cannot begin with a numeric character, case-insensitive, and must be from 3 to 63 characters long."
+    );
+  }
+};
+
+/**
+ * Executes the command, can all exit function with 0 or 1
+ * when command completed successfully or failed respectively.
+ *
+ * @param opts validated option values
+ * @param exitFn exit function
+ */
+export const execute = async (
+  opts: ICommandOptions,
+  exitFn: (status: number) => Promise<void>
+) => {
+  try {
+    populateValues(opts);
+    validateValues(opts);
+    const storageAccount = await onboard(opts);
+    logger.debug(
+      `Service introspection deployment onboarding is complete. \n ${JSON.stringify(
+        storageAccount
+      )}`
+    );
+    await exitFn(0);
+  } catch (err) {
+    logger.error(err);
+    await exitFn(1);
+  }
+};
 
 /**
  * Adds the onboard command to the commander command object
  * @param command Commander command object to decorate
  */
-export const onboardCommandDecorator = (command: commander.Command): void => {
-  command
-    .command("onboard")
-    .alias("o")
-    .description(
-      "Onboard to use the service introspection tool. This will create a storage account if it does not exist in your Azure subscription in the give resource group."
-    )
-    .option(
-      "-s, --storage-account-name <storage-account-name>",
-      "Azure storage account name"
-    )
-    .option(
-      "-t, --storage-table-name <storage-table-name>",
-      "Azure storage table name"
-    )
-    .option(
-      "-l, --storage-location <storage-location>",
-      "Azure location to create new storage account when it does not exist"
-    )
-    .option(
-      "-r, --storage-resource-group-name <storage-resource-group-name>",
-      "Name of the resource group to create new storage account when it does not exist"
-    )
-    .option(
-      "-k, --key-vault-name <key-vault-name>",
-      "Name of the Azure key vault"
-    )
-    .option(
-      "--service-principal-id <service-principal-id>",
-      "Azure service principal id with `contributor` role in Azure Resource Group"
-    )
-    .option(
-      "--service-principal-password <service-principal-password>",
-      "The Azure service principal password"
-    )
-    .option(
-      "--tenant-id <tenant-id>",
-      "The Azure AD tenant id of service principal"
-    )
-    .option("--subscription-id <subscription-id>", "The Azure subscription id")
-    .action(async opts => {
-      try {
-        const { azure } = Config().introspection!;
-        const {
-          storageAccountName = azure && azure.account_name,
-          storageTableName = azure && azure.table_name,
-          storageLocation,
-          storageResourceGroupName,
-          keyVaultName = azure && Config().key_vault_name,
-          servicePrincipalId = azure && azure.service_principal_id,
-          servicePrincipalPassword = azure && azure.service_principal_secret,
-          tenantId = azure && azure.tenant_id,
-          subscriptionId = azure && azure.subscription_id
-        } = opts;
-
-        const accessOpts: IAzureAccessOpts = {
-          servicePrincipalId,
-          servicePrincipalPassword,
-          subscriptionId,
-          tenantId
-        };
-
-        // required parameters check
-        const errors: string[] = await validateRequiredArguments(
-          storageAccountName,
-          storageTableName,
-          storageResourceGroupName,
-          accessOpts
-        );
-
-        if (errors.length !== 0) {
-          logger.error(
-            `the following arguments are either required or invalid: \n${errors.join(
-              "\n"
-            )}`
-          );
-          return;
-        }
-
-        const storageAccount = await onboard(
-          storageAccountName,
-          storageTableName,
-          storageResourceGroupName,
-          storageLocation,
-          keyVaultName,
-          accessOpts
-        );
-        logger.debug(
-          `Service introspection deployment onboarding is complete. \n ${JSON.stringify(
-            storageAccount
-          )}`
-        );
-      } catch (err) {
-        logger.error(err);
-      }
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+    await execute(opts, async (status: number) => {
+      await exitCmd(logger, process.exit, status);
     });
+  });
 };
 
 /**
- * Creates the Storage account `accountName` in resource group `resourceGroup`, sets storage account access key in keyvalut, and updates pipelines (acr-hld, hld->manifests)
+ * Creates storage account if it does not exist
  *
- * @param accountName The Azure storage account name
- * @param tableName The Azure storage table name
- * @param resourceGroup Name of Azure reesource group
- * @param location The Azure storage account location
- * @param keyVaultName Name of Azure key vault
- * @param opts optionally override spk config with Azure subscription access options
+ * @param values values from commander
+ * @param accessOpts Azure Access Opts
  */
-export const onboard = async (
-  accountName: string,
-  tableName: string,
-  resourceGroup: string,
-  location: string,
-  keyVaultName: string,
-  opts: IAzureAccessOpts = {}
-): Promise<StorageAccount> => {
-  logger.debug(
-    `onboard called with ${accountName}, ${tableName}, ${resourceGroup}, ${location}, and ${keyVaultName}`
+export const validateAndCreateStorageAccount = async (
+  values: ICommandOptions,
+  accessOpts: IAzureAccessOpts
+): Promise<StorageAccount | undefined> => {
+  const isExist = await isStorageAccountExist(
+    values.storageResourceGroupName!,
+    values.storageAccountName!,
+    accessOpts
   );
-
-  let storageAccount: StorageAccount | undefined;
-
-  const isExist = await isStorageAccountExist(resourceGroup, accountName, opts);
 
   // Storage account does not exist so create it.
   if (isExist === false) {
-    if (!location) {
+    if (!values.storageLocation) {
       throw new Error(
         "the following argument is required: \n -l / --storage-location"
       );
     }
-
-    storageAccount = await createStorageAccount(
-      resourceGroup,
-      accountName,
-      location,
-      opts
+    const storageAccount = await createStorageAccount(
+      values.storageResourceGroupName!,
+      values.storageAccountName!,
+      values.storageLocation,
+      accessOpts
     );
-    logger.debug(`Storage Account: ${JSON.stringify(storageAccount)}`);
+    logger.debug(`Storage Account: ${JSON.stringify(storageAccount, null, 2)}`);
+    return storageAccount;
   }
+  return undefined;
+};
 
+/**
+ * Returns storage access key.
+ *
+ * @param values values from commander
+ * @param accessOpts Azure Access Opts
+ * @throws Error if access key cannot be obtained.
+ */
+export const getStorageAccessKey = async (
+  values: ICommandOptions,
+  accessOpts: IAzureAccessOpts
+): Promise<string> => {
   const accessKey = await getStorageAccountKey(
-    resourceGroup,
-    accountName,
-    opts
+    values.storageResourceGroupName!,
+    values.storageAccountName!,
+    accessOpts
   );
 
   if (accessKey === undefined) {
     throw new Error(
-      `Storage account ${accountName} access keys in resource group ${resourceGroup} is not defined`
+      `Storage account ${values.storageAccountName} access keys in resource group ${values.storageResourceGroupName} is not defined`
     );
   }
+  return accessKey;
+};
 
-  const tableCreated = await createTableIfNotExists(
-    accountName,
-    tableName,
-    accessKey!
-  );
-
-  logger.debug(`tabled created: ${tableCreated}`);
-
-  // print newly created storage account
-  if (storageAccount !== undefined) {
-    logger.info(`${JSON.stringify(storageAccount, null, 2)}`);
-  }
-
-  if (storageAccount !== undefined && tableCreated === true) {
-    logger.info(
-      `Storage account ${accountName} and table ${tableName} are created.`
-    );
-  } else if (storageAccount === undefined && tableCreated === true) {
-    logger.info(
-      `Table ${tableName} is created in existing storage account ${accountName}.`
-    );
-  } else if (storageAccount === undefined && tableCreated === false) {
-    logger.info(
-      `Both storage account ${accountName} and table ${tableName} exist.`
-    );
-  }
-
-  // if key vault is not specified, exit without reading storage account key and setting it in the key vault
-  if (keyVaultName) {
+/**
+ * Creates Key Vault if value from commander has value for `keyVaultName`
+ *
+ * @param values values from commander
+ * @param accessOpts Azure Access Opts
+ * @param accessKey Access Key
+ */
+export const createKeyVault = async (
+  values: ICommandOptions,
+  accessOpts: IAzureAccessOpts,
+  accessKey: string
+) => {
+  // if key vault is not specified, exit without reading storage account
+  // key and setting it in the key vault
+  if (values.keyVaultName) {
     logger.debug(
-      `Calling setSecret with storage account primary key ${accessKey} and ${keyVaultName}`
+      `Calling setSecret with storage account primary key ${accessKey}
+        and ${values.keyVaultName}`
     );
-
-    await setSecret(keyVaultName, `${accountName}Key`, accessKey!, opts);
+    await setSecret(
+      values.keyVaultName,
+      `${values.storageAccountName}Key`,
+      accessKey,
+      accessOpts
+    );
   } else {
     // notify the user to set the environment variable with storage access key
     logger.info(
-      `Please set the storage account access key in environment variable INTROSPECTION_STORAGE_ACCESS_KEY before issuing any deployment commands.`
+      `Please set the storage account access key in environment variable
+      INTROSPECTION_STORAGE_ACCESS_KEY before issuing any deployment commands.`
     );
+    logger.info(
+      `Storage account ${values.storageAccountName} access key: ${accessKey}`
+    );
+  }
+};
 
-    logger.info(`Storage account ${accountName} access key: ${accessKey}`);
+/**
+ * Creates the Storage account `accountName` in resource group `resourceGroup`,
+ * sets storage account access key in keyvalut, and updates pipelines
+ * (acr-hld, hld->manifests)
+ *
+ * @param values Values from commander.
+ */
+export const onboard = async (
+  values: ICommandOptions
+): Promise<StorageAccount | undefined> => {
+  logger.debug(
+    `onboard called with ${values.storageTableName}, ${values.storageTableName},
+    ${values.storageResourceGroupName}, ${values.storageLocation}, and ${values.keyVaultName}`
+  );
+
+  const accessOpts: IAzureAccessOpts = {
+    servicePrincipalId: values.servicePrincipalId,
+    servicePrincipalPassword: values.servicePrincipalPassword,
+    subscriptionId: values.subscriptionId,
+    tenantId: values.tenantId
+  };
+
+  const storageAccount = await validateAndCreateStorageAccount(
+    values,
+    accessOpts
+  );
+  const accessKey = await getStorageAccessKey(values, accessOpts);
+
+  const tableCreated = await createTableIfNotExists(
+    values.storageAccountName!,
+    values.storageTableName!,
+    accessKey
+  );
+  if (tableCreated) {
+    if (storageAccount !== undefined) {
+      logger.info(`Storage account ${values.storageAccountName} and
+        table ${values.storageTableName} are created.`);
+    } else {
+      logger.info(`Table ${values.storageTableName} is created in
+        existing storage account ${values.storageAccountName}.`);
+    }
+  } else if (storageAccount !== undefined) {
+    logger.info(`Both storage account ${values.storageAccountName} and
+      table ${values.storageTableName} exist.`);
   }
 
-  // save storage account and table names in configuration
-  await setConfiguration(accountName, tableName);
+  await createKeyVault(values, accessOpts, accessKey);
 
-  return storageAccount!;
+  // save storage account and table names in configuration
+  setConfiguration(values.storageAccountName!, values.storageTableName!);
+  return storageAccount;
 };
 
 /**
@@ -225,10 +302,10 @@ export const onboard = async (
  * @param storageAccountName The Azure storage account name
  * @param storageTableName The Azure storage table name
  */
-export const setConfiguration = async (
+export const setConfiguration = (
   storageAccountName: string,
   storageTableName: string
-): Promise<boolean> => {
+): boolean => {
   try {
     const data = readYaml<IConfigYaml>(defaultConfigFile());
     data.introspection!.azure!.account_name = storageAccountName;
@@ -243,79 +320,4 @@ export const setConfiguration = async (
     );
     throw err;
   }
-};
-
-/**
- * Checks arguments for undefined or null and returns errors
- *
- * @param storageAccountName The Azure storage account name
- * @param storageTableName The Azure storage table name
- * @param storageResourceGroup Name of Azure reesource group
- * @param accessOpts The Azure subscription access options
- */
-export const validateRequiredArguments = async (
-  storageAccountName: any,
-  storageTableName: any,
-  storageResourceGroup: any,
-  accessOpts: IAzureAccessOpts
-): Promise<string[]> => {
-  const errors: string[] = [];
-
-  if (!storageAccountName) {
-    errors.push("\n -s / --storage-account-name");
-  }
-
-  if (
-    storageAccountName &&
-    (await validateStorageName(storageAccountName)) === false
-  ) {
-    errors.push(
-      "The `-s, / --storage-account-name` argument is not valid. Account names contain only alphanumeric characters in lowercase and must be from 3 to 24 characters long."
-    );
-  }
-
-  if (!storageTableName) {
-    errors.push("\n -t / --storage-table-name");
-  }
-
-  if (
-    storageTableName &&
-    (await validateTableName(storageTableName)) === false
-  ) {
-    errors.push(
-      "The `t, / --storage-table-name` argument is not valid. Table names contain only alphanumeric characters, cannot begin with a numeric character, case-insensitive, and must be from 3 to 63 characters long."
-    );
-  }
-
-  if (!storageResourceGroup) {
-    errors.push("\n -r / --storage-resource-group-name");
-  }
-
-  if (!accessOpts.servicePrincipalId) {
-    errors.push("\n --service-principal-id");
-  }
-
-  if (!accessOpts.servicePrincipalPassword) {
-    errors.push("\n --service-principal-password");
-  }
-
-  if (!accessOpts.tenantId) {
-    errors.push("\n --tenant-id");
-  }
-
-  if (!accessOpts.subscriptionId) {
-    errors.push("\n --subscription-id");
-  }
-
-  return errors;
-};
-
-export const validateTableName = async (name: string): Promise<boolean> => {
-  const regExpression = /^[A-Za-z][A-Za-z0-9]{2,62}$/;
-  return regExpression.test(name);
-};
-
-export const validateStorageName = async (name: string): Promise<boolean> => {
-  const regExpression = /^[0-9a-z][a-z0-9]{2,23}$/;
-  return regExpression.test(name);
 };
