@@ -47,7 +47,12 @@ This guide assumes a few things as requirements to use this automation:
    [release](https://github.com/catalystcode/spk/releases).
 5. The user has
    [Azure CLI installed](https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest).
-7. The user is running [git](http://git-scm.org) version [2.22](https://github.blog/2019-06-07-highlights-from-git-2-22/) or later.
+6. The user is running [git](http://git-scm.org) version
+   [2.22](https://github.blog/2019-06-07-highlights-from-git-2-22/) or later.
+7. Optional: If a user wishes to store helm charts in the application
+   repositories, then all repositories (application, high level definition,
+   materialized manifests) must be in the same Azure DevOps Organization AND
+   Project.
 
 ## Installing and Configuring SPK
 
@@ -116,7 +121,7 @@ This HLD is processed via [fabrikate](https://github.com/microsoft/fabrikate) in
 Azure Devops on each change to generate Kubernetes YAML manifests that are
 applied to the Kubernetes cluster by Flux.
 
-##### Initializing the High Level Definition Repository
+#### Initializing the High Level Definition Repository
 
 - [Create a repository in the given AzDO project.](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-new-repo?view=azure-devops#create-a-repo-using-the-web-portal)
 - Edit your SPK config to point to this repo (if you haven't already done this).
@@ -131,14 +136,14 @@ applied to the Kubernetes cluster by Flux.
 **NOTE** `spk hld` command documentation can be found
 [here](/docs/hld-management.md).
 
-#### Materialized Manifests Repository
+### Materialized Manifests Repository
 
 This repository holds all the materialized kubernetes manifests that should be
 deployed to a cluster. If a cluster has been deployed via Bedrock's Terraform
 templates, then flux should be configured to point to this repository and will
 deploy all manifests in this repository to the cluster periodically.
 
-##### Initializing the Materialized Manifests Repository
+#### Initializing the Materialized Manifests Repository
 
 - [Create a repository in the given AzDO project.](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-new-repo?view=azure-devops#create-a-repo-using-the-web-portal)
 - Edit your SPK config to point to this repo (if you haven't already done this).
@@ -269,13 +274,26 @@ application repositories
 **NOTE** `spk service` command documentation can be found
 [here](/docs/service-management.md).
 
-### Variable Groups
+## Helm Charts
+
+To have spk's build pipelines work properly, an application needs an associated
+[Helm](https://helm.sh/) chart with specific variables.
+
+### Requirements
+
+TBD
+
+### Sample Helm Chart
+
+TBD
+
+## Variable Groups
 
 TBD
 
 - Done to hold secure credentials and secrets.
 
-### Pipelines
+## Pipelines
 
 TBD
 
