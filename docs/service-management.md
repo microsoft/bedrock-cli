@@ -1,6 +1,9 @@
 # Service Management
 
-Create and manage services for a Bedrock project.
+Create and manage services for a Bedrock project. This is the command reference
+for all of the service commands, but we also have a
+[service management guide](./project-service-management-guide.md) to walk you
+through the workflow of managing services with SPK.
 
 Usage:
 

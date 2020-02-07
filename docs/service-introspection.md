@@ -69,8 +69,8 @@ Options:
 ```
 
 Note: The purpose of `spk deployment validate --self-test` is to make sure that
-spk is able to write data to the provided storage account. Once the test
-ends, it will remove the test data that was added.
+spk is able to write data to the provided storage account. Once the test ends,
+it will remove the test data that was added.
 
 ### get
 
