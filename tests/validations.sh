@@ -15,8 +15,8 @@ TEST_WORKSPACE="$(pwd)/spk-env"
 [ ! -z "$SP_APP_ID" ] || { echo "Provide SP_APP_ID"; exit 1;}
 [ ! -z "$SP_PASS" ] || { echo "Provide SP_PASS"; exit 1;}
 [ ! -z "$SP_TENANT" ] || { echo "Provide SP_TENANT"; exit 1;}
-# [ ! -z "$AZ_RESOURCE_GROUP" ] || { echo "Provide AZ_RESOURCE_GROUP"; exit 1;}
-# [ ! -z "$AZ_STORAGE_ACCOUNT" ] || { echo "Provide AZ_STORAGE_ACCOUNT"; exit 1;}
+[ ! -z "$AZ_RESOURCE_GROUP" ] || { echo "Provide AZ_RESOURCE_GROUP"; exit 1;}
+[ ! -z "$AZ_STORAGE_ACCOUNT" ] || { echo "Provide AZ_STORAGE_ACCOUNT"; exit 1;}
 AZDO_ORG_URL="${AZDO_ORG_URL:-"https://dev.azure.com/$AZDO_ORG"}"
 
 echo "TEST_WORKSPACE: $TEST_WORKSPACE"
@@ -31,9 +31,11 @@ echo "AZ_STORAGE_ACCOUNT: $AZ_STORAGE_ACCOUNT"
 branchName=myFeatureBranch
 FrontEnd=fabrikam.acme.frontend
 BackEnd=fabrikam.acme.backend
-hld_dir=fabrikam-hld
-manifests_dir=fabrikam-manifests
+export hld_dir=fabrikam-hld
+export manifests_dir=fabrikam-manifests
 vg_name=fabrikam-vg
+export sat_name=fabrikamtestdeployments
+export sa_partition_key="integration-test"
 services_dir=services
 mono_repo_dir=fabrikam2019
 services_full_dir="$TEST_WORKSPACE/$mono_repo_dir/$services_dir"
@@ -156,6 +158,21 @@ spk project create-variable-group $vg_name -r $ACR_NAME -d $hld_repo_url -u $SP_
 # Verify the variable group was created. Fail if not
 variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $vg_name "fail"
 
+# Introspection Storage Account Setup
+storage_account_exists $AZ_STORAGE_ACCOUNT $AZ_RESOURCE_GROUP "fail"
+storage_account_cors_enabled $AZ_STORAGE_ACCOUNT "enable"
+storage_account_cors_enabled $AZ_STORAGE_ACCOUNT "wait"
+storage_account_table_exists $sat_name $AZ_STORAGE_ACCOUNT "create"
+storage_account_table_exists $sat_name $AZ_STORAGE_ACCOUNT "fail"
+sa_access_key=$(az storage account keys list -n $AZ_STORAGE_ACCOUNT -g $AZ_RESOURCE_GROUP | jq '.[0].value')
+
+# Add introspection variables to variable group
+variable_group_id=$(az pipelines variable-group list --org $AZDO_ORG_URL -p $AZDO_PROJECT | jq '.[] | select(.name=="'$vg_name'") | .id')
+variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "INTROSPECTION_ACCOUNT_KEY" $sa_access_key "secret"
+variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "INTROSPECTION_ACCOUNT_NAME" $AZ_STORAGE_ACCOUNT
+variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "INTROSPECTION_PARTITION_KEY" $sa_partition_key
+variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "INTROSPECTION_TABLE_NAME" $sat_name
+
 spk service create $FrontEnd -d $services_dir >> $TEST_WORKSPACE/log.txt
 directory_to_check="$services_full_dir/$FrontEnd"
 file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" )
@@ -236,6 +253,34 @@ echo "Attempting to approve pull request: '$pr_title'"
 # Get the id of the pr created and set the PR to be approved
 approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "$pr_title"
 
-echo "Successfully reached the end of the validations scripts."
+echo "Successfully reached the end of the service validations scripts."
 
 # TODO hook up helm chart, approve HLD pull request, verify manifest gen pipeline
+
+# spk deployment get
+cd $TEST_WORKSPACE
+cd ..
+cd tests
+export sa_access_key=$(echo "$sa_access_key" | tr -d '"')
+spk init -f ./spk-config-test.yaml
+export output=$(spk deployment get -o json > file.json )
+length=$(cat file.json | jq 'length')
+if (( length > 0 )); then
+  echo "$length deployments were returned by spk deployment get"
+else 
+  echo "Error: Empty JSON was returned from spk deployment get"
+  exit 1
+fi 
+
+# Compare $pipeline_id with the data returned by get. 
+pipeline1id=$(az pipelines build list --definition-ids $pipeline_id --organization $AZDO_ORG_URL --project $AZDO_PROJECT | jq '.[0].id')
+listofIds=$(cat file.json | jq '.[].srcToDockerBuild.id')
+
+if [[ $listofIds == *"$pipeline1id"* ]]; then
+  echo "Pipeline Id $pipeline1id exists. Verified that data exists in storage and could be retrieved."
+else
+  echo "Error: Pipeline Id $pipeline1id is not found in data returned from get. "
+  exit 1
+fi
+
+echo "Successfully reached the end of spk deployment get tests."

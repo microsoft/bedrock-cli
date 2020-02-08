@@ -387,7 +387,7 @@ export const printDeployments = (
     });
 
     // tslint:disable-next-line: no-console
-    console.log("\n" + table.toString());
+    console.log(table.toString());
     return table;
   } else {
     logger.info("No deployments found for specified filters.");

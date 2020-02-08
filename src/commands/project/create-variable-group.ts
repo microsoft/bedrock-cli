@@ -9,7 +9,10 @@ import {
   exit as exitCmd,
   validateForRequiredValues
 } from "../../lib/commandBuilder";
-import { PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE, PROJECT_PIPELINE_FILENAME } from "../../lib/constants";
+import {
+  PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE,
+  PROJECT_PIPELINE_FILENAME
+} from "../../lib/constants";
 import { IAzureDevOpsOpts } from "../../lib/git";
 import { addVariableGroup } from "../../lib/pipelines/variableGroup";
 import { hasValue } from "../../lib/validator";

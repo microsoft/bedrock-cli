@@ -271,6 +271,7 @@ export const onboard = async (
   );
   const accessKey = await getStorageAccessKey(values, accessOpts);
 
+
   const tableCreated = await createTableIfNotExists(
     values.storageAccountName!,
     values.storageTableName!,

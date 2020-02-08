@@ -7,7 +7,10 @@ import commander from "commander";
 import path from "path";
 import { Config } from "../../config";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
-import { BUILD_SCRIPT_URL, SERVICE_PIPELINE_FILENAME } from "../../lib/constants";
+import {
+  BUILD_SCRIPT_URL,
+  SERVICE_PIPELINE_FILENAME
+} from "../../lib/constants";
 import {
   getOriginUrl,
   getRepositoryName,

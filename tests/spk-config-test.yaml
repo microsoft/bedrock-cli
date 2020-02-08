@@ -1,0 +1,35 @@
+# Azure DevOps Configuration
+azure_devops: # Should this live under the `spk` configuration?
+  server_url:
+  org: "${env:AZDO_ORG}"
+  project: "${env:AZDO_PROJECT}"
+  hld_repository: "https://dev.azure.com/${env:AZDO_ORG}/${env:AZDO_PROJECT}/_git/${env:hld_dir}"
+  manifest_repository: "https://dev.azure.com/${env:AZDO_ORG}/${env:AZDO_PROJECT}/_git/${env:manifests_dir}"
+  access_token: "${env:ACCESS_TOKEN_SECRET}" # This is your Personal Access Token with permission to modify and access this private repo. Ex. "${env:AZDO_PERSONAL_ACCESS_TOKEN}". Leave this empty if project is public
+
+infra:
+  terraform: "v0.12.6"
+  helm: "v2.14.3"
+  git: "2.17.1"
+  bedrock: # If you would like to use a forked or custom version of bedrock
+    # Releases are through tags / branches
+    source: "https://github.com/microsoft/bedrock.git"
+    tag:
+    access_token: "" # This is your Personal Access Token with permission to modify and access this private repo. Ex. "${env:BEDROCK_PERSONAL_ACCESS_TOKEN}". Leave this empty if project is public
+
+introspection:
+  dashboard:
+    image: "samiyaakhtar/spektate:prod"
+    name: "spektate"
+  azure: # This is the storage account for the service introspection tool
+    account_name: "${env:AZ_STORAGE_ACCOUNT}"
+    table_name: "${env:sat_name}"
+    partition_key: "${env:sa_partition_key}"
+    key: "${env:sa_access_key}"
+    source_repo_access_token: "${env:ACCESS_TOKEN_SECRET}" # Optional. Define this to see author names in the dashboard
+    # Following is needed if using spk to onboard to use introspection tool
+    service_principal_id: "service-principal-id"
+    service_principal_secret: "service-principal-secret"
+    subscription_id: "subscription-id"
+    tenant_id: "tenant-id"
+key_vault_name:
