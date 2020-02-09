@@ -1,0 +1,12 @@
+{
+  "command": "validate",
+  "alias": "v",
+  "description": "Validate the configuration and storage account are correct.",
+  "options": [
+    {
+      "arg": "-s, --self-test",
+      "description": "Run a test for the configured storage account. This will write test data and delete the test data. For more information on the behavior, please check the online documentation.",
+      "defaultValue": false
+    }
+  ]
+}

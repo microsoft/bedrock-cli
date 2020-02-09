@@ -8,44 +8,61 @@ import {
   updateACRToHLDPipeline
 } from "../../lib/azure/deploymenttable";
 import { validateStorageAccount } from "../../lib/azure/storage";
+import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { logger } from "../../logger";
 import { IConfigYaml } from "../../types";
+import decorator from "./validator.decorator.json";
 
 const service = "spk-self-test";
+
+export interface ICommandOptions {
+  selfTest: boolean;
+}
+
+/**
+ * Executes the command, can all exit function with 0 or 1
+ * when command completed successfully or failed respectively.
+ *
+ * @param opts validated option values
+ * @param exitFn exit function
+ */
+export const execute = async (
+  opts: ICommandOptions,
+  exitFn: (status: number) => Promise<void>
+) => {
+  try {
+    const config = Config();
+    await isValidConfig(config);
+    await isValidStorageAccount(config);
+
+    if (opts.selfTest) {
+      await runSelfTest(config);
+    }
+    await exitFn(0);
+  } catch (err) {
+    logger.error(err);
+    await exitFn(1);
+  }
+};
 
 /**
  * Adds the validate command to the commander command object
  * @param command Commander command object to decorate
  */
-export const validateCommandDecorator = (command: commander.Command): void => {
-  command
-    .command("validate")
-    .alias("v")
-    .description("Validate the configuration and storage account are correct.")
-    .option(
-      "-s, --self-test",
-      "Run a test for the configured storage account. This will write test data and delete the test data. For more information on the behavior, please check the online documentation."
-    )
-    .action(async opts => {
-      let isValid = await isValidConfig();
-
-      if (isValid) {
-        isValid = await isValidStorageAccount();
-
-        if (isValid && opts.selfTest) {
-          const config = Config();
-          await runSelfTest(config);
-        }
-      }
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+    await execute(opts, async (status: number) => {
+      await exitCmd(logger, process.exit, status);
     });
+  });
 };
 
 /**
  * Validates that the deployment configuration is specified.
  */
-export const isValidConfig = async (): Promise<boolean> => {
+export const isValidConfig = async (config: IConfigYaml) => {
   const missingConfig = [];
-  const config = Config();
+
   if (!config.introspection) {
     missingConfig.push("introspection");
   } else {
@@ -83,17 +100,14 @@ export const isValidConfig = async (): Promise<boolean> => {
     logger.error(
       "Validation failed. Missing configuration: " + missingConfig.join(" ")
     );
-    return false;
+    throw new Error("missing configuration in spk configuration");
   }
-
-  return true;
 };
 
 /**
  * Check is the configured storage account is valid
  */
-export const isValidStorageAccount = async (): Promise<boolean> => {
-  const config = Config();
+export const isValidStorageAccount = async (config: IConfigYaml) => {
   const key = await config.introspection!.azure!.key;
   const isValid = await validateStorageAccount(
     config.introspection!.azure!.resource_group!,
@@ -102,19 +116,18 @@ export const isValidStorageAccount = async (): Promise<boolean> => {
   );
 
   if (!isValid) {
-    logger.error("Storage account validation failed.");
-    return false;
+    throw new Error("Storage account validation failed.");
   }
 
   logger.info("Storage account validation passed.");
-  return true;
 };
 
 /**
  * Run the self-test for introspection
+ *
  * @param config spk configuration values
  */
-export const runSelfTest = async (config: IConfigYaml): Promise<any> => {
+export const runSelfTest = async (config: IConfigYaml) => {
   try {
     logger.info("Writing self-test data for introspection...");
     const key = await config.introspection!.azure!.key;
@@ -144,7 +157,7 @@ export const runSelfTest = async (config: IConfigYaml): Promise<any> => {
     }
   } catch (err) {
     logger.error("Error running self-test.");
-    logger.error(err);
+    throw err;
   }
 };
 
@@ -184,16 +197,10 @@ export const writeSelfTestData = async (
     logger.info("Adding ACR to HLD data to service introspection...");
     await updateACRToHLDPipeline(tableInfo, p2Id, imageTag, commitId, env);
 
-    return new Promise<string>(resolve => {
-      resolve(buildId);
-    });
+    return buildId;
   } catch (err) {
-    logger.error("Error writing data to service introspection.");
     logger.error(err);
-
-    return new Promise<string>(resolve => {
-      resolve("");
-    });
+    throw new Error("Error writing data to service introspection.");
   }
 };
 
@@ -226,14 +233,11 @@ export const deleteSelfTestData = async (
     "service",
     service
   ).then(async entries => {
-    let entryToDelete: any;
     logger.info("Deleting test data...");
     let foundEntry = false;
 
     try {
       for (const entry of entries) {
-        entryToDelete = entry;
-
         if (entry.p1 && entry.p1._ === buildId) {
           foundEntry = true;
         }

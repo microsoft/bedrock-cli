@@ -3,7 +3,7 @@ import { commandDecorator as createCommandDecorator } from "./create";
 import { commandDecorator as dashboardCommandDecorator } from "./dashboard";
 import { commandDecorator as getCommandDecorator } from "./get";
 import { commandDecorator as onboardCommandDecorator } from "./onboard";
-import { validateCommandDecorator } from "./validate";
+import { commandDecorator as validateCommandDecorator } from "./validate";
 
 /**
  * `deployment` command
