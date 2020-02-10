@@ -15,6 +15,7 @@ export const DEFINITION_YAML = "definition.yaml";
 export const VARIABLES_TF = "variables.tf";
 export const BACKEND_TFVARS = "backend.tfvars";
 export const TERRAFORM_TFVARS = "terraform.tfvars";
+export const DEFAULT_VAR_VALUE = "<insert value>";
 
 export interface ICommandOptions {
   name: string;
@@ -284,7 +285,6 @@ export const generateClusterDefinition = (
   vartfData: string
 ): { [key: string]: string | { [key: string]: string } } => {
   const fields = parseVariablesTf(vartfData);
-
   // map of string to string or map of string to string
   const def: { [key: string]: string | { [key: string]: string } } = {
     name: values.name,
@@ -299,7 +299,13 @@ export const generateClusterDefinition = (
   if (Object.keys(fields).length > 0) {
     const fieldDict: { [key: string]: string } = {};
     Object.keys(fields).forEach(key => {
-      fieldDict[key] = fields[key] || "<insert value>";
+      fieldDict[key] = fields[key] || DEFAULT_VAR_VALUE;
+    });
+    // If the value contains a default value, exclude from fieldDict
+    Object.keys(fieldDict).forEach(key => {
+      if (fieldDict[key] !== DEFAULT_VAR_VALUE) {
+        delete fieldDict[key];
+      }
     });
     def.variables = fieldDict;
   }
