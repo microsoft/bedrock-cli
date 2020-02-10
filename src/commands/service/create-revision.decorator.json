@@ -1,0 +1,35 @@
+{
+  "command": "create-revision",
+  "alias": "cr",
+  "description": "Create pull requests against the branches marked as `isDefault` in your bedrock config",
+  "options": [
+    {
+      "arg": "-s, --source-branch <source>",
+      "description": "Source branch to create the pull request from; defaults to the current branch"
+    },
+    {
+      "arg": "-t, --title <title>",
+      "description": "Title of the pull request; not required"
+    },
+    {
+      "arg": "-d, --description <description>",
+      "description": "Description of the pull request; not required"
+    },
+    {
+      "arg": "--remote-url <remote-url>",
+      "description": "The remote host to create the pull request in; defaults to the URL for 'origin'"
+    },
+    {
+      "arg": "--personal-access-token <pat>",
+      "description": "Personal access token associated with your Azure DevOps token; falls back to azure_devops.access_token in your spk config"
+    },
+    {
+      "arg": "--org-name <organization-name>",
+      "description": "Your Azure DevOps organization name; falls back to azure_devops.org in your spk config"
+    },
+    {
+      "arg": "--target-branch",
+      "description": "Target branch/ring to create a PR against; overwrites the default rings specified in bedrock.yaml"
+    }
+  ]
+}
