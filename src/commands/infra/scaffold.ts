@@ -14,6 +14,7 @@ import decorator from "./scaffold.decorator.json";
 export const DEFINITION_YAML = "definition.yaml";
 export const VARIABLES_TF = "variables.tf";
 export const BACKEND_TFVARS = "backend.tfvars";
+export const TERRAFORM_TFVARS = "terraform.tfvars";
 
 export interface ICommandOptions {
   name: string;
@@ -159,25 +160,13 @@ export const copyTfTemplate = async (
   try {
     if (generation === true) {
       await fsextra.copy(templatePath, envName, {
-        filter: file => {
-          if (
-            file.indexOf("terraform.tfvars") !== -1 ||
-            file.indexOf(BACKEND_TFVARS) !== -1
-          ) {
-            return false;
-          }
-          return true;
-        }
+        filter: file =>
+          file.indexOf(TERRAFORM_TFVARS) === -1 &&
+          file.indexOf(BACKEND_TFVARS) === -1
       });
     } else {
       await fsextra.copy(templatePath, envName, {
-        filter: file => {
-          // return !(file.indexOf("terraform.tfvars") > -1);
-          if (file.indexOf("terraform.tfvars") !== -1) {
-            return false;
-          }
-          return true;
-        }
+        filter: file => file.indexOf(TERRAFORM_TFVARS) === -1
       });
     }
     logger.info(`Terraform template files copied from ${templatePath}`);

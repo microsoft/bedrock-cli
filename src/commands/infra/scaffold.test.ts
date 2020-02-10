@@ -6,25 +6,29 @@ import uuid = require("uuid");
 import {
   createTempDir,
   getMissingFilenames,
-  isDirEmpty,
-  removeDir
+  isDirEmpty
 } from "../../lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { validateRemoteSource } from "./generate";
+import * as generate from "./generate";
+import * as infraCommon from "./infra_common";
 import {
   BACKEND_TFVARS,
   constructSource,
+  copyTfTemplate,
   DEFINITION_YAML,
   execute,
   generateClusterDefinition,
   ICommandOptions,
   parseVariablesTf,
   removeTemplateFiles,
+  TERRAFORM_TFVARS,
   validateBackendTfvars,
   validateValues,
   validateVariablesTf,
   VARIABLES_TF
 } from "./scaffold";
+import * as scaffold from "./scaffold";
 
 const mockYaml = {
   azure_devops: {
@@ -70,6 +74,32 @@ describe("test validateBackendTfvars function", () => {
   it("negative test", () => {
     const dir = createTempDir();
     expect(validateBackendTfvars(dir)).toBe(false);
+  });
+});
+
+const testCopyTfTemplateFn = async (generation: boolean) => {
+  const source = createTempDir();
+  fs.writeFileSync(path.join(source, "hello"), "hello");
+  fs.writeFileSync(path.join(source, TERRAFORM_TFVARS), TERRAFORM_TFVARS);
+  fs.writeFileSync(path.join(source, BACKEND_TFVARS), BACKEND_TFVARS);
+  const target = createTempDir();
+  await copyTfTemplate(source, target, generation);
+  expect(fs.existsSync(path.join(target, "hello"))).toBe(true);
+
+  if (generation) {
+    expect(fs.existsSync(path.join(target, TERRAFORM_TFVARS))).toBe(false);
+    expect(fs.existsSync(path.join(target, BACKEND_TFVARS))).toBe(false);
+  } else {
+    expect(fs.existsSync(path.join(target, TERRAFORM_TFVARS))).toBe(false);
+  }
+};
+
+describe("test copyTfTemplate function", () => {
+  it("positive test: generation = true", async () => {
+    await testCopyTfTemplateFn(true);
+  });
+  it("positive test: generation = false", async () => {
+    await testCopyTfTemplateFn(false);
   });
 });
 
@@ -176,6 +206,12 @@ describe("test execute function", () => {
     template: "",
     version: ""
   };
+  const MOCKED_VALS: ICommandOptions = {
+    name: "name",
+    source: "source",
+    template: "template",
+    version: "0.1"
+  };
   it("missing config yaml", async () => {
     const exitFn = jest.fn();
     try {
@@ -197,6 +233,26 @@ describe("test execute function", () => {
     }
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
+  });
+  it("positive test", async () => {
+    (validateRemoteSource as jest.Mock).mockReturnValueOnce(true);
+    jest
+      .spyOn(infraCommon, "repoCloneRegex")
+      .mockReturnValueOnce(Promise.resolve("sourceFolder"));
+    jest
+      .spyOn(generate, "validateRemoteSource")
+      .mockReturnValueOnce(Promise.resolve());
+    jest
+      .spyOn(scaffold, "copyTfTemplate")
+      .mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(scaffold, "validateVariablesTf").mockReturnValueOnce();
+    jest.spyOn(scaffold, "scaffold").mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(scaffold, "removeTemplateFiles").mockReturnValueOnce();
+
+    const exitFn = jest.fn();
+    await execute(mockYaml, MOCKED_VALS, exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[0]]);
   });
 });
 
