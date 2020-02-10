@@ -266,8 +266,8 @@ export const serviceBuildAndUpdatePipeline = (
                   `echo 'az extension add --name azure-devops'`,
                   `az extension add --name azure-devops`,
                   ``,
-                  `echo 'az repos pr create --description "Updating $SERVICE_NAME_LOWER to ${IMAGE_TAG}."'`,
-                  `response=$(az repos pr create --description "Updating $SERVICE_NAME_LOWER to ${IMAGE_TAG}.")`,
+                  `echo 'az repos pr create --description "Updating $SERVICE_NAME_LOWER to ${IMAGE_TAG}." "PR created by: $(Build.DefinitionName) with buildId: $(Build.BuildId) and buildNumber: $(Build.BuildNumber)"'`,
+                  `response=$(az repos pr create --description "Updating $SERVICE_NAME_LOWER to ${IMAGE_TAG}." "PR created by: $(Build.DefinitionName) with buildId: $(Build.BuildId) and buildNumber: $(Build.BuildNumber)")`,
                   `pr_id=$(echo $response | jq -r '.pullRequestId')`,
                   ``,
                   ``,
@@ -605,8 +605,8 @@ const hldLifecyclePipelineYaml = () => {
           `echo 'az extension add --name azure-devops'`,
           `az extension add --name azure-devops`,
           ``,
-          `echo 'az repos pr create --description "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)."'`,
-          `az repos pr create --description "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)."`
+          `echo 'az repos pr create --description "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)." "PR created by: $(Build.DefinitionName) with buildId: $(Build.BuildId) and buildNumber: $(Build.BuildNumber)"'`,
+          `az repos pr create --description "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)." "PR created by: $(Build.DefinitionName) with buildId: $(Build.BuildId) and buildNumber: $(Build.BuildNumber)"`
         ]),
         displayName:
           "Download Fabrikate and SPK, Update HLD, Push changes, Open PR",
