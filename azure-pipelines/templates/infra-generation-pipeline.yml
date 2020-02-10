@@ -100,6 +100,9 @@ steps:
     export GIT_COMMITTER_NAME="Automated Account"
     export EMAIL="admin@azuredevops.com"
 
+    # Format Terraform files
+    terraform fmt
+    
     # Add generated files to repository
     git status
     git add .
