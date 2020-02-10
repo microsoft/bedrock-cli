@@ -528,7 +528,7 @@ describe("reconcile tests", () => {
 });
 
 describe("execAndLog", () => {
-  test("working command", async () => {
+  test("working command", async done => {
     let error: Error | undefined;
     try {
       const result = await execAndLog("ls");
@@ -539,6 +539,7 @@ describe("execAndLog", () => {
       error = err;
     }
     expect(error).toBeUndefined();
+    done();
   });
 
   test("broken command", async () => {
