@@ -1,5 +1,7 @@
 import fs from "fs";
+import * as fsExtra from "fs-extra";
 import path from "path";
+import simpleGit from "simple-git/promise";
 import { loadConfigurationFromLocalEnv, readYaml } from "../../config";
 import { safeGitUrlForLogging } from "../../lib/gitutils";
 import { removeDir } from "../../lib/ioUtil";
@@ -19,7 +21,9 @@ import {
   generateConfig,
   generateTfvars,
   gitCheckout,
+  gitClone,
   gitFetchPull,
+  retryRemoteValidate,
   validateDefinition,
   validateRemoteSource,
   validateTemplateSources
@@ -76,27 +80,16 @@ describe("fetch execute function", () => {
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("with project value", async () => {
-    const validateDefinitionMock = jest.spyOn(generate, "validateDefinition");
-    validateDefinitionMock.mockImplementation(
-      () => DefinitionYAMLExistence.BOTH_EXIST
-    );
-
-    const validateRemoteSourceMock = jest.spyOn(
-      generate,
-      "validateRemoteSource"
-    );
-    validateRemoteSourceMock.mockImplementation(() => Promise.resolve());
-
-    const validateTemplateSourcesMock = jest.spyOn(
-      generate,
-      "validateTemplateSources"
-    );
-    validateTemplateSourcesMock.mockImplementation(() => {
-      return {};
-    });
-
-    const generateConfigMock = jest.spyOn(generate, "generateConfig");
-    generateConfigMock.mockImplementation(async () => Promise.resolve());
+    jest
+      .spyOn(generate, "validateDefinition")
+      .mockReturnValueOnce(DefinitionYAMLExistence.BOTH_EXIST);
+    jest
+      .spyOn(generate, "validateRemoteSource")
+      .mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "validateTemplateSources").mockReturnValueOnce({});
+    jest
+      .spyOn(generate, "generateConfig")
+      .mockReturnValueOnce(Promise.resolve());
 
     const exitFn = jest.fn();
     await execute(
@@ -109,6 +102,120 @@ describe("fetch execute function", () => {
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[0]]);
     jest.clearAllMocks();
+  });
+});
+
+describe("test validateRemoteSource function", () => {
+  it("positive test", async () => {
+    jest
+      .spyOn(infraCommon, "repoCloneRegex")
+      .mockReturnValueOnce(Promise.resolve("sourceFolder"));
+    jest
+      .spyOn(generate, "checkRemoteGitExist")
+      .mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "gitClone").mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "gitCheckout").mockReturnValueOnce(Promise.resolve());
+
+    await validateRemoteSource({
+      source: "source",
+      version: "0.1"
+    });
+  });
+  it("positive test: with Error refusing to merge unrelated histories", async () => {
+    jest
+      .spyOn(infraCommon, "repoCloneRegex")
+      .mockReturnValueOnce(Promise.resolve("sourceFolder"));
+    jest
+      .spyOn(generate, "checkRemoteGitExist")
+      .mockReturnValueOnce(Promise.resolve());
+    jest
+      .spyOn(generate, "gitClone")
+      .mockReturnValueOnce(
+        Promise.reject(new Error("refusing to merge unrelated histories"))
+      );
+    jest
+      .spyOn(generate, "retryRemoteValidate")
+      .mockReturnValueOnce(Promise.resolve());
+
+    await validateRemoteSource({
+      source: "source",
+      version: "0.1"
+    });
+  });
+  it("positive test: with Error Authentication failed", async () => {
+    jest
+      .spyOn(infraCommon, "repoCloneRegex")
+      .mockReturnValueOnce(Promise.resolve("sourceFolder"));
+    jest
+      .spyOn(generate, "checkRemoteGitExist")
+      .mockReturnValueOnce(Promise.resolve());
+    jest
+      .spyOn(generate, "gitClone")
+      .mockReturnValueOnce(Promise.reject(new Error("Authentication failed")));
+    jest
+      .spyOn(generate, "retryRemoteValidate")
+      .mockReturnValueOnce(Promise.resolve());
+
+    await validateRemoteSource({
+      source: "source",
+      version: "0.1"
+    });
+  });
+  it("negative test: with unknown Error", async () => {
+    jest
+      .spyOn(infraCommon, "repoCloneRegex")
+      .mockReturnValueOnce(Promise.resolve("sourceFolder"));
+    jest
+      .spyOn(generate, "checkRemoteGitExist")
+      .mockReturnValueOnce(Promise.resolve());
+    jest
+      .spyOn(generate, "gitClone")
+      .mockReturnValueOnce(Promise.reject(new Error("other error")));
+    jest
+      .spyOn(generate, "retryRemoteValidate")
+      .mockReturnValueOnce(Promise.resolve());
+
+    try {
+      await validateRemoteSource({
+        source: "source",
+        version: "0.1"
+      });
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err.message).toBe(
+        "Failure error thrown during retry Error: Unable to determine error from supported retry cases other error"
+      );
+    }
+  });
+});
+
+describe("test retryRemoteValidate function", () => {
+  it("positive test", async () => {
+    jest.spyOn(fsExtra, "removeSync").mockReturnValueOnce();
+    jest.spyOn(generate, "createGenerated").mockReturnValue();
+    jest.spyOn(generate, "gitClone").mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "gitFetchPull").mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "gitCheckout").mockReturnValueOnce(Promise.resolve());
+    await retryRemoteValidate("source", "sourcePath", "safeLoggingUrl", "0.1");
+  });
+  it("negative test", async () => {
+    jest.spyOn(fsExtra, "removeSync").mockReturnValueOnce();
+    jest.spyOn(generate, "createGenerated").mockReturnValue();
+    jest
+      .spyOn(generate, "gitClone")
+      .mockReturnValueOnce(Promise.reject(new Error("error")));
+
+    try {
+      await retryRemoteValidate(
+        "source",
+        "sourcePath",
+        "safeLoggingUrl",
+        "0.1"
+      );
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeDefined();
+    }
   });
 });
 
@@ -463,6 +570,29 @@ describe("test gitCheckout function", () => {
   });
 });
 
+describe("test gitClone function", () => {
+  it("postive Test", async () => {
+    const git = simpleGit();
+    git.clone = async () => {
+      return "ok";
+    };
+    await gitClone(git, "source", "path");
+    // no exception thrown
+  });
+  it("negative Test", async () => {
+    const git = simpleGit();
+    git.clone = async () => {
+      throw new Error("Error");
+    };
+    try {
+      await gitClone(git, "source", "path");
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e.message).toBe("Error");
+    }
+  });
+});
+
 describe("Validate remote git source", () => {
   test("Validating that a git source is cloned to .spk/templates", async () => {
     jest
@@ -470,12 +600,8 @@ describe("Validate remote git source", () => {
       .mockImplementationOnce(async () => {
         return;
       });
-    jest.spyOn(generate, "gitFetchPull").mockImplementationOnce(async () => {
-      return;
-    });
-    jest.spyOn(generate, "gitCheckout").mockImplementationOnce(async () => {
-      return;
-    });
+    jest.spyOn(generate, "gitFetchPull").mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "gitCheckout").mockReturnValueOnce(Promise.resolve());
 
     const mockParentPath = "src/commands/infra/mocks/discovery-service";
     const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
@@ -497,23 +623,8 @@ describe("Validate remote git source", () => {
   });
 });
 
-jest.spyOn(generate, "gitClone").mockImplementation(
-  (source: string, sourcePath: string): Promise<void> => {
-    logger.info(`gitClone function mocked.`);
-    return new Promise(resolve => {
-      resolve();
-    });
-  }
-);
-
-jest.spyOn(generate, "createGenerated").mockImplementation(
-  (projectPath: string): Promise<string> => {
-    logger.info(`createGenerated function mocked.`);
-    return new Promise(resolve => {
-      resolve();
-    });
-  }
-);
+jest.spyOn(generate, "gitClone").mockReturnValue(Promise.resolve());
+jest.spyOn(generate, "createGenerated").mockReturnValue();
 
 jest.spyOn(generate, "checkTfvars").mockImplementation(
   (generatedPath: string, tfvarsFilename: string): Promise<void> => {

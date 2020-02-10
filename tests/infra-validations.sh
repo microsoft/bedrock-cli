@@ -15,7 +15,7 @@ TEST_WORKSPACE="$(pwd)/spk-env"
 [ ! -z "$SP_APP_ID" ] || { echo "Provide SP_APP_ID"; exit 1;}
 [ ! -z "$SP_PASS" ] || { echo "Provide SP_PASS"; exit 1;}
 [ ! -z "$SP_TENANT" ] || { echo "Provide SP_TENANT"; exit 1;}
-[ ! -z "$SP_SUBSCRIPTION_ID" ] || { echo "Provide SP_SUBSCRITION_ID"; exit 1;}
+[ ! -z "$SP_SUBSCRIPTION_ID" ] || { echo "Provide SP_SUBSCRIPTION_ID"; exit 1;}
 AZDO_ORG_URL="${AZDO_ORG_URL:-"https://dev.azure.com/$AZDO_ORG"}"
 
 echo "TEST_WORKSPACE: $TEST_WORKSPACE"
@@ -35,12 +35,22 @@ infra_region=west/
 infra_generated_dir=fabrikam-generated-deploy
 vg_name="spk-infra-hld-vg"
 generate_pipeline_path="$(pwd)/infra-generation-pipeline.yml"
+generate_pipeline_path_local="$(pwd)/../azure-pipelines/templates/infra-generation-pipeline.yml"
 
 validation_test_yaml="rg_name: <insert value>"
 
 shopt -s expand_aliases
 alias spk=$SPK_LOCATION
 echo "SPK Version: $(spk --version)"
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  if ! [ -x "$(command -v gsed)" ]; then
+    echo 'Error: gnu-sed is not installed.' >&2
+    exit 1
+  fi
+  alias sed='gsed'
+  echo 'macOS detected'
+fi
 
 echo "Running from $(pwd)"
 if [ -d "$TEST_WORKSPACE"  ]; then rm -Rf $TEST_WORKSPACE; fi
@@ -124,8 +134,9 @@ sed -ri 's/^(\s*)(storage_account_name\s*:\s*<storage account name>\s*$)/\1stora
 
 # Create remote repo for Infra HLD ------------------
 # Add pipeline yml fo generation verification
-echo "Copying generate pipeline validation yml to Infra HLD repo" 
-cp $generate_pipeline_path .
+echo "Copying generate pipeline validation yml to Infra HLD repo from $generate_pipeline_path" 
+# Copy from current directory (pipeline) otherwise copy from azure-pipelines/templates (local)
+cp $generate_pipeline_path . || cp $generate_pipeline_path_local .
 git init
 
 # The HLD Template requires a git release for a version to be targeted for spk scaffold
@@ -189,7 +200,7 @@ git push origin "$infra_generated_version"
 variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $vg_name "delete"
 
 # Create variable group
-az pipelines variable-group create --name $vg_name --authorize true --variables "ACCESS_TOKEN_SECRET=$ACCESS_TOKEN_SECRET" "ARM_CLIENT_ID=$SP_APP_ID" "ARM_CLIENT_SECRET=$SP_PASS" "ARM_SUBSCRIPTION_ID=Tentative" "ARM_TENANT_ID=$SP_TENANT" "CLUSTER=$infra_region" "GENERATED_REPO=https://$repo_url" "PROJECT_DIRECTORY=$infra_hld_project" "AZDO_ORG_NAME=$AZDO_ORG_URL" "AZDO_PROJECT_NAME=$AZDO_PROJECT" "ARM_SUBSCRIPTION_ID=$SP_SUBSCRIPTION_ID"
+az pipelines variable-group create --name $vg_name --authorize true --variables "ACCESS_TOKEN_SECRET=$ACCESS_TOKEN_SECRET" "ARM_CLIENT_ID=$SP_APP_ID" "ARM_CLIENT_SECRET=$SP_PASS" "ARM_TENANT_ID=$SP_TENANT" "CLUSTER=$infra_region" "GENERATED_REPO=https://$repo_url" "PROJECT_DIRECTORY=$infra_hld_project" "AZDO_ORG_NAME=$AZDO_ORG_URL" "AZDO_PROJECT_NAME=$AZDO_PROJECT" "ARM_SUBSCRIPTION_ID=$SP_SUBSCRIPTION_ID"
 
 # Verify the variable group was created. Fail if not
 variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $vg_name "fail"

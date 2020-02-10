@@ -141,6 +141,9 @@ top level `Id` field as the Project Id.
 When testing locally you don't need to do the above set up since there is no
 pipeline. Instead run these steps:
 
+> For macOS users, be sure to pre-install `gsed` on your machine to run the
+> infrastructure validations script: `brew install gnu-sed`
+
 1. Login into AZ CLI
 2. Install Azure DevOps Extension (make sure you have version >= 0.17.0
    installed)

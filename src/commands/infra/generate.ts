@@ -1,5 +1,6 @@
 import commander from "commander";
 import fs from "fs";
+import fsExtra from "fs-extra";
 import mkdirp from "mkdirp";
 import path from "path";
 import process from "process";
@@ -12,8 +13,6 @@ import { IInfraConfigYaml } from "../../types";
 import decorator from "./generate.decorator.json";
 import * as infraCommon from "./infra_common";
 import { copyTfTemplate } from "./scaffold";
-
-const git = simpleGit();
 
 const DEF_YAML = "definition.yaml";
 
@@ -159,14 +158,12 @@ export const validateTemplateSources = (
     }
   });
   if (!source.source || !source.template || !source.version) {
-    // TODO: Please check if version is needed
     logger.info(
       `The ${DEF_YAML} file is invalid. \
 There is a missing field for it's sources. \
 Template: ${source.template} source: ${source.source} version: ${source.version}`
     );
   }
-
   const safeLoggingUrl = safeGitUrlForLogging(source.source!);
   logger.info(
     `Checking for locally stored template: ${source.template} from remote repository: ${safeLoggingUrl} at version: ${source.version}`
@@ -199,10 +196,14 @@ export const gitFetchPull = async (
   sourcePath: string,
   safeLoggingUrl: string
 ) => {
-  // Make sure we have the latest version of all releases cached locally
-  await simpleGit(sourcePath).fetch("all");
-  await simpleGit(sourcePath).pull("origin", "master");
-  logger.info(`${safeLoggingUrl} already cloned. Performing 'git pull'...`);
+  try {
+    // Make sure we have the latest version of all releases cached locally
+    await simpleGit(sourcePath).fetch("all");
+    await simpleGit(sourcePath).pull("origin", "master");
+    logger.info(`${safeLoggingUrl} already cloned. Performing 'git pull'...`);
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const gitCheckout = async (sourcePath: string, version: string) => {
@@ -244,21 +245,54 @@ export const validateRemoteSource = async (
   logger.info(
     `Checking if source repo: ${safeLoggingUrl} has been already cloned to: ${sourcePath}.`
   );
-
   try {
     // Check if .git folder exists in ${sourcePath}, if not, then clone
     // if already cloned, 'git pull'
     if (fs.existsSync(path.join(sourcePath, ".git"))) {
       await gitFetchPull(sourcePath, safeLoggingUrl);
     } else {
-      await gitClone(source, sourcePath);
+      const git = simpleGit();
+      await gitClone(git, source, sourcePath);
     }
     // Checkout tagged version
     await gitCheckout(sourcePath, version);
   } catch (err) {
-    logger.error(err);
-    // TOFIX: this error should be rethrown
-    // and if we do, infra-validations.sh will fail
+    if (err instanceof Error) {
+      // Retry logic on failed clones
+      logger.warn(`FAILURE DETECTED: Checking the error`);
+      try {
+        // Case 1: Remote source and cached repo have conflicting histories.
+        if (err.message.includes("refusing to merge unrelated histories")) {
+          logger.info(
+            `Detected a refusal to merge unrelated histories, attempting to reset the cached folder to the remote: ${sourcePath}`
+          );
+          await retryRemoteValidate(
+            source,
+            sourcePath,
+            safeLoggingUrl,
+            version
+          );
+        }
+        // Case 2: Remote source and cached repo have conflicting PATs
+        else if (err.message.includes("Authentication failed")) {
+          logger.info(
+            `Detected an authentication failure with existing cache, attempting to reset the cached folder to the remote: ${sourcePath}`
+          );
+          await retryRemoteValidate(
+            source,
+            sourcePath,
+            safeLoggingUrl,
+            version
+          );
+        } else {
+          throw new Error(
+            `Unable to determine error from supported retry cases ${err.message}`
+          );
+        }
+      } catch (retryError) {
+        throw new Error(`Failure error thrown during retry ${retryError}`);
+      }
+    }
   }
 };
 
@@ -269,11 +303,16 @@ export const validateRemoteSource = async (
  * @param sourcePath location to clone repo to
  */
 export const gitClone = async (
+  git: simpleGit.SimpleGit,
   source: string,
   sourcePath: string
 ): Promise<void> => {
-  await git.clone(source, `${sourcePath}`);
-  logger.info(`Cloning source repo to .spk/templates was successful.`);
+  try {
+    await git.clone(source, `${sourcePath}`);
+    logger.info(`Cloning source repo to .spk/templates was successful.`);
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
@@ -507,11 +546,35 @@ export const dirIteration = (
 /**
  * Creates "generated" directory if it does not already exists
  *
- * @param projectPath Path to the definition.yaml file
+ * @param source remote URL for cloning to cache
+ * @param sourcePath Path to the template folder cache
+ * @param safeLoggingUrl URL with redacted authentication
+ * @param version version of terraform template
  */
 export const createGenerated = (projectPath: string) => {
   mkdirp.sync(projectPath);
   logger.info(`Created generated directory: ${projectPath}`);
+};
+
+export const retryRemoteValidate = async (
+  source: string,
+  sourcePath: string,
+  safeLoggingUrl: string,
+  version: string
+) => {
+  try {
+    // SPK can assume that there is a remote that it has access to since it was able to compare commit histories. Delete cache and reset on provided remote
+    fsExtra.removeSync(sourcePath);
+    createGenerated(sourcePath);
+    const git = simpleGit();
+    await gitClone(git, source, sourcePath);
+    await gitFetchPull(sourcePath, safeLoggingUrl);
+    logger.info(`Checking out template version: ${version}`);
+    await gitCheckout(sourcePath, version);
+    logger.info(`Successfully re-cloned repo`);
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
