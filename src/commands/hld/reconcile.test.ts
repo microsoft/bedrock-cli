@@ -11,6 +11,7 @@ import {
   createStaticComponent,
   execAndLog,
   execute,
+  getFullPathPrefix,
   IReconcileDependencies,
   reconcileHld,
   testAndGetAbsPath,
@@ -552,5 +553,43 @@ describe("execAndLog", () => {
       error = err;
     }
     expect(error).toBeDefined();
+  });
+});
+
+describe("getFullPathPrefix", () => {
+  it("should create a full path with just serviceName", () => {
+    const majorVersion = "";
+    const pathPrefix = "";
+    const serviceName = "my-service";
+
+    const fullPath = getFullPathPrefix(majorVersion, pathPrefix, serviceName);
+    expect(fullPath).toBe(`/${serviceName}`);
+  });
+
+  it("with serviceName and pathPrefix it should only have pathPrefix", () => {
+    const majorVersion = "";
+    const pathPrefix = "service/path";
+    const serviceName = "my-service";
+
+    const fullPath = getFullPathPrefix(majorVersion, pathPrefix, serviceName);
+    expect(fullPath).toBe(`/${pathPrefix}`);
+  });
+
+  it("with serviceName and version it should only have version and service name", () => {
+    const majorVersion = "v2";
+    const pathPrefix = "";
+    const serviceName = "my-service";
+
+    const fullPath = getFullPathPrefix(majorVersion, pathPrefix, serviceName);
+    expect(fullPath).toBe(`/${majorVersion}/${serviceName}`);
+  });
+
+  it("with pathPrefix and version it should only have version and the pathprefix", () => {
+    const majorVersion = "v2";
+    const pathPrefix = "service/path";
+    const serviceName = "my-service";
+
+    const fullPath = getFullPathPrefix(majorVersion, pathPrefix, serviceName);
+    expect(fullPath).toBe(`/${majorVersion}/${pathPrefix}`);
   });
 });

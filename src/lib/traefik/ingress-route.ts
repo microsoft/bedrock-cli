@@ -54,31 +54,18 @@ export const TraefikIngressRoute = (
   serviceName: string,
   ringName: string,
   servicePort: number,
+  versionAndPath: string,
   opts?: {
     entryPoints?: TraefikEntryPoints;
     k8sBackend?: string;
     middlewares?: string[];
     namespace?: string;
-    pathPrefix?: string;
-    pathPrefixMajorVersion?: string;
   }
 ): ITraefikIngressRoute => {
-  const {
-    entryPoints,
-    k8sBackend,
-    middlewares = [],
-    namespace,
-    pathPrefix,
-    pathPrefixMajorVersion
-  } = opts ?? {};
+  const { entryPoints, k8sBackend, middlewares = [], namespace } = opts ?? {};
   const name = !!ringName ? `${serviceName}-${ringName}` : serviceName;
 
-  const versionPath = pathPrefixMajorVersion
-    ? `/${pathPrefixMajorVersion}`
-    : "";
-  const path = pathPrefix ?? serviceName;
-
-  const routeMatchPathPrefix = `PathPrefix(\`${versionPath}/${path}\`)`;
+  const routeMatchPathPrefix = `PathPrefix(\`${versionAndPath}\`)`;
   const routeMatchHeaders = ringName && `Headers(\`Ring\`, \`${ringName}\`)`; // no 'X-' prefix for header: https://tools.ietf.org/html/rfc6648
   const routeMatch = [routeMatchPathPrefix, routeMatchHeaders]
     .filter(matchRule => !!matchRule)
