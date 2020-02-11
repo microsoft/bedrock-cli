@@ -4,6 +4,7 @@ import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import {
   addChartToRing,
   checkForFabrikate,
+  configureChartForRing,
   createAccessYaml,
   createRepositoryComponent,
   createRingComponent,
@@ -13,6 +14,7 @@ import {
   execute,
   getFullPathPrefix,
   IReconcileDependencies,
+  normalizedName,
   reconcileHld,
   testAndGetAbsPath,
   validateInputs
@@ -174,31 +176,49 @@ describe("createRepositoryComponent", () => {
 });
 
 describe("createRingComponent", () => {
+  let exec = jest.fn().mockReturnValue(Promise.resolve({}));
+  const svcPathInHld = `/path/to/service`;
+  const ring = `dev`;
+  const expectedInvocation = `cd ${svcPathInHld} && mkdir -p ${ring} config && fab add ${ring} --path ./${ring} --method local --type component && touch ./config/common.yaml`;
+
   it("should invoke the correct command for adding rings to hld", () => {
-    const exec = jest.fn().mockReturnValue(Promise.resolve({}));
-    const svcPathInHld = `/path/to/service`;
-    const ring = `dev`;
-
-    const expectedInvocation = `cd ${svcPathInHld} && mkdir -p ${ring} config && fab add ${ring} --path ./${ring} --method local --type component && touch ./config/common.yaml`;
-
     createRingComponent(exec, svcPathInHld, ring);
 
     expect(exec).toBeCalled();
     expect(exec).toBeCalledWith(expectedInvocation);
   });
+
+  it("should throw an error if exec fails", () => {
+    exec = jest.fn().mockRejectedValue(new Error());
+
+    try {
+      createRingComponent(exec, svcPathInHld, ring);
+    } catch (e) {
+      expect(e).toMatch(`error creating ring component`);
+    }
+  });
 });
 
 describe("createStaticComponent", () => {
+  let exec = jest.fn().mockReturnValue(Promise.resolve({}));
+  const ringPathInHld = `/ring/path/in/hld`;
+  const expectedInvocation = `cd ${ringPathInHld} && mkdir -p config static && fab add static --path ./static --method local --type static && touch ./config/common.yaml`;
+
   it("should invoke the correct command for creating static components", () => {
-    const exec = jest.fn().mockReturnValue(Promise.resolve({}));
-    const ringPathInHld = `/ring/path/in/hld`;
-
-    const expectedInvocation = `cd ${ringPathInHld} && mkdir -p config static && fab add static --path ./static --method local --type static && touch ./config/common.yaml`;
-
     createStaticComponent(exec, ringPathInHld);
 
     expect(exec).toBeCalled();
     expect(exec).toBeCalledWith(expectedInvocation);
+  });
+
+  it("should throw an error if exec fails", () => {
+    exec = jest.fn().mockRejectedValue(new Error());
+
+    try {
+      createStaticComponent(exec, ringPathInHld);
+    } catch (e) {
+      expect(e).toMatch(`error creating static component`);
+    }
   });
 });
 
@@ -292,6 +312,34 @@ describe("addChartToRing", () => {
   });
 });
 
+describe("configureChartForRing", () => {
+  it("should invoke the correct command for configuring a chart for a ring", async () => {
+    const exec = jest.fn().mockReturnValue(Promise.resolve({}));
+    const ringPath = "/path/to/ring";
+    const ringName = "myringname";
+
+    const serviceConfig: IBedrockServiceConfig = {
+      helm: {
+        chart: {
+          git: "foo",
+          path: "bar",
+          sha: "baz"
+        }
+      },
+      k8sBackend: "k8s-svc",
+      k8sBackendPort: 80
+    };
+
+    const k8sSvcBackendAndName = [serviceConfig.k8sBackend, ringName].join("-");
+    const expectedInvocation = `cd ${ringPath} && fab set --subcomponent "chart" config.serviceName="${k8sSvcBackendAndName}"`;
+
+    configureChartForRing(exec, ringPath, ringName, serviceConfig);
+
+    expect(exec).toBeCalled();
+    expect(exec).toBeCalledWith(expectedInvocation);
+  });
+});
+
 describe("reconcile tests", () => {
   let dependencies: IReconcileDependencies;
   let bedrockYaml: IBedrockFile;
@@ -302,6 +350,7 @@ describe("reconcile tests", () => {
   beforeEach(() => {
     dependencies = {
       addChartToRing: jest.fn().mockReturnValue(Promise.resolve({})),
+      configureChartForRing: jest.fn().mockReturnValue(Promise.resolve({})),
       createAccessYaml: jest.fn(),
       createIngressRouteForRing: jest.fn().mockReturnValue(Promise.resolve({})),
       createMiddlewareForRing: jest.fn().mockReturnValue(Promise.resolve({})),
@@ -332,6 +381,7 @@ describe("reconcile tests", () => {
               sha
             }
           },
+          k8sBackend: "cool-service",
           k8sBackendPort: 1337
         }
       }
@@ -351,6 +401,7 @@ describe("reconcile tests", () => {
     expect(dependencies.createAccessYaml).toHaveBeenCalled();
     expect(dependencies.createServiceComponent).toHaveBeenCalledTimes(1);
     expect(dependencies.createRingComponent).toHaveBeenCalledTimes(2);
+    expect(dependencies.configureChartForRing).toHaveBeenCalledTimes(2);
     expect(dependencies.addChartToRing).toHaveBeenCalledTimes(2);
     expect(dependencies.createStaticComponent).toHaveBeenCalledTimes(2);
     expect(dependencies.createMiddlewareForRing).toHaveBeenCalledTimes(2);
@@ -552,8 +603,28 @@ describe("reconcile tests", () => {
   });
 });
 
+describe("normalizedName", () => {
+  it("lower cases a name", () => {
+    expect(normalizedName("Fabrikam")).toBe("fabrikam");
+  });
+
+  it("removes slashes from a name", () => {
+    expect(normalizedName("fabrikam/frontend")).toBe("fabrikam-frontend");
+  });
+
+  it("removes periods from a name", () => {
+    expect(normalizedName("fabrikam.frontend")).toBe("fabrikam-frontend");
+  });
+
+  it("can handle combinations of slashes and periods and caps in a name", () => {
+    expect(normalizedName("Fabrikam.frontend/CartService")).toBe(
+      "fabrikam-frontend-cartservice"
+    );
+  });
+});
+
 describe("execAndLog", () => {
-  test("working command", async done => {
+  test("working command", async () => {
     let error: Error | undefined;
     try {
       const result = await execAndLog("ls");
@@ -564,7 +635,6 @@ describe("execAndLog", () => {
       error = err;
     }
     expect(error).toBeUndefined();
-    done();
   });
 
   test("broken command", async () => {
