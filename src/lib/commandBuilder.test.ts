@@ -1,5 +1,6 @@
 import commander from "commander";
 import { watchFile } from "fs";
+import { createLogger } from "winston";
 jest.mock("fs");
 import { logger } from "../logger";
 import {
@@ -140,7 +141,24 @@ describe("Tests Command Builder's exit function", () => {
       cb({ size: 100 });
     });
     const exitFn = jest.fn();
-    await exitCmd(logger, exitFn, 1).then(() => {
+    await exitCmd(logger, exitFn, 1, 100).then(() => {
+      expect(exitFn).toBeCalledTimes(1);
+      expect(exitFn.mock.calls).toEqual([[1]]);
+      done();
+    });
+  });
+  it("calling exit function without file transport", async done => {
+    const exitFn = jest.fn();
+    await exitCmd(
+      createLogger({
+        defaultMeta: { service: "spk" },
+        level: "info",
+        transports: []
+      }),
+      exitFn,
+      1,
+      100
+    ).then(() => {
       expect(exitFn).toBeCalledTimes(1);
       expect(exitFn.mock.calls).toEqual([[1]]);
       done();
