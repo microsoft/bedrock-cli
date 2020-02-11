@@ -8,6 +8,7 @@ import simpleGit from "simple-git/promise";
 import { loadConfigurationFromLocalEnv, readYaml } from "../../config";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { safeGitUrlForLogging } from "../../lib/gitutils";
+import { deepClone } from "../../lib/util";
 import { logger } from "../../logger";
 import { IInfraConfigYaml } from "../../types";
 import decorator from "./generate.decorator.json";
@@ -523,11 +524,7 @@ export const dirIteration = (
   leafObject: { [key: string]: any } | undefined
 ): { [key: string]: any } => {
   if (!parentObject) {
-    if (!leafObject) {
-      return {};
-    }
-    // poor man clone. can we use lodash?
-    return JSON.parse(JSON.stringify(leafObject));
+    return !leafObject ? {} : deepClone(leafObject);
   }
   if (!leafObject) {
     return parentObject;

@@ -1,4 +1,5 @@
 import * as azure from "../../lib/azure/deploymenttable";
+import { deepClone } from "../../lib/util";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { execute, ICommandOptions } from "./create";
 
@@ -28,7 +29,7 @@ const MOCKED_VALS: ICommandOptions = {
 };
 
 const getMockedValues = (withKeyValue = false): ICommandOptions => {
-  const vals = JSON.parse(JSON.stringify(MOCKED_VALS));
+  const vals = deepClone(MOCKED_VALS);
 
   if (withKeyValue) {
     vals.accessKey = "accessKey";

@@ -1,6 +1,7 @@
 import path from "path";
 import Deployment from "spektate/lib/Deployment";
 import { loadConfiguration } from "../../config";
+import { deepClone } from "../../lib/util";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
@@ -49,11 +50,11 @@ const MOCKED_VALUES: IValidatedOptions = {
 };
 
 const getMockedInputValues = (): ICommandOptions => {
-  return JSON.parse(JSON.stringify(MOCKED_INPUT_VALUES));
+  return deepClone(MOCKED_INPUT_VALUES);
 };
 
 const getMockedValues = (): IValidatedOptions => {
-  return JSON.parse(JSON.stringify(MOCKED_VALUES));
+  return deepClone(MOCKED_VALUES);
 };
 
 // tslint:disable-next-line: no-var-requires

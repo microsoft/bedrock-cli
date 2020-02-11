@@ -9,6 +9,7 @@ import { DEFAULT_CONTENT as BedrockMockedContent } from "../../lib/bedrockYaml";
 import { SERVICE_PIPELINE_FILENAME } from "../../lib/constants";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import { createTempDir, removeDir } from "../../lib/ioUtil";
+import { deepClone } from "../../lib/util";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
@@ -56,8 +57,7 @@ const mockValues: ICommandValues = {
 };
 
 const getMockValues = (): ICommandValues => {
-  // TOFIX: if possible, can we use lodash?
-  return JSON.parse(JSON.stringify(mockValues));
+  return deepClone(mockValues);
 };
 
 const validateDirNFiles = (

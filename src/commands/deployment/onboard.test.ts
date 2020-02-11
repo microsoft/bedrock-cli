@@ -7,6 +7,7 @@ import * as config from "../../config";
 import * as keyvault from "../../lib/azure/keyvault";
 import * as storage from "../../lib/azure/storage";
 import { createTempDir } from "../../lib/ioUtil";
+import { deepClone } from "../../lib/util";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
@@ -52,7 +53,7 @@ const randomTmpDir = createTempDir();
 const testConfigFile = path.join(randomTmpDir, "config.yaml");
 
 const getMockedValues = (): ICommandOptions => {
-  return JSON.parse(JSON.stringify(MOCKED_VALUES));
+  return deepClone(MOCKED_VALUES);
 };
 
 const getMockedAccessOpts = (values: ICommandOptions): IAzureAccessOpts => {

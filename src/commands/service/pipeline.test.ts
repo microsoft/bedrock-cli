@@ -8,7 +8,7 @@ import {
   getBuildApiClient,
   queueBuild
 } from "../../lib/pipelines/pipelines";
-
+import { deepClone } from "../../lib/util";
 import {
   execute,
   fetchValues,
@@ -42,7 +42,7 @@ beforeEach(() => {
 });
 
 const getMockedValues = () => {
-  return JSON.parse(JSON.stringify(MOCKED_VALUES));
+  return deepClone(MOCKED_VALUES);
 };
 
 describe("test fetchValues function", () => {
