@@ -1,6 +1,8 @@
+import { fail } from "assert";
 import commander from "commander";
 import path from "path";
 import shelljs from "shelljs";
+import * as sshUrl from "ssh-url";
 import { Bedrock } from "../../config";
 import {
   addNewService as addNewServiceToBedrockFile,
@@ -109,6 +111,7 @@ export const execute = async (
     await exitFn(1);
     return;
   }
+
   if (serviceName === "." && opts.displayName === "") {
     logger.error(
       `If specifying the current directory as service name, please incluce a display name using '-n'`
@@ -116,6 +119,10 @@ export const execute = async (
     await exitFn(1);
     return;
   }
+
+  // Sanity checking the specified Helm URLs
+  await validateGitUrl(opts.helmConfigGit, exitFn);
+
   const projectPath = process.cwd();
   logger.verbose(`project path: ${projectPath}`);
 
@@ -130,6 +137,51 @@ export const execute = async (
     );
     logger.error(err);
     await exitFn(1);
+  }
+};
+
+/**
+ * Validates a helm config git URI, if one is provided through the CLI
+ * Silently returns if nothing is wrong with it, otherwise errors loudly.
+ * @param gitUrl A URL to a helm chart
+ * @param exitFn A function to call to exit the process.
+ */
+export const validateGitUrl = async (
+  gitUrl: string,
+  exitFn: (status: number) => void
+): Promise<void> => {
+  if (gitUrl === "") {
+    return;
+  }
+
+  let isHelmConfigHttp = true;
+
+  try {
+    // tslint:disable-next-line: no-unused-expression
+    new URL(gitUrl);
+  } catch (err) {
+    logger.warn(
+      `Provided helm git URL is an invalid http/https URL: ${gitUrl}`
+    );
+    isHelmConfigHttp = false;
+  }
+
+  // We might be looking at a git+ssh URL ie: git@foo.com:/path/to/git
+  if (!isHelmConfigHttp) {
+    try {
+      const parsedSshUrl = sshUrl.parse(gitUrl);
+      // Git url parsed by node-ssh-url will have a `user` field if it resembles
+      // git@ssh.dev.azure.com:v3/bhnook/test/hld
+      if (parsedSshUrl.user === null) {
+        fail("Not a valid git+ssh url");
+      }
+    } catch (err) {
+      logger.error(
+        `Provided helm git URL is an invalid git+ssh or http/https URL: ${gitUrl}`
+      );
+      await exitFn(1);
+      return;
+    }
   }
 };
 

@@ -19,7 +19,13 @@ import {
   createTestBedrockYaml,
   createTestMaintainersYaml
 } from "../../test/mockFactory";
-import { createService, execute, fetchValues, ICommandValues } from "./create";
+import {
+  createService,
+  execute,
+  fetchValues,
+  ICommandValues,
+  validateGitUrl
+} from "./create";
 jest.mock("../../lib/gitutils");
 
 beforeAll(() => {
@@ -93,14 +99,16 @@ describe("Test fetchValues function", () => {
       expect(err).toBeDefined();
     }
   });
-  it("Postive test: with middlewares value", () => {
+
+  it("Positive test: with middlewares value", () => {
     jest.spyOn(config, "Bedrock").mockReturnValueOnce(BedrockMockedContent);
     const mocked = getMockValues();
     mocked.middlewares = "mid1, mid2"; // space after comma is intentional, expecting trimming to happen
     const result = fetchValues(mocked);
     expect(result.middlewaresArray).toEqual(["mid1", "mid2"]);
   });
-  it("Postive test: with bedrock rings", () => {
+
+  it("Positive test: with bedrock rings", () => {
     const mockedBedrockFileConfig = { ...BedrockMockedContent };
     mockedBedrockFileConfig.rings = {
       master: {},
@@ -112,13 +120,15 @@ describe("Test fetchValues function", () => {
     const result = fetchValues(mocked);
     expect(result.ringNames).toEqual(["master", "qa"]);
   });
-  it("Postive test", () => {
+
+  it("Positive test", () => {
     const mocked = getMockValues();
     jest.spyOn(config, "Bedrock").mockReturnValueOnce(BedrockMockedContent);
     const result = fetchValues(mocked);
     expect(result).toEqual(mocked);
   });
 });
+
 describe("Test execute function", () => {
   it("Negative test: without service name", async () => {
     const exitFn = jest.fn();
@@ -126,19 +136,23 @@ describe("Test execute function", () => {
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
+
   it("Negative test: service name is cwd and missing display name", async () => {
     const exitFn = jest.fn();
     await execute(".", getMockValues(), exitFn);
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
+
   it("Negative test: missing bedrock file", async () => {
     const testServiceName = uuid();
     const exitFn = jest.fn();
+
     jest.spyOn(bedrockYaml, "fileInfo").mockImplementation(() => ({
       exist: false,
       hasVariableGroups: false
     }));
+
     try {
       await execute(testServiceName, getMockValues(), exitFn);
       expect(exitFn).toBeCalledTimes(1);
@@ -147,13 +161,16 @@ describe("Test execute function", () => {
       removeDir(testServiceName); // housekeeping
     }
   });
+
   it("Negative test: missing bedrock variable groups", async () => {
     const testServiceName = uuid();
     const exitFn = jest.fn();
+
     jest.spyOn(bedrockYaml, "fileInfo").mockImplementation(() => ({
       exist: true,
       hasVariableGroups: false
     }));
+
     try {
       await execute(testServiceName, getMockValues(), exitFn);
       expect(exitFn).toBeCalledTimes(1);
@@ -161,6 +178,49 @@ describe("Test execute function", () => {
     } finally {
       removeDir(testServiceName); // housekeeping
     }
+  });
+});
+
+describe("Validate Git URLs", () => {
+  it("Should error when providing an invalid git url", async () => {
+    const exitFn = jest.fn();
+    const helmConfigPath = "dev.azure.com/foo/bar";
+
+    validateGitUrl(helmConfigPath, exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+  });
+
+  it("Should not error when providing a valid github https url", async () => {
+    const exitFn = jest.fn();
+    const helmConfigPath = "https://github.com/CatalystCode/spk.git";
+
+    validateGitUrl(helmConfigPath, exitFn);
+    expect(exitFn).toBeCalledTimes(0);
+  });
+
+  it("Should not error when providing a valid azdo https url", async () => {
+    const exitFn = jest.fn();
+    const helmConfigPath =
+      "https://dev@dev.azure.com/catalystcode/project/_git/repo";
+
+    validateGitUrl(helmConfigPath, exitFn);
+    expect(exitFn).toBeCalledTimes(0);
+  });
+
+  it("Should not error when providing a valid azdo git+ssh url", async () => {
+    const exitFn = jest.fn();
+    const helmConfigPath = "git@ssh.dev.azure.com:v3/CatalystCode/project/repo";
+
+    validateGitUrl(helmConfigPath, exitFn);
+    expect(exitFn).toBeCalledTimes(0);
+  });
+
+  it("Should not error when providing a valid github git+ssh url", async () => {
+    const exitFn = jest.fn();
+    const helmConfigPath = "git@github.com:CatalystCode/spk.git";
+
+    validateGitUrl(helmConfigPath, exitFn);
+    expect(exitFn).toBeCalledTimes(0);
   });
 });
 
@@ -171,7 +231,7 @@ describe("Adding a service to a repo directory", () => {
     randomTmpDir = createTempDir();
   });
 
-  test("New service is created in projet root directory. No display name given, so this should throw an error.", async () => {
+  test("New service is created in project root directory. No display name given, so this should throw an error.", async () => {
     await writeSampleMaintainersFileToDir(
       path.join(randomTmpDir, "maintainers.yaml")
     );
@@ -198,7 +258,7 @@ describe("Adding a service to a repo directory", () => {
     expect(hasError).toBe(true);
   });
 
-  test("New service is created in projet root directory. With display name given, so this work fine.", async () => {
+  test("New service is created in project root directory. With display name given, so this works fine.", async () => {
     await writeSampleMaintainersFileToDir(
       path.join(randomTmpDir, "maintainers.yaml")
     );
