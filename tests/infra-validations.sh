@@ -241,5 +241,8 @@ git checkout $pr_id
 file_we_expect=("variables.tf" "main.tf" "backend.tfvars" "spk.tfvars")
 validate_directory "$TEST_WORKSPACE/$infra_generated_dir/$infra_hld_project-generated/$infra_region" "${file_we_expect[@]}" >> $TEST_WORKSPACE/log.txt
 echo "PR for generated repo validated."
-
+# Validate the contents of the definition.yaml
+spkVars_test=$'rg_name = "test-rg"\nrg_location = "west us2"\n'
+validate_file "$TEST_WORKSPACE/$infra_generated_dir/$infra_hld_project-generated/$infra_region/spk.tfvars" $spkVars_test >> $TEST_WORKSPACE/log.txt
+echo "SPK.tfvars file in the generated repo validated."
 echo "Successfully reached the end of the infrastructure validations script."
