@@ -1,14 +1,12 @@
 import { Command } from "../command";
-import { commandDecorator as createVariableGroupCommandDecorator } from "./create-variable-group";
-import { commandDecorator as initCommandDecorator } from "./init";
-import { commandDecorator as deployLifecyclePipelineCommandDecorator } from "./pipeline";
 
-export const projectCommand = Command(
+const subfolders = ["create-variable-group", "init", "pipeline"];
+
+export const commandDecorator = Command(
   "project",
   "Initialize and manage your Bedrock project.",
-  [
-    createVariableGroupCommandDecorator,
-    deployLifecyclePipelineCommandDecorator,
-    initCommandDecorator
-  ]
+  subfolders.map(m => {
+    const cmd = require(`./${m}`);
+    return cmd.commandDecorator;
+  })
 );

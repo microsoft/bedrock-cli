@@ -1,9 +1,6 @@
-import fs from "fs";
 import * as os from "os";
 import path from "path";
 import simpleGit from "simple-git/promise";
-import { safeGitUrlForLogging } from "../../lib/gitutils";
-import { logger } from "../../logger";
 
 export const spkTemplatesPath = path.join(os.homedir(), ".spk/templates");
 const git = simpleGit();

@@ -1,7 +1,12 @@
 import { Command } from "../command";
-import { commandDecorator as createCommandDecorator } from "./create";
-export const variableGroupCommand = Command(
+
+const subfolders = ["create"];
+
+export const commandDecorator = Command(
   "variable-group",
   "Creates Variable Group in Azure DevOps project.",
-  [createCommandDecorator]
+  subfolders.map(m => {
+    const cmd = require(`./${m}`);
+    return cmd.commandDecorator;
+  })
 );

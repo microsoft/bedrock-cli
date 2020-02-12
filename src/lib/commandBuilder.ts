@@ -117,7 +117,6 @@ export const validateForRequiredValues = (
  * @param exitFn exit function
  * @param statusCode Exit status code
  */
-
 export const exit = (
   log: Logger,
   exitFn: (status: number) => void,

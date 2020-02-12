@@ -14,39 +14,41 @@
 // fetch module is required for @azure/ms-rest-nodeauth in lib/azure
 import "isomorphic-fetch";
 import { Command, executeCommand } from "./commands/command";
-import { deploymentCommand } from "./commands/deployment";
-import { hldCommand } from "./commands/hld";
-import { infraCommand } from "./commands/infra";
 import { commandDecorator as initCommandDecorator } from "./commands/init";
-import { projectCommand } from "./commands/project";
-import { serviceCommand } from "./commands/service";
-import { variableGroupCommand } from "./commands/variable-group";
 
 (process as any).noDeprecation = true;
+
+const commandModules = [
+  "deployment",
+  "hld",
+  "infra",
+  "project",
+  "service",
+  "variable-group"
+];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Instantiate core command object
 ////////////////////////////////////////////////////////////////////////////////
-const rootCommand = Command(
-  "spk",
-  "The missing Bedrock CLI",
-  [
-    c => {
-      c.version(require("../package.json").version);
-    },
-    initCommandDecorator
-  ],
-  [
-    deploymentCommand,
-    projectCommand,
-    serviceCommand,
-    infraCommand,
-    hldCommand,
-    variableGroupCommand
-  ]
-);
+(async () => {
+  const cmds = await Promise.all(
+    commandModules.map(async m => {
+      const cmd = await import(`./commands/${m}`);
+      return cmd.commandDecorator;
+    })
+  );
+  const rootCommand = Command(
+    "spk",
+    "The missing Bedrock CLI",
+    [
+      c => {
+        c.version(require("../package.json").version);
+      },
+      initCommandDecorator
+    ],
+    cmds
+  );
 
-////////////////////////////////////////////////////////////////////////////////
-// Main
-////////////////////////////////////////////////////////////////////////////////
-executeCommand(rootCommand, [...process.argv]);
+  // main
+  executeCommand(rootCommand, [...process.argv]);
+})();

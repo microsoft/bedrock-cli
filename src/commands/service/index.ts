@@ -1,14 +1,12 @@
 import { Command } from "../command";
-import { commandDecorator as createCommandDecorator } from "./create";
-import { commandDecorator as createServiceRevisionCommandDecorator } from "./create-revision";
-import { commandDecorator as installBuildPipelineCommandDecorator } from "./pipeline";
 
-export const serviceCommand = Command(
+const subfolders = ["create", "create-revision", "pipeline"];
+
+export const commandDecorator = Command(
   "service",
   "Create and manage services for a Bedrock project.",
-  [
-    createCommandDecorator,
-    installBuildPipelineCommandDecorator,
-    createServiceRevisionCommandDecorator
-  ]
+  subfolders.map(m => {
+    const cmd = require(`./${m}`);
+    return cmd.commandDecorator;
+  })
 );
