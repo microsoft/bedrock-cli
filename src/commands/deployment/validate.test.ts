@@ -40,12 +40,6 @@ jest.spyOn(storage, "isStorageAccountNameAvailable").mockImplementation(
 );
 
 let mockedDB: any[] = [];
-const mockTableInfo: deploymenttable.IDeploymentTable = {
-  accountKey: "test",
-  accountName: "test",
-  partitionKey: "test",
-  tableName: "test"
-};
 
 jest.spyOn(deploymenttable, "findMatchingDeployments").mockImplementation(
   (

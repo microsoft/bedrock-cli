@@ -46,7 +46,7 @@ export const readYaml = <T>(filepath: string): T => {
  */
 export const loadConfigurationFromLocalEnv = <T>(configObj: T): T => {
   const iterate = (obj: any) => {
-    if (obj != null && obj !== undefined) {
+    if (obj !== null && obj !== undefined) {
       for (const [key, value] of Object.entries(obj)) {
         obj[key] = updateVariableWithLocalEnv(value as string);
         if (typeof obj[key] === "object") {

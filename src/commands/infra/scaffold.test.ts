@@ -2,7 +2,7 @@ jest.mock("./generate");
 
 import fs from "fs";
 import path from "path";
-import uuid = require("uuid");
+import uuid from "uuid";
 import {
   createTempDir,
   getMissingFilenames,

@@ -1,5 +1,4 @@
 import { DefinitionResourceReference } from "azure-devops-node-api/interfaces/BuildInterfaces";
-import { AzureKeyVaultVariableValue } from "azure-devops-node-api/interfaces/ReleaseInterfaces";
 import {
   AzureKeyVaultVariableGroupProviderData,
   VariableGroup,

@@ -683,16 +683,18 @@ describe("Validate replacement of variables between parent and leaf definitions"
     const parentData = readYaml<IInfraConfigYaml>(
       path.join(mockParentPath, "definition.yaml")
     );
-    const parentInfraConfig: any = loadConfigurationFromLocalEnv(
-      parentData || {}
-    );
+    const parentInfraConfig: IInfraConfigYaml | undefined = parentData
+      ? loadConfigurationFromLocalEnv(parentData)
+      : undefined;
     const leafData = readYaml<IInfraConfigYaml>(
       path.join(mockProjectPath, "definition.yaml")
     );
-    const leafInfraConfig: any = loadConfigurationFromLocalEnv(leafData || {});
-    const finalDefinition = await dirIteration(
-      parentInfraConfig.variables,
-      leafInfraConfig.variables
+    const leafInfraConfig: IInfraConfigYaml | undefined = leafData
+      ? loadConfigurationFromLocalEnv(leafData)
+      : undefined;
+    const finalDefinition = dirIteration(
+      parentInfraConfig ? parentInfraConfig.variables : undefined,
+      leafInfraConfig ? leafInfraConfig.variables : undefined
     );
     const combinedSpkTfvarsObject = generateTfvars(finalDefinition);
     expect(combinedSpkTfvarsObject).toStrictEqual(finalArray);

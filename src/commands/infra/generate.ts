@@ -491,7 +491,7 @@ export const generateConfig = async (
  * @param templatePath Path to the versioned Terraform template
  */
 export const singleDefinitionGeneration = async (
-  infraConfig: any,
+  infraConfig: IInfraConfigYaml,
   parentDirectory: string,
   childDirectory: string,
   templatePath: string
@@ -520,9 +520,9 @@ export const singleDefinitionGeneration = async (
  * @param leafObject leaf definition object
  */
 export const dirIteration = (
-  parentObject: { [key: string]: any } | undefined,
-  leafObject: { [key: string]: any } | undefined
-): { [key: string]: any } => {
+  parentObject: { [key: string]: string } | undefined,
+  leafObject: { [key: string]: string } | undefined
+): { [key: string]: string } => {
   if (!parentObject) {
     return !leafObject ? {} : deepClone(leafObject);
   }
