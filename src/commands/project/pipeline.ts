@@ -129,7 +129,7 @@ export const execute = async (
     }
   } catch (err) {
     logger.error(
-      `Error occurred installing pipeline for HLD to Manifest pipeline`
+      `Error occurred installing pipeline for project hld lifecycle.`
     );
     logger.error(err);
     await exitFn(1);
