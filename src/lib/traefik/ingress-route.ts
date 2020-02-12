@@ -71,7 +71,8 @@ export const TraefikIngressRoute = (
     .filter(matchRule => !!matchRule)
     .join(" && ");
 
-  const backendService = k8sBackend ?? name;
+  const backendService =
+    k8sBackend && ringName ? `${k8sBackend}-${ringName}` : name;
 
   return {
     apiVersion: "traefik.containo.us/v1alpha1",

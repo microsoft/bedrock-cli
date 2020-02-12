@@ -23,6 +23,22 @@ describe("TraefikIngressRoute", () => {
     );
   });
 
+  test("service backend maps to service name and port", () => {
+    const routeWithK8sBackendAndRing = TraefikIngressRoute(
+      "my-service",
+      "master",
+      80,
+      "/version/and/path",
+      {
+        k8sBackend: "my-k8s-svc"
+      }
+    );
+
+    expect(routeWithK8sBackendAndRing.spec.routes[0].services[0].name).toBe(
+      "my-k8s-svc-master"
+    );
+  });
+
   test("manifest namespace gets injected properly", () => {
     const randomNamespaces = Array.from({ length: 10 }, () => uuid());
     for (const namespace of randomNamespaces) {

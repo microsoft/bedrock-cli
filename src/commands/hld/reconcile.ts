@@ -339,13 +339,13 @@ export const reconcileHld = async (
       const ingressVersionAndPath = getFullPathPrefix(
         serviceConfig.pathPrefixMajorVersion || "",
         serviceConfig.pathPrefix || "",
-        serviceName
+        normalizedSvcName
       );
 
-      // Create middleware.
+      // Create Strip Prefix Middleware.
       const middlewares = dependencies.createMiddlewareForRing(
         normalizedRingPathInHld,
-        serviceConfig.displayName || serviceName,
+        normalizedSvcName,
         normalizedRingName,
         ingressVersionAndPath
       );
@@ -353,7 +353,7 @@ export const reconcileHld = async (
       // Create Ingress Route.
       dependencies.createIngressRouteForRing(
         normalizedRingPathInHld,
-        serviceConfig.displayName || serviceName,
+        normalizedSvcName,
         serviceConfig,
         middlewares,
         normalizedRingName,
@@ -588,7 +588,7 @@ export const configureChartForRing = async (
     normalizedRingName
   ].join("-");
 
-  const fabConfigureCommand = `cd ${normalizedRingPathInHld} && fab set --subcomponent "chart" config.serviceName="${k8sSvcBackendAndName}"`;
+  const fabConfigureCommand = `cd ${normalizedRingPathInHld} && fab set --subcomponent "chart" serviceName="${k8sSvcBackendAndName}"`;
 
   return execCmd(fabConfigureCommand).catch(err => {
     logger.error(`error configuring helm chart for service `);
