@@ -19,6 +19,7 @@ const DEF_YAML = "definition.yaml";
 
 interface ICommandOptions {
   project: string | undefined;
+  output: string | undefined;
 }
 
 export interface ISourceInformation {
@@ -32,24 +33,13 @@ export enum DefinitionYAMLExistence {
   PARENT_ONLY
 }
 
-export const fetchValues = (opts: ICommandOptions): string => {
-  if (opts.project) {
-    logger.info(`spk will generate the following project: ${opts.project}`);
-    return opts.project;
-  }
-  logger.warn(
-    `No project folder was provided, spk will generate the current folder as a project`
-  );
-  return process.cwd();
-};
-
 export const execute = async (
   opts: ICommandOptions,
   exitFn: (status: number) => Promise<void>
 ) => {
-  const projectPath = fetchValues(opts);
   const parentPath = process.cwd();
-
+  const projectPath = opts.project || parentPath;
+  const outputPath = opts.output || "";
   try {
     const definitionConfig = validateDefinition(parentPath, projectPath);
     const sourceConfig = validateTemplateSources(
@@ -62,7 +52,8 @@ export const execute = async (
       parentPath,
       projectPath,
       definitionConfig,
-      sourceConfig
+      sourceConfig,
+      outputPath
     );
     await exitFn(0);
   } catch (err) {
@@ -126,8 +117,8 @@ export const getDefinitionYaml = (dir: string): IInfraConfigYaml => {
  * with validated source, template, and version
  *
  * @param configuration combination of parent/leaf definitions
- * @param parentPath Path to the parent definition.yaml file, if it exists
- * @param projectPath Path to the leaf definition.yaml file, if it exists
+ * @param parentDir Path to the parent definition.yaml file, if it exists
+ * @param projectDir Path to the leaf definition.yaml file, if it exists
  */
 export const validateTemplateSources = (
   configuration: DefinitionYAMLExistence,
@@ -216,7 +207,7 @@ export const gitCheckout = async (sourcePath: string, version: string) => {
 /**
  * Checks if provided source, template and version are valid. TODO/ Private Repo, PAT, ssh-key agent
  *
- * @param definitionJSON definition object in JSON format
+ * @param sourceConfig definition object
  */
 export const validateRemoteSource = async (
   sourceConfig: ISourceInformation
@@ -321,14 +312,24 @@ export const gitClone = async (
  *
  * @param parentPath Path to the parent definition.yaml file
  * @param projectPath Path to the leaf definition.yaml file
- * @param sources Array of source configuration
+ * @param definitionConfig Parent-leaf definition configuration
+ * @param sourceConfig Array of source configuration
+ * @param outputPath Path to outputted generated directory
  */
 export const generateConfig = async (
   parentPath: string,
   projectPath: string,
   definitionConfig: DefinitionYAMLExistence,
-  sourceConfig: ISourceInformation
+  sourceConfig: ISourceInformation,
+  outputPath: string
 ): Promise<void> => {
+  let parentDirectory: string;
+  if (outputPath !== "") {
+    const folderName = parentPath.replace(/^.*[\\\/]/, "");
+    parentDirectory = path.join(outputPath, folderName + "-generated");
+  } else {
+    parentDirectory = parentPath + "-generated";
+  }
   try {
     const source = sourceConfig.source!;
     const sourceFolder = await infraCommon.repoCloneRegex(source);
@@ -337,8 +338,6 @@ export const generateConfig = async (
       sourceFolder,
       sourceConfig.template!
     );
-    // const cwdPath = process.cwd();
-    const parentDirectory = parentPath + "-generated";
     const childDirectory = path.join(parentDirectory, projectPath);
     if (definitionConfig === DefinitionYAMLExistence.BOTH_EXIST) {
       /* First, search for definition.yaml in current working directory.
@@ -349,7 +348,7 @@ export const generateConfig = async (
       /* Iterate through parent and leaf JSON objects to find matches
       If there is a match, then replace parent key-value
       If there is no match between the parent and leaf,
-      then append leaf key-value parent key-value JSON */
+      then append leaf key-value */
 
       /* if the "--project" argument is not specified, then it is assumed
        that the current working directory is the project path. */
@@ -483,7 +482,7 @@ export const generateConfig = async (
 };
 
 /**
- * Creates "generated" directory if it does not already exists
+ * Creates "generated" directory with generated Terraform files
  *
  * @param infraConfig definition object
  * @param parentDirectory Path to the parent definition.yaml file
@@ -543,15 +542,21 @@ export const dirIteration = (
 /**
  * Creates "generated" directory if it does not already exists
  *
- * @param source remote URL for cloning to cache
- * @param sourcePath Path to the template folder cache
- * @param safeLoggingUrl URL with redacted authentication
- * @param version version of terraform template
+ * @param projectPath path to the project directory
  */
 export const createGenerated = (projectPath: string) => {
   mkdirp.sync(projectPath);
   logger.info(`Created generated directory: ${projectPath}`);
 };
+
+/**
+ * Creates "generated" directory if it does not already exists
+ *
+ * @param source remote URL for cloning to cache
+ * @param sourcePath Path to the template folder cache
+ * @param safeLoggingUrl URL with redacted authentication
+ * @param version version of terraform template
+ */
 
 export const retryRemoteValidate = async (
   source: string,
@@ -588,7 +593,7 @@ export const checkTfvars = (generatedPath: string, tfvarsFilename: string) => {
 };
 
 /**
- * Returns an array of formatted string for an given JSON object.
+ * Returns an array of formatted string for a given definition object.
  * e.g.
  * {
  *   keyA: "Value1",
@@ -596,7 +601,7 @@ export const checkTfvars = (generatedPath: string, tfvarsFilename: string) => {
  * }
  * results in  ["keyA = "Value1"", "keyB = "\"Value2""]
  *
- * @param definition
+ * @param definition a dictionary of key, value
  */
 export const generateTfvars = (
   definition: { [key: string]: string } | undefined

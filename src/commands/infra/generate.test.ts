@@ -17,7 +17,6 @@ import {
   DefinitionYAMLExistence,
   dirIteration,
   execute,
-  fetchValues,
   generateConfig,
   generateTfvars,
   gitCheckout,
@@ -51,26 +50,12 @@ beforeEach(() => {
   jest.restoreAllMocks();
 });
 
-describe("test fetchValues function", () => {
-  it("with project value", () => {
-    const result = fetchValues({
-      project: "test"
-    });
-    expect(result).toBe("test");
-  });
-  it("without project value", () => {
-    const result = fetchValues({
-      project: undefined
-    });
-    expect(result).toBe(process.cwd());
-  });
-});
-
 describe("fetch execute function", () => {
   it("negative time, expected exit code to be 1", async () => {
     const exitFn = jest.fn();
     await execute(
       {
+        output: "",
         project: "test"
       },
       exitFn
@@ -94,6 +79,7 @@ describe("fetch execute function", () => {
     const exitFn = jest.fn();
     await execute(
       {
+        output: "",
         project: "test"
       },
       exitFn
@@ -373,6 +359,7 @@ describe("Validate sources in definition.yaml files", () => {
       template: "cluster/environments/azure-single-keyvault",
       version: "v0.0.2"
     };
+    const outputPath = "";
     const sourceConfiguration = validateDefinition(
       mockParentPath,
       mockProjectPath
@@ -388,7 +375,8 @@ describe("Validate sources in definition.yaml files", () => {
       mockParentPath,
       mockProjectPath,
       sourceConfiguration,
-      sourceData
+      sourceData,
+      outputPath
     );
   });
   test("without parent's definition.yaml", async () => {
@@ -410,6 +398,7 @@ describe("Validate sources in definition.yaml files", () => {
       template: "cluster/environments/azure-single-keyvault",
       version: "v0.0.1"
     };
+    const outputPath = "";
     const sourceConfiguration = validateDefinition(
       mockParentPath,
       mockProjectPath
@@ -425,7 +414,8 @@ describe("Validate sources in definition.yaml files", () => {
       mockParentPath,
       mockProjectPath,
       sourceConfiguration,
-      sourceData
+      sourceData,
+      outputPath
     );
   });
   test("git source, template and version are missing in project path", async () => {
@@ -437,6 +427,7 @@ describe("Validate sources in definition.yaml files", () => {
       template: "cluster/environments/azure-single-keyvault",
       version: "v0.0.1"
     };
+    const outputPath = "";
     const sourceConfiguration = validateDefinition(
       mockParentPath,
       mockProjectPath
@@ -452,7 +443,8 @@ describe("Validate sources in definition.yaml files", () => {
       mockParentPath,
       mockProjectPath,
       sourceConfiguration,
-      sourceData
+      sourceData,
+      outputPath
     );
   });
   test("without parent's and project's definition.yaml", async () => {

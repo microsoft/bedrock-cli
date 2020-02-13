@@ -121,6 +121,7 @@ Generate scaffold for terraform cluster deployment.
 
 Options:
   -p, --project <path to project folder to generate>   Location of the definition.yaml file that will be generated
+  -o, --output <path to generated directory>           Location of generated directory
   -h, --help                                           output usage information
 ```
 

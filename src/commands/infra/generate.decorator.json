@@ -7,6 +7,11 @@
       "arg": "-p, --project <path to project folder to generate>",
       "description": "Location of the definition.yaml file that will be generated",
       "required": false
+    },
+    {
+      "arg": "-o, --output <path to create generated folder>",
+      "description": "Location of the generated directory that will be generated",
+      "required": false
     }
   ]
 }
