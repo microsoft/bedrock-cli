@@ -15,50 +15,33 @@ Commands:
 - [scaffold](#scaffold)
 - [generate](#generate)
 
-## Prerequisites
-
-### Environment variables
-
-Specify values for the following environment variables:
-
-```
-ARM_SUBSCRIPTION_ID
-ARM_CLIENT_ID
-ARM_CLIENT_SECRET
-ARM_TENANT_ID
-```
-
-Instructions on how to specify environment variables can be found
-[here](../README.md).
-
 ## Commands
 
 ### scaffold
-
-Create initial scaffolding for cluster deployment.
 
 Builds a scaffold of an infrastructure deployment project containing a
 `definition.yaml` that enables a user to version, modify and organize terraform
 deployments.
 
-It will do the following:
+In detail, it will do the following:
 
 - Create a new folder with the `<name>` you provided.
+- Clone and cache the source repo to `~.spk/templates`.
 - Provide an infrastructure deployment scaffold based on a `<source>` git url
-  for a terraform deployment, `<version>` respective to the repository of which
-  tag to pull, and a `<template>` (LOCAL-ONLY) of the path to the variables.tf
-  file for which `spk` will embed into a definition yaml file.
+  for a repo that holds terraform template, a `<version>` respective to the
+  repository tag or branch to pull from, and a `<template>` path to a terraform
+  environment template from the root of the git repo.
 
 ```
 Usage:
 spk infra scaffold|s [options]
 
-> `spk infra scaffold --name discovery-service --source https://github.com/microsoft/bedrock --version "v0.12.0" --template /cluster/environments/azure-simple`
+> `spk infra scaffold --name fabrikam --source https://github.com/microsoft/bedrock --version master --template /cluster/environments/azure-simple`
 
 Options:
   -n, --name <name>                              Cluster name for scaffolding
   -s, --source <tf source github repo url>       Source URL for the repository containing the terraform deployment
-  -v, --version <repository (tag) version>       Version or tag for the repository so a fixed version is referenced
+  -v, --version <repository tag or branch>       Version or tag for the repository so a fixed version is referenced
   -t, --template <path to tf files in repo>      Location of variables.tf for the terraform deployment
   -h, --help                                     Usage information
 ```
@@ -66,23 +49,22 @@ Options:
 #### scaffold example
 
 ```
-spk infra scaffold --name discovery-service --source https://github.com/microsoft/bedrock --version "v0.12.0" --template /cluster/environments/azure-simple
+spk infra scaffold --name fabrikam --source https://github.com/microsoft/bedrock --version master --template /cluster/environments/azure-single-keyvault
 ```
 
 definition.yaml output:
 
 ```yaml
-name: discovery-service
-source: https://github.com/Microsoft/bedrock.git
+name: fabrikam
+source: "https://github.com/microsoft/bedrock.git"
 template: cluster/environments/azure-single-keyvault
-version: v0.12.0
+version: master
 backend:
   storage_account_name: storage-account-name
   access_key: storage-account-access-key
   container_name: storage-account-container
   key: tfstate-key
 variables:
-  acr_enabled: "true"
   address_space: <insert value>
   agent_vm_count: <insert value>
   agent_vm_size: <insert value>
@@ -90,10 +72,7 @@ variables:
   dns_prefix: <insert value>
   flux_recreate: <insert value>
   kubeconfig_recreate: <insert value>
-  gc_enabled: "true"
-  gitops_poll_interval: 5m
   gitops_ssh_url: <insert value>
-  gitops_url_branch: master
   gitops_ssh_key: <insert value>
   gitops_path: <insert value>
   keyvault_name: <insert value>
@@ -105,33 +84,34 @@ variables:
   subnet_prefixes: <insert value>
   vnet_name: <insert value>
   subnet_name: <insert value>
-  network_plugin: azure
-  network_policy: azure
-  oms_agent_enabled: "false"
-  enable_acr: "false"
   acr_name: <insert value>
 ```
 
+**Note:** Definitions will only include variables that do not have a default
+value. To override default values, add the variable name to the variables
+definition and provide a new value.
+
 ### generate
 
-Generates a deployment folder of an infrastructure scaffolded project containing
-a `definition.yaml` with a `source`, `template` and `version` to obtain and
-complete the Terraform template files.
+Creates a "generated" deployment folder with the completed Terraform files based
+on definitions provided from a scaffolded project.
 
 It will do the following:
 
 - Check if a provided project folder contains a `definition.yaml`
+- Verify the configuration of parent and leaf definitions.
 - Check if the terraform template `source` provided has a valid remote
-  repository
-- Cache the master version of the provided `source` repository locally in
-  `~/.spk/templates`
-  > Cached repositories will be converted through regex for spk to hash. I.e. a
+  repository.
+- Clone and cache the master version of the provided `source` repository locally
+  in `~/.spk/templates`
+  > Cached repositories will be converted through regex for spk to hash. (i.e. a
   > `source` template of `https://github.com/microsoft/bedrock` will be cached
-  > into a folder called `_microsoft_bedrock_git`
-- Create a "generated" directory for Terrform deployments
+  > into a folder called `_microsoft_bedrock_git`)
+- Create a "generated" directory for Terrform deployments (alongside the
+  scaffolded project directory)
 - Copy the appropriate Terraform templates to the "generated" directory
 - Create a `spk.tfvars` in the generated directory based on the variables
-  provided in `definition.yaml`
+  provided in `definition.yaml` files of the parent and leaf directories.
 
 ```
 Usage:
@@ -149,7 +129,7 @@ Options:
 Assuming you have the following setup:
 
 ```
-discovery-service
+fabrikam
     |- definition.yaml
     |- east/
         |- definition.yaml
@@ -157,7 +137,7 @@ discovery-service
         |- definition.yaml
 ```
 
-When executing the following command **in the `discovery-service` directory**:
+When executing the following command **in the `fabrikam` directory**:
 
 ```
 spk infra generate --project east
@@ -166,65 +146,77 @@ spk infra generate --project east
 The following hiearchy of directories will be generated _alongside_ the targeted
 directory. In addition, the appropriate versioned Terraform templates will be
 copied over to the leaf directory with a `spk.tfvars`, which contains the
-variables accumulated from parent **and** leaf definition.yaml files.
+variables accumulated from parent **and** leaf definition.yaml files, where if a
+variable exists in both parent and leaf definition, the **leaf definitions will
+take precedence**.
 
 ```
-discovery-service
+fabrikam
     |- definition.yaml
     |- east/
         |- definition.yaml
     |- central/
         |- definition.yaml
-discovery-service-generated
+fabrikam-generated
     |- east
         |- main.tf
         |- variables.tf
-        |- spk.tfvars
+        |- spk.tfvars (concatenation of variables from fabrikam/definition.yaml (parent) and fabrikam/east/definition.yaml (leaf))
 ```
 
 You can also have a "single-tree" generation by executing `spk infra generate`
-at the level above the targeted directory. For example, if you had the following
-tree structure:
+inside a directory without specifying a project folder. For example, if you had
+the following tree structure:
 
 ```
-discovery-service
-    |- east/
-        |- definition.yaml
-    |- central/
-        |- definition.yaml
+fabrikam
+    |- definition.yaml
 ```
 
-and wanted to create _just_ an `east-generated` directory, you could run
-`spk infra generate -p east`, and this will result in the following:
+and executed `spk infra generate` inside the `fabrikam` directory, this will
+generate the following:
 
 ```
-discovery-service
-    |- east/
-        |- definition.yaml
-    |- east-generated/
-        |- main.tf
-        |- variables.tf
-        |- spk.tfvars
-    |- central/
-        |- definition.yaml
+fabrikam-generated
+    |- main.tf
+    |- variables.tf
+    |- spk.tfvars
 ```
 
-## Secrets
+## Handling Secrets
 
 `definition.yaml` will handle secrets if specified in the following format:
 `variable_name: ${env:secret_name}`. When the yaml file is read,
 `spk infra generate` will load any references to environment variables either
 from local environment variables in the current shell, or from a .env file.
 
-### Authentication
+Example:
 
-Spk currently supports the use of Personal Access Tokens to authenticate with
-private infrastructure repositories hosted in Azure DevOps. To configure spk to
-build scaffolded definitions using a private AzDO repo, do one of the following:
+```yaml
+name: fabrikam
+source: "https://github.com/microsoft/bedrock.git"
+template: cluster/environments/azure-single-keyvault
+version: master
+backend:
+  storage_account_name: storage-account-name
+  access_key: storage-account-access-key
+  container_name: storage-account-container
+  key: tfstate-key
+variables:
+  service_principal_id: ${env:ARM_CLIENT_ID}
+  service_principal_secret: ${env:ARM_CLIENT_SECRET}
+```
+
+## Authentication (Private Repos)
+
+`spk` currently supports the use of Personal Access Tokens to authenticate with
+private infrastructure repositories hosted in Azure DevOps. To configure `spk`
+to build scaffolded definitions using a private AzDO repo, do one of the
+following:
 
 - **Using `.spk-config`** - Pass in your PAT through an .env when you initialize
   spk. Be sure that the `access_token` and `infra_repository` is set and for
-  every scaffold specify your `--version` and `--template`
+  every scaffold, specify your `--version` and `--template`.
 - **Using arguments** - Pass in your formatted source url for your private AzDO
   repo with the PAT and arbitrary username specified. Example
-  `spk infra scaffold --name discovery-service --source https://spk:{my_PAT_Token}@dev.azure.com/microsoft/spk/_git/infra_repo --version v0.0.1 --template cluster/environments/azure-single-keyvault`
+  `spk infra scaffold --name fabrikam --source https://spk:{$PAT}@dev.azure.com/microsoft/spk/_git/infra_repo --version master --template cluster/environments/azure-single-keyvault`

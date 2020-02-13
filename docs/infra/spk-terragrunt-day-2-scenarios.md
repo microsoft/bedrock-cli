@@ -1,4 +1,4 @@
-# SPK + Terragrunt Scenarios
+# SPK + Terragrunt Scenarios (Deprecated)
 
 ## Building Cluster Definition (Alternative)
 

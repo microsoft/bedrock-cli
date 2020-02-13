@@ -1,4 +1,4 @@
-# SPK + Terragrunt
+# SPK + Terragrunt (Deprecated)
 
 Terragrunt is a thin wrapper for Terraform that provides extra tools for keeping
 your Terraform configurations DRY (Dont Repeat Yourself), working with multiple
