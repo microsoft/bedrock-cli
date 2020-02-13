@@ -8,7 +8,6 @@ import {
   deleteSelfTestData,
   execute,
   isValidConfig,
-  isValidStorageAccount,
   runSelfTest,
   writeSelfTestData
 } from "./validate";
@@ -130,9 +129,6 @@ describe("test execute function", () => {
     jest
       .spyOn(validate, "isValidConfig")
       .mockReturnValueOnce(Promise.resolve());
-    jest
-      .spyOn(validate, "isValidStorageAccount")
-      .mockReturnValueOnce(Promise.resolve());
     const exitFn = jest.fn();
     await execute(
       {
@@ -146,9 +142,6 @@ describe("test execute function", () => {
   it("positive test with self test set", async () => {
     jest
       .spyOn(validate, "isValidConfig")
-      .mockReturnValueOnce(Promise.resolve());
-    jest
-      .spyOn(validate, "isValidStorageAccount")
       .mockReturnValueOnce(Promise.resolve());
     jest.spyOn(validate, "runSelfTest").mockReturnValueOnce(Promise.resolve());
     const exitFn = jest.fn();
@@ -350,56 +343,6 @@ describe("Validate missing deployment.pipeline configuration", () => {
       }
     };
     await expect(isValidConfig(config)).rejects.toThrow();
-  });
-});
-
-describe("Validate storage account", () => {
-  test("non-existing storage account", async () => {
-    const config: IConfigYaml = {
-      introspection: {
-        azure: {
-          account_name: "non-existing-account-name",
-          key: Promise.resolve(undefined)
-        }
-      }
-    };
-    await expect(isValidStorageAccount(config)).rejects.toThrow();
-  });
-
-  test("existing storage account no keys", async () => {
-    const config: IConfigYaml = {
-      introspection: {
-        azure: {
-          account_name: "epi-test-no-keys",
-          key: Promise.resolve(undefined)
-        }
-      }
-    };
-    await expect(isValidStorageAccount(config)).rejects.toThrow();
-  });
-
-  it("existing storage account with valid key", async () => {
-    const config: IConfigYaml = {
-      introspection: {
-        azure: {
-          account_name: "epi-test",
-          key: Promise.resolve("mock access key2")
-        }
-      }
-    };
-    await isValidStorageAccount(config);
-  });
-
-  test("existing storage account with invalid key", async () => {
-    const config: IConfigYaml = {
-      introspection: {
-        azure: {
-          account_name: "epi-test",
-          key: Promise.resolve("mock access key3")
-        }
-      }
-    };
-    await expect(isValidStorageAccount(config)).rejects.toThrow();
   });
 });
 

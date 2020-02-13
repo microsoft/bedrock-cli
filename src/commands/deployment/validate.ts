@@ -33,7 +33,6 @@ export const execute = async (
   try {
     const config = Config();
     await isValidConfig(config);
-    await isValidStorageAccount(config);
 
     if (opts.selfTest) {
       await runSelfTest(config);
@@ -101,25 +100,9 @@ export const isValidConfig = async (config: IConfigYaml) => {
       "Validation failed. Missing configuration: " + missingConfig.join(" ")
     );
     throw new Error("missing configuration in spk configuration");
+  } else {
+    logger.info("Configuration validation: SUCCEEDED");
   }
-};
-
-/**
- * Check is the configured storage account is valid
- */
-export const isValidStorageAccount = async (config: IConfigYaml) => {
-  const key = await config.introspection!.azure!.key;
-  const isValid = await validateStorageAccount(
-    config.introspection!.azure!.resource_group!,
-    config.introspection!.azure!.account_name!,
-    key!
-  );
-
-  if (!isValid) {
-    throw new Error("Storage account validation failed.");
-  }
-
-  logger.info("Storage account validation passed.");
 };
 
 /**
