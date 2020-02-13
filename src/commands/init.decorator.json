@@ -6,6 +6,11 @@
     {
       "arg": "-f, --file <config-file-path>",
       "description": "Path to the config file."
+    },
+    {
+      "arg": "-i, --interactive",
+      "description": "Interactive mode.",
+      "defaultValue": false
     }
   ]
 }
