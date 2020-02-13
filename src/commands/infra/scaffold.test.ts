@@ -11,22 +11,25 @@ import {
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { validateRemoteSource } from "./generate";
 import * as generate from "./generate";
-import * as infraCommon from "./infra_common";
 import {
   BACKEND_TFVARS,
+  DEFAULT_VAR_VALUE,
+  DEFINITION_YAML,
+  TERRAFORM_TFVARS,
+  VARIABLES_TF
+} from "./infra_common";
+import * as infraCommon from "./infra_common";
+import {
   constructSource,
   copyTfTemplate,
-  DEFINITION_YAML,
   execute,
   generateClusterDefinition,
   ICommandOptions,
   parseVariablesTf,
   removeTemplateFiles,
-  TERRAFORM_TFVARS,
   validateBackendTfvars,
   validateValues,
-  validateVariablesTf,
-  VARIABLES_TF
+  validateVariablesTf
 } from "./scaffold";
 import * as scaffold from "./scaffold";
 
@@ -223,7 +226,7 @@ describe("test execute function", () => {
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("missing opt ", async () => {
-    (validateRemoteSource as jest.Mock).mockReturnValue(true);
+    (validateRemoteSource as jest.Mock).mockReturnValueOnce(true);
     const exitFn = jest.fn();
     try {
       await execute(mockYaml, EMPTY_VALS, exitFn);
@@ -237,8 +240,8 @@ describe("test execute function", () => {
   it("positive test", async () => {
     (validateRemoteSource as jest.Mock).mockReturnValueOnce(true);
     jest
-      .spyOn(infraCommon, "repoCloneRegex")
-      .mockReturnValueOnce(Promise.resolve("sourceFolder"));
+      .spyOn(infraCommon, "getSourceFolderNameFromURL")
+      .mockReturnValueOnce("sourceFolder");
     jest
       .spyOn(generate, "validateRemoteSource")
       .mockReturnValueOnce(Promise.resolve());
@@ -313,7 +316,7 @@ describe("Validate generation of sample scaffold definition", () => {
     expect(def.name).toBe("test-scaffold");
 
     const variables = def.variables as { [key: string]: string };
-    expect(variables.resource_group_name).toBe("<insert value>");
+    expect(variables.resource_group_name).toBe(DEFAULT_VAR_VALUE);
 
     const backend = def.backend as { [key: string]: string };
     expect(backend.key).toBe("tfstate-azure-simple");

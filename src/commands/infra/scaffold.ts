@@ -8,14 +8,16 @@ import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { logger } from "../../logger";
 import { IConfigYaml } from "../../types";
 import { ISourceInformation, validateRemoteSource } from "./generate";
-import * as infraCommon from "./infra_common";
+import {
+  BACKEND_TFVARS,
+  DEFAULT_VAR_VALUE,
+  DEFINITION_YAML,
+  getSourceFolderNameFromURL,
+  spkTemplatesPath,
+  TERRAFORM_TFVARS,
+  VARIABLES_TF
+} from "./infra_common";
 import decorator from "./scaffold.decorator.json";
-
-export const DEFINITION_YAML = "definition.yaml";
-export const VARIABLES_TF = "variables.tf";
-export const BACKEND_TFVARS = "backend.tfvars";
-export const TERRAFORM_TFVARS = "terraform.tfvars";
-export const DEFAULT_VAR_VALUE = "<insert value>";
 
 export interface ICommandOptions {
   name: string;
@@ -78,15 +80,15 @@ export const execute = async (
       template: opts.template,
       version: opts.version
     };
-    const sourceFolder = await infraCommon.repoCloneRegex(opts.source);
-    const sourcePath = path.join(infraCommon.spkTemplatesPath, sourceFolder);
+    const sourceFolder = getSourceFolderNameFromURL(opts.source);
+    const sourcePath = path.join(spkTemplatesPath, sourceFolder);
     await validateRemoteSource(scaffoldDefinition);
     await copyTfTemplate(
       path.join(sourcePath, opts.template),
       opts.name,
       false
     );
-    validateVariablesTf(path.join(sourcePath, opts.template, "variables.tf"));
+    validateVariablesTf(path.join(sourcePath, opts.template, VARIABLES_TF));
     await scaffold(opts);
     removeTemplateFiles(opts.name);
     await exitFn(0);

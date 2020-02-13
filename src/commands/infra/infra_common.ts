@@ -1,16 +1,36 @@
 import * as os from "os";
 import path from "path";
-import simpleGit from "simple-git/promise";
+import url from "url";
 
-export const spkTemplatesPath = path.join(os.homedir(), ".spk/templates");
-const git = simpleGit();
+export const spkTemplatesPath = path.join(os.homedir(), ".spk", "templates");
 
-export const repoCloneRegex = async (source: string): Promise<string> => {
-  const httpReg = /^(.*?)\.com/;
+export const DEFINITION_YAML = "definition.yaml";
+export const VARIABLES_TF = "variables.tf";
+export const BACKEND_TFVARS = "backend.tfvars";
+export const TERRAFORM_TFVARS = "terraform.tfvars";
+export const SPK_TFVARS = "spk.tfvars";
+export const DEFAULT_VAR_VALUE = "<insert value>";
+
+/**
+ * Returns a source folder name for a given git URL.
+ *
+ * @param source git source URL
+ */
+export const getSourceFolderNameFromURL = (source: string): string => {
   const punctuationReg = /[^\w\s]/g;
-  const sourceFolder = source
-    .replace(httpReg, "")
+
+  const oUrl = url.parse(source); // does not throw any exception. even when source is an empty string
+  if (oUrl.hostname) {
+    return (oUrl.pathname || "").replace(punctuationReg, "_").toLowerCase();
+  }
+  // no hostname e.g. git@github.com:microsoft/bedrock.git
+  const idx = source.indexOf(":");
+  if (idx === -1) {
+    // do not have :
+    return source.replace(punctuationReg, "_").toLowerCase();
+  }
+  return source
+    .substring(idx)
     .replace(punctuationReg, "_")
     .toLowerCase();
-  return sourceFolder;
 };

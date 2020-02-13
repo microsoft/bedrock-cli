@@ -5,11 +5,7 @@ import simpleGit from "simple-git/promise";
 import { loadConfigurationFromLocalEnv, readYaml } from "../../config";
 import { safeGitUrlForLogging } from "../../lib/gitutils";
 import { removeDir } from "../../lib/ioUtil";
-import {
-  disableVerboseLogging,
-  enableVerboseLogging,
-  logger
-} from "../../logger";
+import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { IInfraConfigYaml } from "../../types";
 import {
   checkRemoteGitExist,
@@ -28,6 +24,12 @@ import {
   validateTemplateSources
 } from "./generate";
 import * as generate from "./generate";
+import {
+  DEFAULT_VAR_VALUE,
+  DEFINITION_YAML,
+  getSourceFolderNameFromURL,
+  spkTemplatesPath
+} from "./infra_common";
 import * as infraCommon from "./infra_common";
 
 interface IGitTestData {
@@ -94,8 +96,8 @@ describe("fetch execute function", () => {
 describe("test validateRemoteSource function", () => {
   it("positive test", async () => {
     jest
-      .spyOn(infraCommon, "repoCloneRegex")
-      .mockReturnValueOnce(Promise.resolve("sourceFolder"));
+      .spyOn(infraCommon, "getSourceFolderNameFromURL")
+      .mockReturnValueOnce("sourceFolder");
     jest
       .spyOn(generate, "checkRemoteGitExist")
       .mockReturnValueOnce(Promise.resolve());
@@ -109,8 +111,8 @@ describe("test validateRemoteSource function", () => {
   });
   it("positive test: with Error refusing to merge unrelated histories", async () => {
     jest
-      .spyOn(infraCommon, "repoCloneRegex")
-      .mockReturnValueOnce(Promise.resolve("sourceFolder"));
+      .spyOn(infraCommon, "getSourceFolderNameFromURL")
+      .mockReturnValueOnce("sourceFolder");
     jest
       .spyOn(generate, "checkRemoteGitExist")
       .mockReturnValueOnce(Promise.resolve());
@@ -130,8 +132,8 @@ describe("test validateRemoteSource function", () => {
   });
   it("positive test: with Error Authentication failed", async () => {
     jest
-      .spyOn(infraCommon, "repoCloneRegex")
-      .mockReturnValueOnce(Promise.resolve("sourceFolder"));
+      .spyOn(infraCommon, "getSourceFolderNameFromURL")
+      .mockReturnValueOnce("sourceFolder");
     jest
       .spyOn(generate, "checkRemoteGitExist")
       .mockReturnValueOnce(Promise.resolve());
@@ -149,8 +151,8 @@ describe("test validateRemoteSource function", () => {
   });
   it("negative test: with unknown Error", async () => {
     jest
-      .spyOn(infraCommon, "repoCloneRegex")
-      .mockReturnValueOnce(Promise.resolve("sourceFolder"));
+      .spyOn(infraCommon, "getSourceFolderNameFromURL")
+      .mockReturnValueOnce("sourceFolder");
     jest
       .spyOn(generate, "checkRemoteGitExist")
       .mockReturnValueOnce(Promise.resolve());
@@ -178,7 +180,6 @@ describe("test validateRemoteSource function", () => {
 describe("test retryRemoteValidate function", () => {
   it("positive test", async () => {
     jest.spyOn(fsExtra, "removeSync").mockReturnValueOnce();
-    jest.spyOn(generate, "createGenerated").mockReturnValue();
     jest.spyOn(generate, "gitClone").mockReturnValueOnce(Promise.resolve());
     jest.spyOn(generate, "gitFetchPull").mockReturnValueOnce(Promise.resolve());
     jest.spyOn(generate, "gitCheckout").mockReturnValueOnce(Promise.resolve());
@@ -186,7 +187,6 @@ describe("test retryRemoteValidate function", () => {
   });
   it("negative test", async () => {
     jest.spyOn(fsExtra, "removeSync").mockReturnValueOnce();
-    jest.spyOn(generate, "createGenerated").mockReturnValue();
     jest
       .spyOn(generate, "gitClone")
       .mockReturnValueOnce(Promise.reject(new Error("error")));
@@ -478,8 +478,8 @@ const getMockedDataForGitTests = async (
   }
 
   // Converting source name to storable folder name
-  const sourceFolder = await infraCommon.repoCloneRegex(source);
-  const sourcePath = path.join(infraCommon.spkTemplatesPath, sourceFolder);
+  const sourceFolder = getSourceFolderNameFromURL(source);
+  const sourcePath = path.join(spkTemplatesPath, sourceFolder);
   const safeLoggingUrl = safeGitUrlForLogging(source);
 
   return {
@@ -589,9 +589,7 @@ describe("Validate remote git source", () => {
   test("Validating that a git source is cloned to .spk/templates", async () => {
     jest
       .spyOn(generate, "checkRemoteGitExist")
-      .mockImplementationOnce(async () => {
-        return;
-      });
+      .mockReturnValueOnce(Promise.resolve());
     jest.spyOn(generate, "gitFetchPull").mockReturnValueOnce(Promise.resolve());
     jest.spyOn(generate, "gitCheckout").mockReturnValueOnce(Promise.resolve());
 
@@ -617,26 +615,8 @@ describe("Validate remote git source", () => {
 
 jest.spyOn(generate, "gitClone").mockReturnValue(Promise.resolve());
 jest.spyOn(generate, "createGenerated").mockReturnValue();
-
-jest.spyOn(generate, "checkTfvars").mockImplementation(
-  (generatedPath: string, tfvarsFilename: string): Promise<void> => {
-    logger.info(`checkTfvars function mocked.`);
-    return new Promise(resolve => {
-      resolve();
-    });
-  }
-);
-
-jest
-  .spyOn(generate, "writeTfvarsFile")
-  .mockImplementation(
-    (spkTfvars: string[], generatedPath: string, tfvarsFilename: string) => {
-      logger.info(`writeTfvarsFile function mocked.`);
-      return new Promise(resolve => {
-        resolve();
-      });
-    }
-  );
+jest.spyOn(generate, "checkTfvars").mockReturnValue();
+jest.spyOn(generate, "writeTfvarsFile").mockReturnValue();
 
 describe("Validate replacement of variables between parent and leaf definitions", () => {
   test("Validating that leaf definitions take precedence when generating multi-cluster definitions", async () => {
@@ -644,42 +624,42 @@ describe("Validate replacement of variables between parent and leaf definitions"
     const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
     const finalArray = [
       'acr_enabled = "true"',
-      'address_space = "<insert value>"',
-      'agent_vm_count = "<insert value>"',
-      'agent_vm_size = "<insert value>"',
+      `address_space = "${DEFAULT_VAR_VALUE}"`,
+      `agent_vm_count = "${DEFAULT_VAR_VALUE}"`,
+      `agent_vm_size = "${DEFAULT_VAR_VALUE}"`,
       'cluster_name = "discovery-service-west"',
-      'dns_prefix = "<insert value>"',
-      'flux_recreate = "<insert value>"',
-      'kubeconfig_recreate = "<insert value>"',
+      `dns_prefix = "${DEFAULT_VAR_VALUE}"`,
+      `flux_recreate = "${DEFAULT_VAR_VALUE}"`,
+      `kubeconfig_recreate = "${DEFAULT_VAR_VALUE}"`,
       'gc_enabled = "true"',
       'gitops_poll_interval = "5m"',
-      'gitops_ssh_url = "<insert value>"',
+      `gitops_ssh_url = "${DEFAULT_VAR_VALUE}"`,
       'gitops_url_branch = "master"',
-      'gitops_ssh_key = "<insert value>"',
-      'gitops_path = "<insert value>"',
-      'keyvault_name = "<insert value>"',
-      'keyvault_resource_group = "<insert value>"',
-      'resource_group_name = "<insert value>"',
-      'ssh_public_key = "<insert value>"',
-      'service_principal_id = "<insert value>"',
-      'service_principal_secret = "<insert value>"',
-      'subnet_prefixes = "<insert value>"',
-      'vnet_name = "<insert value>"',
-      'subnet_name = "<insert value>"',
+      `gitops_ssh_key = "${DEFAULT_VAR_VALUE}"`,
+      `gitops_path = "${DEFAULT_VAR_VALUE}"`,
+      `keyvault_name = "${DEFAULT_VAR_VALUE}"`,
+      `keyvault_resource_group = "${DEFAULT_VAR_VALUE}"`,
+      `resource_group_name = "${DEFAULT_VAR_VALUE}"`,
+      `ssh_public_key = "${DEFAULT_VAR_VALUE}"`,
+      `service_principal_id = "${DEFAULT_VAR_VALUE}"`,
+      `service_principal_secret = "${DEFAULT_VAR_VALUE}"`,
+      `subnet_prefixes = "${DEFAULT_VAR_VALUE}"`,
+      `vnet_name = "${DEFAULT_VAR_VALUE}"`,
+      `subnet_name = "${DEFAULT_VAR_VALUE}"`,
       'network_plugin = "azure"',
       'network_policy = "azure"',
       'oms_agent_enabled = "false"',
       'enable_acr = "false"',
-      'acr_name = "<insert value>"'
+      `acr_name = "${DEFAULT_VAR_VALUE}"`
     ];
     const parentData = readYaml<IInfraConfigYaml>(
-      path.join(mockParentPath, "definition.yaml")
+      path.join(mockParentPath, DEFINITION_YAML)
     );
     const parentInfraConfig: IInfraConfigYaml | undefined = parentData
       ? loadConfigurationFromLocalEnv(parentData)
       : undefined;
     const leafData = readYaml<IInfraConfigYaml>(
-      path.join(mockProjectPath, "definition.yaml")
+      path.join(mockProjectPath, DEFINITION_YAML)
     );
     const leafInfraConfig: IInfraConfigYaml | undefined = leafData
       ? loadConfigurationFromLocalEnv(leafData)
@@ -697,7 +677,7 @@ describe("Validate spk.tfvars file", () => {
   test("Validating that a spk.tfvars is generated and has appropriate format", async () => {
     const mockProjectPath = "src/commands/infra/mocks/discovery-service";
     const data = readYaml<IInfraConfigYaml>(
-      path.join(mockProjectPath, `definition.yaml`)
+      path.join(mockProjectPath, DEFINITION_YAML)
     );
     const infraConfig = loadConfigurationFromLocalEnv(data);
     const spkTfvarsObject = generateTfvars(infraConfig.variables);
@@ -709,7 +689,7 @@ describe("Validate backend.tfvars file", () => {
   test("Validating that a backend.tfvars is generated and has appropriate format", async () => {
     const mockProjectPath = "src/commands/infra/mocks/discovery-service";
     const data = readYaml<IInfraConfigYaml>(
-      path.join(mockProjectPath, `definition.yaml`)
+      path.join(mockProjectPath, DEFINITION_YAML)
     );
     const infraConfig = loadConfigurationFromLocalEnv(data);
     const backendTfvarsObject = generateTfvars(infraConfig.backend);
