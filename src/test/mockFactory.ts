@@ -85,8 +85,7 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
         // Update HLD Stage
         stage: "hld_update",
         dependsOn: "build",
-        condition:
-          "and(succeeded('build'), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/DEPLOY/'),eq(variables['Build.SourceBranchName'],'master')))",
+        condition: "succeeded('build')",
         jobs: [
           {
             job: "update_image_tag",
