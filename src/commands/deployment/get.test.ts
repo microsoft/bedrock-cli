@@ -1,5 +1,8 @@
 import path from "path";
 import Deployment from "spektate/lib/Deployment";
+import { AzureDevOpsRepo } from "spektate/lib/repository/AzureDevOpsRepo";
+import { GitHub } from "spektate/lib/repository/GitHub";
+import { ITag } from "spektate/lib/repository/Tag";
 import { loadConfiguration } from "../../config";
 import { deepClone } from "../../lib/util";
 import {
@@ -9,6 +12,7 @@ import {
 } from "../../logger";
 import {
   execute,
+  getClusterSyncStatuses,
   getDeployments,
   getStatus,
   ICommandOptions,
@@ -60,6 +64,8 @@ const getMockedValues = (): IValidatedOptions => {
 // tslint:disable-next-line: no-var-requires
 const data = require("./mocks/data.json");
 const fakeDeployments = data;
+// tslint:disable-next-line: no-var-requires
+const fakeClusterSyncs = require("./mocks/cluster-sync.json");
 const mockedDeps: Deployment[] = fakeDeployments.data.map((dep: Deployment) => {
   return new Deployment(
     dep.deploymentId,
@@ -75,6 +81,16 @@ const mockedDeps: Deployment[] = fakeDeployments.data.map((dep: Deployment) => {
     dep.hldToManifestBuild
   );
 });
+
+const mockedClusterSyncs: ITag[] = fakeClusterSyncs.data.map((sync: ITag) => {
+  return sync;
+});
+jest
+  .spyOn(GitHub.prototype, "getManifestSyncState")
+  .mockReturnValue(Promise.resolve(mockedClusterSyncs));
+jest
+  .spyOn(AzureDevOpsRepo.prototype, "getManifestSyncState")
+  .mockReturnValue(Promise.resolve(mockedClusterSyncs));
 
 let initObject: IInitObject;
 
@@ -200,7 +216,9 @@ describe("Test execute function", () => {
 
 describe("Test printDeployments function", () => {
   it("without deployments", () => {
-    expect(printDeployments([], OUTPUT_FORMAT.NORMAL)).not.toBeDefined();
+    expect(
+      printDeployments([], OUTPUT_FORMAT.NORMAL, undefined, mockedClusterSyncs)
+    ).not.toBeDefined();
   });
 });
 
@@ -281,7 +299,12 @@ describe("Introspect deployments", () => {
 
 describe("Print deployments", () => {
   test("verify print deployments", async () => {
-    let table = printDeployments(mockedDeps, processOutputFormat("normal"));
+    let table = printDeployments(
+      mockedDeps,
+      processOutputFormat("normal"),
+      undefined,
+      mockedClusterSyncs
+    );
     expect(table).not.toBeUndefined();
     const deployment = [
       "2019-08-30T21:05:19.047Z",
@@ -296,7 +319,8 @@ describe("Print deployments", () => {
       "706685f",
       "✓",
       6047,
-      "✓"
+      "✓",
+      "EUROPE"
     ];
 
     const matchItems = table!.filter(field => field[2] === deployment[2]);
@@ -305,19 +329,53 @@ describe("Print deployments", () => {
     (matchItems[0] as Deployment[]).forEach((field, i) => {
       expect(field).toEqual(deployment[i]);
     });
-    expect(matchItems[0]).toHaveLength(13);
+    expect(matchItems[0]).toHaveLength(14);
 
-    table = printDeployments(mockedDeps, processOutputFormat("normal"), 3);
+    table = printDeployments(
+      mockedDeps,
+      processOutputFormat("normal"),
+      3,
+      mockedClusterSyncs
+    );
     expect(table).toHaveLength(3);
+  });
+});
+
+describe("Cluster sync", () => {
+  test("Verify cluster syncs", async () => {
+    // test a github setup too
+    if (initObject.config.azure_devops?.manifest_repository) {
+      initObject.config.azure_devops!.manifest_repository! = "https://github.com/someone/something";
+    }
+    const clusterSyncs = await getClusterSyncStatuses(initObject);
+    expect(clusterSyncs).toBeDefined();
+    expect(clusterSyncs).toHaveLength(5);
+    expect(clusterSyncs![0].name).toBe("CANADA");
+    expect(clusterSyncs![0].commit).toBe("efeeebe");
+    expect(clusterSyncs![0].tagger).toBe("Weave Flux");
+  });
+
+  test("Verify cluster syncs - empty", async () => {
+    // test empty manifest scenario
+    if (initObject.config.azure_devops?.manifest_repository) {
+      initObject.config.azure_devops!.manifest_repository! = "";
+    }
+    const clusterSyncs = await getClusterSyncStatuses(initObject);
+    expect(clusterSyncs).toBeUndefined();
   });
 });
 
 describe("Output formats", () => {
   test("verify wide output", async () => {
-    const table = printDeployments(mockedDeps, processOutputFormat("wide"));
+    const table = printDeployments(
+      mockedDeps,
+      processOutputFormat("wide"),
+      undefined,
+      mockedClusterSyncs
+    );
     expect(table).not.toBeUndefined();
     table!.forEach(field => {
-      expect(field).toHaveLength(17);
+      expect(field).toHaveLength(18);
     });
   });
 });

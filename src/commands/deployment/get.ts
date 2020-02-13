@@ -2,6 +2,10 @@ import Table from "cli-table";
 import commander from "commander";
 import Deployment from "spektate/lib/Deployment";
 import AzureDevOpsPipeline from "spektate/lib/pipeline/AzureDevOpsPipeline";
+import { AzureDevOpsRepo } from "spektate/lib/repository/AzureDevOpsRepo";
+import { GitHub } from "spektate/lib/repository/GitHub";
+import { IRepository } from "spektate/lib/repository/Repository";
+import { ITag } from "spektate/lib/repository/Tag";
 import { Config } from "../../config";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { isIntegerString } from "../../lib/validator";
@@ -142,49 +146,103 @@ export const processOutputFormat = (outputFormat: string): OUTPUT_FORMAT => {
 
 /**
  * Gets a list of deployments for the specified filters
- * @param outputFormat output format: normal | wide | json
- * @param environment release environment, such as Dev, Staging, Prod etc.
- * @param imageTag docker image tag name
- * @param p1Id identifier of the first build pipeline (src to ACR)
- * @param commitId commit Id into the source repo
- * @param service name of the service that was modified
- * @param deploymentId unique identifier for the deployment
+ * @param initObj captures keys and objects during the initialization process
+ * @param values validated command line values
  */
 export const getDeployments = (
   initObj: IInitObject,
   values: IValidatedOptions
 ): Promise<Deployment[]> => {
   const config = initObj.config;
-
+  const syncStatusesPromise = getClusterSyncStatuses(initObj);
+  const deploymentsPromise = Deployment.getDeploymentsBasedOnFilters(
+    config.introspection!.azure!.account_name!,
+    initObj.key,
+    config.introspection!.azure!.table_name!,
+    config.introspection!.azure!.partition_key!,
+    initObj.srcPipeline,
+    initObj.hldPipeline,
+    initObj.clusterPipeline,
+    values.env,
+    values.imageTag,
+    values.buildId,
+    values.commitId,
+    values.service,
+    values.deploymentId
+  );
   return new Promise((resolve, reject) => {
-    Deployment.getDeploymentsBasedOnFilters(
-      config.introspection!.azure!.account_name!,
-      initObj.key,
-      config.introspection!.azure!.table_name!,
-      config.introspection!.azure!.partition_key!,
-      initObj.srcPipeline,
-      initObj.hldPipeline,
-      initObj.clusterPipeline,
-      values.env,
-      values.imageTag,
-      values.buildId,
-      values.commitId,
-      values.service,
-      values.deploymentId
-    )
-      .then((deployments: Deployment[]) => {
+    Promise.all([deploymentsPromise, syncStatusesPromise])
+      .then((tuple: [Deployment[] | undefined, ITag[] | undefined]) => {
+        const deployments: Deployment[] | undefined = tuple[0];
+        const syncStatuses: ITag[] | undefined = tuple[1];
         if (values.outputFormat === OUTPUT_FORMAT.JSON) {
           // tslint:disable-next-line: no-console
           console.log(JSON.stringify(deployments, null, 2));
           resolve(deployments);
         } else {
-          printDeployments(deployments, values.outputFormat, values.nTop);
+          printDeployments(
+            deployments,
+            values.outputFormat,
+            values.nTop,
+            syncStatuses
+          );
           resolve(deployments);
         }
       })
       .catch(e => {
         reject(new Error(e));
       });
+  });
+};
+
+/**
+ * Gets cluster sync statuses
+ * @param initObj captures keys and objects during the initialization process
+ */
+export const getClusterSyncStatuses = (
+  initObj: IInitObject
+): Promise<ITag[] | undefined> => {
+  const config = initObj.config;
+  return new Promise((resolve, reject) => {
+    try {
+      if (
+        config.azure_devops?.manifest_repository &&
+        config.azure_devops?.manifest_repository.includes("azure.com")
+      ) {
+        const manifestUrlSplit = config.azure_devops?.manifest_repository.split(
+          "/"
+        );
+        const manifestRepo: IRepository = new AzureDevOpsRepo(
+          manifestUrlSplit[3],
+          manifestUrlSplit[4],
+          manifestUrlSplit[6],
+          config.azure_devops.access_token
+        );
+        manifestRepo.getManifestSyncState().then((syncCommits: ITag[]) => {
+          resolve(syncCommits);
+        });
+      } else if (
+        config.azure_devops?.manifest_repository &&
+        config.azure_devops?.manifest_repository.includes("github.com")
+      ) {
+        const manifestUrlSplit = config.azure_devops?.manifest_repository.split(
+          "/"
+        );
+        const manifestRepo: IRepository = new GitHub(
+          manifestUrlSplit[3],
+          manifestUrlSplit[4],
+          config.azure_devops.access_token
+        );
+        manifestRepo.getManifestSyncState().then((syncCommits: ITag[]) => {
+          resolve(syncCommits);
+        });
+      } else {
+        resolve();
+      }
+    } catch (err) {
+      logger.error(err);
+      reject(err);
+    }
   });
 };
 
@@ -262,11 +320,12 @@ export const watchGetDeployments = (
  * @param outputFormat output format: normal | wide | json
  */
 export const printDeployments = (
-  deployments: Deployment[],
+  deployments: Deployment[] | undefined,
   outputFormat: OUTPUT_FORMAT,
-  limit?: number
+  limit?: number,
+  syncStatuses?: ITag[] | undefined
 ): Table | undefined => {
-  if (deployments.length > 0) {
+  if (deployments && deployments.length > 0) {
     let header = [
       "Start Time",
       "Service",
@@ -289,6 +348,9 @@ export const printDeployments = (
         "Manifest Commit",
         "End Time"
       ]);
+    }
+    if (syncStatuses && syncStatuses.length > 0) {
+      header = header.concat(["Cluster Sync"]);
     }
 
     // tslint:disable: object-literal-sort-keys
@@ -383,6 +445,14 @@ export const printDeployments = (
             : "-"
         );
       }
+      if (syncStatuses && syncStatuses.length > 0) {
+        const tag = getClusterSyncStatusForDeployment(deployment, syncStatuses);
+        if (tag) {
+          row.push(tag.name);
+        } else {
+          row.push("-");
+        }
+      }
       table.push(row);
     });
 
@@ -393,6 +463,18 @@ export const printDeployments = (
     logger.info("No deployments found for specified filters.");
     return undefined;
   }
+};
+
+/**
+ * Returns a matching sync status for a deployment
+ * @param deployment Deployment object
+ * @param syncStatuses list of sync statuses for manifest
+ */
+export const getClusterSyncStatusForDeployment = (
+  deployment: Deployment,
+  syncStatuses: ITag[]
+): ITag | undefined => {
+  return syncStatuses.find(tag => tag.commit === deployment.manifestCommitId);
 };
 
 /**
