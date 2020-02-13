@@ -16,7 +16,7 @@
       "defaultValue": ""
     },
     {
-      "arg": "-v, --version <repository version>",
+      "arg": "-r --version <repository version>",
       "description": "Version or tag for the repository so a fixed version is referenced",
       "required": true,
       "defaultValue": ""
