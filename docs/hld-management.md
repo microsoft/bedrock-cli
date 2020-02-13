@@ -53,19 +53,38 @@ azure_devops:
 
 ### init
 
-Initialize the HLD repository by creating an `manifest-generation.yaml` file, if
-one does not already exist.
+Initialize the HLD repository by creating the pipeline
+`manifest-generation.yaml` file, and the default `component.yaml` for
+[fabrikate](https://github.com/microsoft/fabrikate) to consume, if each does not
+already exist.
 
 ```
-Usage: spk hld init|i [options]
+Usage: hld init|i [options]
 
-Initialize your hld repository. Will add the manifest-generation.yaml file to your working directory/repository if it does not already exist.
+Initialize High Level Definition repository. Add manifest-generation.yaml file to working directory/repository if it does not already exist.
 
 Options:
-  --git-push  SPK CLI will try to commit and push these changes to a new origin/branch. (default: false)
-  -h, --help  output usage information
+  --git-push                                          SPK CLI will try to commit and push these changes to a new origin/branch. (default: false)
+  --default-component-git <component-repository-url>  The default hld repository's component's git repository url. (default: "https://github.com/microsoft/fabrikate-definitions.git")
+  --default-component-name <component-name>           The default hld repository's component's name. (default: "traefik2")
+  --default-component-path <component-path>           The default hld repository's component's path. (default: "definitions/traefik2")
+  -h, --help                                          output usage information
 
 ```
+
+The default `component.yaml` will be configured with a traefik2 definition by
+default:
+
+```
+name: default-component
+subcomponents:
+  - name: traefik2
+    method: git
+    source: 'https://github.com/microsoft/fabrikate-definitions.git'
+    path: definitions/traefik2
+```
+
+This can be overridden the the `--default-component-*` flags.
 
 ### install-manifest-pipeline
 

@@ -3,6 +3,8 @@ export const ACCESS_FILENAME = "access.yaml";
 export const BUILD_SCRIPT_URL =
   "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh";
 
+export const HLD_COMPONENT_FILENAME = "component.yaml";
+
 export const PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE =
   "Please run `spk project init` command before running this command to initialize the project.";
 

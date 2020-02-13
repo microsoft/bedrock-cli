@@ -224,3 +224,15 @@ interface IBedrockFileInfo {
 export interface IAccessYaml {
   [gitRepositoryUrl: string]: string;
 }
+
+export interface IComponentYaml {
+  name: string;
+  subcomponents?: [
+    {
+      name: string;
+      method: string;
+      source: string;
+      path: string;
+    }
+  ];
+}

@@ -3,6 +3,7 @@ import yaml from "js-yaml";
 import path from "path";
 import {
   ACCESS_FILENAME,
+  HLD_COMPONENT_FILENAME,
   PROJECT_PIPELINE_FILENAME,
   RENDER_HLD_PIPELINE_FILENAME,
   SERVICE_PIPELINE_FILENAME,
@@ -12,6 +13,7 @@ import { logger } from "../logger";
 import {
   IAccessYaml,
   IAzurePipelinesYaml,
+  IComponentYaml,
   IMaintainersFile,
   IUser
 } from "../types";
@@ -361,7 +363,12 @@ export const generateHldAzurePipelinesYaml = (targetDirectory: string) => {
 /**
  * Add a default component.yaml when running `hld init`.
  */
-export const generateDefaultHldComponentYaml = (targetDirectory: string) => {
+export const generateDefaultHldComponentYaml = (
+  targetDirectory: string,
+  componentGit: string,
+  componentName: string,
+  componentPath: string
+) => {
   const absTargetPath = path.resolve(targetDirectory);
   logger.info(`Generating component.yaml in ${absTargetPath}`);
 
@@ -375,32 +382,45 @@ export const generateDefaultHldComponentYaml = (targetDirectory: string) => {
     return;
   }
 
-  const componentYaml = defaultComponentYaml();
-  logger.info(
-    `Writing ${RENDER_HLD_PIPELINE_FILENAME} file to ${fabrikateComponentPath}`
+  const componentYaml = defaultComponentYaml(
+    componentGit,
+    componentName,
+    componentPath
   );
 
-  fs.writeFileSync(fabrikateComponentPath, componentYaml, "utf8");
+  logger.info(
+    `Writing ${HLD_COMPONENT_FILENAME} file to ${fabrikateComponentPath}`
+  );
+
+  fs.writeFileSync(
+    fabrikateComponentPath,
+    yaml.safeDump(componentYaml, { lineWidth: Number.MAX_SAFE_INTEGER }),
+    "utf8"
+  );
 };
 
 /**
- * A default fabrikate component that includes the cloud native stack.
+ * Populate the hld's default component.yaml
  */
-const defaultComponentYaml = () => {
-  const componentYaml = {
+const defaultComponentYaml = (
+  componentGit: string,
+  componentName: string,
+  componentPath: string
+): IComponentYaml => {
+  const componentYaml: IComponentYaml = {
     name: "default-component",
     subcomponents: [
       {
-        name: "cloud-native",
+        name: componentName,
         // tslint:disable-next-line:object-literal-sort-keys
         method: "git",
-        source: "https://github.com/microsoft/fabrikate-definitions.git",
-        path: "definitions/fabrikate-cloud-native"
+        source: componentGit,
+        path: componentPath
       }
     ]
   };
 
-  return yaml.safeDump(componentYaml, { lineWidth: Number.MAX_SAFE_INTEGER });
+  return componentYaml;
 };
 
 /**

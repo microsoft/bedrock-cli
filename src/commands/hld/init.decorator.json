@@ -8,6 +8,24 @@
       "description": "SPK CLI will try to commit and push these changes to a new origin/branch.",
       "required": false,
       "defaultValue": false
+    },
+    {
+      "arg": "--default-component-git <component-repository-url>",
+      "description": "The default hld repository's component's git repository url.",
+      "required": false,
+      "defaultValue": "https://github.com/microsoft/fabrikate-definitions.git"
+    },
+    {
+      "arg": "--default-component-name <component-name>",
+      "description": "The default hld repository's component's name.",
+      "required": false,
+      "defaultValue": "traefik2"
+    },
+    {
+      "arg": "--default-component-path <component-path>",
+      "description": "The default hld repository's component's path.",
+      "required": false,
+      "defaultValue": "definitions/traefik2"
     }
   ]
 }
