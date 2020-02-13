@@ -222,7 +222,7 @@ export const createKeyVault = async (
   // key and setting it in the key vault
   if (values.keyVaultName) {
     logger.debug(
-      `Calling setSecret with storage account primary key ${accessKey}
+      `Calling setSecret with storage account primary key ***
         and ${values.keyVaultName}`
     );
     await setSecret(
@@ -237,9 +237,7 @@ export const createKeyVault = async (
       `Please set the storage account access key in environment variable
       INTROSPECTION_STORAGE_ACCESS_KEY before issuing any deployment commands.`
     );
-    logger.info(
-      `Storage account ${values.storageAccountName} access key: ${accessKey}`
-    );
+    logger.info(`Storage account ${values.storageAccountName} access key: ***`);
   }
 };
 
@@ -270,7 +268,6 @@ export const onboard = async (
     accessOpts
   );
   const accessKey = await getStorageAccessKey(values, accessOpts);
-
 
   const tableCreated = await createTableIfNotExists(
     values.storageAccountName!,
@@ -319,6 +316,6 @@ export const setConfiguration = (
     logger.error(
       `Unable to set storage account and table names in configuration file. \n ${err}`
     );
-    throw err;
+    return false;
   }
 };
