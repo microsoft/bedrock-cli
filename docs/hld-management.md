@@ -72,7 +72,7 @@ Options:
 
 ```
 
-The default `component.yaml` will be configured with a traefik2 definition by
+The created `component.yaml` will be populated with a traefik2 definition by
 default:
 
 ```
@@ -84,7 +84,8 @@ subcomponents:
     path: definitions/traefik2
 ```
 
-This can be overridden the the `--default-component-*` flags.
+However, you can set a another fabrikate definition to be added instead via the
+`--default-component-*` flags.
 
 ### install-manifest-pipeline
 
