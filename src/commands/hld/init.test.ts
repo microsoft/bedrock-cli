@@ -7,6 +7,7 @@ import {
   RENDER_HLD_PIPELINE_FILENAME
 } from "../../lib/constants";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
+import { createTempDir } from "../../lib/ioUtil";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
@@ -79,8 +80,7 @@ const testRepoInitialization = async (
   componentPath: string
 ) => {
   // Create random directory to initialize
-  const randomTmpDir = path.join(os.tmpdir(), uuid());
-  fs.mkdirSync(randomTmpDir);
+  const randomTmpDir = createTempDir();
 
   logger.info(`creating randomTmpDir ${randomTmpDir}`);
 

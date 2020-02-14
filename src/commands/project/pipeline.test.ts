@@ -1,10 +1,6 @@
 import { create as createBedrockYaml } from "../../lib/bedrockYaml";
 import { createTempDir } from "../../lib/ioUtil";
-import {
-  disableVerboseLogging,
-  enableVerboseLogging,
-  logger
-} from "../../logger";
+import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 jest.mock("../../lib/pipelines/pipelines");
 
 import {

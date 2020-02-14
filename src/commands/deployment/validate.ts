@@ -7,7 +7,6 @@ import {
   IDeploymentTable,
   updateACRToHLDPipeline
 } from "../../lib/azure/deploymenttable";
-import { validateStorageAccount } from "../../lib/azure/storage";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { logger } from "../../logger";
 import { IConfigYaml } from "../../types";

@@ -15,8 +15,6 @@ import { createTempDir } from "./lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "./logger";
 import { IBedrockFile } from "./types";
 
-const variableGroupName = uuid();
-
 beforeAll(() => {
   enableVerboseLogging();
 });

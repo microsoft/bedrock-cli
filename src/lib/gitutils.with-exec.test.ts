@@ -1,9 +1,6 @@
-import fs from "fs";
-import os from "os";
-import path from "path";
-import uuid from "uuid/v4";
 import { disableVerboseLogging, enableVerboseLogging } from "../logger";
 import { getCurrentBranch } from "./gitutils";
+import { createTempDir } from "./ioUtil";
 import { exec } from "./shell";
 
 beforeAll(() => {
@@ -16,8 +13,7 @@ afterAll(() => {
 
 describe("getCurrentBranch", () => {
   it("should return 'master' when working on a newly created repo with 0 commits", async () => {
-    const randomTmpDir = path.join(os.tmpdir(), uuid());
-    fs.mkdirSync(randomTmpDir);
+    const randomTmpDir = createTempDir();
 
     // initialize the new git repo
     await exec("git", ["init"], { cwd: randomTmpDir });
@@ -27,8 +23,7 @@ describe("getCurrentBranch", () => {
   });
 
   it("should return 'foobar' when working on a newly created repo with 0 commits and 'foobar' has been checked out", async () => {
-    const randomTmpDir = path.join(os.tmpdir(), uuid());
-    fs.mkdirSync(randomTmpDir);
+    const randomTmpDir = createTempDir();
 
     // initialize the new git repo and checkout 'foobar'
     await exec("git", ["init"], { cwd: randomTmpDir });
