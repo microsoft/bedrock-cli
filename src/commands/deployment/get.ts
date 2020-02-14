@@ -106,11 +106,11 @@ export const execute = async (
     const values = validateValues(opts);
     const initObjects = await initialize();
     if (opts.watch) {
-      watchGetDeployments(initObjects, values);
+      await watchGetDeployments(initObjects, values);
     } else {
-      getDeployments(initObjects, values);
+      await getDeployments(initObjects, values);
+      await exitFn(0);
     }
-    await exitFn(0);
   } catch (err) {
     logger.error(`Error occurred while getting deployment(s)`);
     logger.error(err);
@@ -218,9 +218,14 @@ export const getClusterSyncStatuses = (
           manifestUrlSplit[6],
           config.azure_devops.access_token
         );
-        manifestRepo.getManifestSyncState().then((syncCommits: ITag[]) => {
-          resolve(syncCommits);
-        });
+        manifestRepo
+          .getManifestSyncState()
+          .then((syncCommits: ITag[]) => {
+            resolve(syncCommits);
+          })
+          .catch(e => {
+            reject(e);
+          });
       } else if (
         config.azure_devops?.manifest_repository &&
         config.azure_devops?.manifest_repository.includes("github.com")
@@ -233,9 +238,14 @@ export const getClusterSyncStatuses = (
           manifestUrlSplit[4],
           config.azure_devops.access_token
         );
-        manifestRepo.getManifestSyncState().then((syncCommits: ITag[]) => {
-          resolve(syncCommits);
-        });
+        manifestRepo
+          .getManifestSyncState()
+          .then((syncCommits: ITag[]) => {
+            resolve(syncCommits);
+          })
+          .catch(e => {
+            reject(e);
+          });
       } else {
         resolve();
       }
@@ -300,17 +310,17 @@ export const initialize = async (): Promise<IInitObject> => {
  * @param initObject Initialization Object
  * @param values Validated values from commander
  */
-export const watchGetDeployments = (
+export const watchGetDeployments = async (
   initObjects: IInitObject,
   values: IValidatedOptions
 ) => {
   const timeInterval = 5000;
 
   // Call get deployments once, and then set the timer.
-  getDeployments(initObjects, values);
+  await getDeployments(initObjects, values);
 
-  setInterval(() => {
-    getDeployments(initObjects, values);
+  setInterval(async () => {
+    await getDeployments(initObjects, values);
   }, timeInterval);
 };
 

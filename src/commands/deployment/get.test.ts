@@ -195,14 +195,15 @@ describe("Test execute function", () => {
     jest
       .spyOn(get, "initialize")
       .mockReturnValueOnce(Promise.resolve(initObject));
-    jest.spyOn(get, "watchGetDeployments").mockReturnValueOnce();
+    jest
+      .spyOn(get, "watchGetDeployments")
+      .mockReturnValueOnce(Promise.resolve());
     const exitFn = jest.fn();
 
     const mockedVals = getMockedInputValues();
     mockedVals.watch = true;
     await execute(mockedVals, exitFn);
-    expect(exitFn).toBeCalledTimes(1);
-    expect(exitFn.mock.calls).toEqual([[0]]);
+    expect(exitFn).toBeCalledTimes(0);
   });
   it("negative test", async () => {
     jest.spyOn(get, "initialize").mockReturnValueOnce(Promise.reject("Error"));
@@ -265,7 +266,7 @@ describe("Watch get deployments", () => {
     const values = getMockedValues();
     values.outputFormat = OUTPUT_FORMAT.WIDE;
 
-    watchGetDeployments(initObject, values);
+    await watchGetDeployments(initObject, values);
     expect(getDeployments).toBeCalled();
     jest.advanceTimersByTime(6000);
     expect(getDeployments).toBeCalledTimes(2);
