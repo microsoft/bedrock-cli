@@ -33,7 +33,7 @@ export const addSrcToACRPipeline = (
   entry.service = serviceName;
   entry.commitId = commitId;
   entry.PartitionKey = tableInfo.partitionKey;
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     insertToTable(tableInfo, entry)
       .then(() => {
         logger.info("Added first pipeline details to the database");
@@ -41,6 +41,7 @@ export const addSrcToACRPipeline = (
       })
       .catch(err => {
         logger.error(err);
+        reject(err);
       });
   });
 };
@@ -61,7 +62,7 @@ export const updateACRToHLDPipeline = (
   env: string,
   pr?: string
 ): Promise<any> => {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     findMatchingDeployments(tableInfo, "imageTag", imageTag).then(entries => {
       let entryToInsert: any;
       for (const entry of entries) {
@@ -86,6 +87,7 @@ export const updateACRToHLDPipeline = (
             })
             .catch(err => {
               logger.error(err);
+              reject(err);
             });
           return;
         }
@@ -109,6 +111,7 @@ export const updateACRToHLDPipeline = (
           })
           .catch(err => {
             logger.error(err);
+            reject(err);
           });
         return;
       }
@@ -132,6 +135,7 @@ export const updateACRToHLDPipeline = (
         })
         .catch(err => {
           logger.error(err);
+          reject(err);
         });
       return;
     });
@@ -197,7 +201,7 @@ export const updateHLDtoManifestHelper = (
   manifestCommitId?: string,
   pr?: string
 ): Promise<any> => {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     let entryToInsert: any;
     for (const entry of entries) {
       entryToInsert = entry;
@@ -220,6 +224,7 @@ export const updateHLDtoManifestHelper = (
           })
           .catch(err => {
             logger.error(err);
+            reject(err);
           });
         return;
       }
@@ -243,6 +248,7 @@ export const updateHLDtoManifestHelper = (
         })
         .catch(err => {
           logger.error(err);
+          reject(err);
         });
       return;
     }
@@ -267,6 +273,7 @@ export const updateHLDtoManifestHelper = (
       })
       .catch(err => {
         logger.error(err);
+        reject(err);
       });
     return;
   });
@@ -283,7 +290,7 @@ export const updateManifestCommitId = (
   pipelineId: string,
   manifestCommitId: string
 ): Promise<any> => {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     findMatchingDeployments(tableInfo, "p3", pipelineId).then(entries => {
       // Ideally there should only be one entry for every pipeline id
       if (entries.length > 0) {
@@ -298,6 +305,7 @@ export const updateManifestCommitId = (
           })
           .catch(err => {
             logger.error(err);
+            reject(err);
           });
       } else {
         logger.error(
