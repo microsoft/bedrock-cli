@@ -1,7 +1,6 @@
 import fs from "fs";
 import yaml from "js-yaml";
 import mockFs from "mock-fs";
-import os from "os";
 import path from "path";
 import uuid from "uuid/v4";
 import { readYaml, write } from "../../config";
@@ -12,6 +11,7 @@ import {
 } from "../../lib/bedrockYaml";
 import { PROJECT_PIPELINE_FILENAME } from "../../lib/constants";
 import { IAzureDevOpsOpts } from "../../lib/git";
+import { createTempDir } from "../../lib/ioUtil";
 import * as pipelineVariableGroup from "../../lib/pipelines/variableGroup";
 import {
   disableVerboseLogging,
@@ -189,9 +189,7 @@ describe("setVariableGroupInBedrockFile", () => {
 
   test("Should fail adding a variable group name when no bedrock file exists", async () => {
     // Create random directory to initialize
-    const randomTmpDir = path.join(os.tmpdir(), uuid());
-    fs.mkdirSync(randomTmpDir);
-
+    const randomTmpDir = createTempDir();
     let noFileError: Error | undefined;
 
     try {
@@ -265,9 +263,7 @@ describe("updateLifeCyclePipeline", () => {
 
   test("Should fail adding a variable group name when no pipeline yaml file exists", async () => {
     // Create random directory to initialize
-    const randomTmpDir = path.join(os.tmpdir(), uuid());
-    fs.mkdirSync(randomTmpDir);
-
+    const randomTmpDir = createTempDir();
     let noFileError: Error | undefined;
 
     try {
@@ -280,8 +276,7 @@ describe("updateLifeCyclePipeline", () => {
 
   test("Should pass adding variable groups when bedrock file exists with empty variableGroups", async () => {
     // Create random directory to initialize
-    const randomTmpDir = path.join(os.tmpdir(), uuid());
-    fs.mkdirSync(randomTmpDir);
+    const randomTmpDir = createTempDir();
     const writeSpy = jest.spyOn(fs, "writeFileSync");
 
     const defaultBedrockFileObject = createTestBedrockYaml(
@@ -311,8 +306,7 @@ describe("updateLifeCyclePipeline", () => {
 
   test("Should pass adding variable groups when bedrock file exists with one variableGroup", async () => {
     // Create random directory to initialize
-    const randomTmpDir = path.join(os.tmpdir(), uuid());
-    fs.mkdirSync(randomTmpDir);
+    const randomTmpDir = createTempDir();
     logger.info(`random dir: ${randomTmpDir})`);
 
     const defaultBedrockFileObject = createTestBedrockYaml(

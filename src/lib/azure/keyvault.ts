@@ -3,6 +3,35 @@ import { logger } from "../../logger";
 import { IAzureAccessOpts } from "../../types";
 import { getCredentials } from "./azurecredentials";
 
+export const validateValues = (
+  keyVaultName: string,
+  secretName: string,
+  secretValue?: string
+) => {
+  const errors: string[] = [];
+  if (!keyVaultName) {
+    errors.push(`Invalid keyVaultName`);
+  }
+  if (!secretName) {
+    errors.push(`Invalid secretName`);
+  }
+  if (secretValue !== undefined && !secretValue) {
+    errors.push(`Invalid secretValue`);
+  }
+  if (errors.length !== 0) {
+    throw new Error(`\n${errors.join("\n")}`);
+  }
+};
+
+export const getClient = async (
+  keyVaultName: string,
+  opts: IAzureAccessOpts
+) => {
+  const url = `https://${keyVaultName}.vault.azure.net`;
+  const credentials = await getCredentials(opts);
+  return new SecretClient(url, credentials!);
+};
+
 /**
  * Create or update the secret `secretName` with value `secretValue` in Azure Key Vault `keyVaultName`
  *
@@ -18,38 +47,14 @@ export const setSecret = async (
   secretValue: string,
   opts: IAzureAccessOpts = {}
 ) => {
-  // validate input
-  const errors: string[] = [];
-
-  if (!keyVaultName) {
-    errors.push(`Invalid keyVaultName`);
-  }
-
-  if (!secretName) {
-    errors.push(`Invalid secretName`);
-  }
-
-  if (!secretValue) {
-    errors.push(`Invalid secretValue`);
-  }
-
-  if (errors.length !== 0) {
-    throw new Error(`\n${errors.join("\n")}`);
-  }
-
-  const url = `https://${keyVaultName}.vault.azure.net`;
-  const message = `secret ${secretName} with a value ${secretValue} in key vault ${keyVaultName}`;
+  validateValues(keyVaultName, secretName, secretValue);
   const messageWithNoValue = `secret ${secretName} in key vault ${keyVaultName}`;
-  try {
-    const credentials = await getCredentials(opts);
-    const client = new SecretClient(url, credentials!);
 
-    // Create a secret
+  try {
+    const client = await getClient(keyVaultName, opts);
     logger.debug(`Setting ${messageWithNoValue}`);
-    logger.verbose(`Setting ${message}`);
-    const result = await client.setSecret(secretName, secretValue);
+    await client.setSecret(secretName, secretValue);
     logger.debug(`Setting ${messageWithNoValue} is complete`);
-    logger.verbose(`Set ${message} complete`);
   } catch (err) {
     logger.error(`Unable to set ${messageWithNoValue}. \n ${err}`);
     throw err;
@@ -69,32 +74,14 @@ export const getSecret = async (
   secretName: string,
   opts: IAzureAccessOpts = {}
 ): Promise<string | undefined> => {
-  // validate input
-  const errors: string[] = [];
+  validateValues(keyVaultName, secretName);
 
-  if (!keyVaultName) {
-    errors.push(`Invalid keyVaultName`);
-  }
-
-  if (!secretName) {
-    errors.push(`Invalid secretName`);
-  }
-
-  if (errors.length !== 0) {
-    throw new Error(`\n${errors.join("\n")}`);
-  }
-
-  const url = `https://${keyVaultName}.vault.azure.net`;
   const message = `secret ${secretName} from key vault ${keyVaultName}`;
   try {
-    const credentials = await getCredentials(opts);
-    const client = new SecretClient(url, credentials!);
-
-    // Get the secret
+    const client = await getClient(keyVaultName, opts);
     logger.debug(`Getting ${message}`);
     const latestSecret = await client.getSecret(secretName);
     logger.debug(`Got ${message}`);
-    logger.verbose(`Found ${message} and the value is ${latestSecret.value}`);
     return latestSecret.value;
   } catch (err) {
     if (err.code === "SecretNotFound" && err.statusCode === 404) {
