@@ -1,5 +1,12 @@
 # RELEASE NOTES
 
+## [0.5.2] - 2020-02-14
+
+### Changed
+
+- Default fabrikate component initialized by `spk hld`
+- Various bug fixes and refactoring
+
 ## [0.5.1] - 2020-02-05
 
 ### Changed
