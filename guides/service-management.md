@@ -98,14 +98,15 @@ Usage: service install-build-pipeline|p [options] <service-name>
 Install the build and push to acr pipeline for a service to your Azure DevOps instance
 
 Options:
-  -n, --pipeline-name <pipeline-name>                  Name of the pipeline to be created
-  -p, --personal-access-token <personal-access-token>  Personal Access Token
-  -o, --org-name <org-name>                            Organization Name for Azure DevOps
-  -r, --repo-name <repo-name>                          Repository Name in Azure DevOps
-  -u, --repo-url <repo-url>                            Repository URL
-  -d, --devops-project <devops-project>                Azure DevOps Project
-  -b, --build-script-url <build-script-url>            Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'.
+  -n, --pipeline-name <pipeline-name>                  Name of the pipeline to be created (default: "")
+  -p, --personal-access-token <personal-access-token>  Personal Access Token (default: "")
+  -o, --org-name <org-name>                            Organization Name for Azure DevOps (default: "")
+  -r, --repo-name <repo-name>                          Repository Name in Azure DevOps (default: "")
+  -u, --repo-url <repo-url>                            Repository URL (default: "")
+  -d, --devops-project <devops-project>                Azure DevOps Project (default: "")
+  -b, --build-script-url <build-script-url>            Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'. (default: "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh")
   -l, --packages-dir <packages-dir>                    The mono-repository directory containing this service definition. ie. '--packages-dir packages' if my-service is located under ./packages/my-service. Omitting this option implies this is a not a mono-repository.
+  --yaml-file-branch <yaml-file-branch>                The git branch where the pipeline definition yaml file is located. (default: "master")
   -h, --help                                           output usage information
 ```
 

@@ -41,6 +41,12 @@
     {
       "arg": "-l, --packages-dir <packages-dir>",
       "description": "The mono-repository directory containing this service definition. ie. '--packages-dir packages' if my-service is located under ./packages/my-service. Omitting this option implies this is a not a mono-repository."
+    },
+    {
+      "arg": "--yaml-file-branch <yaml-file-branch>",
+      "description": "The git branch where the pipeline definition yaml file is located.",
+      "required": false,
+      "defaultValue": "master"
     }
   ]
 }

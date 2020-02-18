@@ -30,7 +30,8 @@ const MOCKED_VALUES: ICommandOptions = {
   manifestUrl: "https://dev.azure.com/test/fabrikam/_git/materialized",
   orgName: "orgName",
   personalAccessToken: "personalAccessToken",
-  pipelineName: "pipelineName"
+  pipelineName: "pipelineName",
+  yamlFileBranch: "master"
 };
 
 const MOCKED_CONFIG = {
@@ -92,7 +93,8 @@ describe("test populateValues function", () => {
       manifestUrl: "",
       orgName: "",
       personalAccessToken: "",
-      pipelineName: ""
+      pipelineName: "",
+      yamlFileBranch: ""
     });
 
     expect(values.buildScriptUrl).toBe(BUILD_SCRIPT_URL);
@@ -113,6 +115,7 @@ describe("test populateValues function", () => {
         "-to-" +
         getRepositoryName(MOCKED_CONFIG.azure_devops.manifest_repository)
     );
+    expect(values.yamlFileBranch).toBe("");
   });
 });
 

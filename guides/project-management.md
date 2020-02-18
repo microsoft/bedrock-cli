@@ -117,6 +117,7 @@ Options:
   -r, --repo-name <repo-name>                          Repository Name in Azure DevOps
   -u, --repo-url <repo-url>                            Repository URL
   -d, --devops-project <devops-project>                Azure DevOps Project
-  -b, --build-script-url <build-script-url>            Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'.
+  -b, --build-script-url <build-script-url>            Build Script URL. By default it is https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh.
+  --yaml-file-branch <yaml-file-branch>                The git branch where the pipeline definition yaml file is located. (default: "master")
   -h, --help                                           output usage information
 ```

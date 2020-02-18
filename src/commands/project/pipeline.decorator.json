@@ -37,6 +37,12 @@
       "arg": "-b, --build-script-url <build-script-url>",
       "description": "Build Script URL. By default it is https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh.",
       "required": true
+    },
+    {
+      "arg": "--yaml-file-branch <yaml-file-branch>",
+      "description": "The git branch where the pipeline definition yaml file is located.",
+      "required": false,
+      "defaultValue": "master"
     }
   ]
 }

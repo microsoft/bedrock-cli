@@ -32,7 +32,8 @@ const mockValues: ICommandOptions = {
   personalAccessToken: "PAT",
   pipelineName: "pipelineName",
   repoName: "repoName",
-  repoUrl: "repoUrl"
+  repoUrl: "repoUrl",
+  yamlFileBranch: "master"
 };
 
 const mockMissingValues: ICommandOptions = {
@@ -42,7 +43,8 @@ const mockMissingValues: ICommandOptions = {
   personalAccessToken: undefined,
   pipelineName: undefined,
   repoName: undefined,
-  repoUrl: undefined
+  repoUrl: undefined,
+  yamlFileBranch: ""
 };
 
 const gitUrl = "https://github.com/CatalystCode/spk.git";

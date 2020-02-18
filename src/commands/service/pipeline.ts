@@ -34,6 +34,7 @@ export interface ICommandOptions {
   repoName: string;
   repoUrl: string;
   buildScriptUrl: string;
+  yamlFileBranch: string;
 }
 
 export const fetchValues = async (
@@ -115,7 +116,7 @@ export const installBuildUpdatePipeline = async (
       repositoryName: values.repoName,
       repositoryUrl: values.repoUrl,
       variables: requiredPipelineVariables(values.buildScriptUrl),
-      yamlFileBranch: "master",
+      yamlFileBranch: values.yamlFileBranch,
       yamlFilePath
     });
 

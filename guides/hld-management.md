@@ -102,14 +102,15 @@ Usage: hld install-manifest-pipeline|p [options]
 Install the manifest generation pipeline to your Azure DevOps instance. Default values are set in spk-config.yaml and can be loaded via spk init or overriden via option flags.
 
 Options:
-  -n, --pipeline-name <pipeline-name>                  Name of the pipeline to be created
-  -p, --personal-access-token <personal-access-token>  Personal Access Token
-  -o, --org-name <org-name>                            Organization Name for Azure DevOps
-  -r, --hld-name <hld-name>                            HLD Repository Name in Azure DevOps
-  -u, --hld-url <hld-url>                              HLD Repository URL
-  -m, --manifest-url <manifest-url>                    Manifest Repository URL
-  -d, --devops-project <devops-project>                Azure DevOps Project
-  -b, --build-script-url <build-script-url>            Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'.
+  -n, --pipeline-name <pipeline-name>                  Name of the pipeline to be created (default: "")
+  -p, --personal-access-token <personal-access-token>  Personal Access Token (default: "")
+  -o, --org-name <org-name>                            Organization Name for Azure DevOps (default: "")
+  -r, --hld-name <hld-name>                            HLD Repository Name in Azure DevOps (default: "")
+  -u, --hld-url <hld-url>                              HLD Repository URL (default: "")
+  -m, --manifest-url <manifest-url>                    Manifest Repository URL (default: "")
+  -d, --devops-project <devops-project>                Azure DevOps Project (default: "")
+  -b, --build-script-url <build-script-url>            Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'. (default: "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh")
+  --yaml-file-branch <yaml-file-branch>                The git branch where the pipeline definition yaml file is located. (default: "master")
   -h, --help                                           output usage information
 ```
 

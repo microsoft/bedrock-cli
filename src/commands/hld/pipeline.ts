@@ -30,6 +30,7 @@ export interface ICommandOptions {
   manifestUrl: string;
   devopsProject: string;
   buildScriptUrl: string;
+  yamlFileBranch: string;
 }
 
 export const emptyStringIfUndefined = (val: string | undefined) => {
@@ -132,7 +133,7 @@ export const installHldToManifestPipeline = async (values: ICommandOptions) => {
       values.buildScriptUrl,
       values.manifestUrl
     ),
-    yamlFileBranch: "master",
+    yamlFileBranch: values.yamlFileBranch,
     yamlFilePath: RENDER_HLD_PIPELINE_FILENAME
   } as IAzureRepoPipelineConfig);
 
