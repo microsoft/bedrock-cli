@@ -7,6 +7,7 @@
   "license": "MIT",
   "scripts": {
     "build": "shx rm -rf dist && webpack && pkg -t node12-linux-x64,node12-macos-x64,node12-win-x64 dist/spk.js && shx mv spk-{linux,macos,win.exe} dist",
+    "build-cmd-docs": "ts-node tools/generateDoc.ts",
     "lint": "tslint 'src/**/*.ts{,x}'",
     "lint-fix": "tslint --fix 'src/**/*.ts{,x}'",
     "test": "jest --reporters=jest-junit --reporters=default --coverage --coverageReporters=cobertura --coverageReporters=html",

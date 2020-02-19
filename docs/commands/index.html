@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles/feb02e3b.site-ltr.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="styles/spk.css ">
+  <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js" integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
+  <script src="./spk.js"></script>
+  <title>SPK Commands</title>
+</head>
+<body>
+  <div class="dropdown-menu has-padding-small" id="sharing-menu" style="display: none; top: 70px; right: 8px;">
+		<ul data-bi-name="share-links">
+			<li>
+        <a class="button is-text is-fullwidth has-flex-justify-content-start has-inner-focus is-small share-twitter"
+          data-bi-name="twitter" href="https://twitter.com/intent/tweet?text=Bedrock%20SPK%20%7C%20Commands&tw_p=tweetbutton&url=https%3A%2F%2Fcatalystcode.github.io%2Fspk%2Fcommands%2Findex.html">
+					<span class="icon">
+						<span class="docon docon-brand-twitter has-text-primary" aria-hidden="true"></span>
+					</span>
+					<span>Twitter</span>
+				</a>
+			</li>
+			<li>
+        <a class="button is-text is-fullwidth has-flex-justify-content-start has-inner-focus is-small share-linkedin"
+          data-bi-name="linkedin" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcatalystcode.github.io%2Fspk%2Fcommands%2Findex.html">
+					<span class="icon">
+						<span class="docon docon-brand-linkedin has-text-primary" aria-hidden="true"></span>
+					</span>
+					<span>LinkedIn</span>
+				</a>
+			</li>
+		</ul>
+	</div>
+  <div id="header">
+    <div class="header-left-text">
+      <div><img width="30px" src="images/mslogo.png"></div>
+      <div class="header-text">SPK</div>
+    </div>
+  </div>
+  <div id="subheader">
+    <div id="item_share" class="tab-item">
+      <span class="fa fa-share-square-o"></span>
+      <span class="tinyfont">Share</span>
+    </div>
+  </div>
+  <div id="content">
+    <div class="content-left">
+    <div class="title">SPK Commands</div>
+    <div>
+      <div class="control has-icons-left">
+        <input id="commandfilter" role="combobox" maxlength="100" aria-autocomplete="list" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" id="ax-0" class="autocomplete-input input control has-icons-left is-small is-full-width" type="text" aria-expanded="false" aria-owns="ax-1-listbox" aria-activedescendant="" placeholder="Filter by command">
+  
+        <span class="icon is-small is-left" aria-hidden="true">
+          <span class="fa fa-filter input-icon"></span>
+        </span>
+  
+        <span class="autocomplete-loader loader has-text-primary" aria-hidden="true" hidden=""></span>
+      </div>
+    </div>
+    <div id="command-list"></div>
+    </div>
+    
+    <div id="spk-details" class="content-right"></div>
+  </div>
+  
+</body>
+</html>

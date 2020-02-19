@@ -5,6 +5,24 @@ under your home directory. There are two options for creating this file
 2. you provide a `yaml` file and this `yaml` will be copied to the target
    location.
 
+## Interactive mode
+
+The command line tool attempts to read `config.yaml` in a folder `.spk` under
+your home directory. Configuration values shall be read from it if it exists.
+And these values shall be default values for the questions. Otherwise, there
+shall be no default values. These are the questions
+
+1. Organization Name of Azure dev-op account
+2. Project Name of Azure dev-op account
+3. Personal Access Token (guides)
+
+This tool shall verify these values by making an API call to Azure dev-op. They
+shall be written to `config.yaml` regardless the verification is successful or
+not.
+
+> Note: In the event that you do not have internet connection, this verification
+> shall not be possible
+
 ## Example
 
 ```

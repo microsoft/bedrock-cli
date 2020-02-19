@@ -1,0 +1,635 @@
+{
+  "init": {
+    "command": "init",
+    "alias": "i",
+    "description": "Initialize the spk tool for the first time.",
+    "options": [
+      {
+        "arg": "-f, --file <config-file-path>",
+        "description": "Path to the config file."
+      },
+      {
+        "arg": "-i, --interactive",
+        "description": "Interactive mode.",
+        "defaultValue": false
+      }
+    ],
+    "markdown": "This command creates a configuration file, `config.yaml` in a folder `.spk`\nunder your home directory. There are two options for creating this file\n\n1. an interactive mode where you have to answer a few questions; and\n2. you provide a `yaml` file and this `yaml` will be copied to the target\n   location.\n\n## Interactive mode\nThe command line tool attempts to read `config.yaml` in a folder `.spk`\nunder your home directory. Configuration values shall be read from it if \nit exists. And these values shall be default values for the questions.\nOtherwise, there shall be no default values. These are the questions\n\n1. Organization Name of Azure dev-op account\n2. Project Name of Azure dev-op account\n3. Personal Access Token (guides)\n\nThis tool shall verify these values by making an API call to\nAzure dev-op. They shall be written to `config.yaml` regardless\nthe verification is successful or not. \n\n> Note: In the event that you \ndo not have internet connection, this verification shall not be possible\n\n## Example\n\n```\nspk init --interactive\n```\n\nor\n\n```\nspk init --file myConfig.yaml\n```\n"
+  },
+  "deployment create": {
+    "command": "create",
+    "alias": "c",
+    "description": "Insert the deployment in storage from pipelines",
+    "options": [
+      {
+        "arg": "-k, --access-key <access-key>",
+        "description": "Access key of the storage account"
+      },
+      {
+        "arg": "-n, --name <account-name>",
+        "description": "Name of the storage account"
+      },
+      {
+        "arg": "-p, --partition-key <partition-key>",
+        "description": "Partition key for the storage account"
+      },
+      {
+        "arg": "-t, --table-name <table-name>",
+        "description": "Name of table in storage account"
+      },
+      {
+        "arg": "--p1 <p1>",
+        "description": "Identifier for the first pipeline",
+        "defaultValue": ""
+      },
+      {
+        "arg": "--image-tag <image-tag>",
+        "description": "Image tag"
+      },
+      {
+        "arg": "--commit-id <commit-id>",
+        "description": "Commit Id in source repository"
+      },
+      {
+        "arg": "--service <service>",
+        "description": "Service name"
+      },
+      {
+        "arg": "--p2 <p2>",
+        "description": "Identifier for the second pipeline"
+      },
+      {
+        "arg": "--hld-commit-id <hld-commit-id>",
+        "description": "Commit id in HLD repository"
+      },
+      {
+        "arg": "--env <env>",
+        "description": "Release environment name",
+        "defaultValue": ""
+      },
+      {
+        "arg": "--p3 <p3>",
+        "description": "Identifier for the third pipeline"
+      },
+      {
+        "arg": "--pr <pr-id>",
+        "description": "Pull request identifier for a PR opened/closed in the HLD"
+      },
+      {
+        "arg": "--manifest-commit-id <manifest-commit-id>",
+        "description": "Commit Id in the manifest repository"
+      }
+    ]
+  },
+  "deployment dashboard": {
+    "command": "dashboard",
+    "alias": "d",
+    "description": "Launch the service introspection dashboard",
+    "options": [
+      {
+        "arg": "-p, --port <port>",
+        "description": "Port to launch the dashboard on",
+        "defaultValue": "4040"
+      },
+      {
+        "arg": "-r, --remove-all",
+        "description": "Removes previously launched instances of the dashboard",
+        "defaultValue": false
+      }
+    ]
+  },
+  "deployment get": {
+    "command": "get",
+    "alias": "g",
+    "description": "Get the list of deployments and filter with these options: service name, environment, build ID, commit ID, container image tag.",
+    "options": [
+      {
+        "arg": "-b, --build-id <build-id>",
+        "description": "Filter by the build ID of the source repository",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-c, --commit-id <commit-id>",
+        "description": "Filter by a commit ID from the source repository",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-d, --deployment-id <deployment-id>",
+        "description": "Filter by the deployment ID of the source repository",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-i, --image-tag <image-tag>",
+        "description": "Filter by a container image tag",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-e, --env <environment>",
+        "description": "Filter by environment name",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-s, --service <service-name>",
+        "description": "Filter by service name",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-t, --top <top>",
+        "description": "Return only top N most recent deployments",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-o, --output <output-format>",
+        "description": "Output the information one of the following: normal, wide, JSON",
+        "defaultValue": "normal"
+      },
+      {
+        "arg": "-w, --watch",
+        "description": "Watch the deployments for a live view",
+        "defaultValue": false
+      }
+    ]
+  },
+  "deployment onboard": {
+    "command": "onboard",
+    "alias": "o",
+    "description": "Onboard to use the service introspection tool. This will create a storage account if it does not exist in your Azure subscription in the give resource group.",
+    "options": [
+      {
+        "arg": "-s, --storage-account-name <storage-account-name>",
+        "description": "Azure storage account name",
+        "required": true
+      },
+      {
+        "arg": "-t, --storage-table-name <storage-table-name>",
+        "description": "Azure storage table name",
+        "required": true
+      },
+      {
+        "arg": "-l, --storage-location <storage-location>",
+        "description": "Azure location to create new storage account when it does not exist"
+      },
+      {
+        "arg": "-r, --storage-resource-group-name <storage-resource-group-name>",
+        "description": "Name of the resource group to create new storage account when it does not exist",
+        "required": true
+      },
+      {
+        "arg": "-k, --key-vault-name <key-vault-name>",
+        "description": "Name of the Azure key vault"
+      },
+      {
+        "arg": "--service-principal-id <service-principal-id>",
+        "description": "Azure service principal id with `contributor` role in Azure Resource Group",
+        "required": true
+      },
+      {
+        "arg": "--service-principal-password <service-principal-password>",
+        "description": "The Azure service principal password",
+        "required": true
+      },
+      {
+        "arg": "--tenant-id <tenant-id>",
+        "description": "The Azure AD tenant id of service principal",
+        "required": true
+      },
+      {
+        "arg": "--subscription-id <subscription-id>",
+        "description": "The Azure subscription id",
+        "required": true
+      }
+    ]
+  },
+  "deployment validate": {
+    "command": "validate",
+    "alias": "v",
+    "description": "Validate the configuration and storage account are correct.",
+    "options": [
+      {
+        "arg": "-s, --self-test",
+        "description": "Run a test for the configured storage account. This will write test data and delete the test data. For more information on the behavior, please check the online documentation.",
+        "defaultValue": false
+      }
+    ]
+  },
+  "hld init": {
+    "command": "init",
+    "alias": "i",
+    "description": "Initialize High Level Definition repository. Add manifest-generation.yaml file to working directory/repository if it does not already exist.",
+    "options": [
+      {
+        "arg": "--git-push",
+        "description": "SPK CLI will try to commit and push these changes to a new origin/branch.",
+        "required": false,
+        "defaultValue": false
+      },
+      {
+        "arg": "--default-component-git <component-repository-url>",
+        "description": "The default hld repository's component's git repository url.",
+        "required": false,
+        "defaultValue": "https://github.com/microsoft/fabrikate-definitions.git"
+      },
+      {
+        "arg": "--default-component-name <component-name>",
+        "description": "The default hld repository's component's name.",
+        "required": false,
+        "defaultValue": "traefik2"
+      },
+      {
+        "arg": "--default-component-path <component-path>",
+        "description": "The default hld repository's component's path.",
+        "required": false,
+        "defaultValue": "definitions/traefik2"
+      }
+    ]
+  },
+  "hld install-manifest-pipeline": {
+    "command": "install-manifest-pipeline",
+    "alias": "p",
+    "description": "Install the manifest generation pipeline to your Azure DevOps instance. Default values are set in spk-config.yaml and can be loaded via spk init or overriden via option flags.",
+    "options": [
+      {
+        "arg": "-n, --pipeline-name <pipeline-name>",
+        "description": "Name of the pipeline to be created",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-p, --personal-access-token <personal-access-token>",
+        "description": "Personal Access Token",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-o, --org-name <org-name>",
+        "description": "Organization Name for Azure DevOps",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-r, --hld-name <hld-name>",
+        "description": "HLD Repository Name in Azure DevOps",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-u, --hld-url <hld-url>",
+        "description": "HLD Repository URL",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-m, --manifest-url <manifest-url>",
+        "description": "Manifest Repository URL",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-d, --devops-project <devops-project>",
+        "description": "Azure DevOps Project",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-b, --build-script-url <build-script-url>",
+        "description": "Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'.",
+        "defaultValue": "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh"
+      }
+    ]
+  },
+  "hld reconcile": {
+    "command": "reconcile <repository-name> <hld-path> <bedrock-application-repo-path>",
+    "alias": "r",
+    "description": "Reconcile a HLD with the services tracked in bedrock.yaml.",
+    "options": []
+  },
+  "infra generate": {
+    "command": "generate",
+    "alias": "g",
+    "description": "Generate scaffold for terraform cluster deployment.",
+    "options": [
+      {
+        "arg": "-p, --project <path to project folder to generate>",
+        "description": "Location of the definition.yaml file that will be generated",
+        "required": false
+      },
+      {
+        "arg": "-o, --output <path to create generated folder>",
+        "description": "Location of the generated directory that will be generated",
+        "required": false
+      }
+    ]
+  },
+  "infra scaffold": {
+    "command": "scaffold",
+    "alias": "s",
+    "description": "Create initial scaffolding for cluster deployment.",
+    "options": [
+      {
+        "arg": "-n, --name <name>",
+        "description": "Cluster name for scaffolding",
+        "required": true,
+        "defaultValue": ""
+      },
+      {
+        "arg": "-s, --source <cluster definition github repo>",
+        "description": "Source URL for the repository containing the terraform deployment",
+        "required": false,
+        "defaultValue": ""
+      },
+      {
+        "arg": "-r --version <repository version>",
+        "description": "Version or tag for the repository so a fixed version is referenced",
+        "required": true,
+        "defaultValue": ""
+      },
+      {
+        "arg": "-t, --template <path to variables.tf> ",
+        "description": "Location of the variables.tf for the terraform deployment",
+        "required": true,
+        "defaultValue": ""
+      }
+    ]
+  },
+  "project create-variable-group": {
+    "command": "create-variable-group <variable-group-name>",
+    "alias": "cvg",
+    "description": "Create a new variable group in Azure DevOps project with specific variables (ACR name, HLD Repo name, Personal Access Token, Service Principal id, Service Principal password, and Azure AD tenant id)",
+    "options": [
+      {
+        "arg": "-r, --registry-name <registry-name>",
+        "description": "The name of the existing Azure Container Registry.",
+        "required": true
+      },
+      {
+        "arg": "-d, --hld-repo-url <hld-repo-url>",
+        "description": "The high level definition (HLD) git repo url; falls back to azure_devops.org in spk config.",
+        "required": true
+      },
+      {
+        "arg": "-u, --service-principal-id <service-principal-id>",
+        "description": "Azure service principal id with `contributor` role in Azure Container Registry.",
+        "required": true
+      },
+      {
+        "arg": "-p, --service-principal-password <service-principal-password>",
+        "description": "The Azure service principal password.",
+        "required": true
+      },
+      {
+        "arg": "-t, --tenant <tenant>",
+        "description": "The Azure AD tenant id of service principal.",
+        "required": true
+      },
+      {
+        "arg": "--org-name <organization-name>",
+        "description": "Azure DevOps organization name; falls back to azure_devops.org in spk config.",
+        "required": true
+      },
+      {
+        "arg": "--project <project>",
+        "description": "Azure DevOps project name; falls back to azure_devops.project in spk config.",
+        "required": true
+      },
+      {
+        "arg": "--personal-access-token <personal-access-token>",
+        "description": "Azure DevOps Personal access token; falls back to azure_devops.access_token in spk config.",
+        "required": true
+      }
+    ]
+  },
+  "project init": {
+    "command": "init",
+    "alias": "i",
+    "description": "Initialize your spk repository. Add starter bedrock.yaml, maintainers.yaml, hld-lifecycle.yaml, and .gitignore files to your project.",
+    "options": [
+      {
+        "arg": "-r, --default-ring <branch-name>",
+        "description": "Specify a default ring; this corresponds to a default branch which you wish to push initial revisions to",
+        "required": false,
+        "defaultValue": "master"
+      }
+    ]
+  },
+  "project install-lifecycle-pipeline": {
+    "command": "install-lifecycle-pipeline",
+    "alias": "p",
+    "description": "Install the hld lifecycle pipeline to your Azure DevOps instance",
+    "options": [
+      {
+        "arg": "-n, --pipeline-name <pipeline-name>",
+        "description": "Name of the pipeline to be created",
+        "required": true
+      },
+      {
+        "arg": "-p, --personal-access-token <personal-access-token>",
+        "description": "Personal Access Token",
+        "required": true
+      },
+      {
+        "arg": "-o, --org-name <org-name>",
+        "description": "Organization Name for Azure DevOps",
+        "required": true
+      },
+      {
+        "arg": "-r, --repo-name <repo-name>",
+        "description": "Repository Name in Azure DevOps",
+        "required": true
+      },
+      {
+        "arg": "-u, --repo-url <repo-url>",
+        "description": "Repository URL",
+        "required": true
+      },
+      {
+        "arg": "-d, --devops-project <devops-project>",
+        "description": "Azure DevOps Project",
+        "required": true
+      },
+      {
+        "arg": "-b, --build-script-url <build-script-url>",
+        "description": "Build Script URL. By default it is https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh.",
+        "required": true
+      }
+    ]
+  },
+  "service create-revision": {
+    "command": "create-revision",
+    "alias": "cr",
+    "description": "Create pull requests against the branches marked as `isDefault` in your bedrock config",
+    "options": [
+      {
+        "arg": "-s, --source-branch <source>",
+        "description": "Source branch to create the pull request from; defaults to the current branch"
+      },
+      {
+        "arg": "-t, --title <title>",
+        "description": "Title of the pull request; not required"
+      },
+      {
+        "arg": "-d, --description <description>",
+        "description": "Description of the pull request; not required"
+      },
+      {
+        "arg": "--remote-url <remote-url>",
+        "description": "The remote host to create the pull request in; defaults to the URL for 'origin'"
+      },
+      {
+        "arg": "--personal-access-token <pat>",
+        "description": "Personal access token associated with your Azure DevOps token; falls back to azure_devops.access_token in your spk config"
+      },
+      {
+        "arg": "--org-name <organization-name>",
+        "description": "Your Azure DevOps organization name; falls back to azure_devops.org in your spk config"
+      },
+      {
+        "arg": "--target-branch",
+        "description": "Target branch/ring to create a PR against; overwrites the default rings specified in bedrock.yaml"
+      }
+    ]
+  },
+  "service create": {
+    "command": "create <service-name>",
+    "alias": "c",
+    "description": "Add a new service into this initialized spk project repository",
+    "options": [
+      {
+        "arg": "-c, --helm-chart-chart <helm-chart>",
+        "description": "bedrock helm chart name. --helm-chart-* and --helm-config-* are exclusive; you may only use one.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-r, --helm-chart-repository <helm-repository>",
+        "description": "bedrock helm chart repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-b, --helm-config-branch <helm-branch>",
+        "description": "bedrock custom helm chart configuration branch. --helm-chart-* and --helm-config-* are exclusive; you may only use one.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-p, --helm-config-path <helm-path>",
+        "description": "bedrock custom helm chart configuration path. --helm-chart-* and --helm-config-* are exclusive; you may only use one.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-g, --helm-config-git <helm-git>",
+        "description": "bedrock helm chart configuration git repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-d, --packages-dir <dir>",
+        "description": "The directory containing the mono-repo packages.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-n, --display-name <display-name>",
+        "description": "Display name of the service.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-m, --maintainer-name <maintainer-name>",
+        "description": "The name of the primary maintainer for this service.",
+        "defaultValue": "maintainer name"
+      },
+      {
+        "arg": "-e, --maintainer-email <maintainer-email>",
+        "description": "The email of the primary maintainer for this service.",
+        "defaultValue": "maintainer email"
+      },
+      {
+        "arg": "--git-push",
+        "description": "SPK CLI will try to commit and push these changes to a new origin/branch named after the service.",
+        "defaultValue": false
+      },
+      {
+        "arg": "--middlewares <comma-delimitated-list-of-middleware-names>",
+        "description": "Traefik2 middlewares you wish to to be injected into your Traefik2 IngressRoutes",
+        "defaultValue": ""
+      },
+      {
+        "arg": "--k8s-backend-port <port>",
+        "description": "Kubernetes service port which this service is exposed with; will be used to configure Traefik2 IngressRoutes",
+        "defaultValue": "80"
+      },
+      {
+        "arg": "--k8s-backend <backend>",
+        "description": "Kubernetes backend service name; will be used to configure Traefik2 IngressRoutes",
+        "defaultValue": ""
+      },
+      {
+        "arg": "--path-prefix <path-prefix>",
+        "description": "The path prefix for ingress route; will be used to configure Traefik2 IngressRoutes. If omitted, then the service name will used.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "--path-prefix-major-version <path-prefix-major-version>",
+        "description": "Version to be used in the path prefix; will be used to configure Traefik2 IngressRoutes. ie. 'v1' will result in a path prefix of '/v1/servicename",
+        "defaultValue": ""
+      }
+    ]
+  },
+  "service install-build-pipeline": {
+    "command": "install-build-pipeline <service-name>",
+    "alias": "p",
+    "description": "Install the build and push to acr pipeline for a service to your Azure DevOps instance",
+    "options": [
+      {
+        "arg": "-n, --pipeline-name <pipeline-name>",
+        "description": "Name of the pipeline to be created",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-p, --personal-access-token <personal-access-token>",
+        "description": "Personal Access Token",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-o, --org-name <org-name>",
+        "description": "Organization Name for Azure DevOps",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-r, --repo-name <repo-name>",
+        "description": "Repository Name in Azure DevOps",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-u, --repo-url <repo-url>",
+        "description": "Repository URL",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-d, --devops-project <devops-project>",
+        "description": "Azure DevOps Project",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-b, --build-script-url <build-script-url>",
+        "description": "Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'.",
+        "defaultValue": "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh"
+      },
+      {
+        "arg": "-l, --packages-dir <packages-dir>",
+        "description": "The mono-repository directory containing this service definition. ie. '--packages-dir packages' if my-service is located under ./packages/my-service. Omitting this option implies this is a not a mono-repository."
+      }
+    ]
+  },
+  "variable-group create": {
+    "command": "create",
+    "alias": "c",
+    "description": "Add a new variable group in Azure DevOps project.",
+    "options": [
+      {
+        "arg": "-f, --file <variable-group-manifest-file-path>",
+        "description": "Path to the yaml file that contains variable group manifest."
+      },
+      {
+        "arg": "-o, --org-name <organization-name>",
+        "description": "Azure DevOps organization name; falls back to azure_devops.org in spk config"
+      },
+      {
+        "arg": "-p, --project <project>",
+        "description": "Azure DevOps project name; falls back to azure_devops.project in spk config"
+      },
+      {
+        "arg": "-t, --personal-access-token <personal-access-token>",
+        "description": "Personal access token associated with the Azure DevOps org; falls back to azure_devops.access_token in spk config"
+      }
+    ]
+  }
+}

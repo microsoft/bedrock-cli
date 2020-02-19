@@ -17,6 +17,7 @@ RELEASE_BRANCH=$(whoami)/release
 git checkout master
 git pull
 git checkout -b ${RELEASE_BRANCH}
+yarn build-cmd-docs
 
 # Do not tag commit
 yarn config set version-git-tag false
