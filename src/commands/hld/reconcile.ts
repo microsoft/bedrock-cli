@@ -9,7 +9,7 @@ import { Bedrock } from "../../config";
 import { assertIsStringWithContent } from "../../lib/assertions";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { generateAccessYaml } from "../../lib/fileutils";
-import { getAzdoOriginUrl, getOriginUrl } from "../../lib/gitutils";
+import { tryGetGitOrigin } from "../../lib/gitutils";
 import { TraefikIngressRoute } from "../../lib/traefik/ingress-route";
 import {
   ITraefikMiddleware,
@@ -208,17 +208,6 @@ export const commandDecorator = (command: commander.Command) => {
       );
     }
   );
-};
-
-export const tryGetGitOrigin = async (
-  absRepoPath?: string
-): Promise<string> => {
-  return getAzdoOriginUrl().catch(_ => {
-    logger.warn(
-      "Could not get Git Origin for Azure DevOps - are you running 'spk' _not_ in a pipeline?"
-    );
-    return getOriginUrl(absRepoPath);
-  });
 };
 
 export const reconcileHld = async (

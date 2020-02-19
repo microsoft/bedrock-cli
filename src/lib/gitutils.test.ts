@@ -10,7 +10,8 @@ import {
   getRepositoryName,
   getRepositoryUrl,
   pushBranch,
-  safeGitUrlForLogging
+  safeGitUrlForLogging,
+  tryGetGitOrigin
 } from "../lib/gitutils";
 import { disableVerboseLogging, enableVerboseLogging } from "../logger";
 import { exec } from "./shell";
@@ -208,6 +209,35 @@ describe("pushBranch", () => {
     }
 
     expect(error).not.toBeUndefined();
+  });
+});
+
+describe("tryGetGitOrigin", () => {
+  it("attempts to retrieve azdo git origin", async () => {
+    const originUrl = "http://github.com/repo/url";
+
+    when(exec as jest.Mock)
+      .calledWith("echo", ["$(Build.Repository.Uri)"])
+      .mockReturnValue(originUrl);
+
+    const originUrlResponse = await tryGetGitOrigin();
+    expect(originUrlResponse).toEqual(originUrl);
+  });
+
+  it("attempts to retrieve git origin from using git cli", async () => {
+    const originUrl = "http://github.com/repo/url";
+    // Echoing variable from AzDo fails… trying Git
+    when(exec as jest.Mock)
+      .calledWith("echo", ["$(Build.Repository.Uri)"])
+      .mockRejectedValue("some reason");
+
+    // Retrieving url from Git succeeds
+    when(exec as jest.Mock)
+      .calledWith("git", ["config", "--get", "remote.origin.url"])
+      .mockReturnValue(originUrl);
+
+    const originUrlResponse = await tryGetGitOrigin();
+    expect(originUrlResponse).toEqual(originUrl);
   });
 });
 
