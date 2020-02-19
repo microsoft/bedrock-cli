@@ -52,8 +52,174 @@ beforeEach(() => {
   jest.restoreAllMocks();
 });
 
+//////////////////////////////////////////////////////////////////////////////
+//
+// --- start git tests
+//
+//////////////////////////////////////////////////////////////////////////////
+
+const testCheckRemoteGitExist = async (positive: boolean) => {
+  const { safeLoggingUrl, source, sourcePath } = await getMockedDataForGitTests(
+    positive
+  );
+  if (!fs.existsSync(sourcePath)) {
+    createGenerated(sourcePath);
+  }
+  await checkRemoteGitExist(sourcePath, source, safeLoggingUrl);
+};
+
+describe("test checkRemoteGitExist function", () => {
+  it("postive Test", async () => {
+    await testCheckRemoteGitExist(true);
+    // no exception thrown
+  });
+  // cannot do negative test because it will take too long
+  // and timeout
+  xit("negative Test", async () => {
+    try {
+      await testCheckRemoteGitExist(false);
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e).toBeDefined();
+    }
+  });
+});
+
+const testGitFetchPull = async (positive: boolean) => {
+  const { safeLoggingUrl, sourcePath } = await getMockedDataForGitTests(
+    positive
+  );
+  if (!positive || fs.existsSync(path.join(sourcePath, ".git"))) {
+    await gitFetchPull(sourcePath, safeLoggingUrl);
+  }
+};
+
+describe("test gitFetchPull function", () => {
+  it("postive Test", async () => {
+    await testGitFetchPull(true);
+    // no exception thrown
+  });
+  it("negative Test", async () => {
+    try {
+      await testGitFetchPull(false);
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e).toBeDefined();
+    }
+  });
+});
+
+const testGitCheckout = async (positive: boolean) => {
+  const { sourcePath } = await getMockedDataForGitTests(positive);
+  if (!positive || fs.existsSync(path.join(sourcePath, ".git"))) {
+    await gitCheckout(sourcePath, "v0.0.1");
+  }
+};
+
+describe("test gitCheckout function", () => {
+  it("postive Test", async () => {
+    await testGitCheckout(true);
+    // no exception thrown
+  });
+  it("negative Test", async () => {
+    try {
+      await testGitCheckout(false);
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e).toBeDefined();
+    }
+  });
+});
+
+describe("test gitClone function", () => {
+  it("postive Test", async () => {
+    const git = simpleGit();
+    git.clone = async () => {
+      return "ok";
+    };
+    await gitClone(git, "source", "path");
+    // no exception thrown
+  });
+  it("negative Test", async () => {
+    const git = simpleGit();
+    git.clone = async () => {
+      throw new Error("Error");
+    };
+    try {
+      await gitClone(git, "source", "path");
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e.message).toBe("Error");
+    }
+  });
+});
+
+describe("Validate remote git source", () => {
+  test("Validating that a git source is cloned to .spk/templates", async () => {
+    jest
+      .spyOn(generate, "checkRemoteGitExist")
+      .mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "gitFetchPull").mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "gitCheckout").mockReturnValueOnce(Promise.resolve());
+
+    const mockParentPath = "src/commands/infra/mocks/discovery-service";
+    const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
+    const sourceConfiguration = validateDefinition(
+      mockParentPath,
+      mockProjectPath
+    );
+    const source = validateTemplateSources(
+      sourceConfiguration,
+      mockParentPath,
+      mockProjectPath
+    );
+    try {
+      await validateRemoteSource(source);
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeDefined();
+    }
+  });
+});
+
+jest.spyOn(generate, "gitClone").mockReturnValue(Promise.resolve());
+jest.spyOn(generate, "createGenerated").mockReturnValue();
+jest.spyOn(generate, "checkTfvars").mockReturnValue();
+jest.spyOn(generate, "writeTfvarsFile").mockReturnValue();
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// --- end git tests
+//
+//////////////////////////////////////////////////////////////////////////////
+
 describe("fetch execute function", () => {
   it("negative time, expected exit code to be 1", async () => {
+    const exitFn = jest.fn();
+    await execute(
+      {
+        output: "",
+        project: "test"
+      },
+      exitFn
+    );
+
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
+  it("negative time, simulate error in generateConfig function", async () => {
+    jest
+      .spyOn(generate, "validateDefinition")
+      .mockReturnValueOnce(DefinitionYAMLExistence.PARENT_ONLY);
+    jest.spyOn(generate, "validateTemplateSources").mockReturnValueOnce({});
+    jest
+      .spyOn(generate, "validateRemoteSource")
+      .mockReturnValueOnce(Promise.resolve());
+    jest
+      .spyOn(infraCommon, "getSourceFolderNameFromURL")
+      .mockImplementationOnce(() => {
+        throw new Error("Fake");
+      });
     const exitFn = jest.fn();
     await execute(
       {
@@ -488,135 +654,6 @@ const getMockedDataForGitTests = async (
     sourcePath
   };
 };
-
-const testCheckRemoteGitExist = async (positive: boolean) => {
-  const { safeLoggingUrl, source, sourcePath } = await getMockedDataForGitTests(
-    positive
-  );
-  if (!fs.existsSync(sourcePath)) {
-    createGenerated(sourcePath);
-  }
-  await checkRemoteGitExist(sourcePath, source, safeLoggingUrl);
-};
-
-describe("test checkRemoteGitExist function", () => {
-  it("postive Test", async () => {
-    await testCheckRemoteGitExist(true);
-    // no exception thrown
-  });
-  // cannot do negative test because it will take too long
-  // and timeout
-  xit("negative Test", async () => {
-    try {
-      await testCheckRemoteGitExist(false);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e).toBeDefined();
-    }
-  });
-});
-
-const testGitFetchPull = async (positive: boolean) => {
-  const { safeLoggingUrl, sourcePath } = await getMockedDataForGitTests(
-    positive
-  );
-  if (!positive || fs.existsSync(path.join(sourcePath, ".git"))) {
-    await gitFetchPull(sourcePath, safeLoggingUrl);
-  }
-};
-
-describe("test gitFetchPull function", () => {
-  it("postive Test", async () => {
-    await testGitFetchPull(true);
-    // no exception thrown
-  });
-  it("negative Test", async () => {
-    try {
-      await testGitFetchPull(false);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e).toBeDefined();
-    }
-  });
-});
-
-const testGitCheckout = async (positive: boolean) => {
-  const { sourcePath } = await getMockedDataForGitTests(positive);
-  if (!positive || fs.existsSync(path.join(sourcePath, ".git"))) {
-    await gitCheckout(sourcePath, "v0.0.1");
-  }
-};
-
-describe("test gitCheckout function", () => {
-  it("postive Test", async () => {
-    await testGitCheckout(true);
-    // no exception thrown
-  });
-  it("negative Test", async () => {
-    try {
-      await testGitCheckout(false);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e).toBeDefined();
-    }
-  });
-});
-
-describe("test gitClone function", () => {
-  it("postive Test", async () => {
-    const git = simpleGit();
-    git.clone = async () => {
-      return "ok";
-    };
-    await gitClone(git, "source", "path");
-    // no exception thrown
-  });
-  it("negative Test", async () => {
-    const git = simpleGit();
-    git.clone = async () => {
-      throw new Error("Error");
-    };
-    try {
-      await gitClone(git, "source", "path");
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e.message).toBe("Error");
-    }
-  });
-});
-
-describe("Validate remote git source", () => {
-  test("Validating that a git source is cloned to .spk/templates", async () => {
-    jest
-      .spyOn(generate, "checkRemoteGitExist")
-      .mockReturnValueOnce(Promise.resolve());
-    jest.spyOn(generate, "gitFetchPull").mockReturnValueOnce(Promise.resolve());
-    jest.spyOn(generate, "gitCheckout").mockReturnValueOnce(Promise.resolve());
-
-    const mockParentPath = "src/commands/infra/mocks/discovery-service";
-    const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
-    const sourceConfiguration = validateDefinition(
-      mockParentPath,
-      mockProjectPath
-    );
-    const source = validateTemplateSources(
-      sourceConfiguration,
-      mockParentPath,
-      mockProjectPath
-    );
-    try {
-      await validateRemoteSource(source);
-      expect(true).toBe(false);
-    } catch (err) {
-      expect(err).toBeDefined();
-    }
-  });
-});
-
-jest.spyOn(generate, "gitClone").mockReturnValue(Promise.resolve());
-jest.spyOn(generate, "createGenerated").mockReturnValue();
-jest.spyOn(generate, "checkTfvars").mockReturnValue();
-jest.spyOn(generate, "writeTfvarsFile").mockReturnValue();
 
 describe("Validate replacement of variables between parent and leaf definitions", () => {
   test("Validating that leaf definitions take precedence when generating multi-cluster definitions", async () => {

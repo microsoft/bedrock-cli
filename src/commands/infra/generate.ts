@@ -340,138 +340,130 @@ export const generateConfig = async (
   } else {
     parentDirectory = parentPath + "-generated";
   }
-  try {
-    const source = sourceConfig.source!;
-    const sourceFolder = getSourceFolderNameFromURL(source);
-    const templatePath = path.join(
-      spkTemplatesPath,
-      sourceFolder,
-      sourceConfig.template!
-    );
-    const childDirectory = path.join(parentDirectory, projectPath);
-    if (definitionConfig === DefinitionYAMLExistence.BOTH_EXIST) {
-      /* First, search for definition.yaml in current working directory.
-         If there exists a definition.yaml, then read file. */
-      const parentInfraConfig = getDefinitionYaml(parentPath);
-      const leafInfraConfig = getDefinitionYaml(projectPath);
 
-      /* Iterate through parent and leaf JSON objects to find matches
-      If there is a match, then replace parent key-value
-      If there is no match between the parent and leaf,
-      then append leaf key-value */
+  const source = sourceConfig.source!;
+  const sourceFolder = getSourceFolderNameFromURL(source);
+  const templatePath = path.join(
+    spkTemplatesPath,
+    sourceFolder,
+    sourceConfig.template!
+  );
+  const childDirectory = path.join(parentDirectory, projectPath);
+  if (definitionConfig === DefinitionYAMLExistence.BOTH_EXIST) {
+    /* First, search for definition.yaml in current working directory.
+        If there exists a definition.yaml, then read file. */
+    const parentInfraConfig = getDefinitionYaml(parentPath);
+    const leafInfraConfig = getDefinitionYaml(projectPath);
 
-      /* if the "--project" argument is not specified, then it is assumed
-       that the current working directory is the project path. */
-      if (projectPath === parentPath) {
-        createGenerated(parentDirectory);
-        if (parentInfraConfig.variables) {
-          const spkTfvarsObject = generateTfvars(parentInfraConfig.variables);
-          checkTfvars(parentDirectory, SPK_TFVARS);
-          writeTfvarsFile(spkTfvarsObject, parentDirectory, SPK_TFVARS);
-          await copyTfTemplate(templatePath, parentDirectory, true);
-        } else {
-          logger.warning(`Variables are not defined in the definition.yaml`);
-        }
-        if (parentInfraConfig.backend) {
-          const backendTfvarsObject = generateTfvars(parentInfraConfig.backend);
-          checkTfvars(parentDirectory, BACKEND_TFVARS);
-          writeTfvarsFile(backendTfvarsObject, parentDirectory, BACKEND_TFVARS);
-        } else {
-          logger.warning(
-            `A remote backend configuration is not defined in the definition.yaml`
-          );
-        }
-        // "--project" argument IS specified and is different than cwd
+    /* Iterate through parent and leaf JSON objects to find matches
+    If there is a match, then replace parent key-value
+    If there is no match between the parent and leaf,
+    then append leaf key-value */
+
+    /* if the "--project" argument is not specified, then it is assumed
+      that the current working directory is the project path. */
+    if (projectPath === parentPath) {
+      createGenerated(parentDirectory);
+      if (parentInfraConfig.variables) {
+        const spkTfvarsObject = generateTfvars(parentInfraConfig.variables);
+        checkTfvars(parentDirectory, SPK_TFVARS);
+        writeTfvarsFile(spkTfvarsObject, parentDirectory, SPK_TFVARS);
+        await copyTfTemplate(templatePath, parentDirectory, true);
       } else {
-        createGenerated(parentDirectory);
-        // Then, create generated child directory
-        createGenerated(childDirectory);
+        logger.warning(`Variables are not defined in the definition.yaml`);
       }
-      if (typeof parentInfraConfig !== "undefined") {
-        if (leafInfraConfig) {
-          const finalDefinition = dirIteration(
-            parentInfraConfig.variables,
-            leafInfraConfig.variables
-          );
-          // Generate Terraform files in generated directory
-          const combinedSpkTfvarsObject = generateTfvars(finalDefinition);
-          // Write variables to  `spk.tfvars` file
-          checkTfvars(childDirectory, SPK_TFVARS);
-          writeTfvarsFile(combinedSpkTfvarsObject, childDirectory, SPK_TFVARS);
-
-          // Create a backend.tfvars for remote backend configuration
-          if (parentInfraConfig.backend && leafInfraConfig.backend) {
-            const finalBackendDefinition = dirIteration(
-              parentInfraConfig.backend,
-              leafInfraConfig.backend
-            );
-            const backendTfvarsObject = generateTfvars(finalBackendDefinition);
-            checkTfvars(childDirectory, BACKEND_TFVARS);
-            writeTfvarsFile(
-              backendTfvarsObject,
-              childDirectory,
-              BACKEND_TFVARS
-            );
-          }
-        }
+      if (parentInfraConfig.backend) {
+        const backendTfvarsObject = generateTfvars(parentInfraConfig.backend);
+        checkTfvars(parentDirectory, BACKEND_TFVARS);
+        writeTfvarsFile(backendTfvarsObject, parentDirectory, BACKEND_TFVARS);
       } else {
-        if (leafInfraConfig.variables) {
-          /* If there is not a variables block in the parent definition.yaml,
-           then assume the variables are taken from leaf definitions */
-          const spkTfvarsObject = generateTfvars(leafInfraConfig.variables);
-          // Write variables to  `spk.tfvars` file
-          checkTfvars(childDirectory, SPK_TFVARS);
-          writeTfvarsFile(spkTfvarsObject, childDirectory, SPK_TFVARS);
-          await copyTfTemplate(templatePath, childDirectory, true);
-        } else {
-          logger.warning(`Variables are not defined in the definition.yaml`);
-        }
-        // If there is no backend block specified in the parent definition.yaml,
-        // then create a backend based on the leaf definition.yaml
-        if (leafInfraConfig.backend) {
-          const backendTfvarsObject = generateTfvars(leafInfraConfig.backend);
+        logger.warning(
+          `A remote backend configuration is not defined in the definition.yaml`
+        );
+      }
+      // "--project" argument IS specified and is different than cwd
+    } else {
+      createGenerated(parentDirectory);
+      // Then, create generated child directory
+      createGenerated(childDirectory);
+    }
+    if (typeof parentInfraConfig !== "undefined") {
+      if (leafInfraConfig) {
+        const finalDefinition = dirIteration(
+          parentInfraConfig.variables,
+          leafInfraConfig.variables
+        );
+        // Generate Terraform files in generated directory
+        const combinedSpkTfvarsObject = generateTfvars(finalDefinition);
+        // Write variables to  `spk.tfvars` file
+        checkTfvars(childDirectory, SPK_TFVARS);
+        writeTfvarsFile(combinedSpkTfvarsObject, childDirectory, SPK_TFVARS);
+
+        // Create a backend.tfvars for remote backend configuration
+        if (parentInfraConfig.backend && leafInfraConfig.backend) {
+          const finalBackendDefinition = dirIteration(
+            parentInfraConfig.backend,
+            leafInfraConfig.backend
+          );
+          const backendTfvarsObject = generateTfvars(finalBackendDefinition);
           checkTfvars(childDirectory, BACKEND_TFVARS);
           writeTfvarsFile(backendTfvarsObject, childDirectory, BACKEND_TFVARS);
-        } else {
-          logger.warning(
-            `A remote backend configuration is not defined in the definition.yaml`
-          );
         }
       }
-      await copyTfTemplate(templatePath, childDirectory, true);
-    } else if (definitionConfig === DefinitionYAMLExistence.PARENT_ONLY) {
-      const parentInfraConfig = getDefinitionYaml(parentPath);
-      if (projectPath === parentPath) {
-        createGenerated(parentDirectory);
-        if (parentInfraConfig.variables) {
-          const spkTfvarsObject = generateTfvars(parentInfraConfig.variables);
-          checkTfvars(parentDirectory, SPK_TFVARS);
-          writeTfvarsFile(spkTfvarsObject, parentDirectory, SPK_TFVARS);
-          await copyTfTemplate(templatePath, parentDirectory, true);
-        } else {
-          logger.warning(`Variables are not defined in the ${DEFINITION_YAML}`);
-        }
-        if (parentInfraConfig.backend) {
-          const backendTfvarsObject = generateTfvars(parentInfraConfig.backend);
-          checkTfvars(parentDirectory, BACKEND_TFVARS);
-          writeTfvarsFile(backendTfvarsObject, parentDirectory, BACKEND_TFVARS);
-        } else {
-          logger.warning(
-            `A remote backend configuration is not defined in the definition.yaml`
-          );
-        }
+    } else {
+      if (leafInfraConfig.variables) {
+        /* If there is not a variables block in the parent definition.yaml,
+          then assume the variables are taken from leaf definitions */
+        const spkTfvarsObject = generateTfvars(leafInfraConfig.variables);
+        // Write variables to  `spk.tfvars` file
+        checkTfvars(childDirectory, SPK_TFVARS);
+        writeTfvarsFile(spkTfvarsObject, childDirectory, SPK_TFVARS);
+        await copyTfTemplate(templatePath, childDirectory, true);
       } else {
-        await singleDefinitionGeneration(
-          parentInfraConfig,
-          parentDirectory,
-          childDirectory,
-          templatePath
+        logger.warning(`Variables are not defined in the definition.yaml`);
+      }
+      // If there is no backend block specified in the parent definition.yaml,
+      // then create a backend based on the leaf definition.yaml
+      if (leafInfraConfig.backend) {
+        const backendTfvarsObject = generateTfvars(leafInfraConfig.backend);
+        checkTfvars(childDirectory, BACKEND_TFVARS);
+        writeTfvarsFile(backendTfvarsObject, childDirectory, BACKEND_TFVARS);
+      } else {
+        logger.warning(
+          `A remote backend configuration is not defined in the definition.yaml`
         );
       }
     }
-    // TODO: handle definitionConfig === DefinitionYAMLExistence.LEAF_ONLY
-  } catch (err) {
-    return err;
+    await copyTfTemplate(templatePath, childDirectory, true);
+  } else if (definitionConfig === DefinitionYAMLExistence.PARENT_ONLY) {
+    const parentInfraConfig = getDefinitionYaml(parentPath);
+    if (projectPath === parentPath) {
+      createGenerated(parentDirectory);
+      if (parentInfraConfig.variables) {
+        const spkTfvarsObject = generateTfvars(parentInfraConfig.variables);
+        checkTfvars(parentDirectory, SPK_TFVARS);
+        writeTfvarsFile(spkTfvarsObject, parentDirectory, SPK_TFVARS);
+        await copyTfTemplate(templatePath, parentDirectory, true);
+      } else {
+        logger.warning(`Variables are not defined in the ${DEFINITION_YAML}`);
+      }
+      if (parentInfraConfig.backend) {
+        const backendTfvarsObject = generateTfvars(parentInfraConfig.backend);
+        checkTfvars(parentDirectory, BACKEND_TFVARS);
+        writeTfvarsFile(backendTfvarsObject, parentDirectory, BACKEND_TFVARS);
+      } else {
+        logger.warning(
+          `A remote backend configuration is not defined in the definition.yaml`
+        );
+      }
+    } else {
+      await singleDefinitionGeneration(
+        parentInfraConfig,
+        parentDirectory,
+        childDirectory,
+        templatePath
+      );
+    }
   }
 };
 
@@ -489,21 +481,17 @@ export const singleDefinitionGeneration = async (
   childDirectory: string,
   templatePath: string
 ): Promise<void> => {
-  try {
-    createGenerated(parentDirectory);
-    createGenerated(childDirectory);
-    const spkTfvarsObject = generateTfvars(infraConfig.variables);
-    checkTfvars(childDirectory, SPK_TFVARS);
-    writeTfvarsFile(spkTfvarsObject, childDirectory, SPK_TFVARS);
-    if (infraConfig.backend) {
-      const backendTfvarsObject = generateTfvars(infraConfig.backend);
-      checkTfvars(childDirectory, BACKEND_TFVARS);
-      writeTfvarsFile(backendTfvarsObject, childDirectory, BACKEND_TFVARS);
-    }
-    await copyTfTemplate(templatePath, childDirectory, true);
-  } catch (err) {
-    return err;
+  createGenerated(parentDirectory);
+  createGenerated(childDirectory);
+  const spkTfvarsObject = generateTfvars(infraConfig.variables);
+  checkTfvars(childDirectory, SPK_TFVARS);
+  writeTfvarsFile(spkTfvarsObject, childDirectory, SPK_TFVARS);
+  if (infraConfig.backend) {
+    const backendTfvarsObject = generateTfvars(infraConfig.backend);
+    checkTfvars(childDirectory, BACKEND_TFVARS);
+    writeTfvarsFile(backendTfvarsObject, childDirectory, BACKEND_TFVARS);
   }
+  await copyTfTemplate(templatePath, childDirectory, true);
 };
 
 /**
