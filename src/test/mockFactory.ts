@@ -344,6 +344,7 @@ export const createTestHldLifecyclePipelineYaml = (
           "Download Fabrikate and SPK, Update HLD, Push changes, Open PR",
         env: {
           ACCESS_TOKEN_SECRET: "$(PAT)",
+          APP_REPO_URL: "$(Build.Repository.Uri)",
           AZURE_DEVOPS_EXT_PAT: "$(PAT)",
           REPO: "$(HLD_REPO)"
         }

@@ -149,8 +149,11 @@ export const getOriginUrl = async (
 
 export const getAzdoOriginUrl = async (): Promise<string> => {
   try {
-    const originUrl = await exec("echo", ["$(Build.Repository.Uri)"]);
+    if (!process.env.APP_REPO_URL) {
+      throw new Error("Not running in a pipeline - no AzDO variables.");
+    }
 
+    const originUrl = process.env.APP_REPO_URL;
     const safeLoggingUrl = safeGitUrlForLogging(originUrl);
     logger.debug(`Got azdo git origin url ${safeLoggingUrl}`);
     return originUrl;

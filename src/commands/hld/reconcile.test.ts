@@ -1,4 +1,3 @@
-import { when } from "jest-when";
 import { create as createBedrockYaml } from "../../lib/bedrockYaml";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 
@@ -20,11 +19,7 @@ import {
 } from "./reconcile";
 import * as reconcile from "./reconcile";
 
-import { getAzdoOriginUrl, getOriginUrl } from "../../lib/gitutils";
-
 import { IBedrockFile, IBedrockServiceConfig } from "../../types";
-
-jest.mock("../../lib/gitutils");
 
 beforeAll(() => {
   enableVerboseLogging();

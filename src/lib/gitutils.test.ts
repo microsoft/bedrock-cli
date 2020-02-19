@@ -213,12 +213,13 @@ describe("pushBranch", () => {
 });
 
 describe("tryGetGitOrigin", () => {
+  afterEach(() => {
+    delete process.env.APP_REPO_URL;
+  });
+
   it("attempts to retrieve azdo git origin", async () => {
     const originUrl = "http://github.com/repo/url";
-
-    when(exec as jest.Mock)
-      .calledWith("echo", ["$(Build.Repository.Uri)"])
-      .mockReturnValue(originUrl);
+    process.env.APP_REPO_URL = originUrl;
 
     const originUrlResponse = await tryGetGitOrigin();
     expect(originUrlResponse).toEqual(originUrl);
@@ -226,10 +227,8 @@ describe("tryGetGitOrigin", () => {
 
   it("attempts to retrieve git origin from using git cli", async () => {
     const originUrl = "http://github.com/repo/url";
-    // Echoing variable from AzDo fails… trying Git
-    when(exec as jest.Mock)
-      .calledWith("echo", ["$(Build.Repository.Uri)"])
-      .mockRejectedValue("some reason");
+    // Echoing variable from AzDo should fail trying Git
+    delete process.env.APP_REPO_URL;
 
     // Retrieving url from Git succeeds
     when(exec as jest.Mock)
@@ -298,25 +297,20 @@ describe("getOriginUrl", () => {
 });
 
 describe("getAzdoOriginUrl", () => {
-  it("should call exec with the proper git arguments", async () => {
+  afterEach(() => {
+    delete process.env.APP_REPO_URL;
+  });
+
+  it("should use the repo url from environment", async () => {
     const originUrl = "foo";
 
-    when(exec as jest.Mock)
-      .calledWith("echo", ["$(Build.Repository.Uri)"])
-      .mockReturnValue(originUrl);
-
+    process.env.APP_REPO_URL = originUrl;
     const originUrlResponse = await getAzdoOriginUrl();
 
     expect(originUrlResponse).toEqual(originUrl);
-    expect(exec).toHaveBeenCalledTimes(1);
-    expect(exec).toHaveBeenCalledWith("echo", ["$(Build.Repository.Uri)"]);
   });
 
-  it("should return an error when exec throws an error", async () => {
-    (exec as jest.Mock).mockImplementation(() => {
-      throw new Error("sample error.");
-    });
-
+  it("should return an error when repo url doesnt exist in env", async () => {
     let error: Error | undefined;
     try {
       await getAzdoOriginUrl();
