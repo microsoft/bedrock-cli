@@ -9,11 +9,11 @@ principles.
 
 The three core areas of `spk` are:
 
-- [Service Introspection](./docs/service-introspection.md)
-- [Service Management](./docs/service-management.md)
-- [Cloud Infra Management](./docs/cloud-infra-management.md)
+- [Service Introspection](./guides/service-introspection.md)
+- [Service Management](./guides/service-management.md)
+- [Cloud Infra Management](./guides/cloud-infra-management.md)
 
-![spk diagram](./docs/images/spk.png)
+![spk diagram](./guides/images/spk.png)
 
 For more information on the end-to-end experience of using Bedrock principles
 refer to:
@@ -54,18 +54,18 @@ Commands:
 
 ## `spk` commands docs
 
-- [spk deployment](./docs/service-introspection.md)
-- [spk hld](./docs/hld-management.md)
-- [spk infra](./docs/cloud-infra-management.md)
-- [spk init](./docs/init.md)
-- [spk project](./docs/project-management.md)
-- [spk service](./docs/service-management.md)
-- [spk variable-group](./docs/variable-group.md)
+- [spk deployment](./guides/service-introspection.md)
+- [spk hld](./guides/hld-management.md)
+- [spk infra](./guides/cloud-infra-management.md)
+- [spk init](./guides/init.md)
+- [spk project](./guides/project-management.md)
+- [spk service](./guides/service-management.md)
+- [spk variable-group](./guides/variable-group.md)
 
 ## Getting Started
 
 To utilize `spk` as your bedrock project and service management tool, follow the
-[Managing a bedrock project with spk guide](/docs/project-service-management-guide.md).
+[Managing a bedrock project with spk guide](./guides/project-service-management-guide.md).
 
 Otherwise, generally:
 
@@ -138,4 +138,4 @@ to define them instead.
 
 ## Contributing
 
-[Contributing to spk](./docs/contributing.md).
+[Contributing to spk](./guides/contributing.md).
