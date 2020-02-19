@@ -127,8 +127,20 @@ export const getOriginUrl = async (
     const safeLoggingUrl = safeGitUrlForLogging(originUrl);
     logger.debug(`Got git origin url ${safeLoggingUrl}`);
     return originUrl;
-  } catch (_) {
-    throw Error(`Unable to get git origin URL.: ` + _);
+  } catch (error) {
+    throw Error(`Unable to get git origin URL: ${error}`);
+  }
+};
+
+export const getAzdoOriginUrl = async (): Promise<string> => {
+  try {
+    const originUrl = await exec("echo", ["$(Build.Repository.Uri)"]);
+
+    const safeLoggingUrl = safeGitUrlForLogging(originUrl);
+    logger.debug(`Got azdo git origin url ${safeLoggingUrl}`);
+    return originUrl;
+  } catch (error) {
+    throw Error(`Unable to get azdo origin URL: ${error}`);
   }
 };
 

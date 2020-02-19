@@ -1,3 +1,4 @@
+import { when } from "jest-when";
 import { create as createBedrockYaml } from "../../lib/bedrockYaml";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 
@@ -15,11 +16,16 @@ import {
   IReconcileDependencies,
   reconcileHld,
   testAndGetAbsPath,
+  tryGetGitOrigin,
   validateInputs
 } from "./reconcile";
 import * as reconcile from "./reconcile";
 
+import { getAzdoOriginUrl, getOriginUrl } from "../../lib/gitutils";
+
 import { IBedrockFile, IBedrockServiceConfig } from "../../types";
+
+jest.mock("../../lib/gitutils");
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -95,6 +101,31 @@ describe("checkForFabrikate", () => {
     expect(() => {
       checkForFabrikate(which);
     }).not.toThrow();
+  });
+});
+
+describe("tryGetGitOrigin", () => {
+  it("attempts to retrieve azdo git origin", async () => {
+    const originUrl = "http://github.com/repo/url";
+
+    (getAzdoOriginUrl as jest.Mock).mockReturnValue(originUrl);
+
+    const originUrlResponse = await tryGetGitOrigin();
+    expect(originUrlResponse).toEqual(originUrl);
+    expect(getAzdoOriginUrl).toHaveBeenCalledTimes(1);
+  });
+
+  it("attempts to retrieve git origin from using git cli", async () => {
+    const originUrl = "http://github.com/repo/url";
+    (getAzdoOriginUrl as jest.Mock).mockRejectedValue("some reason");
+
+    (getOriginUrl as jest.Mock).mockReturnValue(originUrl);
+
+    const originUrlResponse = await tryGetGitOrigin();
+
+    expect(originUrlResponse).toEqual(originUrl);
+    expect(getAzdoOriginUrl).toHaveBeenCalledTimes(1);
+    expect(getOriginUrl).toHaveBeenCalledTimes(1);
   });
 });
 

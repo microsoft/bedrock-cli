@@ -3,6 +3,7 @@ import {
   checkoutBranch,
   commitPath,
   deleteBranch,
+  getAzdoOriginUrl,
   getCurrentBranch,
   getOriginUrl,
   getPullRequestLink,
@@ -229,7 +230,7 @@ describe("getOriginUrl", () => {
     );
   });
 
-  it("should call exec with the proper git arguments", async () => {
+  it("should call exec with the proper git arguments with a repo path", async () => {
     const originUrl = "foo";
     const repoPath = "/repo/path";
 
@@ -258,6 +259,37 @@ describe("getOriginUrl", () => {
     let error: Error | undefined;
     try {
       await getOriginUrl();
+    } catch (_) {
+      error = _;
+    }
+
+    expect(error).not.toBeUndefined();
+  });
+});
+
+describe("getAzdoOriginUrl", () => {
+  it("should call exec with the proper git arguments", async () => {
+    const originUrl = "foo";
+
+    when(exec as jest.Mock)
+      .calledWith("echo", ["$(Build.Repository.Uri)"])
+      .mockReturnValue(originUrl);
+
+    const originUrlResponse = await getAzdoOriginUrl();
+
+    expect(originUrlResponse).toEqual(originUrl);
+    expect(exec).toHaveBeenCalledTimes(1);
+    expect(exec).toHaveBeenCalledWith("echo", ["$(Build.Repository.Uri)"]);
+  });
+
+  it("should return an error when exec throws an error", async () => {
+    (exec as jest.Mock).mockImplementation(() => {
+      throw new Error("sample error.");
+    });
+
+    let error: Error | undefined;
+    try {
+      await getAzdoOriginUrl();
     } catch (_) {
       error = _;
     }

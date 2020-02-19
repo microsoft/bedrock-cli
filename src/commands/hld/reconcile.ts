@@ -5,12 +5,11 @@ import yaml from "js-yaml";
 import path from "path";
 import process from "process";
 import shelljs, { TestOptions } from "shelljs";
-import url from "url";
 import { Bedrock } from "../../config";
 import { assertIsStringWithContent } from "../../lib/assertions";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { generateAccessYaml } from "../../lib/fileutils";
-import { getOriginUrl } from "../../lib/gitutils";
+import { getAzdoOriginUrl, getOriginUrl } from "../../lib/gitutils";
 import { TraefikIngressRoute } from "../../lib/traefik/ingress-route";
 import {
   ITraefikMiddleware,
@@ -170,7 +169,7 @@ export const execute = async (
       createStaticComponent,
       exec: execAndLog,
       generateAccessYaml,
-      getGitOrigin: getOriginUrl,
+      getGitOrigin: tryGetGitOrigin,
       test: shelljs.test,
       writeFile: writeFileSync
     };
@@ -211,6 +210,17 @@ export const commandDecorator = (command: commander.Command) => {
   );
 };
 
+export const tryGetGitOrigin = async (
+  absRepoPath?: string
+): Promise<string> => {
+  return getAzdoOriginUrl().catch(_ => {
+    logger.warn(
+      "Could not get Git Origin for Azure DevOps - are you running 'spk' _not_ in a pipeline?"
+    );
+    return getOriginUrl(absRepoPath);
+  });
+};
+
 export const reconcileHld = async (
   dependencies: IReconcileDependencies,
   bedrockYaml: IBedrockFile,
@@ -231,7 +241,7 @@ export const reconcileHld = async (
   // Repository in HLD ie /path/to/hld/repositoryName/
   const absRepositoryInHldPath = path.join(absHldPath, repositoryName);
 
-  // Create access.yaml containing the bedrock application repo's URL in access.yaml.
+  // Create access.yaml containing the bedrock application repo's URL in
   await dependencies.createAccessYaml(
     dependencies.getGitOrigin,
     dependencies.generateAccessYaml,
