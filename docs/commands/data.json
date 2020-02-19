@@ -14,7 +14,7 @@
         "defaultValue": false
       }
     ],
-    "markdown": "This command creates a configuration file, `config.yaml` in a folder `.spk`\nunder your home directory. There are two options for creating this file\n\n1. an interactive mode where you have to answer a few questions; and\n2. you provide a `yaml` file and this `yaml` will be copied to the target\n   location.\n\n## Interactive mode\nThe command line tool attempts to read `config.yaml` in a folder `.spk`\nunder your home directory. Configuration values shall be read from it if \nit exists. And these values shall be default values for the questions.\nOtherwise, there shall be no default values. These are the questions\n\n1. Organization Name of Azure dev-op account\n2. Project Name of Azure dev-op account\n3. Personal Access Token (guides)\n\nThis tool shall verify these values by making an API call to\nAzure dev-op. They shall be written to `config.yaml` regardless\nthe verification is successful or not. \n\n> Note: In the event that you \ndo not have internet connection, this verification shall not be possible\n\n## Example\n\n```\nspk init --interactive\n```\n\nor\n\n```\nspk init --file myConfig.yaml\n```\n"
+    "markdown": "This command creates a configuration file, `config.yaml` in a folder `.spk`\nunder your home directory. There are two options for creating this file\n\n1. an interactive mode where you have to answer a few questions; and\n2. you provide a `yaml` file and this `yaml` will be copied to the target\n   location.\n\n## Interactive mode\n\nThe command line tool attempts to read `config.yaml` in a folder `.spk` under\nyour home directory. Configuration values shall be read from it if it exists.\nAnd these values shall be default values for the questions. Otherwise, there\nshall be no default values. These are the questions\n\n1. Organization Name of Azure dev-op account\n2. Project Name of Azure dev-op account\n3. Personal Access Token (guides)\n\nThis tool shall verify these values by making an API call to Azure dev-op. They\nshall be written to `config.yaml` regardless the verification is successful or\nnot.\n\n> Note: In the event that you do not have internet connection, this verification\n> shall not be possible\n\n## Example\n\n```\nspk init --interactive\n```\n\nor\n\n```\nspk init --file myConfig.yaml\n```\n"
   },
   "deployment create": {
     "command": "create",
@@ -287,6 +287,12 @@
         "arg": "-b, --build-script-url <build-script-url>",
         "description": "Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'.",
         "defaultValue": "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh"
+      },
+      {
+        "arg": "--yaml-file-branch <yaml-file-branch>",
+        "description": "The git branch where the pipeline definition yaml file is located.",
+        "required": false,
+        "defaultValue": "master"
       }
     ]
   },
@@ -443,6 +449,12 @@
         "arg": "-b, --build-script-url <build-script-url>",
         "description": "Build Script URL. By default it is https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh.",
         "required": true
+      },
+      {
+        "arg": "--yaml-file-branch <yaml-file-branch>",
+        "description": "The git branch where the pipeline definition yaml file is located.",
+        "required": false,
+        "defaultValue": "master"
       }
     ]
   },
@@ -606,6 +618,12 @@
       {
         "arg": "-l, --packages-dir <packages-dir>",
         "description": "The mono-repository directory containing this service definition. ie. '--packages-dir packages' if my-service is located under ./packages/my-service. Omitting this option implies this is a not a mono-repository."
+      },
+      {
+        "arg": "--yaml-file-branch <yaml-file-branch>",
+        "description": "The git branch where the pipeline definition yaml file is located.",
+        "required": false,
+        "defaultValue": "master"
       }
     ]
   },
