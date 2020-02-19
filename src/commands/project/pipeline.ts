@@ -162,6 +162,10 @@ const createPipeline = async (
     yamlFilePath: PROJECT_PIPELINE_FILENAME // Pipeline definition lives in root directory.
   });
 
+  logger.info(
+    `Attempting to create new pipeline: ${values.pipelineName} defined in repository:${values.repoUrl}, branch: ${values.yamlFileBranch}, filePath: ${PROJECT_PIPELINE_FILENAME}`
+  );
+
   try {
     return await createPipelineForDefinition(
       devopsClient,

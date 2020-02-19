@@ -137,6 +137,10 @@ export const installHldToManifestPipeline = async (values: ICommandOptions) => {
     yamlFilePath: RENDER_HLD_PIPELINE_FILENAME
   } as IAzureRepoPipelineConfig);
 
+  logger.info(
+    `Attempting to create new pipeline: ${values.pipelineName} defined in repository:${values.hldUrl}, branch: ${values.yamlFileBranch}, filePath: ${RENDER_HLD_PIPELINE_FILENAME}`
+  );
+
   try {
     builtDefinition = await createPipelineForDefinition(
       devopsClient as IBuildApi,

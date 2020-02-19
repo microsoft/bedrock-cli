@@ -125,6 +125,11 @@ export const installBuildUpdatePipeline = async (
         values.devopsProject
       }' with definition '${JSON.stringify(definition)}'`
     );
+
+    logger.info(
+      `Attempting to create new pipeline: ${values.pipelineName} defined in repository:${values.repoUrl}, branch: ${values.yamlFileBranch}, filePath: ${yamlFilePath}`
+    );
+
     builtDefinition = await createPipelineForDefinition(
       devopsClient,
       values.devopsProject,
