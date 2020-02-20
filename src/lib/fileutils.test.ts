@@ -74,7 +74,7 @@ describe("generateAccessYaml", () => {
     mockFs.restore();
   });
 
-  it("should generate the access.yaml in the filepath.", async () => {
+  it("if no access.yaml exists, it should generate the access.yaml in the filepath.", async () => {
     const absTargetPath = path.resolve(
       path.join(targetDirectory, serviceDirectory)
     );
@@ -84,6 +84,61 @@ describe("generateAccessYaml", () => {
 
     const accessYaml: IAccessYaml = {};
     accessYaml[gitRepoUrl] = "ACCESS_TOKEN_SECRET";
+
+    generateAccessYaml(absTargetPath, gitRepoUrl);
+
+    expect(writeSpy).toBeCalledWith(
+      expectedFilePath,
+      yaml.safeDump(accessYaml),
+      "utf8"
+    );
+    expect(writeSpy).toBeCalled();
+  });
+
+  it("if an access.yaml already exists, it should update access.yaml in the filepath", async () => {
+    const mockFsOptions = {
+      [`${targetDirectory}/${serviceDirectory}/${ACCESS_FILENAME}`]: "'https://fabrikam@dev.azure.com/someorg/someproject/_git/fabrikam2019': ACCESS_TOKEN_SECRET"
+    };
+    mockFs(mockFsOptions);
+
+    const absTargetPath = path.resolve(
+      path.join(targetDirectory, serviceDirectory)
+    );
+    const expectedFilePath = path.join(absTargetPath, ACCESS_FILENAME);
+    const gitRepoUrl =
+      "https://fabrikam@dev.azure.com/someorg/someproject/_git/fabrikam2019";
+
+    const gitRepoUrl2 =
+      "https://fabrikam@dev.azure.com/someorg/someproject/_git/private-helm-repo";
+    const accessYaml: IAccessYaml = {};
+    accessYaml[gitRepoUrl2] = "ACCESS_TOKEN_SECRET";
+    accessYaml[gitRepoUrl] = "ACCESS_TOKEN_SECRET";
+
+    generateAccessYaml(absTargetPath, gitRepoUrl2);
+
+    expect(writeSpy).toBeCalledWith(
+      expectedFilePath,
+      yaml.safeDump(accessYaml),
+      "utf8"
+    );
+    expect(writeSpy).toBeCalled();
+  });
+
+  it("if an access.yaml already exists, it should update access.yaml in the filepath, but not overwrite anything that exists.", async () => {
+    const mockFsOptions = {
+      [`${targetDirectory}/${serviceDirectory}/${ACCESS_FILENAME}`]: "'https://fabrikam@dev.azure.com/someorg/someproject/_git/fabrikam2019': MY_CUSTOM_SECRET"
+    };
+    mockFs(mockFsOptions);
+
+    const absTargetPath = path.resolve(
+      path.join(targetDirectory, serviceDirectory)
+    );
+    const expectedFilePath = path.join(absTargetPath, ACCESS_FILENAME);
+    const gitRepoUrl =
+      "https://fabrikam@dev.azure.com/someorg/someproject/_git/fabrikam2019";
+
+    const accessYaml: IAccessYaml = {};
+    accessYaml[gitRepoUrl] = "MY_CUSTOM_SECRET";
 
     generateAccessYaml(absTargetPath, gitRepoUrl);
 

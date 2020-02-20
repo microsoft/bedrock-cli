@@ -19,7 +19,8 @@ import {
 } from "../types";
 
 /**
- * Create an access.yaml file for fabrikate authorization. Should only be used by spk hld reconcile, which is an idempotent operation.
+ * Create an access.yaml file for fabrikate authorization.
+ * Should only be used by spk hld reconcile, which is an idempotent operation, but will not overwrite existing access.yaml keys
  * @param accessYamlPath
  * @param gitRepoUrl
  */
@@ -27,11 +28,20 @@ export const generateAccessYaml = (
   accessYamlPath: string,
   gitRepoUrl: string
 ) => {
-  const accessYaml: IAccessYaml = {
-    [gitRepoUrl]: "ACCESS_TOKEN_SECRET"
-  };
-
   const filePath = path.resolve(path.join(accessYamlPath, ACCESS_FILENAME));
+  let accessYaml: IAccessYaml | undefined;
+
+  if (fs.existsSync(filePath)) {
+    logger.info(
+      `Existing ${ACCESS_FILENAME} found at ${filePath}, loading and updating, if needed.`
+    );
+    accessYaml = yaml.load(fs.readFileSync(filePath, "utf8")) as IAccessYaml;
+    accessYaml = { [gitRepoUrl]: "ACCESS_TOKEN_SECRET", ...accessYaml }; // Keep any existing configurations. Do not overwrite what's in `gitRepoUrl`.
+  } else {
+    accessYaml = {
+      [gitRepoUrl]: "ACCESS_TOKEN_SECRET"
+    };
+  }
 
   // Always overwrite what exists.
   fs.writeFileSync(
