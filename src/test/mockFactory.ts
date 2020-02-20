@@ -109,7 +109,7 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
                   `export SERVICE_NAME_LOWER=$(echo ${serviceName} | tr '[:upper:]' '[:lower:]')`,
                   `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
                   `export BRANCH_NAME=DEPLOY/$BUILD_REPO_NAME-${IMAGE_TAG}`,
-                  `export FAB_SAFE_SERVICE_NAME=$(SERVICE_NAME_LOWER | tr . - | tr / -)`,
+                  `export FAB_SAFE_SERVICE_NAME=$(echo $SERVICE_NAME_LOWER | tr . - | tr / -)`,
                   `# --- From https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/release.sh`,
                   `. build.sh --source-only`,
                   ``,
