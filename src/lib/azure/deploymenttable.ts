@@ -12,38 +12,273 @@ export interface IDeploymentTable {
 }
 
 /**
- * Adds a new deployment in storage for SRC to ACR pipeline
+ * Row interface to hold necessary information about SRC -> ACR entry
+ */
+export interface IRowSrcToACRPipeline {
+  PartitionKey: string;
+  RowKey: string;
+  commitId: string;
+  imageTag: string;
+  p1: string;
+  service: string;
+}
+
+/**
+ * Row interface to add ACR -> HLD entry
+ */
+export interface IRowACRToHLDPipeline extends IRowSrcToACRPipeline {
+  p2: string;
+  hldCommitId: string;
+  env: string;
+  pr?: string;
+}
+
+/**
+ * Row interface to hold necessary information about SRC -> ACR entry
+ */
+export interface IEntrySRCToACRPipeline {
+  RowKey: string;
+  PartitionKey: string;
+  commitId: string;
+  imageTag: string;
+  service: string;
+  p1: {
+    _: string;
+  };
+  env: {
+    _: string;
+  };
+}
+
+/**
+ * Row interface to hold necessary information about ACR -> HLD entry
+ */
+export interface IEntryACRToHLDPipeline {
+  RowKey: string;
+  PartitionKey: string;
+  commitId: string;
+  imageTag: string;
+  p1: string;
+  service: string;
+  p2: {
+    _: string;
+  };
+  hldCommitId: {
+    _: string;
+  };
+  env: {
+    _: string;
+  };
+}
+
+/**
+ * Row interface to hold necessary information about HLD -> Manifest entry
+ */
+export interface IRowHLDToManifestPipeline extends IRowACRToHLDPipeline {
+  p3: string;
+  manifestCommitId?: string;
+}
+
+/**
+ * Row interface to hold necessary information about HLD -> Manifest entry
+ */
+export interface IEntryHLDToManifestPipeline {
+  RowKey: string;
+  PartitionKey: string;
+  commitId: string;
+  env: string;
+  imageTag: string;
+  p1: string;
+  service: string;
+  p2: string;
+  hldCommitId: string;
+  p3: {
+    _: string;
+  };
+  manifestCommitId: {
+    _: string;
+  };
+}
+
+/**
+ * Row interface to hold necessary information Manifest update entry
+ */
+export interface IRowManifest extends IRowHLDToManifestPipeline {
+  manifestCommitId: string;
+}
+
+/**
+ * Gets the azure table service
+ * @param tableInfo tableInfo object containing necessary table info
+ */
+export const getTableService = (
+  tableInfo: IDeploymentTable
+): azure.TableService => {
+  return azure.createTableService(tableInfo.accountName, tableInfo.accountKey);
+};
+
+/**
+ * Adds a new deployment in storage for SRC to ACR pipeline.
+ *
  * @param tableInfo table info interface containing information about the storage for deployments
  * @param pipelineId Identifier of the first pipeline
  * @param imageTag image tag name
  * @param serviceName service name
  * @param commitId commit identifier
  */
-export const addSrcToACRPipeline = (
+export const addSrcToACRPipeline = async (
   tableInfo: IDeploymentTable,
   pipelineId: string,
   imageTag: string,
   serviceName: string,
   commitId: string
-): Promise<any> => {
-  const entry: any = {};
-  entry.RowKey = getRowKey();
-  entry.p1 = pipelineId;
-  entry.imageTag = imageTag;
-  entry.service = serviceName;
-  entry.commitId = commitId;
-  entry.PartitionKey = tableInfo.partitionKey;
-  return new Promise((resolve, reject) => {
-    insertToTable(tableInfo, entry)
-      .then(() => {
-        logger.info("Added first pipeline details to the database");
-        resolve(entry);
-      })
-      .catch(err => {
-        logger.error(err);
-        reject(err);
-      });
+): Promise<IRowSrcToACRPipeline> => {
+  const entry: IRowSrcToACRPipeline = {
+    PartitionKey: tableInfo.partitionKey,
+    RowKey: getRowKey(),
+    commitId,
+    imageTag,
+    p1: pipelineId,
+    service: serviceName
+  };
+  await insertToTable(tableInfo, entry);
+  logger.info("Added first pipeline details to the database");
+  return entry;
+};
+
+/**
+ * Updates an existing SRC -> ACR entry with its corresponding ACR -> HLD entry
+ * @param entries list of entries found
+ * @param tableInfo table info object
+ * @param pipelineId Id of the ACR -> HLD pipeline
+ * @param imageTag image tag name
+ * @param hldCommitId HLD commit Id
+ * @param env environment name
+ * @param pr Pull request Id (if available)
+ */
+export const updateMatchingArcToHLDPipelineEntry = async (
+  entries: IEntryACRToHLDPipeline[],
+  tableInfo: IDeploymentTable,
+  pipelineId: string,
+  imageTag: string,
+  hldCommitId: string,
+  env: string,
+  pr?: string
+): Promise<IRowACRToHLDPipeline | null> => {
+  const found = (entries || []).find((entry: IEntryACRToHLDPipeline) => {
+    return (
+      (entry.p2 ? entry.p2._ === pipelineId : true) &&
+      (entry.hldCommitId ? entry.hldCommitId._ === hldCommitId : true) &&
+      (entry.env ? entry.env._ === env : true)
+    );
   });
+
+  if (found) {
+    const updateEntry: IRowACRToHLDPipeline = {
+      PartitionKey: found.PartitionKey,
+      RowKey: found.RowKey,
+      commitId: found.commitId,
+      env: env.toLowerCase(),
+      hldCommitId: hldCommitId.toLowerCase(),
+      imageTag: found.imageTag,
+      p1: found.p1,
+      p2: pipelineId.toLowerCase(),
+      service: found.service
+    };
+    if (pr) {
+      updateEntry.pr = pr.toLowerCase();
+    }
+    await updateEntryInTable(tableInfo, updateEntry);
+    logger.info(
+      `Added new p2 entry for imageTag ${imageTag} by finding corresponding entry`
+    );
+    return updateEntry;
+  }
+  return null;
+};
+
+/**
+ * Creates a new copy of an existing SRC -> ACR entry when a release is created for a
+ * corresponding entry that already has an existing release
+ * For eg. when the user manually creates a ACR -> HLD release for an existing image tag.
+ * @param entries list of entries found
+ * @param tableInfo table info object
+ * @param pipelineId Id of the ACR -> HLD pipeline
+ * @param imageTag image tag name
+ * @param hldCommitId HLD commit Id
+ * @param env environment name
+ * @param pr Pull request Id (if available)
+ */
+export const updateLastRowOfArcToHLDPipelines = async (
+  entries: IEntryACRToHLDPipeline[],
+  tableInfo: IDeploymentTable,
+  pipelineId: string,
+  imageTag: string,
+  hldCommitId: string,
+  env: string,
+  pr?: string
+): Promise<IRowACRToHLDPipeline> => {
+  const lastEntry = entries[entries.length - 1];
+  const last: IRowACRToHLDPipeline = {
+    PartitionKey: lastEntry.PartitionKey,
+    RowKey: getRowKey(),
+    commitId: lastEntry.commitId,
+    env: env.toLowerCase(),
+    hldCommitId: hldCommitId.toLowerCase(),
+    imageTag: lastEntry.imageTag,
+    p1: lastEntry.p1,
+    p2: pipelineId.toLowerCase(),
+    service: lastEntry.service
+  };
+  if (pr) {
+    last.pr = pr.toLowerCase();
+  }
+  await insertToTable(tableInfo, last);
+  logger.info(
+    `Added new p2 entry for imageTag ${imageTag} by finding a similar entry`
+  );
+  return last;
+};
+
+/**
+ * Adds a new entry for ACR -> HLD pipeline when no corresponding SRC -> ACR pipeline was found
+ * to be associated
+ * This should only be used in error scenarios or when the corresponding SRC -> ACR build is
+ * deleted from storage
+ * @param tableInfo table info object
+ * @param pipelineId Id of the ACR -> HLD pipeline
+ * @param imageTag image tag name
+ * @param hldCommitId HLD commit Id
+ * @param env environment name
+ * @param pr Pull request Id (if available)
+ */
+export const addNewRowToArcToHLDPipelines = async (
+  tableInfo: IDeploymentTable,
+  pipelineId: string,
+  imageTag: string,
+  hldCommitId: string,
+  env: string,
+  pr?: string
+): Promise<IRowACRToHLDPipeline> => {
+  const newEntry: IRowACRToHLDPipeline = {
+    PartitionKey: tableInfo.partitionKey,
+    RowKey: getRowKey(),
+    commitId: "",
+    env: env.toLowerCase(),
+    hldCommitId: hldCommitId.toLowerCase(),
+    imageTag: imageTag.toLowerCase(),
+    p1: "",
+    p2: pipelineId.toLowerCase(),
+    service: ""
+  };
+  if (pr) {
+    newEntry.pr = pr.toLowerCase();
+  }
+  await insertToTable(tableInfo, newEntry);
+  logger.info(
+    `Added new p2 entry for imageTag ${imageTag} - no matching entry was found.`
+  );
+  return newEntry;
 };
 
 /**
@@ -54,99 +289,72 @@ export const addSrcToACRPipeline = (
  * @param hldCommitId commit identifier into HLD
  * @param env environment name, such as Dev, Staging etc.
  */
-export const updateACRToHLDPipeline = (
+export const updateACRToHLDPipeline = async (
   tableInfo: IDeploymentTable,
   pipelineId: string,
   imageTag: string,
   hldCommitId: string,
   env: string,
   pr?: string
-): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    findMatchingDeployments(tableInfo, "imageTag", imageTag).then(entries => {
-      let entryToInsert: any;
-      for (const entry of entries) {
-        entryToInsert = entry;
-        if (
-          (entry.p2 ? entry.p2._ === pipelineId : true) &&
-          (entry.hldCommitId ? entry.hldCommitId._ === hldCommitId : true) &&
-          (entry.env ? entry.env._ === env : true)
-        ) {
-          entry.p2 = pipelineId.toLowerCase();
-          entry.hldCommitId = hldCommitId.toLowerCase();
-          entry.env = env.toLowerCase();
-          if (pr) {
-            entry.pr = pr.toLowerCase();
-          }
-          updateEntryInTable(tableInfo, entry)
-            .then(() => {
-              logger.info(
-                "Updated image tag release details for its corresponding pipeline"
-              );
-              resolve(entry);
-            })
-            .catch(err => {
-              logger.error(err);
-              reject(err);
-            });
-          return;
-        }
-      }
-      if (entryToInsert) {
-        entryToInsert.p2 = pipelineId.toLowerCase();
-        entryToInsert.hldCommitId = hldCommitId.toLowerCase();
-        entryToInsert.env = env.toLowerCase();
-        entryToInsert.RowKey = getRowKey();
-        entryToInsert.p3 = undefined;
-        entryToInsert.manifestCommitId = undefined;
-        if (pr) {
-          entryToInsert.pr = pr.toLowerCase();
-        }
-        insertToTable(tableInfo, entryToInsert)
-          .then(() => {
-            logger.info(
-              `Added new p2 entry for imageTag ${imageTag} by finding a similar entry`
-            );
-            resolve(entryToInsert);
-          })
-          .catch(err => {
-            logger.error(err);
-            reject(err);
-          });
-        return;
-      }
-      // Ideally we should not be getting here, because there should always be a p1 for any p2 being created.
-      const newEntry: any = {};
-      newEntry.PartitionKey = tableInfo.partitionKey;
-      newEntry.RowKey = getRowKey();
-      newEntry.p2 = pipelineId.toLowerCase();
-      newEntry.env = env.toLowerCase();
-      newEntry.hldCommitId = hldCommitId.toLowerCase();
-      newEntry.imageTag = imageTag.toLowerCase();
-      if (pr) {
-        newEntry.pr = pr.toLowerCase();
-      }
-      insertToTable(tableInfo, newEntry)
-        .then(() => {
-          logger.info(
-            `Added new p2 entry for imageTag ${imageTag} - no matching entry was found.`
-          );
-          resolve(newEntry);
-        })
-        .catch(err => {
-          logger.error(err);
-          reject(err);
-        });
-      return;
-    });
-  });
+): Promise<IRowACRToHLDPipeline> => {
+  const entries = await findMatchingDeployments<IEntryACRToHLDPipeline>(
+    tableInfo,
+    "imageTag",
+    imageTag
+  );
+
+  // 1. try to find the matching entry.
+  if (entries && entries.length > 0) {
+    const found = await updateMatchingArcToHLDPipelineEntry(
+      entries,
+      tableInfo,
+      pipelineId,
+      imageTag,
+      hldCommitId,
+      env,
+      pr
+    );
+
+    if (found) {
+      return found;
+    }
+
+    // 2. when cannot find the entry, we take the last row and INSERT it.
+    // TODO: rethink this logic.
+    return await updateLastRowOfArcToHLDPipelines(
+      entries,
+      tableInfo,
+      pipelineId,
+      imageTag,
+      hldCommitId,
+      env,
+      pr
+    );
+  }
+
+  // Fallback: Ideally we should not be getting here, because there should
+  // always be a p1 for any p2 being created.
+  // TODO: rethink this logic.
+  return await addNewRowToArcToHLDPipelines(
+    tableInfo,
+    pipelineId,
+    imageTag,
+    hldCommitId,
+    env,
+    pr
+  );
 };
 
 /**
- * Updates the HLD to manifest pipeline in storage by finding its corresponding SRC to ACR and ACR to HLD pipelines
- * Depending on whether PR is specified or not, it performs a lookup on commit Id and PR to link it to the previous release.
- * @param tableInfo table info interface containing information about the deployment storage table
- * @param hldCommitId commit identifier into the HLD repo, used as a filter to find corresponding deployments
+ * Updates the HLD to manifest pipeline in storage by finding its
+ * corresponding SRC to ACR and ACR to HLD pipelines
+ * Depending on whether PR is specified or not, it performs a lookup
+ * on commit Id and PR to link it to the previous release.
+ *
+ * @param tableInfo table info interface containing information about
+ *        the deployment storage table
+ * @param hldCommitId commit identifier into the HLD repo, used as a
+ *        filter to find corresponding deployments
  * @param pipelineId identifier of the HLD to manifest pipeline
  * @param manifestCommitId manifest commit identifier
  * @param pr pull request identifier
@@ -157,20 +365,19 @@ export const updateHLDToManifestPipeline = async (
   pipelineId: string,
   manifestCommitId?: string,
   pr?: string
-): Promise<any> => {
-  const entries = await findMatchingDeployments(
+): Promise<IRowHLDToManifestPipeline> => {
+  let entries = await findMatchingDeployments<IEntryHLDToManifestPipeline>(
     tableInfo,
     "hldCommitId",
     hldCommitId
   );
+
+  // cannot find entries by hldCommitId.
+  // attempt to find entries by pr
   if ((!entries || entries.length === 0) && pr) {
-    const entriesArray = await findMatchingDeployments(tableInfo, "pr", pr);
-    return updateHLDtoManifestHelper(
-      entriesArray,
+    entries = await findMatchingDeployments<IEntryHLDToManifestPipeline>(
       tableInfo,
-      hldCommitId,
-      pipelineId,
-      manifestCommitId,
+      "pr",
       pr
     );
   }
@@ -185,98 +392,209 @@ export const updateHLDToManifestPipeline = async (
 };
 
 /**
- * Updates HLD to Manifest pipeline in storage by going through entries that could be a possible match in the storage.
- * @param entries list of entries that this build could be linked to
- * @param tableInfo table info interface containing information about the deployment storage table
- * @param hldCommitId commit identifier into the HLD repo, used as a filter to find corresponding deployments
+ * Updates HLD -> Manifest build for its corresponding ACR -> HLD release
+ * @param entries list of matching entries based on PR / hld commit
+ * @param tableInfo table info interface containing information about
+ *        the deployment storage table
+ * @param hldCommitId commit identifier into the HLD repo, used as a
+ *        filter to find corresponding deployments
  * @param pipelineId identifier of the HLD to manifest pipeline
  * @param manifestCommitId manifest commit identifier
  * @param pr pull request identifier
  */
-export const updateHLDtoManifestHelper = (
-  entries: any,
+export const updateHLDtoManifestEntry = async (
+  entries: IEntryHLDToManifestPipeline[],
   tableInfo: IDeploymentTable,
   hldCommitId: string,
   pipelineId: string,
   manifestCommitId?: string,
   pr?: string
-): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    let entryToInsert: any;
-    for (const entry of entries) {
-      entryToInsert = entry;
-      if (
-        (entry.p3 ? entry.p3._ === pipelineId : true) &&
-        (entry.manifestCommitId
-          ? entry.manifestCommitId._ === manifestCommitId
-          : true)
-      ) {
-        entry.p3 = pipelineId.toLowerCase();
-        if (manifestCommitId) {
-          entry.manifestCommitId = manifestCommitId.toLowerCase();
-        }
-        updateEntryInTable(tableInfo, entry)
-          .then(() => {
-            logger.info(
-              "Updated third pipeline details for its corresponding pipeline"
-            );
-            resolve(entry);
-          })
-          .catch(err => {
-            logger.error(err);
-            reject(err);
-          });
-        return;
-      }
-    }
-    if (entryToInsert) {
-      entryToInsert.p3 = pipelineId.toLowerCase();
-      if (manifestCommitId) {
-        entryToInsert.manifestCommitId = manifestCommitId.toLowerCase();
-      }
-      if (pr) {
-        entryToInsert.pr = pr.toLowerCase();
-      }
-      entryToInsert.hldCommitId = hldCommitId.toLowerCase();
-      entryToInsert.RowKey = getRowKey();
-      insertToTable(tableInfo, entryToInsert)
-        .then(() => {
-          logger.info(
-            `Added new p3 entry for hldCommitId ${hldCommitId} by finding a similar entry`
-          );
-          resolve(entryToInsert);
-        })
-        .catch(err => {
-          logger.error(err);
-          reject(err);
-        });
-      return;
-    }
+): Promise<IRowHLDToManifestPipeline | null> => {
+  const found = entries.find(
+    (entry: IEntryHLDToManifestPipeline) =>
+      (entry.p3 ? entry.p3._ === pipelineId : true) &&
+      (entry.manifestCommitId
+        ? entry.manifestCommitId._ === manifestCommitId
+        : true)
+  );
 
-    const newEntry: any = {};
-    newEntry.PartitionKey = tableInfo.partitionKey;
-    newEntry.RowKey = getRowKey();
-    newEntry.p3 = pipelineId.toLowerCase();
-    newEntry.hldCommitId = hldCommitId.toLowerCase();
+  if (found) {
+    const entry: IRowHLDToManifestPipeline = {
+      PartitionKey: found.PartitionKey,
+      RowKey: found.RowKey,
+      commitId: found.commitId,
+      env: found.env,
+      hldCommitId,
+      imageTag: found.imageTag,
+      p1: found.p1,
+      p2: found.p2,
+      p3: pipelineId.toLowerCase(),
+      service: found.service
+    };
     if (manifestCommitId) {
-      newEntry.manifestCommitId = manifestCommitId.toLowerCase();
+      entry.manifestCommitId = manifestCommitId.toLowerCase();
     }
     if (pr) {
-      newEntry.pr = pr.toLowerCase();
+      entry.pr = pr;
     }
-    insertToTable(tableInfo, newEntry)
-      .then(() => {
-        logger.info(
-          `Added new p3 entry for hldCommitId ${hldCommitId} - no matching entry was found.`
-        );
-        resolve(newEntry);
-      })
-      .catch(err => {
-        logger.error(err);
-        reject(err);
-      });
-    return;
-  });
+    await updateEntryInTable(tableInfo, entry);
+    logger.info(
+      "Updated third pipeline details for its corresponding pipeline"
+    );
+    return entry;
+  }
+  return null;
+};
+
+/**
+ * Creates a new copy of an existing ACR -> HLD entry when a build is created for a
+ * corresponding entry that already has an existing build
+ * For eg. when the user manually triggers a HLD -> Manifest build for the last existing HLD
+ * commit.
+ * @param entries list of matching entries based on PR / hld commit
+ * @param tableInfo table info interface containing information about
+ *        the deployment storage table
+ * @param hldCommitId commit identifier into the HLD repo, used as a
+ *        filter to find corresponding deployments
+ * @param pipelineId identifier of the HLD to manifest pipeline
+ * @param manifestCommitId manifest commit identifier
+ * @param pr pull request identifier
+ */
+export const updateLastHLDtoManifestEntry = async (
+  entries: IEntryHLDToManifestPipeline[],
+  tableInfo: IDeploymentTable,
+  hldCommitId: string,
+  pipelineId: string,
+  manifestCommitId?: string,
+  pr?: string
+): Promise<IRowHLDToManifestPipeline> => {
+  const lastEntry = entries[entries.length - 1];
+  const newEntry: IRowHLDToManifestPipeline = {
+    PartitionKey: lastEntry.PartitionKey,
+    RowKey: getRowKey(),
+    commitId: lastEntry.commitId,
+    env: lastEntry.env,
+    hldCommitId: hldCommitId.toLowerCase(),
+    imageTag: lastEntry.imageTag,
+    p1: lastEntry.p1,
+    p2: lastEntry.p2,
+    p3: pipelineId.toLowerCase(),
+    service: lastEntry.service
+  };
+  if (manifestCommitId) {
+    newEntry.manifestCommitId = manifestCommitId.toLowerCase();
+  }
+  if (pr) {
+    newEntry.pr = pr.toLowerCase();
+  }
+
+  await insertToTable(tableInfo, newEntry);
+  logger.info(
+    `Added new p3 entry for hldCommitId ${hldCommitId} by finding a similar entry`
+  );
+  return newEntry;
+};
+
+/**
+ * Adds a new row to the table when the HLD -> Manifest pipeline is triggered by
+ * manually committing into the HLD
+ * @param tableInfo table info interface containing information about
+ *        the deployment storage table
+ * @param hldCommitId commit identifier into the HLD repo, used as a
+ *        filter to find corresponding deployments
+ * @param pipelineId identifier of the HLD to manifest pipeline
+ * @param manifestCommitId manifest commit identifier
+ * @param pr pull request identifier
+ */
+export const addNewRowToHLDtoManifestPipeline = async (
+  tableInfo: IDeploymentTable,
+  hldCommitId: string,
+  pipelineId: string,
+  manifestCommitId?: string,
+  pr?: string
+) => {
+  const newEntry: IRowHLDToManifestPipeline = {
+    PartitionKey: tableInfo.partitionKey,
+    RowKey: getRowKey(),
+    commitId: "",
+    env: "",
+    hldCommitId: hldCommitId.toLowerCase(),
+    imageTag: "",
+    p1: "",
+    p2: "",
+    p3: pipelineId.toLowerCase(),
+    service: ""
+  };
+  if (manifestCommitId) {
+    newEntry.manifestCommitId = manifestCommitId.toLowerCase();
+  }
+  if (pr) {
+    newEntry.pr = pr.toLowerCase();
+  }
+  await insertToTable(tableInfo, newEntry);
+  logger.info(
+    `Added new p3 entry for hldCommitId ${hldCommitId} - no matching entry was found.`
+  );
+  return newEntry;
+};
+
+/**
+ * Updates HLD to Manifest pipeline in storage by going through entries that could
+ * be a possible match in the storage.
+ *
+ * @param entries list of entries that this build could be linked to
+ * @param tableInfo table info interface containing information about the
+ *        deployment storage table
+ * @param hldCommitId commit identifier into the HLD repo, used as a filter
+ *        to find corresponding deployments
+ * @param pipelineId identifier of the HLD to manifest pipeline
+ * @param manifestCommitId manifest commit identifier
+ * @param pr pull request identifier
+ */
+export const updateHLDtoManifestHelper = async (
+  entries: IEntryHLDToManifestPipeline[],
+  tableInfo: IDeploymentTable,
+  hldCommitId: string,
+  pipelineId: string,
+  manifestCommitId?: string,
+  pr?: string
+): Promise<IRowHLDToManifestPipeline> => {
+  if (entries && entries.length > 0) {
+    const updated = await updateHLDtoManifestEntry(
+      entries,
+      tableInfo,
+      hldCommitId,
+      pipelineId,
+      manifestCommitId,
+      pr
+    );
+
+    if (updated) {
+      return updated;
+    }
+
+    // 2. when cannot find the entry, we take the last row and INSERT it.
+    // TODO: rethink this logic.
+    return await updateLastHLDtoManifestEntry(
+      entries,
+      tableInfo,
+      hldCommitId,
+      pipelineId,
+      manifestCommitId,
+      pr
+    );
+  }
+
+  // Fallback: Ideally we should not be getting here, because there should
+  // always matching entry
+  // TODO: rethink this logic.
+  return await addNewRowToHLDtoManifestPipeline(
+    tableInfo,
+    hldCommitId,
+    pipelineId,
+    manifestCommitId,
+    pr
+  );
 };
 
 /**
@@ -285,35 +603,29 @@ export const updateHLDtoManifestHelper = (
  * @param pipelineId identifier of the HLD to manifest pipeline, used as a filter to find the deployment
  * @param manifestCommitId manifest commit identifier to be updated
  */
-export const updateManifestCommitId = (
+export const updateManifestCommitId = async (
   tableInfo: IDeploymentTable,
   pipelineId: string,
   manifestCommitId: string
-): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    findMatchingDeployments(tableInfo, "p3", pipelineId).then(entries => {
-      // Ideally there should only be one entry for every pipeline id
-      if (entries.length > 0) {
-        const entry = entries[0];
-        entry.manifestCommitId = manifestCommitId;
-        updateEntryInTable(tableInfo, entry)
-          .then(() => {
-            logger.info(
-              `Update manifest commit Id ${manifestCommitId} for pipeline Id ${pipelineId}`
-            );
-            resolve(entry);
-          })
-          .catch(err => {
-            logger.error(err);
-            reject(err);
-          });
-      } else {
-        logger.error(
-          `No manifest generation found to update manifest commit ${manifestCommitId}`
-        );
-      }
-    });
-  });
+): Promise<IRowManifest> => {
+  const entries = await findMatchingDeployments<IRowManifest>(
+    tableInfo,
+    "p3",
+    pipelineId
+  );
+  // Ideally there should only be one entry for every pipeline id
+  if (entries.length > 0) {
+    const entry = entries[0];
+    entry.manifestCommitId = manifestCommitId;
+    await updateEntryInTable(tableInfo, entry);
+    logger.info(
+      `Update manifest commit Id ${manifestCommitId} for pipeline Id ${pipelineId}`
+    );
+    return entry;
+  }
+  throw new Error(
+    `No manifest generation found to update manifest commit ${manifestCommitId}`
+  );
 };
 
 /**
@@ -322,22 +634,21 @@ export const updateManifestCommitId = (
  * @param filterName name of the filter, such as `imageTag`
  * @param filterValue value of the filter, such as `hello-spk-master-1234`
  */
-export const findMatchingDeployments = (
+export const findMatchingDeployments = <T>(
   tableInfo: IDeploymentTable,
   filterName: string,
   filterValue: string
-): Promise<any> => {
-  const tableService = azure.createTableService(
-    tableInfo.accountName,
-    tableInfo.accountKey
-  );
+): Promise<T[]> => {
+  const tableService = getTableService(tableInfo);
   const query: azure.TableQuery = new azure.TableQuery().where(
-    "PartitionKey eq '" + tableInfo.partitionKey + "'"
+    `PartitionKey eq '${tableInfo.partitionKey}'`
   );
-  query.and(filterName + " eq '" + filterValue + "'");
+  query.and(`${filterName} eq '${filterValue}'`);
 
   // To get around issue https://github.com/Azure/azure-storage-node/issues/545, set below to null
-  const nextContinuationToken: azure.TableService.TableContinuationToken = null as any;
+  const nextContinuationToken:
+    | azure.TableService.TableContinuationToken
+    | any = null;
 
   return new Promise((resolve, reject) => {
     tableService.queryEntities(
@@ -346,7 +657,7 @@ export const findMatchingDeployments = (
       nextContinuationToken,
       (error, result) => {
         if (!error) {
-          resolve(result.entries);
+          resolve(result.entries as T[]);
         } else {
           reject(error);
         }
@@ -356,49 +667,21 @@ export const findMatchingDeployments = (
 };
 
 /**
- * Inserts a new entry into the table
- * @param accountName Name of the storage account
- * @param accountKey Access key to the storage account
- * @param tableName Table name for the deployments table in storage account
- * @param entry The new entry to be inserted into the table
- * @param callback Callback handler for the post insert function
+ * Inserts a new entry into the table.
+ *
+ * @param tableInfo Table Information
+ * @param entry entry to insert
  */
 export const insertToTable = (
   tableInfo: IDeploymentTable,
-  entry: any
-): Promise<any> => {
-  const tableService = azure.createTableService(
-    tableInfo.accountName,
-    tableInfo.accountKey
-  );
-  return new Promise((resolve, reject) => {
-    tableService.insertEntity(
-      tableInfo.tableName,
-      entry,
-      (err, result, response) => {
-        if (!err) {
-          resolve(entry);
-        } else {
-          reject(err);
-        }
-      }
-    );
-  });
-};
-
-export const deleteFromTable = (
-  tableInfo: IDeploymentTable,
-  entry: any
-): Promise<any> => {
-  const tableService = azure.createTableService(
-    tableInfo.accountName,
-    tableInfo.accountKey
-  );
+  entry: IRowSrcToACRPipeline | IRowACRToHLDPipeline | IRowHLDToManifestPipeline
+) => {
+  const tableService = getTableService(tableInfo);
 
   return new Promise((resolve, reject) => {
-    tableService.deleteEntity(tableInfo.tableName, entry, {}, (err, result) => {
+    tableService.insertEntity(tableInfo.tableName, entry, err => {
       if (!err) {
-        resolve(entry);
+        resolve();
       } else {
         reject(err);
       }
@@ -407,33 +690,51 @@ export const deleteFromTable = (
 };
 
 /**
- * Updates an entry in the table
- * @param accountName Name of the storage account
- * @param accountKey Access key to the storage account
- * @param tableName Table name for the deployments table in storage account
- * @param entry The new entry to be updated in the table
- * @param callback Callback handler for the post update function
+ * Deletes self test data from table
+ * @param tableInfo table info object
+ * @param entry entry to be deleted
+ */
+export const deleteFromTable = (
+  tableInfo: IDeploymentTable,
+  entry: IEntrySRCToACRPipeline
+) => {
+  const tableService = getTableService(tableInfo);
+
+  return new Promise((resolve, reject) => {
+    tableService.deleteEntity(tableInfo.tableName, entry, {}, err => {
+      if (!err) {
+        resolve();
+      } else {
+        reject(err);
+      }
+    });
+  });
+};
+
+/**
+ * Updates an entry in the table.
+ *
+ * @param tableInfo Table Information
+ * @param entry entry to update
  */
 export const updateEntryInTable = (
   tableInfo: IDeploymentTable,
-  entry: any
-): Promise<any> => {
-  const tableService = azure.createTableService(
-    tableInfo.accountName,
-    tableInfo.accountKey
-  );
+  entry:
+    | IRowSrcToACRPipeline
+    | IRowACRToHLDPipeline
+    | IRowHLDToManifestPipeline
+    | IRowManifest
+) => {
+  const tableService = getTableService(tableInfo);
+
   return new Promise((resolve, reject) => {
-    tableService.replaceEntity(
-      tableInfo.tableName,
-      entry,
-      (err, result, response) => {
-        if (!err) {
-          resolve(entry);
-        } else {
-          reject(err);
-        }
+    tableService.replaceEntity(tableInfo.tableName, entry, err => {
+      if (!err) {
+        resolve();
+      } else {
+        reject(err);
       }
-    );
+    });
   });
 };
 

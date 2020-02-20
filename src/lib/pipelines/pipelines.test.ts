@@ -1,7 +1,6 @@
 jest.mock("./pipelines");
 
 import {
-  createPipelineForDefinition,
   IAzureRepoPipelineConfig,
   IGithubRepoPipelineConfig,
   RepositoryTypes

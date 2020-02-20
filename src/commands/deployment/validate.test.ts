@@ -1,9 +1,18 @@
 // imports
+import { StorageManagementClient } from "@azure/arm-storage";
 import uuid from "uuid/v4";
 import * as deploymenttable from "../../lib/azure/deploymenttable";
+import {
+  IDeploymentTable,
+  IEntrySRCToACRPipeline,
+  IRowACRToHLDPipeline,
+  IRowHLDToManifestPipeline,
+  IRowManifest,
+  IRowSrcToACRPipeline
+} from "../../lib/azure/deploymenttable";
 import * as storage from "../../lib/azure/storage";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
-import { IConfigYaml } from "../../types";
+import { IAzureAccessOpts, IConfigYaml } from "../../types";
 import {
   deleteSelfTestData,
   execute,
@@ -14,7 +23,7 @@ import {
 import * as validate from "./validate";
 
 jest.spyOn(storage, "getStorageManagementClient").mockImplementation(
-  async (): Promise<any> => {
+  async (opts: IAzureAccessOpts = {}): Promise<any> => {
     return undefined;
   }
 );
@@ -38,17 +47,22 @@ jest.spyOn(storage, "isStorageAccountNameAvailable").mockImplementation(
   }
 );
 
-let mockedDB: any[] = [];
+let mockedDB: Array<
+  | IRowSrcToACRPipeline
+  | IRowACRToHLDPipeline
+  | IRowHLDToManifestPipeline
+  | IRowManifest
+> = [];
 
 jest.spyOn(deploymenttable, "findMatchingDeployments").mockImplementation(
   (
     tableInfo: deploymenttable.IDeploymentTable,
     filterName: string,
     filterValue: string
-  ): Promise<any> => {
-    const array: any[] = [];
+  ): Promise<IRowSrcToACRPipeline[]> => {
+    const array: IRowSrcToACRPipeline[] = [];
     return new Promise(resolve => {
-      mockedDB.forEach((row: any) => {
+      mockedDB.forEach(row => {
         if (row.p1 === "500") {
           array.push(row);
         }
@@ -58,38 +72,60 @@ jest.spyOn(deploymenttable, "findMatchingDeployments").mockImplementation(
   }
 );
 
-jest.spyOn(deploymenttable, "insertToTable").mockImplementation(
-  (tableInfo: deploymenttable.IDeploymentTable, entry: any): Promise<any> => {
-    return new Promise(resolve => {
-      mockedDB.push(entry);
-      resolve(entry);
-    });
-  }
-);
+jest
+  .spyOn(deploymenttable, "insertToTable")
+  .mockImplementation(
+    (
+      tableInfo: deploymenttable.IDeploymentTable,
+      entry:
+        | IRowSrcToACRPipeline
+        | IRowACRToHLDPipeline
+        | IRowHLDToManifestPipeline
+    ) => {
+      return new Promise(resolve => {
+        mockedDB.push(entry);
+        resolve(entry);
+      });
+    }
+  );
 
-jest.spyOn(deploymenttable, "deleteFromTable").mockImplementation(
-  (tableInfo: deploymenttable.IDeploymentTable, entry: any): Promise<any> => {
-    return new Promise(resolve => {
-      if (mockedDB.length === 1 && mockedDB[0].p1 === "500") {
-        mockedDB = [];
-      }
-      resolve(0);
-    });
-  }
-);
-
-jest.spyOn(deploymenttable, "updateEntryInTable").mockImplementation(
-  (tableInfo: deploymenttable.IDeploymentTable, entry: any): Promise<any> => {
-    return new Promise(resolve => {
-      mockedDB.forEach((row: any, index: number) => {
-        if (row.RowKey === entry.RowKey) {
-          mockedDB[index] = entry;
-          resolve(entry);
+jest
+  .spyOn(deploymenttable, "deleteFromTable")
+  .mockImplementation(
+    (
+      tableInfo: deploymenttable.IDeploymentTable,
+      entry: IEntrySRCToACRPipeline
+    ) => {
+      return new Promise(resolve => {
+        if (mockedDB.length === 1 && mockedDB[0].p1 === "500") {
+          mockedDB = [];
         }
-      }, mockedDB);
-    });
-  }
-);
+        resolve(0);
+      });
+    }
+  );
+
+jest
+  .spyOn(deploymenttable, "updateEntryInTable")
+  .mockImplementation(
+    (
+      tableInfo: IDeploymentTable,
+      entry:
+        | IRowSrcToACRPipeline
+        | IRowACRToHLDPipeline
+        | IRowHLDToManifestPipeline
+        | IRowManifest
+    ) => {
+      return new Promise(resolve => {
+        mockedDB.forEach((row, index: number) => {
+          if (row.RowKey === entry.RowKey) {
+            mockedDB[index] = entry;
+            resolve(entry);
+          }
+        }, mockedDB);
+      });
+    }
+  );
 
 jest.spyOn(Math, "random").mockImplementation((): number => {
   return 0.5;
