@@ -10,6 +10,17 @@ module.exports = {
         test: /\.tsx?$/,
         use: "ts-loader",
         exclude: /node_modules/
+      },
+      {
+        test: /\.(yaml|md)?$/,
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 8192
+            }
+          }
+        ]
       }
     ]
   },
