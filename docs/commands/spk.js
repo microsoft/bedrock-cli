@@ -46,6 +46,10 @@ function showDetails(key) {
 
   if (cmd.markdown) {
     content =
+      '<p class="cmd-title1">@@main-cmd@@</p>'.replace(
+        "@@main-cmd@@",
+        "spk " + key
+      ) +
       '<div class="markdown">' +
       converter.makeHtml(cmd.markdown) +
       "</div><hr>" +
@@ -98,6 +102,10 @@ var subheaderItems = function() {
   });
   $("body").click(function() {
     $("#sharing-menu").css("display", "none");
+  });
+  $("#item_contribute").click(function(evt) {
+    var win = window.open("https://github.com/CatalystCode/spk", "_blank");
+    win.focus();
   });
 };
 

@@ -57,7 +57,7 @@ Commands:
 - [spk deployment](./guides/service-introspection.md)
 - [spk hld](./guides/hld-management.md)
 - [spk infra](./guides/cloud-infra-management.md)
-- [spk init](./guides/init.md)
+- [spk init](https://catalystcode.github.io/spk/commands/index.html#init)
 - [spk project](./guides/project-management.md)
 - [spk service](./guides/service-management.md)
 - [spk variable-group](./guides/variable-group.md)
