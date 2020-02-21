@@ -263,23 +263,9 @@ export const reconcileHld = async (
 
     // Create ring components.
     const svcPathInHld = path.join(absRepositoryInHldPath, serviceName);
-
-    // If the ring component already exists, we do not attempt to create it.
-    const ringsToCreate = Object.keys(managedRings)
-      .map(ring => {
-        return { ring, ringPathInHld: path.join(svcPathInHld, ring) };
-      })
-      .filter(({ ring, ringPathInHld }) => {
-        const alreadyExists =
-          dependencies.test("-e", ringPathInHld) && // path exists
-          dependencies.test("-d", ringPathInHld); // path is a directory
-        if (alreadyExists) {
-          logger.info(
-            `Ring component: ${ring} already exists, skipping ring generation.`
-          );
-        }
-        return !alreadyExists;
-      });
+    const ringsToCreate = Object.keys(managedRings).map(ring => {
+      return { ring, ringPathInHld: path.join(svcPathInHld, ring) };
+    });
 
     // Will only loop over _existing_ rings in bedrock.yaml - does not cover the deletion case, ie: i remove a ring from bedrock.yaml
     for (const { ring, ringPathInHld } of ringsToCreate) {

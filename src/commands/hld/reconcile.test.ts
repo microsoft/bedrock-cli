@@ -418,7 +418,7 @@ describe("reconcile tests", () => {
     expect(dependencies.createIngressRouteForRing).not.toHaveBeenCalled();
   });
 
-  it("does not create a ring, if one already exists", async () => {
+  it("will re-write rings, even if they exist", async () => {
     bedrockYaml.rings = {};
 
     await reconcileHld(
@@ -429,10 +429,10 @@ describe("reconcile tests", () => {
       "./path/to/app"
     );
 
-    expect(dependencies.createRingComponent).not.toHaveBeenCalled();
-    expect(dependencies.createStaticComponent).not.toHaveBeenCalled();
-    expect(dependencies.createMiddlewareForRing).not.toHaveBeenCalled();
-    expect(dependencies.createIngressRouteForRing).not.toHaveBeenCalled();
+    expect(dependencies.createRingComponent).toHaveBeenCalled();
+    expect(dependencies.createStaticComponent).toHaveBeenCalled();
+    expect(dependencies.createMiddlewareForRing).toHaveBeenCalled();
+    expect(dependencies.createIngressRouteForRing).toHaveBeenCalled();
   });
 
   it("does not create service components if the service path is `.`, and a display name does not exist", async () => {
