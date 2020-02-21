@@ -1,21 +1,47 @@
 import { write } from "../../config";
+import * as config from "../../config";
+import { DEFAULT_CONTENT as BedrockMockedContent } from "../../lib/bedrockYaml";
 import * as azure from "../../lib/git/azure";
 import * as gitutils from "../../lib/gitutils";
 import { createTempDir } from "../../lib/ioUtil";
 import { IBedrockFile } from "../../types";
 import {
+  execute,
   getDefaultRings,
+  getRemoteUrl,
   getSourceBranch,
   makePullRequest
 } from "./create-revision";
+import * as createRevision from "./create-revision";
 
 jest
   .spyOn(gitutils, "getCurrentBranch")
   .mockReturnValueOnce(Promise.resolve("prod"))
   .mockReturnValue(Promise.resolve(""));
-const prSpy = jest
-  .spyOn(azure, "createPullRequest")
-  .mockReturnValue(Promise.resolve("done"));
+jest.spyOn(config, "Config").mockReturnValue({});
+jest.spyOn(config, "Bedrock").mockReturnValue(BedrockMockedContent);
+
+describe("test makePullRequest function", () => {
+  it("sanity test", async done => {
+    const createPullRequestFunc = jest.spyOn(azure, "createPullRequest");
+
+    // two times because there are two branches: master and stable
+    createPullRequestFunc.mockReturnValue(Promise.resolve());
+
+    await makePullRequest(["master", "stable"], {
+      description: "description",
+      orgName: "testOrg",
+      personalAccessToken: "testToken",
+      remoteUrl: "testUrl",
+      sourceBranch: "testBranch",
+      targetBranch: "master",
+      title: undefined
+    });
+
+    expect(createPullRequestFunc).toBeCalledTimes(2);
+    done();
+  });
+});
 
 describe("Default rings", () => {
   test("Get multiple default rings", () => {
@@ -86,17 +112,19 @@ describe("Default rings", () => {
 });
 
 describe("Source branch", () => {
-  test("Defined source branch", async () => {
+  test("Defined source branch", async done => {
     const branch = "master";
     const sourceBranch = await getSourceBranch(branch);
     expect(sourceBranch).toBe("master");
+    done();
   });
-  test("Defined source branch", async () => {
+  test("Defined source branch", async done => {
     const branch = undefined;
     const sourceBranch = await getSourceBranch(branch);
     expect(sourceBranch).toBe("prod");
+    done();
   });
-  test("No source branch", async () => {
+  test("No source branch", async done => {
     const branch = undefined;
     let hasError = false;
     try {
@@ -105,63 +133,129 @@ describe("Source branch", () => {
       hasError = true;
     }
     expect(hasError).toBe(true);
+    done();
   });
 });
 
 describe("Create pull request", () => {
-  test("invalid parameters", async () => {
+  test("invalid parameters", async done => {
     for (const i of Array(4).keys()) {
-      let hasError = false;
-      try {
-        await makePullRequest(
-          ["master"],
-          "testTitle",
-          i === 0 ? undefined : "branch",
-          "description",
-          i === 1 ? undefined : "org",
-          i === 2 ? undefined : "url",
-          i === 3 ? undefined : "token"
-        );
-      } catch (err) {
-        hasError = true;
-      }
-      expect(hasError).toBe(true);
+      const exitFn = jest.fn();
+      jest
+        .spyOn(createRevision, "makePullRequest")
+        .mockReturnValueOnce(Promise.resolve());
+      await execute(
+        {
+          description: "description",
+          orgName: i === 0 ? undefined : "org",
+          personalAccessToken: i === 1 ? undefined : "token",
+          remoteUrl: i === 2 ? undefined : "url",
+          sourceBranch: i === 3 ? undefined : "master",
+          targetBranch: undefined,
+          title: "testTitle"
+        },
+        exitFn
+      );
+      expect(exitFn).toBeCalledTimes(1);
+      expect(exitFn.mock.calls).toEqual([[1]]); // status code 1 = error condition
+      done();
     }
   });
-  test("Valid parameters", async () => {
-    await makePullRequest(
-      ["master"],
-      "testTitle",
-      "testBranch",
-      "testDescription",
-      "testOrg",
-      "testUrl",
-      "testToken"
+  test("Invalid parameters: target include source git", async done => {
+    const exitFn = jest.fn();
+    jest
+      .spyOn(createRevision, "makePullRequest")
+      .mockReturnValueOnce(Promise.resolve());
+    await execute(
+      {
+        description: "testDescription",
+        orgName: "testOrg",
+        personalAccessToken: "testToken",
+        remoteUrl: "testUrl",
+        sourceBranch: "master",
+        targetBranch: "master",
+        title: "testTitle"
+      },
+      exitFn
     );
-    expect(prSpy).toHaveBeenCalled();
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+    done();
   });
-  test("Default description", async () => {
-    await makePullRequest(
-      ["master"],
-      "testTitle",
-      "testBranch",
-      undefined,
-      "testOrg",
-      "testUrl",
-      "testToken"
+  test("Valid parameters", async done => {
+    const exitFn = jest.fn();
+    jest
+      .spyOn(createRevision, "makePullRequest")
+      .mockReturnValueOnce(Promise.resolve());
+    await execute(
+      {
+        description: "testDescription",
+        orgName: "testOrg",
+        personalAccessToken: "testToken",
+        remoteUrl: "testUrl",
+        sourceBranch: "testBranch",
+        targetBranch: "master",
+        title: "testTitle"
+      },
+      exitFn
     );
-    expect(prSpy).toHaveBeenCalled();
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[0]]);
+    done();
   });
-  test("Default title", async () => {
-    await makePullRequest(
-      ["master"],
-      undefined,
-      "testBranch",
-      "description",
-      "testOrg",
-      "testUrl",
-      "testToken"
+  test("Default description", async done => {
+    const exitFn = jest.fn();
+    jest
+      .spyOn(createRevision, "makePullRequest")
+      .mockReturnValueOnce(Promise.resolve());
+    await execute(
+      {
+        description: undefined,
+        orgName: "testOrg",
+        personalAccessToken: "testToken",
+        remoteUrl: "testUrl",
+        sourceBranch: "testBranch",
+        targetBranch: "master",
+        title: "testTitle"
+      },
+      exitFn
     );
-    expect(prSpy).toHaveBeenCalled();
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[0]]);
+    done();
+  });
+  it("Default title", async done => {
+    const exitFn = jest.fn();
+    jest
+      .spyOn(createRevision, "makePullRequest")
+      .mockReturnValueOnce(Promise.resolve());
+    await execute(
+      {
+        description: "description",
+        orgName: "testOrg",
+        personalAccessToken: "testToken",
+        remoteUrl: "testUrl",
+        sourceBranch: "testBranch",
+        targetBranch: "master",
+        title: undefined
+      },
+      exitFn
+    );
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[0]]);
+    done();
+  });
+});
+
+describe("test getRemoteUrl function", () => {
+  it("sanity test: get original url", async done => {
+    const res = await getRemoteUrl(undefined);
+    expect(res.startsWith("https://github.com/CatalystCode/spk")).toBe(true);
+    done();
+  });
+  it("sanity test", async done => {
+    const res = await getRemoteUrl("https://github.com/CatalystCode/spk1");
+    expect(res).toBe("https://github.com/CatalystCode/spk1");
+    done();
   });
 });

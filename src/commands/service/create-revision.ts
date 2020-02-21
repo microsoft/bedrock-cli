@@ -1,78 +1,105 @@
 import commander from "commander";
 import { join } from "path";
 import { Bedrock, Config } from "../../config";
-import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
+import {
+  build as buildCmd,
+  exit as exitCmd,
+  validateForRequiredValues
+} from "../../lib/commandBuilder";
 import { createPullRequest } from "../../lib/git/azure";
 import {
   getCurrentBranch,
   getOriginUrl,
   safeGitUrlForLogging
 } from "../../lib/gitutils";
+import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import { IBedrockFile } from "../../types";
 import decorator from "./create-revision.decorator.json";
 
-export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async opts => {
-    try {
-      const { azure_devops } = Config();
-      const {
-        orgName = azure_devops && azure_devops.org,
-        personalAccessToken = azure_devops && azure_devops.access_token,
-        targetBranch
-      } = opts;
-      let { remoteUrl, sourceBranch } = opts;
-      const description = opts.description;
-      const title = opts.title;
+export interface ICommandOptions {
+  sourceBranch: string | undefined;
+  title: string | undefined;
+  description: string | undefined;
+  remoteUrl: string | undefined;
+  personalAccessToken: string | undefined;
+  orgName: string | undefined;
+  targetBranch: string | undefined;
+}
 
-      ////////////////////////////////////////////////////////////////////////
-      // Give defaults
-      ////////////////////////////////////////////////////////////////////////
-      // default pull request against initial ring
-      const bedrockConfig = Bedrock();
-      // Default to the --target-branch for creating a revision; if not specified, fallback to default rings in bedrock.yaml
-      const defaultRings: string[] = getDefaultRings(
-        targetBranch,
-        bedrockConfig
+export const getRemoteUrl = async (
+  remoteUrl: string | undefined
+): Promise<string> => {
+  if (!remoteUrl) {
+    // if remoteUrl is not provided
+    logger.info(
+      `No remote-url provided, parsing remote from 'origin' on git client`
+    );
+    remoteUrl = await getOriginUrl();
+    const safeLoggingUrl = safeGitUrlForLogging(remoteUrl);
+    logger.info(`Parsed remote-url for origin: ${safeLoggingUrl}`);
+  }
+  return remoteUrl;
+};
+
+export const execute = async (
+  opts: ICommandOptions,
+  exitFn: (status: number) => Promise<void>
+) => {
+  try {
+    const { azure_devops } = Config();
+    opts.orgName = opts.orgName || azure_devops?.org;
+    opts.personalAccessToken =
+      opts.personalAccessToken || azure_devops?.access_token!;
+    opts.description =
+      opts.description || "This is automated PR generated via SPK";
+
+    ////////////////////////////////////////////////////////////////////////
+    // Give defaults
+    ////////////////////////////////////////////////////////////////////////
+    // default pull request against initial ring
+    const bedrockConfig = Bedrock();
+    // Default to the --target-branch for creating a revision; if not specified, fallback to default rings in bedrock.yaml
+    const defaultRings = getDefaultRings(opts.targetBranch, bedrockConfig);
+
+    // default pull request source branch to the current branch
+    opts.sourceBranch = await getSourceBranch(opts.sourceBranch);
+
+    // Make sure the user isn't trying to make a PR for a branch against itself
+    if (defaultRings.includes(opts.sourceBranch)) {
+      throw Error(
+        `A pull request for a branch cannot be made against itself. Ensure your target branch(es) '${JSON.stringify(
+          defaultRings
+        )}' do not include your source branch '${opts.sourceBranch}'`
       );
-
-      // default pull request source branch to the current branch
-      sourceBranch = await getSourceBranch(sourceBranch);
-
-      // Make sure the user isn't trying to make a PR for a branch against itself
-      if (defaultRings.includes(sourceBranch)) {
-        throw Error(
-          `A pull request for a branch cannot be made against itself. Ensure your target branch(es) '${JSON.stringify(
-            defaultRings
-          )}' do not include your source branch '${sourceBranch}'`
-        );
-      }
-
-      // Default the remote to the git origin
-      if (typeof remoteUrl !== "string") {
-        logger.info(
-          `No remote-url provided, parsing remote from 'origin' on git client`
-        );
-        remoteUrl = await getOriginUrl();
-        const safeLoggingUrl = safeGitUrlForLogging(remoteUrl);
-        logger.info(`Parsed remote-url for origin: ${safeLoggingUrl}`);
-      }
-
-      await makePullRequest(
-        defaultRings,
-        title,
-        sourceBranch,
-        description,
-        orgName,
-        remoteUrl,
-        personalAccessToken
-      );
-
-      await exitCmd(logger, process.exit, 0);
-    } catch (err) {
-      logger.error(err);
-      await exitCmd(logger, process.exit, 1);
     }
+
+    // Default the remote to the git origin
+    opts.remoteUrl = await getRemoteUrl(opts.remoteUrl);
+    const errors = validateForRequiredValues(decorator, {
+      orgName: opts.orgName,
+      personalAccessToken: opts.personalAccessToken,
+      remoteUrl: opts.remoteUrl,
+      sourceBranch: opts.sourceBranch
+    });
+
+    if (errors.length > 0) {
+      await exitFn(1);
+    } else {
+      await makePullRequest(defaultRings, opts);
+      await exitFn(0);
+    }
+  } catch (err) {
+    logger.error(err);
+    await exitFn(1);
+  }
+};
+
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+    await execute(opts, async (status: number) => {
+      await exitCmd(logger, process.exit, status);
+    });
   });
 };
 
@@ -112,10 +139,7 @@ export const getDefaultRings = (
 export const getSourceBranch = async (
   sourceBranch: string | undefined
 ): Promise<string> => {
-  if (
-    typeof sourceBranch !== "string" ||
-    (typeof sourceBranch === "string" && sourceBranch.length === 0)
-  ) {
+  if (!hasValue(sourceBranch)) {
     // Parse the source branch from options
     // If it does not exist, parse from the git client
     logger.info(
@@ -134,57 +158,19 @@ export const getSourceBranch = async (
 /**
  * Creates a pull request from the given source branch
  * @param defaultRings List of default rings
- * @param title Title of pr
- * @param sourceBranch Source branch for pr
- * @param description Description for pr
- * @param orgName Organization name
- * @param remoteUrl Remote url
- * @param personalAccessToken Access token
+ * @param opts option values
  */
 export const makePullRequest = async (
   defaultRings: string[],
-  title: string | undefined,
-  sourceBranch: string | undefined,
-  description: string | undefined,
-  orgName: string | undefined,
-  remoteUrl: string | undefined,
-  personalAccessToken: string | undefined
+  opts: ICommandOptions
 ) => {
-  // Give a default description
-  if (typeof description !== "string") {
-    description = `This is automated PR generated via SPK`;
-    logger.info(`--description not set, defaulting to: '${description}'`);
-  }
-  if (typeof remoteUrl !== "string") {
-    throw Error(
-      `--remote-url must be of type 'string', ${typeof remoteUrl} given.`
-    );
-  }
-  if (typeof sourceBranch !== "string") {
-    throw Error(
-      `--source-branch must be of type 'string', ${typeof sourceBranch} given.`
-    );
-  }
-  if (typeof personalAccessToken !== "string") {
-    throw Error(
-      `--personal-access-token must be of type 'string', ${typeof personalAccessToken} given.`
-    );
-  }
-  if (typeof orgName !== "string") {
-    throw Error(
-      `--org-name must be of type 'string', ${typeof orgName} given.`
-    );
-  }
   for (const ring of defaultRings) {
-    if (typeof title !== "string") {
-      title = `[SPK] ${sourceBranch} => ${ring}`;
-      logger.info(`--title not set, defaulting to: '${title}'`);
-    }
-    await createPullRequest(title, sourceBranch, ring, {
-      description,
-      orgName,
-      originPushUrl: remoteUrl,
-      personalAccessToken
+    const title = opts.title || `[SPK] ${opts.sourceBranch} => ${ring}`;
+    await createPullRequest(title, opts.sourceBranch!, ring, {
+      description: opts.description,
+      orgName: opts.orgName,
+      originPushUrl: opts.remoteUrl,
+      personalAccessToken: opts.personalAccessToken
     });
   }
 };

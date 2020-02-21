@@ -5,7 +5,8 @@
   "options": [
     {
       "arg": "-s, --source-branch <source>",
-      "description": "Source branch to create the pull request from; defaults to the current branch"
+      "description": "Source branch to create the pull request from; defaults to the current branch",
+      "required": true
     },
     {
       "arg": "-t, --title <title>",
@@ -17,15 +18,18 @@
     },
     {
       "arg": "--remote-url <remote-url>",
-      "description": "The remote host to create the pull request in; defaults to the URL for 'origin'"
+      "description": "The remote host to create the pull request in; defaults to the URL for 'origin'",
+      "required": true
     },
     {
       "arg": "--personal-access-token <pat>",
-      "description": "Personal access token associated with your Azure DevOps token; falls back to azure_devops.access_token in your spk config"
+      "description": "Personal access token associated with your Azure DevOps token; falls back to azure_devops.access_token in your spk config",
+      "required": true
     },
     {
       "arg": "--org-name <organization-name>",
-      "description": "Your Azure DevOps organization name; falls back to azure_devops.org in your spk config"
+      "description": "Your Azure DevOps organization name; falls back to azure_devops.org in your spk config",
+      "required": true
     },
     {
       "arg": "--target-branch",
