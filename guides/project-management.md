@@ -1,35 +1,23 @@
 # Project Management
 
 Create and manage components for a Bedrock project. All project management
-commands will need to run in the order as listed below in the
-[commands](#Commands) section due to dependencies.
+commands will need to run in the order as listed below due to dependencies.
 
 Usage:
 
 ```
-spk project [command] [options]
-```
+Usage: project [options] [command]
+
+Initialize and manage your Bedrock project.
+
+Options:
+  -v, --verbose                                              Enable verbose logging
+  -h, --help                                                 output usage information
 
 Commands:
-
-- [Project Management](#project-management)
-
-  - [Prerequisites](#prerequisites)
-  - [Commands](#commands)
-
-    - [init](#init)
-    - [create-variable-group](#create-variable-group)
-      - [Command Prerequisites](#command-prerequisites)
-    - [install-lifecycle-pipeline](#install-lifecycle-pipeline)
-
-    **Please note all project management commands must run in the order as
-    listed above.**
-
-Global options:
-
-```
-  -v, --verbose        Enable verbose logging
-  -h, --help           Usage information
+  create-variable-group|cvg [options] <variable-group-name>  Create a new variable group in Azure DevOps project with specific variables (ACR name, HLD Repo name, Personal Access Token, Service Principal id, Service Principal password, and Azure AD tenant id)
+  init|i [options]                                           Initialize your spk repository. Add starter bedrock.yaml, maintainers.yaml, hld-lifecycle.yaml, and .gitignore files to your project.
+  install-lifecycle-pipeline|p [options]                     Install the hld lifecycle pipeline to your Azure DevOps instance
 ```
 
 ## Prerequisites
@@ -38,86 +26,9 @@ An Azure DevOps git repository.
 
 ## Commands
 
-### init
+- [init](https://catalystcode.github.io/spk/commands/index.html#project_init)
+- [create-variable-group](https://catalystcode.github.io/spk/commands/index.html#project_create-variable-group)
+- [install-lifecycle-pipeline](https://catalystcode.github.io/spk/commands/index.html#project_install-lifecycle-pipeline)
 
-Initialize the current working directory as a Bedrock project repository. This
-adds the baseline files required for a bedrock project:
-
-- bedrock.yaml
-- maintainers.yaml
-- hld-lifecycle.yaml
-- .gitignore
-
-None of these file will be modified if they already exist.
-
-```
-Usage: project init|i [options]
-
-Initialize your spk repository. Will add starter bedrock.yaml, maintainers.yaml, hld-lifecycle.yaml, and .gitignore files to your project.
-
-Options:
-  -r, --default-ring <branch-name>  Specify a default ring; this corresponds to a default branch which you wish to push initial revisions to (default: "master")
-  -h, --help                        output usage information
-```
-
-### create-variable-group
-
-Create new variable group in Azure DevOps project
-
-#### Command Prerequisites
-
-In addition to an existing
-[Azure DevOps project](https://azure.microsoft.com/en-us/services/devops/), to
-link secrets from an Azure key vault as variables in Variable Group, you will
-need an existing key vault containing your secrets and the Service Principal for
-authorization with Azure Key Vault.
-
-1. Use existng or
-   [create a service principal either in Azure Portal](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal)
-   or
-   [with Azure CLI](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli?view=azure-cli-latest).
-2. Use existing or
-   [create a Azure Container Registry in Azure Portal](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-portal)
-   or
-   [with Azure CLI](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli).
-
-```
-Usage: project create-variable-group|cvg [options] <variable-group-name>
-
-Create new variable group in Azure DevOps project using the options below. Also sets the azure_devops.variable_grroup item in spk config with the variable group name
-
-Options:
-  -r, --registry-name <registry-name>                             The name of the existing Azure Container Registry
-  -d, --hld-repo-url <hld-repo-url>                               The high level definition (HLD) git repo url
-  -u, --service-principal-id <service-principal-id>               Azure service principal id with `contributor` role in Azure Container Registry"
-  -p, --service-principal-password <service-principal-password>   The Azure service principal password
-  -t, --tenant                                                    The Azure AD tenant id of service principal
-  --org-name <organization-name>                                  Azure DevOps organization name; falls back to azure_devops.org in spk config
-  --project <project>                                             Azure DevOps project name; falls back to azure_devops.project in spk config
-  --personal-access-token <personal-access-token>                 Azure DevOps Personal access token; falls back to azure_devops.access_token in spk config
-  -h, --help                                                      output usage information
-```
-
-### install-lifecycle-pipeline
-
-Deploy the HLD Lifecycle pipeline for the bedrock project. This should be run
-after merging the `hld-lifecycle.yaml` generated by `spk project init` to the
-project repository to master. The command will add the required pipeline
-variables.
-
-```
-Usage: project install-lifecycle-pipeline|p [options]
-
-Install the hld lifecycle pipeline to your Azure DevOps instance
-
-Options:
-  -n, --pipeline-name <pipeline-name>                  Name of the pipeline to be created
-  -p, --personal-access-token <personal-access-token>  Personal Access Token
-  -o, --org-name <org-name>                            Organization Name for Azure DevOps
-  -r, --repo-name <repo-name>                          Repository Name in Azure DevOps
-  -u, --repo-url <repo-url>                            Repository URL
-  -d, --devops-project <devops-project>                Azure DevOps Project
-  -b, --build-script-url <build-script-url>            Build Script URL. By default it is https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh.
-  --yaml-file-branch <yaml-file-branch>                The git branch where the pipeline definition yaml file is located. (default: "master")
-  -h, --help                                           output usage information
-```
+**Please note all project management commands must run in the order as listed
+above.**
