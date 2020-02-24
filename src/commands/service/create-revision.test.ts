@@ -250,7 +250,7 @@ describe("Create pull request", () => {
 describe("test getRemoteUrl function", () => {
   it("sanity test: get original url", async done => {
     const res = await getRemoteUrl(undefined);
-    expect(res.startsWith("https://github.com/CatalystCode/spk")).toBe(true);
+    expect(!!res.match(/CatalystCode\/spk/i)).toBe(true);
     done();
   });
   it("sanity test", async done => {
