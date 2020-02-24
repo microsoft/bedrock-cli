@@ -77,8 +77,6 @@ stages:
 
               # Include dependent scripts
               . ./functions.sh
-              mkdir helm-artifacts
-              cp ./tests/helm-artifacts/* helm-artifacts
               
               # Run the test
               bash ./introspection-validations.sh
@@ -152,7 +150,9 @@ stages:
 
               # Include dependent scripts
               . ./functions.sh
-
+              mkdir helm-artifacts
+              cp ./tests/helm-artifacts/* helm-artifacts
+              
               # Run the test
               bash ./validations.sh
 
