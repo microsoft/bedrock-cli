@@ -115,6 +115,11 @@ export const addServiceEndpoint = async (
   }
 };
 
+interface IServiceEndpointByNameResult {
+  count: number;
+  value: IServiceEndpoint[];
+}
+
 /**
  * Get Service Endpoint by name from Azure DevOps project
  *
@@ -127,7 +132,7 @@ export const getServiceEndpointByName = async (
   opts: IAzureDevOpsOpts = {}
 ): Promise<IServiceEndpoint | null> => {
   logger.info(`getServiceEndpointByName called with ${serviceEndpointName}`);
-  let resp: IRestResponse<any>;
+  let resp: IRestResponse<IServiceEndpointByNameResult>;
 
   const config = Config();
   const {

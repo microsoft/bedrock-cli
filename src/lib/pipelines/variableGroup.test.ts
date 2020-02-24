@@ -292,11 +292,11 @@ describe("doAddVariableGroup", () => {
     };
 
     let variableGroup: VariableGroup | undefined;
-    let error: Error | undefined;
+
     try {
       variableGroup = await doAddVariableGroup(params, true);
-    } catch (err) {
-      error = err;
+    } catch (_) {
+      // ignored
     }
     expect(variableGroup).toBeUndefined();
   });
@@ -341,11 +341,11 @@ describe("doAddVariableGroup", () => {
     };
 
     let variableGroup: VariableGroup | undefined;
-    let error: Error | undefined;
+
     try {
       variableGroup = await doAddVariableGroup(params, true);
-    } catch (err) {
-      error = err;
+    } catch (_) {
+      // ignore
     }
     expect(variableGroup).toBeUndefined();
   });

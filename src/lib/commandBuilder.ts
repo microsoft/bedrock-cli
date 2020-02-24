@@ -138,6 +138,7 @@ export const exit = (
         });
         return true;
       }
+      return false;
     });
     // file logger may be not added to logger.
     // then we end the command.

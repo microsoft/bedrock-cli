@@ -1,7 +1,6 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import uuid from "uuid/v4";
 import {
   HLD_COMPONENT_FILENAME,
   RENDER_HLD_PIPELINE_FILENAME

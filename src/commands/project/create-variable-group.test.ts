@@ -48,16 +48,9 @@ const hldRepoUrl = uuid();
 const servicePrincipalId = uuid();
 const servicePrincipalPassword: string = uuid();
 const tenant = uuid();
-
 const orgName = uuid();
 const project = uuid();
 const personalAccessToken = uuid();
-
-const accessopts: IAzureDevOpsOpts = {
-  orgName,
-  personalAccessToken,
-  project
-};
 
 describe("test execute function", () => {
   it("missing variable name", async () => {
@@ -277,7 +270,6 @@ describe("updateLifeCyclePipeline", () => {
   test("Should pass adding variable groups when bedrock file exists with empty variableGroups", async () => {
     // Create random directory to initialize
     const randomTmpDir = createTempDir();
-    const writeSpy = jest.spyOn(fs, "writeFileSync");
 
     const defaultBedrockFileObject = createTestBedrockYaml(
       false

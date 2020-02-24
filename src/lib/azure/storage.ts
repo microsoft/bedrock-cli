@@ -470,9 +470,7 @@ export const createResourceGroupIfNotExists = async (
       logger.info(`${message} already exists.`);
     } else {
       logger.info(`Creating ${message}`);
-      const stdout = await promisify(exec)(
-        `az group create -n ${name} -l ${location}`
-      );
+      await promisify(exec)(`az group create -n ${name} -l ${location}`);
       logger.info(`Created ${message}`);
     }
   } catch (err) {

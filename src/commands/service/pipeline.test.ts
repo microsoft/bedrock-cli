@@ -4,7 +4,6 @@ jest.mock("../../lib/pipelines/pipelines");
 
 import {
   createPipelineForDefinition,
-  definitionForAzureRepoPipeline,
   getBuildApiClient,
   queueBuild
 } from "../../lib/pipelines/pipelines";

@@ -23,7 +23,7 @@ import {
   SERVICE_PIPELINE_FILENAME,
   VM_IMAGE
 } from "../lib/constants";
-import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
+import { disableVerboseLogging, enableVerboseLogging } from "../logger";
 import {
   createTestComponentYaml,
   createTestHldAzurePipelinesYaml,
@@ -548,8 +548,8 @@ describe("serviceBuildUpdatePipeline", () => {
 
       let hasCorrectVariableGroup1: boolean = false;
       let hasCorrectVariableGroup2: boolean = false;
-      for (const [key, value] of Object.entries(azureYaml.variables!)) {
-        const item: { group: string } = value as { group: string };
+      for (const value of Object.values(azureYaml.variables!)) {
+        const item = value as { group: string };
 
         if (item.group === variableGroups[0]) {
           hasCorrectVariableGroup1 = true;

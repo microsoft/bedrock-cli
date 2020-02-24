@@ -1,6 +1,5 @@
 jest.mock("open");
 import open from "open";
-import path from "path";
 jest.mock("../../config");
 import { Config } from "../../config";
 import { exec } from "../../lib/shell";

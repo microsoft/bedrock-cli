@@ -114,7 +114,6 @@ describe("createPullRequest", () => {
 
   test("should throw an error when 0 repositories found ", async () => {
     // local mock
-    const originalRepos = gitApi.getRepositories;
     gitApi.getRepositories = async () => [];
 
     let err: Error | undefined;
@@ -137,31 +136,28 @@ describe("createPullRequest", () => {
     const originalBranches = gitApi.getBranches;
     gitApi.getBranches = async () => [{ name: "targetRef" }];
 
-    let err: any;
     try {
       await createPullRequest("random title", "sourceRef", "targetRef", {
         description: uuid(),
         originPushUrl: "my-git-url"
       });
-    } catch (e) {
-      err = e;
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeDefined();
+      expect(err!.message).toMatch(/0 repositories found with remote url/);
     }
-    expect(err).not.toBeUndefined();
-    expect(err!.message).toMatch(/0 repositories found with remote url/);
 
     gitApi.getBranches = originalBranches;
   });
 
   test("should pass when source and target refs exist in azure git and the PR is generated in the DevOps instance", async () => {
-    let err: any;
     try {
       await createPullRequest("random title", "sourceRef", "targetRef", {
         description: uuid(),
         originPushUrl: "my-git-url"
       });
     } catch (e) {
-      err = e;
+      expect(true).toBe(false);
     }
-    expect(err).toBeUndefined();
   });
 });

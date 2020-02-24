@@ -13,7 +13,6 @@ import {
 } from "../../logger";
 
 import { StorageAccount } from "@azure/arm-storage/esm/models";
-import { promisify } from "util";
 import { Config } from "../../config";
 import { IAzureAccessOpts } from "../../types";
 
@@ -218,8 +217,11 @@ describe("storage account exists", () => {
         resourceGroup: string,
         accountName: string,
         opts: IAzureAccessOpts = {}
-      ): Promise<any> => {
-        return { enableHttpsTrafficOnly: true };
+      ): Promise<StorageAccount | undefined> => {
+        return {
+          enableHttpsTrafficOnly: true,
+          location: "uswest"
+        };
       }
     )
     .mockImplementationOnce(
@@ -227,7 +229,7 @@ describe("storage account exists", () => {
         resourceGroup: string,
         accountName: string,
         opts: IAzureAccessOpts = {}
-      ): Promise<any> => {
+      ): Promise<StorageAccount | undefined> => {
         return undefined;
       }
     );

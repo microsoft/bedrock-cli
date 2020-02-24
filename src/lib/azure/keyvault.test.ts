@@ -5,11 +5,7 @@ import {
   SetSecretOptions
 } from "@azure/keyvault-secrets";
 import uuid from "uuid/v4";
-import {
-  disableVerboseLogging,
-  enableVerboseLogging,
-  logger
-} from "../../logger";
+import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { getSecret, setSecret } from "./keyvault";
 import * as keyvault from "./keyvault";
 
@@ -136,7 +132,7 @@ describe("get secret", () => {
       } as SecretClient)
     );
     try {
-      const val = await getSecret(keyVaultName, mockedName);
+      await getSecret(keyVaultName, mockedName);
       expect(true).toBe(false);
     } catch (err) {
       expect(err).toBeDefined();
