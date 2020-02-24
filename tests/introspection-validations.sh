@@ -69,9 +69,9 @@ subscription_id=$(az account list | jq '.[] | select(.isDefault == true) | .id' 
 storage_account_exists $AZ_STORAGE_ACCOUNT $AZ_RESOURCE_GROUP "fail"
 storage_account_table_exists $sat_onboard_name $AZ_STORAGE_ACCOUNT "delete"
 
-wait_delete_seconds=50
+wait_delete_seconds=120
 start=0
-wait_seconds=5
+wait_seconds=10
 while [ $start -lt $wait_delete_seconds ]; do
   onboard_result=$(spk deployment onboard -s $AZ_STORAGE_ACCOUNT -t $sat_onboard_name -l $sa_location -r $AZ_RESOURCE_GROUP --subscription-id $subscription_id --service-principal-id $SP_APP_ID --service-principal-password $SP_PASS --tenant-id $SP_TENANT)
   if [[ $onboard_result == *"table is being deleted"* ]]; then
