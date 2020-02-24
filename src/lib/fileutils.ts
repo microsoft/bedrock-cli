@@ -153,7 +153,9 @@ export const serviceBuildAndUpdatePipeline = (
   const pipelineYaml: IAzurePipelinesYaml = {
     trigger: {
       branches: { include: ringBranches },
-      paths: { include: [relativeServicePathFormatted] } // Only building for a single service's path.
+      ...(relativeServicePathFormatted === "./"
+        ? {}
+        : { paths: { include: [relativeServicePathFormatted] } })
     },
     variables: [...(variableGroups ?? []).map(group => ({ group }))],
     stages: [

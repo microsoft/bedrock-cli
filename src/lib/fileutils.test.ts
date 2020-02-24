@@ -208,6 +208,35 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
     );
     expect(writeSpy).toBeCalled();
   });
+
+  test("no path trigger injected when the path is the project root (is: ./)", () => {
+    const serviceYaml = serviceBuildAndUpdatePipeline("my-service", "./", [
+      "master"
+    ]);
+    expect(serviceYaml?.trigger?.paths).toBeUndefined();
+    expect(serviceYaml.trigger).toStrictEqual({
+      branches: { include: ["master"] }
+    });
+  });
+
+  test("path trigger is injected when the path is not the root of the project (not: ./)", () => {
+    for (const p of ["./my-service", "./foo/bar/baz"]) {
+      const serviceYaml = serviceBuildAndUpdatePipeline("my-service", p, [
+        "master"
+      ]);
+      expect(serviceYaml?.trigger?.paths).toStrictEqual({
+        include: [p]
+      });
+    }
+    const yamlWithNoDot = serviceBuildAndUpdatePipeline(
+      "my-service",
+      "another-service",
+      ["master"]
+    );
+    expect(yamlWithNoDot?.trigger?.paths).toStrictEqual({
+      include: ["./another-service"]
+    });
+  });
 });
 
 describe("generateHldLifecyclePipelineYaml", () => {
