@@ -1,5 +1,7 @@
 jest.mock("./pipelines");
 
+import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
+
 import {
   IAzureRepoPipelineConfig,
   IGithubRepoPipelineConfig,
@@ -11,6 +13,14 @@ import {
   BuildRepository,
   YamlProcess
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
+
+beforeAll(() => {
+  enableVerboseLogging();
+});
+
+afterAll(() => {
+  disableVerboseLogging();
+});
 
 describe("It builds an azure repo pipeline definition", () => {
   const { definitionForAzureRepoPipeline } = jest.requireActual("./pipelines");

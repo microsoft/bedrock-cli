@@ -77,7 +77,7 @@ describe("Test execute function", () => {
     process.env.test_key = "my_storage_key";
     const randomTmpDir = createTempDir();
     const filename = path.resolve(mockFileName);
-    await saveConfiguration(filename, randomTmpDir);
+    saveConfiguration(filename, randomTmpDir);
 
     const exitFn = jest.fn();
     await execute(

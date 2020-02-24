@@ -35,9 +35,9 @@ export const ORG_NAME_VIOLATION =
  *
  * @param file File name
  */
-export const handleFileConfig = async (file: string) => {
+export const handleFileConfig = (file: string) => {
   loadConfiguration(file);
-  await saveConfiguration(file);
+  saveConfiguration(file);
   logger.info("Successfully initialized the spk tool!");
 };
 
@@ -259,7 +259,7 @@ export const execute = async (
     }
 
     if (hasValue(opts.file)) {
-      await handleFileConfig(opts.file);
+      handleFileConfig(opts.file);
     } else {
       await handleInteractiveMode();
     }

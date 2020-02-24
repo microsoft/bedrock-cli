@@ -182,7 +182,7 @@ describe("Test execute function", () => {
 });
 
 describe("Validate Git URLs", () => {
-  it("Should error when providing an invalid git url", async () => {
+  it("Should error when providing an invalid git url", () => {
     const exitFn = jest.fn();
     const helmConfigPath = "dev.azure.com/foo/bar";
 
@@ -190,7 +190,7 @@ describe("Validate Git URLs", () => {
     expect(exitFn).toBeCalledTimes(1);
   });
 
-  it("Should not error when providing a valid github https url", async () => {
+  it("Should not error when providing a valid github https url", () => {
     const exitFn = jest.fn();
     const helmConfigPath = "https://github.com/CatalystCode/spk.git";
 
@@ -198,7 +198,7 @@ describe("Validate Git URLs", () => {
     expect(exitFn).toBeCalledTimes(0);
   });
 
-  it("Should not error when providing a valid azdo https url", async () => {
+  it("Should not error when providing a valid azdo https url", () => {
     const exitFn = jest.fn();
     const helmConfigPath =
       "https://dev@dev.azure.com/catalystcode/project/_git/repo";
@@ -207,7 +207,7 @@ describe("Validate Git URLs", () => {
     expect(exitFn).toBeCalledTimes(0);
   });
 
-  it("Should not error when providing a valid azdo git+ssh url", async () => {
+  it("Should not error when providing a valid azdo git+ssh url", () => {
     const exitFn = jest.fn();
     const helmConfigPath = "git@ssh.dev.azure.com:v3/CatalystCode/project/repo";
 
@@ -215,7 +215,7 @@ describe("Validate Git URLs", () => {
     expect(exitFn).toBeCalledTimes(0);
   });
 
-  it("Should not error when providing a valid github git+ssh url", async () => {
+  it("Should not error when providing a valid github git+ssh url", () => {
     const exitFn = jest.fn();
     const helmConfigPath = "git@github.com:CatalystCode/spk.git";
 
@@ -226,7 +226,7 @@ describe("Validate Git URLs", () => {
 
 describe("Adding a service to a repo directory", () => {
   let randomTmpDir: string = "";
-  beforeEach(async () => {
+  beforeEach(() => {
     // Create random directory to initialize
     randomTmpDir = createTempDir();
   });

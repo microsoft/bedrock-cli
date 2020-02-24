@@ -51,7 +51,7 @@ describe("Test updateVariableWithLocalEnv function", () => {
 });
 
 describe("Bedrock", () => {
-  test("valid helm configuration passes", async () => {
+  test("valid helm configuration passes", () => {
     const randomTmpDir = path.join(os.tmpdir(), uuid());
     shell.mkdir("-p", randomTmpDir);
     const validBedrockYaml: IBedrockFile = {
@@ -97,7 +97,7 @@ describe("Bedrock", () => {
     expect(error).toBeUndefined();
   });
 
-  test("invalid helm configuration fails", async () => {
+  test("invalid helm configuration fails", () => {
     const randomTmpDir = path.join(os.tmpdir(), uuid());
     shell.mkdir("-p", randomTmpDir);
     const validBedrockYaml: IBedrockFile = {
@@ -145,7 +145,7 @@ describe("Initializing a project to use spk with a config file", () => {
     process.env.test_name = "my_storage_account";
     process.env.test_key = "my_storage_key";
     const filename = path.resolve(mockFileName);
-    await saveConfiguration(filename, randomTmpDir);
+    saveConfiguration(filename, randomTmpDir);
     loadConfiguration(path.join(randomTmpDir, "config.yaml"));
 
     const config = Config();
@@ -162,7 +162,7 @@ describe("Initializing a project to use spk with a config file", () => {
 });
 
 describe("Initializing a project a config file but no env vars", () => {
-  test("init command basic file without env vars", async () => {
+  test("init command basic file without env vars", () => {
     const filename = path.resolve(mockFileName);
     process.env.test_name = "";
     process.env.test_key = "";
@@ -177,7 +177,7 @@ describe("Initializing a project a config file but no env vars", () => {
 });
 
 describe("Initializing a project with a non-existent file", () => {
-  test("Non-existent file test", async () => {
+  test("Non-existent file test", () => {
     const filename = path.resolve("./spk-config-test.yaml");
     try {
       loadConfiguration(filename);
@@ -190,14 +190,14 @@ describe("Initializing a project with a non-existent file", () => {
 });
 
 describe("Writing to default config location", () => {
-  test("Default config location exists", async () => {
+  test("Default config location exists", () => {
     try {
       const filename = path.resolve(mockFileName);
       process.env.test_name = "testStorageName";
       process.env.test_key = "testStorageKey";
       loadConfiguration(filename);
 
-      await saveConfiguration(filename);
+      saveConfiguration(filename);
       loadConfiguration(defaultConfigFile());
       expect(Config().azure_devops!).toBeDefined();
     } catch (e) {

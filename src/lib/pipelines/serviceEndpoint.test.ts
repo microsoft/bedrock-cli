@@ -34,7 +34,7 @@ afterAll(() => {
 });
 
 describe("Validate service endpoint parameters creation", () => {
-  test("valid service endpoint params", async () => {
+  test("valid service endpoint params", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
       key_vault_provider: {
@@ -50,7 +50,7 @@ describe("Validate service endpoint parameters creation", () => {
     });
     const input = readYaml<IVariableGroupData>("");
 
-    const data = await createServiceEndPointParams(
+    const data = createServiceEndPointParams(
       input.key_vault_provider!.service_endpoint
     );
 
@@ -69,7 +69,7 @@ describe("Validate service endpoint parameters creation", () => {
     expect(data.authorization.scheme).toBe("ServicePrincipal");
   });
 
-  test("should fail creating service endpoint params without the name", async () => {
+  test("should fail creating service endpoint params without the name", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
       key_vault_provider: {
@@ -86,16 +86,14 @@ describe("Validate service endpoint parameters creation", () => {
 
     let invalidPatError: Error | undefined;
     try {
-      await createServiceEndPointParams(
-        input.key_vault_provider!.service_endpoint
-      );
+      createServiceEndPointParams(input.key_vault_provider!.service_endpoint);
     } catch (err) {
       invalidPatError = err;
     }
     expect(invalidPatError).toBeDefined();
   });
 
-  test("should fail creating service endpoint params without service principal id", async () => {
+  test("should fail creating service endpoint params without service principal id", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
       key_vault_provider: {
@@ -112,16 +110,14 @@ describe("Validate service endpoint parameters creation", () => {
 
     let invalidPatError: Error | undefined;
     try {
-      await createServiceEndPointParams(
-        input.key_vault_provider!.service_endpoint
-      );
+      createServiceEndPointParams(input.key_vault_provider!.service_endpoint);
     } catch (err) {
       invalidPatError = err;
     }
     expect(invalidPatError).toBeDefined();
   });
 
-  test("should fail creating service endpoint params without service principal secret", async () => {
+  test("should fail creating service endpoint params without service principal secret", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
       key_vault_provider: {
@@ -138,16 +134,14 @@ describe("Validate service endpoint parameters creation", () => {
 
     let invalidPatError: Error | undefined;
     try {
-      await createServiceEndPointParams(
-        input.key_vault_provider!.service_endpoint
-      );
+      createServiceEndPointParams(input.key_vault_provider!.service_endpoint);
     } catch (err) {
       invalidPatError = err;
     }
     expect(invalidPatError).toBeDefined();
   });
 
-  test("should fail creating service endpoint params without subscription id", async () => {
+  test("should fail creating service endpoint params without subscription id", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
       key_vault_provider: {
@@ -164,16 +158,14 @@ describe("Validate service endpoint parameters creation", () => {
 
     let invalidPatError: Error | undefined;
     try {
-      await createServiceEndPointParams(
-        input.key_vault_provider!.service_endpoint
-      );
+      createServiceEndPointParams(input.key_vault_provider!.service_endpoint);
     } catch (err) {
       invalidPatError = err;
     }
     expect(invalidPatError).toBeDefined();
   });
 
-  test("should fail creating service endpoint params without subscription name", async () => {
+  test("should fail creating service endpoint params without subscription name", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
       key_vault_provider: {
@@ -190,16 +182,14 @@ describe("Validate service endpoint parameters creation", () => {
 
     let invalidPatError: Error | undefined;
     try {
-      await createServiceEndPointParams(
-        input.key_vault_provider!.service_endpoint
-      );
+      createServiceEndPointParams(input.key_vault_provider!.service_endpoint);
     } catch (err) {
       invalidPatError = err;
     }
     expect(invalidPatError).toBeDefined();
   });
 
-  test("should fail creating service endpoint params without entire section", async () => {
+  test("should fail creating service endpoint params without entire section", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
       key_vault_provider: {
@@ -210,9 +200,7 @@ describe("Validate service endpoint parameters creation", () => {
 
     let invalidPatError: Error | undefined;
     try {
-      await createServiceEndPointParams(
-        input.key_vault_provider!.service_endpoint
-      );
+      createServiceEndPointParams(input.key_vault_provider!.service_endpoint);
     } catch (err) {
       invalidPatError = err;
     }

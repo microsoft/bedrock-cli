@@ -89,7 +89,7 @@ export const execute = async (
       false
     );
     validateVariablesTf(path.join(sourcePath, opts.template, VARIABLES_TF));
-    await scaffold(opts);
+    scaffold(opts);
     removeTemplateFiles(opts.name);
     await exitFn(0);
   } catch (err) {
@@ -320,7 +320,7 @@ export const generateClusterDefinition = (
  *
  * @param values Values from command line
  */
-export const scaffold = async (values: ICommandOptions) => {
+export const scaffold = (values: ICommandOptions) => {
   try {
     const tfVariableFile = path.join(values.name, VARIABLES_TF);
     const backendTfvarsFile = path.join(values.name, BACKEND_TFVARS);

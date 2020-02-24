@@ -29,10 +29,11 @@ export const createServiceEndpointIfNotExists = async (
   }
 
   try {
-    let serviceEndpoint: IServiceEndpoint | null;
-
     // get service endpoint by name that is configured in the config file
-    serviceEndpoint = await getServiceEndpointByName(serviceEndpointName, opts);
+    let serviceEndpoint = await getServiceEndpointByName(
+      serviceEndpointName,
+      opts
+    );
 
     // Service endpoint is not found so create a new service endpoint
     if (serviceEndpoint === null || serviceEndpoint === undefined) {
@@ -79,7 +80,7 @@ export const addServiceEndpoint = async (
   const orgUrl = azdoUrl(orgName!);
 
   try {
-    const endPointParams: IServiceEndpointParams = await createServiceEndPointParams(
+    const endPointParams: IServiceEndpointParams = createServiceEndPointParams(
       serviceEndpointData
     );
 
@@ -187,10 +188,10 @@ export const getServiceEndpointByName = async (
  * @param serviceEndpointData The service endpoint request data
  * @returns `IServiceEndpointParams` object
  */
-export const createServiceEndPointParams = async (
+export const createServiceEndPointParams = (
   serviceEndpointData: IServiceEndpointData
-): Promise<IServiceEndpointParams> => {
-  await validateServiceEndpointInput(serviceEndpointData);
+): IServiceEndpointParams => {
+  validateServiceEndpointInput(serviceEndpointData);
   const endPointParams: IServiceEndpointParams = {
     authorization: {
       parameters: {
@@ -220,7 +221,7 @@ export const createServiceEndPointParams = async (
  * @param serviceEndpointData The service endpoint request data
  * @throws `Error` object when required variables is specified
  */
-const validateServiceEndpointInput = async (
+const validateServiceEndpointInput = (
   serviceEndpointData: IServiceEndpointData
 ) => {
   const errors: string[] = [];

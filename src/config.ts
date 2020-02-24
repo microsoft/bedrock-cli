@@ -131,7 +131,7 @@ export const Config = (): IConfigYaml => {
 
   const introspectionAzure = {
     ...spkConfig.introspection?.azure,
-    get key() {
+    get key(): Promise<string | undefined> {
       const account_name = spkConfig.introspection?.azure?.account_name;
       return getKeyVaultSecret(spkConfig.key_vault_name, account_name);
     }
@@ -292,7 +292,7 @@ export const loadConfiguration = (filepath: string = defaultConfigFile()) => {
  * @param sourceFilePath The source configuration file
  * @param targetDir The optional target directory to store the configuration to override the default directory
  */
-export const saveConfiguration = async (
+export const saveConfiguration = (
   sourceFilePath: string,
   targetDir: string = defaultConfigDir()
 ) => {

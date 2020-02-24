@@ -249,7 +249,7 @@ describe("test execute function", () => {
       .spyOn(scaffold, "copyTfTemplate")
       .mockReturnValueOnce(Promise.resolve());
     jest.spyOn(scaffold, "validateVariablesTf").mockReturnValueOnce();
-    jest.spyOn(scaffold, "scaffold").mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(scaffold, "scaffold").mockReturnValueOnce();
     jest.spyOn(scaffold, "removeTemplateFiles").mockReturnValueOnce();
 
     const exitFn = jest.fn();
@@ -260,7 +260,7 @@ describe("test execute function", () => {
 });
 
 describe("Validate parsing of sample variables.tf file", () => {
-  test("Validate that a variables.tf sample can be parsed into an object", async () => {
+  test("Validate that a variables.tf sample can be parsed into an object", () => {
     const sampleVarTf =
       'variable "resource_group_name" { \n' +
       '   type = "string"\n' +
@@ -284,7 +284,7 @@ describe("Validate parsing of sample variables.tf file", () => {
 });
 
 describe("Validate generation of sample scaffold definition", () => {
-  test("Validate that a valid scaffold definition object is generated", async () => {
+  test("Validate that a valid scaffold definition object is generated", () => {
     const sampleVarTf =
       'variable "resource_group_name" { \n' +
       '   type = "string"\n' +

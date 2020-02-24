@@ -39,7 +39,7 @@ describe("Creation and Existence test on bedrock.yaml", () => {
 });
 
 describe("Adding a new service to a Bedrock file", () => {
-  it("should update existing bedrock.yml with a new service and its helm chart config", async () => {
+  it("should update existing bedrock.yml with a new service and its helm chart config", () => {
     const servicePath = "packages/my-new-service";
     const svcDisplayName = "my-new-service";
     const helmConfig: IHelmConfig = {

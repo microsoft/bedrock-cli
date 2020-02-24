@@ -67,7 +67,7 @@ export const initialize = async (
   logger.info(`Initializing project Bedrock project ${absProjectRoot}`);
 
   const defaultRing = opts ? [opts.defaultRing] : [];
-  await generateBedrockFile(absProjectRoot, defaultRing);
+  generateBedrockFile(absProjectRoot, defaultRing);
   await generateMaintainersFile(absProjectRoot, []);
   await generateHldLifecyclePipelineYaml(absProjectRoot);
   generateGitIgnoreFile(absProjectRoot, "spk.log");
@@ -154,7 +154,7 @@ const generateMaintainersFile = async (
  *
  * @param targetPath Path to generate the the bedrock.yaml file in
  */
-const generateBedrockFile = async (
+const generateBedrockFile = (
   projectPath: string,
   defaultRings: string[] = []
 ) => {

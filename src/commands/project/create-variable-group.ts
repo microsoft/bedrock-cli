@@ -160,7 +160,7 @@ export const commandDecorator = (command: commander.Command): void => {
  * @param tenantId The Azure AD tenant id for az login
  * @param accessOpts Azure DevOps access options from command options to override spk config
  */
-export const create = async (
+export const create = (
   variableGroupName: string,
   registryName: string | undefined,
   hldRepoUrl: string | undefined,
@@ -202,7 +202,7 @@ export const create = async (
     type: "Vsts",
     variables: vars
   };
-  return await addVariableGroup(variableGroupData, accessOpts);
+  return addVariableGroup(variableGroupData, accessOpts);
 };
 
 /**
@@ -211,7 +211,7 @@ export const create = async (
  * @param rootProjectPath Path to generate/update the the bedrock.yaml file in
  * @param variableGroupName The varible group name
  */
-export const setVariableGroupInBedrockFile = async (
+export const setVariableGroupInBedrockFile = (
   rootProjectPath: string,
   variableGroupName: string
 ) => {
@@ -255,7 +255,7 @@ export const setVariableGroupInBedrockFile = async (
  *
  * @param rootProjectPath Path to project files
  */
-export const updateLifeCyclePipeline = async (rootProjectPath: string) => {
+export const updateLifeCyclePipeline = (rootProjectPath: string) => {
   if (!hasValue(rootProjectPath)) {
     throw new Error("Project root path is not valid");
   }

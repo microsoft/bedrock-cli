@@ -66,7 +66,7 @@ describe("set secret", () => {
   test("negative test", async () => {
     jest.spyOn(keyvault, "getClient").mockReturnValueOnce(
       Promise.resolve({
-        setSecret: async (
+        setSecret: (
           secretName: string,
           value: string,
           options?: SetSecretOptions
@@ -99,7 +99,7 @@ describe("get secret", () => {
   it("negative test: secret not found", async () => {
     jest.spyOn(keyvault, "getClient").mockReturnValueOnce(
       Promise.resolve({
-        getSecret: async (
+        getSecret: (
           secretName: string,
           options?: GetSecretOptions
         ): Promise<KeyVaultSecret> => {
@@ -120,7 +120,7 @@ describe("get secret", () => {
   it("negative test: other errors", async () => {
     jest.spyOn(keyvault, "getClient").mockReturnValueOnce(
       Promise.resolve({
-        getSecret: async (
+        getSecret: (
           secretName: string,
           options?: GetSecretOptions
         ): Promise<KeyVaultSecret> => {

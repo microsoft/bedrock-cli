@@ -276,7 +276,7 @@ describe("Watch get deployments", () => {
 });
 
 describe("Introspect deployments", () => {
-  test("verify basic fields are defined", async () => {
+  test("verify basic fields are defined", () => {
     mockedDeps.forEach((deployment: Deployment) => {
       const dep = deployment as Deployment;
 
@@ -299,7 +299,7 @@ describe("Introspect deployments", () => {
 });
 
 describe("Print deployments", () => {
-  test("verify print deployments", async () => {
+  test("verify print deployments", () => {
     let table = printDeployments(
       mockedDeps,
       processOutputFormat("normal"),
@@ -367,7 +367,7 @@ describe("Cluster sync", () => {
 });
 
 describe("Output formats", () => {
-  test("verify wide output", async () => {
+  test("verify wide output", () => {
     const table = printDeployments(
       mockedDeps,
       processOutputFormat("wide"),

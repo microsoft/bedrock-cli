@@ -425,7 +425,7 @@ describe("setConfiguration", () => {
     expect(azure!.table_name).toBe(MOCKED_VALUES.storageTableName);
   });
 
-  test("Should pass updating previous undefined storage account and table names", async () => {
+  test("Should pass updating previous undefined storage account and table names", () => {
     const data = {
       introspection: {
         azure: {}
