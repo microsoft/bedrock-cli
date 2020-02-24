@@ -25,6 +25,7 @@ const MOCKED_VALS: ICommandOptions = {
   p3: undefined,
   partitionKey: undefined,
   pr: undefined,
+  repository: undefined,
   service: undefined,
   tableName: undefined
 };

@@ -21,6 +21,7 @@ export interface IRowSrcToACRPipeline {
   imageTag: string;
   p1: string;
   service: string;
+  sourceRepo?: string;
 }
 
 /**
@@ -31,6 +32,7 @@ export interface IRowACRToHLDPipeline extends IRowSrcToACRPipeline {
   hldCommitId: string;
   env: string;
   pr?: string;
+  hldRepo?: string;
 }
 
 /**
@@ -42,6 +44,7 @@ export interface IEntrySRCToACRPipeline {
   commitId: string;
   imageTag: string;
   service: string;
+  sourceRepo?: string;
   p1: {
     _: string;
   };
@@ -58,6 +61,8 @@ export interface IEntryACRToHLDPipeline {
   PartitionKey: string;
   commitId: string;
   imageTag: string;
+  sourceRepo?: string;
+  hldRepo?: string;
   p1: string;
   service: string;
   p2: {
@@ -77,6 +82,7 @@ export interface IEntryACRToHLDPipeline {
 export interface IRowHLDToManifestPipeline extends IRowACRToHLDPipeline {
   p3: string;
   manifestCommitId?: string;
+  manifestRepo?: string;
 }
 
 /**
@@ -98,6 +104,9 @@ export interface IEntryHLDToManifestPipeline {
   manifestCommitId: {
     _: string;
   };
+  sourceRepo?: string;
+  hldRepo?: string;
+  manifestRepo?: string;
 }
 
 /**
@@ -105,6 +114,7 @@ export interface IEntryHLDToManifestPipeline {
  */
 export interface IRowManifest extends IRowHLDToManifestPipeline {
   manifestCommitId: string;
+  manifestRepo?: string;
 }
 
 /**
@@ -131,7 +141,8 @@ export const addSrcToACRPipeline = async (
   pipelineId: string,
   imageTag: string,
   serviceName: string,
-  commitId: string
+  commitId: string,
+  repository?: string
 ): Promise<IRowSrcToACRPipeline> => {
   const entry: IRowSrcToACRPipeline = {
     PartitionKey: tableInfo.partitionKey,
@@ -141,6 +152,9 @@ export const addSrcToACRPipeline = async (
     p1: pipelineId,
     service: serviceName
   };
+  if (repository) {
+    entry.sourceRepo = repository.toLowerCase();
+  }
   await insertToTable(tableInfo, entry);
   logger.info("Added first pipeline details to the database");
   return entry;
@@ -163,7 +177,8 @@ export const updateMatchingArcToHLDPipelineEntry = async (
   imageTag: string,
   hldCommitId: string,
   env: string,
-  pr?: string
+  pr?: string,
+  repository?: string
 ): Promise<IRowACRToHLDPipeline | null> => {
   const found = (entries || []).find((entry: IEntryACRToHLDPipeline) => {
     return (
@@ -183,10 +198,14 @@ export const updateMatchingArcToHLDPipelineEntry = async (
       imageTag: found.imageTag,
       p1: found.p1,
       p2: pipelineId.toLowerCase(),
-      service: found.service
+      service: found.service,
+      sourceRepo: found.sourceRepo
     };
     if (pr) {
       updateEntry.pr = pr.toLowerCase();
+    }
+    if (repository) {
+      updateEntry.hldRepo = repository.toLowerCase();
     }
     await updateEntryInTable(tableInfo, updateEntry);
     logger.info(
@@ -216,7 +235,8 @@ export const updateLastRowOfArcToHLDPipelines = async (
   imageTag: string,
   hldCommitId: string,
   env: string,
-  pr?: string
+  pr?: string,
+  repository?: string
 ): Promise<IRowACRToHLDPipeline> => {
   const lastEntry = entries[entries.length - 1];
   const last: IRowACRToHLDPipeline = {
@@ -228,10 +248,14 @@ export const updateLastRowOfArcToHLDPipelines = async (
     imageTag: lastEntry.imageTag,
     p1: lastEntry.p1,
     p2: pipelineId.toLowerCase(),
-    service: lastEntry.service
+    service: lastEntry.service,
+    sourceRepo: lastEntry.sourceRepo
   };
   if (pr) {
     last.pr = pr.toLowerCase();
+  }
+  if (repository) {
+    last.hldRepo = repository.toLowerCase();
   }
   await insertToTable(tableInfo, last);
   logger.info(
@@ -258,7 +282,8 @@ export const addNewRowToArcToHLDPipelines = async (
   imageTag: string,
   hldCommitId: string,
   env: string,
-  pr?: string
+  pr?: string,
+  repository?: string
 ): Promise<IRowACRToHLDPipeline> => {
   const newEntry: IRowACRToHLDPipeline = {
     PartitionKey: tableInfo.partitionKey,
@@ -273,6 +298,9 @@ export const addNewRowToArcToHLDPipelines = async (
   };
   if (pr) {
     newEntry.pr = pr.toLowerCase();
+  }
+  if (repository) {
+    newEntry.hldRepo = repository.toLowerCase();
   }
   await insertToTable(tableInfo, newEntry);
   logger.info(
@@ -295,7 +323,8 @@ export const updateACRToHLDPipeline = async (
   imageTag: string,
   hldCommitId: string,
   env: string,
-  pr?: string
+  pr?: string,
+  repository?: string
 ): Promise<IRowACRToHLDPipeline> => {
   const entries = await findMatchingDeployments<IEntryACRToHLDPipeline>(
     tableInfo,
@@ -312,7 +341,8 @@ export const updateACRToHLDPipeline = async (
       imageTag,
       hldCommitId,
       env,
-      pr
+      pr,
+      repository
     );
 
     if (found) {
@@ -328,7 +358,8 @@ export const updateACRToHLDPipeline = async (
       imageTag,
       hldCommitId,
       env,
-      pr
+      pr,
+      repository
     );
   }
 
@@ -341,7 +372,8 @@ export const updateACRToHLDPipeline = async (
     imageTag,
     hldCommitId,
     env,
-    pr
+    pr,
+    repository
   );
 };
 
@@ -364,7 +396,8 @@ export const updateHLDToManifestPipeline = async (
   hldCommitId: string,
   pipelineId: string,
   manifestCommitId?: string,
-  pr?: string
+  pr?: string,
+  repository?: string
 ): Promise<IRowHLDToManifestPipeline> => {
   let entries = await findMatchingDeployments<IEntryHLDToManifestPipeline>(
     tableInfo,
@@ -387,7 +420,8 @@ export const updateHLDToManifestPipeline = async (
     hldCommitId,
     pipelineId,
     manifestCommitId,
-    pr
+    pr,
+    repository
   );
 };
 
@@ -408,7 +442,8 @@ export const updateHLDtoManifestEntry = async (
   hldCommitId: string,
   pipelineId: string,
   manifestCommitId?: string,
-  pr?: string
+  pr?: string,
+  repository?: string
 ): Promise<IRowHLDToManifestPipeline | null> => {
   const found = entries.find(
     (entry: IEntryHLDToManifestPipeline) =>
@@ -425,17 +460,22 @@ export const updateHLDtoManifestEntry = async (
       commitId: found.commitId,
       env: found.env,
       hldCommitId,
+      hldRepo: found.hldRepo,
       imageTag: found.imageTag,
       p1: found.p1,
       p2: found.p2,
       p3: pipelineId.toLowerCase(),
-      service: found.service
+      service: found.service,
+      sourceRepo: found.sourceRepo
     };
     if (manifestCommitId) {
       entry.manifestCommitId = manifestCommitId.toLowerCase();
     }
     if (pr) {
       entry.pr = pr;
+    }
+    if (repository) {
+      entry.manifestRepo = repository.toLowerCase();
     }
     await updateEntryInTable(tableInfo, entry);
     logger.info(
@@ -466,7 +506,8 @@ export const updateLastHLDtoManifestEntry = async (
   hldCommitId: string,
   pipelineId: string,
   manifestCommitId?: string,
-  pr?: string
+  pr?: string,
+  repository?: string
 ): Promise<IRowHLDToManifestPipeline> => {
   const lastEntry = entries[entries.length - 1];
   const newEntry: IRowHLDToManifestPipeline = {
@@ -475,17 +516,22 @@ export const updateLastHLDtoManifestEntry = async (
     commitId: lastEntry.commitId,
     env: lastEntry.env,
     hldCommitId: hldCommitId.toLowerCase(),
+    hldRepo: lastEntry.hldRepo,
     imageTag: lastEntry.imageTag,
     p1: lastEntry.p1,
     p2: lastEntry.p2,
     p3: pipelineId.toLowerCase(),
-    service: lastEntry.service
+    service: lastEntry.service,
+    sourceRepo: lastEntry.sourceRepo
   };
   if (manifestCommitId) {
     newEntry.manifestCommitId = manifestCommitId.toLowerCase();
   }
   if (pr) {
     newEntry.pr = pr.toLowerCase();
+  }
+  if (repository) {
+    newEntry.manifestRepo = repository.toLowerCase();
   }
 
   await insertToTable(tableInfo, newEntry);
@@ -511,7 +557,8 @@ export const addNewRowToHLDtoManifestPipeline = async (
   hldCommitId: string,
   pipelineId: string,
   manifestCommitId?: string,
-  pr?: string
+  pr?: string,
+  repository?: string
 ) => {
   const newEntry: IRowHLDToManifestPipeline = {
     PartitionKey: tableInfo.partitionKey,
@@ -530,6 +577,9 @@ export const addNewRowToHLDtoManifestPipeline = async (
   }
   if (pr) {
     newEntry.pr = pr.toLowerCase();
+  }
+  if (repository) {
+    newEntry.manifestRepo = repository.toLowerCase();
   }
   await insertToTable(tableInfo, newEntry);
   logger.info(
@@ -557,7 +607,8 @@ export const updateHLDtoManifestHelper = async (
   hldCommitId: string,
   pipelineId: string,
   manifestCommitId?: string,
-  pr?: string
+  pr?: string,
+  repository?: string
 ): Promise<IRowHLDToManifestPipeline> => {
   if (entries && entries.length > 0) {
     const updated = await updateHLDtoManifestEntry(
@@ -566,7 +617,8 @@ export const updateHLDtoManifestHelper = async (
       hldCommitId,
       pipelineId,
       manifestCommitId,
-      pr
+      pr,
+      repository
     );
 
     if (updated) {
@@ -581,7 +633,8 @@ export const updateHLDtoManifestHelper = async (
       hldCommitId,
       pipelineId,
       manifestCommitId,
-      pr
+      pr,
+      repository
     );
   }
 
@@ -593,7 +646,8 @@ export const updateHLDtoManifestHelper = async (
     hldCommitId,
     pipelineId,
     manifestCommitId,
-    pr
+    pr,
+    repository
   );
 };
 
@@ -606,7 +660,8 @@ export const updateHLDtoManifestHelper = async (
 export const updateManifestCommitId = async (
   tableInfo: IDeploymentTable,
   pipelineId: string,
-  manifestCommitId: string
+  manifestCommitId: string,
+  repository?: string
 ): Promise<IRowManifest> => {
   const entries = await findMatchingDeployments<IRowManifest>(
     tableInfo,
@@ -617,6 +672,9 @@ export const updateManifestCommitId = async (
   if (entries.length > 0) {
     const entry = entries[0];
     entry.manifestCommitId = manifestCommitId;
+    if (repository) {
+      entry.manifestRepo = repository.toLowerCase();
+    }
     await updateEntryInTable(tableInfo, entry);
     logger.info(
       `Update manifest commit Id ${manifestCommitId} for pipeline Id ${pipelineId}`

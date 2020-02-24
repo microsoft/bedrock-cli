@@ -21,8 +21,7 @@
     },
     {
       "arg": "--p1 <p1>",
-      "description": "Identifier for the first pipeline",
-      "defaultValue": ""
+      "description": "Identifier for the first pipeline"
     },
     {
       "arg": "--image-tag <image-tag>",
@@ -60,6 +59,10 @@
     {
       "arg": "--manifest-commit-id <manifest-commit-id>",
       "description": "Commit Id in the manifest repository"
+    },
+    {
+      "arg": "--repository <repository>",
+      "description": "URL of the repository (SRC, HLD, Manifest)"
     }
   ]
 }
