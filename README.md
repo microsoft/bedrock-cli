@@ -19,6 +19,11 @@ For more information on the end-to-end experience of using Bedrock principles
 refer to:
 [Bedrock Developer and Operations Experience](https://github.com/CatalystCode/bedrock-end-to-end-dx)
 
+## Guides
+
+You will find several guides to help you get started on each of the areas at
+[SPK guides](./guides/README.md).
+
 ## Installation
 
 Please refer to the latest SPK
