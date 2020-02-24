@@ -14,7 +14,8 @@ import {
 import {
   getOriginUrl,
   getRepositoryName,
-  getRepositoryUrl
+  getRepositoryUrl,
+  isGitHubUrl
 } from "../../lib/gitutils";
 import {
   createPipelineForDefinition,
@@ -49,7 +50,7 @@ export const fetchValues = async (
     opts.personalAccessToken || azure_devops?.access_token || "";
   opts.devopsProject = opts.devopsProject || azure_devops?.project || "";
   opts.pipelineName = opts.pipelineName || serviceName + "-pipeline";
-  opts.repoName = opts.repoName || getRepositoryName(gitOriginUrl);
+  opts.repoName = getRepositoryName(opts.repoUrl);
   opts.repoUrl = opts.repoUrl || getRepositoryUrl(gitOriginUrl);
   opts.buildScriptUrl = opts.buildScriptUrl || BUILD_SCRIPT_URL;
   return opts;
@@ -61,6 +62,15 @@ export const execute = async (
   exitFn: (status: number) => Promise<void>
 ) => {
   try {
+    if (!opts.repoUrl) {
+      throw Error(`Repo url not defined`);
+    }
+    const gitUrlType = await isGitHubUrl(opts.repoUrl);
+    if (gitUrlType) {
+      throw Error(
+        `GitHub repos are not supported. Repo url: ${opts.repoUrl} is invalid`
+      );
+    }
     await fetchValues(serviceName, opts);
     await installBuildUpdatePipeline(serviceName, opts);
     await exitFn(0);
@@ -141,17 +151,14 @@ export const installBuildUpdatePipeline = async (
       `Error occurred during pipeline creation for ${values.pipelineName}`
     );
   }
-
   if (typeof builtDefinition.id === "undefined") {
     const builtDefnString = JSON.stringify(builtDefinition);
     throw Error(
       `Invalid BuildDefinition created, parameter 'id' is missing from ${builtDefnString}`
     );
   }
-
   logger.info(`Created pipeline for ${values.pipelineName}`);
   logger.info(`Pipeline ID: ${builtDefinition.id}`);
-
   try {
     await queueBuild(devopsClient, values.devopsProject, builtDefinition.id);
   } catch (err) {

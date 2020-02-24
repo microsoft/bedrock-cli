@@ -89,8 +89,8 @@ describe("test populateValues function", () => {
       buildScriptUrl: "",
       devopsProject: "",
       hldName: "",
-      hldUrl: "",
-      manifestUrl: "",
+      hldUrl: "https://dev.azure.com/mocked/fabrikam/_git/hld",
+      manifestUrl: "https://dev.azure.com/mocked/fabrikam/_git/materialized",
       orgName: "",
       personalAccessToken: "",
       pipelineName: "",
@@ -116,6 +116,36 @@ describe("test populateValues function", () => {
         getRepositoryName(MOCKED_CONFIG.azure_devops.manifest_repository)
     );
     expect(values.yamlFileBranch).toBe("");
+  });
+  it("negative tests: github repos not supported", () => {
+    expect(() =>
+      populateValues({
+        buildScriptUrl: "",
+        devopsProject: "",
+        hldName: "",
+        hldUrl: "https://github.com/fabrikam/hld",
+        manifestUrl: "https://github.com/fabrikam/materialized",
+        orgName: "",
+        personalAccessToken: "",
+        pipelineName: "",
+        yamlFileBranch: ""
+      })
+    ).toThrow(`GitHub repos are not supported`);
+  });
+  it("negative tests: github repos not supported", () => {
+    expect(() =>
+      populateValues({
+        buildScriptUrl: "",
+        devopsProject: "",
+        hldName: "",
+        hldUrl: "https://github.com/fabrikam/hld",
+        manifestUrl: "https://github.com/fabrikam/materialized",
+        orgName: "",
+        personalAccessToken: "",
+        pipelineName: "",
+        yamlFileBranch: ""
+      })
+    ).toThrow(`GitHub repos are not supported`);
   });
 });
 

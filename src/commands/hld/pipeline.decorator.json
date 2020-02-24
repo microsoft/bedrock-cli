@@ -19,11 +19,6 @@
       "defaultValue": ""
     },
     {
-      "arg": "-r, --hld-name <hld-name>",
-      "description": "HLD Repository Name in Azure DevOps",
-      "defaultValue": ""
-    },
-    {
       "arg": "-u, --hld-url <hld-url>",
       "description": "HLD Repository URL",
       "defaultValue": ""

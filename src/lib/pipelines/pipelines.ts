@@ -210,18 +210,11 @@ export const createPipelineForDefinition = async (
   definition: BuildDefinition
 ): Promise<BuildDefinition> => {
   logger.info("Creating pipeline for definition");
-
   try {
     const createdDefn = await buildApi.createDefinition(
       definition,
       azdoProject
     );
-    // type definition for createDefinition is wrong. It will resolve a `null` if an error occurs in azdo
-    if (!createdDefn) {
-      throw Error(
-        `Error creating BuildDefinition; buildApi.createDefinition() returned an invalid value of ${createdDefn}`
-      );
-    }
     return createdDefn;
   } catch (e) {
     logger.error(e);

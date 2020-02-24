@@ -105,7 +105,6 @@ Options:
   -n, --pipeline-name <pipeline-name>                  Name of the pipeline to be created (default: "")
   -p, --personal-access-token <personal-access-token>  Personal Access Token (default: "")
   -o, --org-name <org-name>                            Organization Name for Azure DevOps (default: "")
-  -r, --hld-name <hld-name>                            HLD Repository Name in Azure DevOps (default: "")
   -u, --hld-url <hld-url>                              HLD Repository URL (default: "")
   -m, --manifest-url <manifest-url>                    Manifest Repository URL (default: "")
   -d, --devops-project <devops-project>                Azure DevOps Project (default: "")

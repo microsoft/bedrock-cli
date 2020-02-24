@@ -84,6 +84,20 @@ describe("test execute function", () => {
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
+  it("negative test: repo url not defined", async () => {
+    const exitFn = jest.fn();
+    const mockedVals = getMockedValues();
+    mockedVals.repoUrl = "";
+    await execute("serviceName", mockedVals, exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+  });
+  it("negative test: github repo not supported", async () => {
+    const exitFn = jest.fn();
+    const mockedVals = getMockedValues();
+    mockedVals.repoUrl = "https://github.com/microsoft/bedrock";
+    await execute("serviceName", mockedVals, exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+  });
 });
 
 describe("required pipeline variables", () => {

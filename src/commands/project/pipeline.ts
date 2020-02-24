@@ -20,7 +20,8 @@ import {
 import {
   getOriginUrl,
   getRepositoryName,
-  getRepositoryUrl
+  getRepositoryUrl,
+  isGitHubUrl
 } from "../../lib/gitutils";
 import {
   createPipelineForDefinition,
@@ -36,9 +37,9 @@ export interface ICommandOptions {
   orgName: string | undefined;
   personalAccessToken: string | undefined;
   devopsProject: string | undefined;
-  pipelineName: string | undefined;
-  repoName: string | undefined;
-  repoUrl: string | undefined;
+  pipelineName: string;
+  repoName: string;
+  repoUrl: string;
   buildScriptUrl: string | undefined;
   yamlFileBranch: string;
 }
@@ -70,7 +71,9 @@ export const fetchValidateValues = (
     throw new Error("SPK Config is missing");
   }
   const azure_devops = spkConfig?.azure_devops;
-
+  if (!opts.repoUrl) {
+    throw Error(`Repo url not defined`);
+  }
   const values: ICommandOptions = {
     buildScriptUrl: opts.buildScriptUrl || BUILD_SCRIPT_URL,
     devopsProject: opts.devopsProject || azure_devops?.project,
@@ -78,7 +81,7 @@ export const fetchValidateValues = (
     personalAccessToken: opts.personalAccessToken || azure_devops?.access_token,
     pipelineName:
       opts.pipelineName || getRepositoryName(gitOriginUrl) + "-lifecycle",
-    repoName: opts.repoName || getRepositoryName(gitOriginUrl),
+    repoName: getRepositoryName(gitOriginUrl),
     repoUrl: opts.repoUrl || getRepositoryUrl(gitOriginUrl),
     yamlFileBranch: opts.yamlFileBranch
   };
@@ -110,6 +113,19 @@ export const execute = async (
   projectPath: string,
   exitFn: (status: number) => Promise<void>
 ) => {
+  if (!opts.repoUrl || !opts.pipelineName) {
+    logger.error(`Values for repo url and/or pipeline name are missing`);
+    await exitFn(1);
+    return;
+  }
+  const gitUrlType = await isGitHubUrl(opts.repoUrl);
+  if (gitUrlType) {
+    logger.error(
+      `GitHub repos are not supported. Repo url: ${opts.repoUrl} is invalid`
+    );
+    await exitFn(1);
+    return;
+  }
   if (!projectPath) {
     logger.error("Project Path is missing");
     await exitFn(1);

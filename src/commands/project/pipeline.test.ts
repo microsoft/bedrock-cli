@@ -25,6 +25,8 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
+const gitUrl = "https://github.com/CatalystCode/spk.git";
+
 const mockValues: ICommandOptions = {
   buildScriptUrl: "buildScriptUrl",
   devopsProject: "azDoProject",
@@ -41,13 +43,22 @@ const mockMissingValues: ICommandOptions = {
   devopsProject: undefined,
   orgName: undefined,
   personalAccessToken: undefined,
-  pipelineName: undefined,
-  repoName: undefined,
-  repoUrl: undefined,
+  pipelineName: "pipelineName",
+  repoName: "repoName",
+  repoUrl: "",
   yamlFileBranch: ""
 };
 
-const gitUrl = "https://github.com/CatalystCode/spk.git";
+const nullValues: ICommandOptions = {
+  buildScriptUrl: undefined,
+  devopsProject: undefined,
+  orgName: undefined,
+  personalAccessToken: undefined,
+  pipelineName: "pipelineName",
+  repoName: "repoName",
+  repoUrl: "https://github.com",
+  yamlFileBranch: ""
+};
 
 describe("test valid function", () => {
   it("negative test", async () => {
@@ -71,13 +82,14 @@ describe("test fetchValidateValues function", () => {
     }
   });
   it("SPK Config's azure_devops do not have value", () => {
-    const values = fetchValidateValues(mockValues, gitUrl, {
-      azure_devops: {}
-    });
-    expect(values).toEqual(mockValues);
+    expect(() => {
+      fetchValidateValues(mockMissingValues, gitUrl, {
+        azure_devops: {}
+      });
+    }).toThrow(`Repo url not defined`);
   });
   it("SPK Config's azure_devops do not have value and command line does not have values", () => {
-    const values = fetchValidateValues(mockMissingValues, gitUrl, {
+    const values = fetchValidateValues(nullValues, gitUrl, {
       azure_devops: {}
     });
     expect(values).toBeNull();
@@ -105,6 +117,30 @@ describe("installLifecyclePipeline and execute tests", () => {
 
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[0]]);
+  });
+  it("test execute function: missing repo url and pipeline name", async () => {
+    const exitFn = jest.fn();
+    await execute(mockMissingValues, "", exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
+  it("test execute function: github repos not supported", async () => {
+    const exitFn = jest.fn();
+    await execute(nullValues, "", exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
+  it("test execute function: missing repo url and pipeline name", async () => {
+    const exitFn = jest.fn();
+    await execute(mockMissingValues, "", exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
+  it("test execute function: github repos not supported", async () => {
+    const exitFn = jest.fn();
+    await execute(nullValues, "", exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("should create a pipeline", async () => {
     (createPipelineForDefinition as jest.Mock).mockReturnValue({ id: 10 });

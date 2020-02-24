@@ -19,11 +19,6 @@
       "required": true
     },
     {
-      "arg": "-r, --repo-name <repo-name>",
-      "description": "Repository Name in Azure DevOps",
-      "required": true
-    },
-    {
       "arg": "-u, --repo-url <repo-url>",
       "description": "Repository URL",
       "required": true

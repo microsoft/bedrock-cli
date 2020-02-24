@@ -1,5 +1,6 @@
 import GitUrlParse from "git-url-parse";
 import path from "path";
+import url from "url";
 import { logger } from "../logger";
 import { exec } from "./shell";
 
@@ -164,7 +165,7 @@ export const getAzdoOriginUrl = async (): Promise<string> => {
 
 /**
  * Will return the name of the repository
- * Currently only AzDo and Github are supported.
+ * Currently only AzDo repos are supported
  * @param originUrl
  */
 export const getRepositoryName = (originUrl: string) => {
@@ -330,4 +331,15 @@ export const checkoutCommitPushCreatePRLink = async (
     logger.error(err);
     throw err;
   }
+};
+
+/**
+ * Validates whether a url is a github url
+ * TEMPORARY, UNTIL GITHUB REPOS ARE SUPPORTED
+ *
+ * @param sUrl the url string
+ */
+export const isGitHubUrl = (sUrl: string) => {
+  const oUrl = url.parse(sUrl);
+  return oUrl.hostname === "www.github.com" || oUrl.hostname === "github.com";
 };

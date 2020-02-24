@@ -145,7 +145,7 @@ pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name
 echo "hld_dir $hld_dir"
 echo "hld_repo_url $hld_repo_url"
 echo "manifest_repo_url $manifest_repo_url"
-spk hld install-manifest-pipeline -o $AZDO_ORG -d $AZDO_PROJECT -p $ACCESS_TOKEN_SECRET -r $hld_dir -u https://$hld_repo_url -m https://$manifest_repo_url >> $TEST_WORKSPACE/log.txt
+spk hld install-manifest-pipeline -o $AZDO_ORG -d $AZDO_PROJECT -p $ACCESS_TOKEN_SECRET -u https://$hld_repo_url -m https://$manifest_repo_url >> $TEST_WORKSPACE/log.txt
 
 # Verify hld to manifest pipeline was created
 pipeline_created=$(az pipelines show --name $hld_to_manifest_pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
@@ -258,7 +258,7 @@ lifecycle_pipeline_name="$mono_repo_dir-lifecycle"
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name
 
 # Deploy lifecycle pipeline and verify it runs.
-spk project install-lifecycle-pipeline --org-name $AZDO_ORG --devops-project $AZDO_PROJECT --repo-url $repo_url --repo-name $mono_repo_dir --pipeline-name $lifecycle_pipeline_name --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
+spk project install-lifecycle-pipeline --org-name $AZDO_ORG --devops-project $AZDO_PROJECT --repo-url $repo_url --pipeline-name $lifecycle_pipeline_name --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
 
 # TODO: Verify the lifecycle pipeline sucessfully runs
 # Verify lifecycle pipeline was created
@@ -281,7 +281,7 @@ frontend_pipeline_name="$FrontEnd-pipeline"
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $frontend_pipeline_name
 
 # Create a pipeline since the code exists in remote repo
-spk service install-build-pipeline -o $AZDO_ORG -r $mono_repo_dir -u $remote_repo_url -d $AZDO_PROJECT -l $services_dir -p $ACCESS_TOKEN_SECRET -n $frontend_pipeline_name -v $FrontEnd  >> $TEST_WORKSPACE/log.txt
+spk service install-build-pipeline -o $AZDO_ORG -u $remote_repo_url -d $AZDO_PROJECT -l $services_dir -p $ACCESS_TOKEN_SECRET -n $frontend_pipeline_name -v $FrontEnd  >> $TEST_WORKSPACE/log.txt
 
 # Verify frontend service pipeline was created
 pipeline_created=$(az pipelines show --name $frontend_pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
@@ -308,20 +308,20 @@ git push --set-upstream origin $branchName
 # Create a PR for the change
 current_time=$(date +"%Y-%m-%d-%H-%M-%S")
 pr_title="Automated Test PR $current_time"
-echo "Creating pull request: '$pr_title'" 
+echo "Creating pull request: '$pr_title'"
 spk service create-revision -t "$pr_title" -d "Adding my new file" --org-name $AZDO_ORG --personal-access-token $ACCESS_TOKEN_SECRET --remote-url $remote_repo_url >> $TEST_WORKSPACE/log.txt
 
-echo "Attempting to approve pull request: '$pr_title'" 
+echo "Attempting to approve pull request: '$pr_title'"
 # Get the id of the pr created and set the PR to be approved
 approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "$pr_title"
 # --------------------------------
 
 # ##################################
-# TODO 
+# TODO
 # Fix issues where image tag update not reflected in manifest yaml
-# Verify the lifecycle pipeline runs after above PR is approved. 
+# Verify the lifecycle pipeline runs after above PR is approved.
 # LifeCycle generates a PR on the HLD.
-# Approve that PR too. That in turn with kick off the manifest pipeline. 
+# Approve that PR too. That in turn with kick off the manifest pipeline.
 # Verify manifest repo after that.
 # Eventually add rings as some stage....
 # --------------------------------
@@ -343,12 +343,12 @@ export output=$(spk deployment get -o json > file.json )
 length=$(cat file.json | jq 'length')
 if (( length > 0 )); then
   echo "$length deployments were returned by spk deployment get"
-else 
+else
   echo "Error: Empty JSON was returned from spk deployment get"
   exit 1
-fi 
+fi
 
-# Compare $pipeline_id with the data returned by get. 
+# Compare $pipeline_id with the data returned by get.
 pipeline1id=$(az pipelines build list --definition-ids $pipeline_id --organization $AZDO_ORG_URL --project $AZDO_PROJECT | jq '.[0].id')
 listofIds=$(cat file.json | jq '.[].srcToDockerBuild.id')
 
