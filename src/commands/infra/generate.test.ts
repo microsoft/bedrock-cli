@@ -15,6 +15,7 @@ import {
   execute,
   generateConfig,
   generateTfvars,
+  getParentGeneratedFolder,
   gitCheckout,
   gitClone,
   gitFetchPull,
@@ -25,10 +26,13 @@ import {
 } from "./generate";
 import * as generate from "./generate";
 import {
+  BACKEND_TFVARS,
   DEFAULT_VAR_VALUE,
   DEFINITION_YAML,
   getSourceFolderNameFromURL,
-  spkTemplatesPath
+  SPK_TFVARS,
+  spkTemplatesPath,
+  VARIABLES_TF
 } from "./infra_common";
 import * as infraCommon from "./infra_common";
 
@@ -44,12 +48,23 @@ beforeAll(() => {
 
 afterAll(() => {
   disableVerboseLogging();
-  removeDir("src/commands/infra/mocks/discovery-service-generated");
 });
 
 beforeEach(() => {
   jest.clearAllMocks();
   jest.restoreAllMocks();
+});
+
+afterEach(() => {
+  removeDir(
+    path.join(
+      "src",
+      "commands",
+      "infra",
+      "mocks",
+      "discovery-service-generated"
+    )
+  );
 });
 
 //////////////////////////////////////////////////////////////////////////////
@@ -62,8 +77,11 @@ const testCheckRemoteGitExist = async (positive: boolean) => {
   const { safeLoggingUrl, source, sourcePath } = await getMockedDataForGitTests(
     positive
   );
-  if (!fs.existsSync(sourcePath)) {
+  if (positive && !fs.existsSync(sourcePath)) {
     createGenerated(sourcePath);
+  }
+  if (!positive) {
+    removeDir(sourcePath);
   }
   await checkRemoteGitExist(sourcePath, source, safeLoggingUrl);
 };
@@ -75,13 +93,9 @@ describe("test checkRemoteGitExist function", () => {
   });
   // cannot do negative test because it will take too long
   // and timeout
-  xit("negative Test", async () => {
-    try {
-      await testCheckRemoteGitExist(false);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e).toBeDefined();
-    }
+  it("negative Test", async done => {
+    await expect(testCheckRemoteGitExist(false)).rejects.toThrow();
+    done();
   });
 });
 
@@ -192,6 +206,25 @@ jest.spyOn(generate, "writeTfvarsFile").mockReturnValue();
 // --- end git tests
 //
 //////////////////////////////////////////////////////////////////////////////
+
+describe("test getParentGeneratedFolder function", () => {
+  it("with output path", () => {
+    expect(getParentGeneratedFolder("abc", "output")).toBe(
+      path.join("output", "abc-generated")
+    );
+    expect(getParentGeneratedFolder("abc", path.join("dir", "output"))).toBe(
+      path.join("dir", "output", "abc-generated")
+    );
+  });
+  it("without output path", () => {
+    expect(getParentGeneratedFolder("abc", "")).toBe(
+      path.join("abc-generated")
+    );
+    expect(getParentGeneratedFolder(path.join("dir", "abc"), "")).toBe(
+      path.join("dir", "abc-generated")
+    );
+  });
+});
 
 describe("fetch execute function", () => {
   it("negative time, expected exit code to be 1", async () => {
@@ -517,7 +550,7 @@ describe("test dirIteration", () => {
 });
 
 describe("Validate sources in definition.yaml files", () => {
-  test("definition.yaml of leaf override parent's variable", async () => {
+  it("definition.yaml of leaf override parent's variable", async () => {
     const mockParentPath = "src/commands/infra/mocks/discovery-service";
     const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
     const expectedSourceWest = {
@@ -544,6 +577,44 @@ describe("Validate sources in definition.yaml files", () => {
       sourceData,
       outputPath
     );
+  });
+  it("definition.yaml of leaf and parent configuration are the same", async () => {
+    const mockParentPath = "src/commands/infra/mocks/discovery-service";
+    const mockProjectPath = mockParentPath;
+    const expectedSource = {
+      source: "https://github.com/yradsmikham/spk-source",
+      template: "cluster/environments/azure-single-keyvault",
+      version: "v0.0.1"
+    };
+    const outputPath = "";
+    const sourceConfiguration = validateDefinition(
+      mockParentPath,
+      mockProjectPath
+    );
+    expect(sourceConfiguration).toEqual(DefinitionYAMLExistence.BOTH_EXIST);
+    const sourceData = validateTemplateSources(
+      sourceConfiguration,
+      mockParentPath,
+      mockProjectPath
+    );
+    expect(sourceData).toEqual(expectedSource);
+    await generateConfig(
+      mockParentPath,
+      mockProjectPath,
+      sourceConfiguration,
+      sourceData,
+      outputPath
+    );
+    [
+      "acr.tf",
+      BACKEND_TFVARS,
+      "main.tf",
+      "README.md",
+      SPK_TFVARS,
+      VARIABLES_TF
+    ].forEach(f => {
+      fs.unlinkSync(path.join(mockParentPath, f));
+    });
   });
   test("without parent's definition.yaml", async () => {
     const mockParentPath = "src/commands/infra/mocks/missing-parent-defn";
