@@ -335,27 +335,6 @@ function verify_pipeline_with_poll () {
     fi
 }
 
-function approve_pull_request () {
-    all_prs=$(az repos pr list --org $1 --p $2)
-    pr_title=$3
-
-    pr_exists=$(echo $all_prs | jq -r --arg pr_title "$pr_title" '.[] | select(.title == $pr_title) != null')
-    if [ "$pr_exists" != "true" ]; then
-        echo "PR for '$pr_title' not found"
-        exit 1
-    fi
-    pull_request_id=$(echo $all_prs | jq -r --arg pr_title "$pr_title" '.[] | select(.title == $pr_title) | .pullRequestId')
-    echo "Found pull request id $pull_request_id for '$pr_title'"
-    approve_result=$(az repos pr update --id "$pull_request_id" --auto-complete true --output json )
-
-    if [ "$(echo $approve_result | jq '.mergeStatus' | grep 'succeeded')" != "" ]; then
-        echo "PR $pull_request_id approved"
-    else
-        echo "Issue approving PR $pull_request_id"
-        exit 1
-    fi
-}
-
 function validate_file () {
     echo "Validatng file $1"
     if grep -q "$2" "$1";
@@ -531,22 +510,24 @@ function get_remote_repo_url () {
     echo $remote_repo_url
 }
 
-function approve_pull_request_v2 () {
+function approve_pull_request () {
     all_prs=$(az repos pr list --org $1 --p $2)
     pr_title=$3
+    all_prs="${all_prs//\\n/}" #Escape the JSON result
 
-    pr_exists=$(echo $all_prs | jq -r --arg pr_title "$pr_title" '.[].title | select(startswith($pr_title)) != null')
+    pr_exists=$(echo $all_prs | sed 's/\\r\\n//g' | jq -r --arg pr_title "$pr_title" '.[].title | select(startswith($pr_title)) != null')
     if [ "$pr_exists" != "true" ]; then
         echo "PR for '$pr_title' not found"
         exit 1
     fi
     real_title=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[].title | startswith($pr_title)) | .[].title')
-    pull_request_id=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[].title | startswith($pr_title)) | .[].pullRequestId')
+    pull_request_id=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[].title | startswith($pr_title)) | .[0].pullRequestId')
     echo "Found pull request starting with phrase '$pr_title'"
     echo "Pull request id $pull_request_id is '$real_title'"
 
     approve_result=$(az repos pr update --id "$pull_request_id" --auto-complete true --output json )
-
+    approve_result="${approve_result//\\n/}" #Escape the JSON result
+    
     if [ "$(echo $approve_result | jq '.mergeStatus' | grep 'succeeded')" != "" ]; then
         echo "PR $pull_request_id approved"
     else

@@ -7,6 +7,9 @@ schedules:
     displayName: M-F 7:00PM (UTC - 8:00) Pacific daily build
     always: true
 
+variables:
+  skipComponentGovernanceDetection: "true" 
+
 stages:
   - stage: integration_tests
     jobs:

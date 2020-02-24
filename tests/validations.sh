@@ -38,6 +38,7 @@ export sat_name=fabrikamtestdeployments
 export sa_partition_key="integration-test"
 services_dir=services
 mono_repo_dir=fabrikam2019
+helm_charts_dir=fabrikam-helm-charts
 services_full_dir="$TEST_WORKSPACE/$mono_repo_dir/$services_dir"
 
 shopt -s expand_aliases
@@ -53,9 +54,17 @@ if [ ! -d "$TEST_WORKSPACE" ]; then
   echo "Created '$TEST_WORKSPACE'"
 fi
 
+##################################
+# Helm Chart template Setup START
+##################################
+cp helm-artifacts/* $TEST_WORKSPACE
+# --------------------------------
+
 cd $TEST_WORKSPACE
 
-# Manifest Repo Setup ------------------
+##################################
+# Manifest Repo Setup START
+##################################
 mkdir $manifests_dir
 cd $manifests_dir
 git init
@@ -86,9 +95,12 @@ git commit -m "inital commit"
 git remote add origin https://service_account:$ACCESS_TOKEN_SECRET@$repo_url
 echo "git push"
 git push -u origin --all
-cd ..
+# --------------------------------
 
-# HLD repo set up -----------------------
+##################################
+# HLD Repo Setup START
+##################################
+cd $TEST_WORKSPACE
 mkdir $hld_dir
 cd $hld_dir
 git init
@@ -119,10 +131,12 @@ git commit -m "inital commit"
 git remote add origin https://service_account:$ACCESS_TOKEN_SECRET@$repo_url
 echo "git push"
 git push -u origin --all
-cd ..
+# --------------------------------
 
-# *** TODO: Get rid of duplication
-
+##################################
+# HLD to Manifest Pipeline Setup Start
+##################################
+cd $TEST_WORKSPACE
 # First we should check hld pipelines exist. If there is a pipeline with the same name we should delete it
 hld_to_manifest_pipeline_name=$hld_dir-to-$manifests_dir
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name
@@ -139,7 +153,24 @@ pipeline_created=$(az pipelines show --name $hld_to_manifest_pipeline_name --org
 # Verify hld to manifest pipeline run was successful
 verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 300 15
 
-# App Code Mono Repo set up 
+##################################
+# External Helm Chart Repo Setup START
+# uncomment when we can handle private helm chart repos seamlessly in SPK
+##################################
+# cd $TEST_WORKSPACE
+# create_helm_chart_repo $helm_charts_dir $FrontEnd $TEST_WORKSPACE $ACR_NAME
+# cd "$TEST_WORKSPACE/$helm_charts_dir"
+# git add -A
+
+# # See if the remote repo exists
+# repo_exists $AZDO_ORG_URL $AZDO_PROJECT $helm_charts_dir
+# push_remote_git_repo $AZDO_ORG_URL $AZDO_PROJECT $helm_charts_dir
+# --------------------------------
+
+##################################
+# App Mono Repo Setup START
+##################################
+cd $TEST_WORKSPACE
 mkdir $mono_repo_dir
 cd $mono_repo_dir
 git init
@@ -173,13 +204,25 @@ variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "I
 variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "INTROSPECTION_PARTITION_KEY" $sa_partition_key
 variable_group_variable_create $variable_group_id $AZDO_ORG_URL $AZDO_PROJECT "INTROSPECTION_TABLE_NAME" $sat_name
 
-spk service create $FrontEnd -d $services_dir >> $TEST_WORKSPACE/log.txt
+# Set up internal helm chart
+chart_app_name=$FrontEnd
+acr_name=$ACR_NAME
+create_helm_chart_v2 $TEST_WORKSPACE
+cd "$TEST_WORKSPACE/$mono_repo_dir"
+
+# Commented code below is for external repo helm charts. Currently doesn't work.
+
+# helm_repo_url="$AZDO_ORG_URL/$AZDO_PROJECT/_git/$helm_charts_dir"
+local_repo_url="$AZDO_ORG_URL/$AZDO_PROJECT/_git/$mono_repo_dir"
+spk service create $FrontEnd -d $services_dir -p "chart" -g $local_repo_url -b master >> $TEST_WORKSPACE/log.txt
+# spk service create $FrontEnd -d $services_dir -p "$FrontEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
 directory_to_check="$services_full_dir/$FrontEnd"
 file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" )
 validate_directory $directory_to_check "${file_we_expect[@]}"
 
-spk service create $BackEnd -d $services_dir >> $TEST_WORKSPACE/log.txt
-validate_directory "$services_full_dir/$BackEnd" "${file_we_expect[@]}"
+# TODO uncomment this when helm chart fixed
+# spk service create $BackEnd -d $services_dir -p "$BackEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
+# validate_directory "$services_full_dir/$BackEnd" "${file_we_expect[@]}"
 
 git add -A
 
@@ -205,7 +248,11 @@ git commit -m "inital commit"
 git remote add origin https://service_account:$ACCESS_TOKEN_SECRET@$repo_url
 echo "git push"
 git push -u origin --all
+# --------------------------------
 
+##################################
+# App Mono Repo LIFECYCLE Pipeline Setup START
+##################################
 # First we should check lifecycle pipelines exist. If there is a pipeline with the same name we should delete it
 lifecycle_pipeline_name="$mono_repo_dir-lifecycle"
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name
@@ -220,6 +267,15 @@ pipeline_created=$(az pipelines show --name $lifecycle_pipeline_name --org $AZDO
 # Verify lifecycle pipeline run was successful
 verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name 180 15
 
+# Approve pull request from lifecycle pipeline
+echo "Finding pull request that $lifecycle_pipeline_name pipeline created..."
+approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "Reconciling HLD"
+# --------------------------------
+
+##################################
+# App Mono Repo BUILD Pipeline Setup START
+##################################
+
 # First we should check what service build & update pipelines exist. If there is a pipeline with the same name we should delete it
 frontend_pipeline_name="$FrontEnd-pipeline"
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $frontend_pipeline_name
@@ -232,9 +288,15 @@ pipeline_created=$(az pipelines show --name $frontend_pipeline_name --org $AZDO_
 
 # Verify frontend service pipeline run was successful
 verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $frontend_pipeline_name 300 15
-# TODO approve the PR this build creates on the HLD
 
-# Start creating a service revision
+echo "Finding pull request that $frontend_pipeline_name pipeline created..."
+approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "Updating $FrontEnd image tag to master"
+# --------------------------------
+
+##################################
+# App Mono Repo Service Revision START
+##################################
+
 echo "Creating service revision"
 git branch $branchName
 git checkout $branchName
@@ -252,12 +314,24 @@ spk service create-revision -t "$pr_title" -d "Adding my new file" --org-name $A
 echo "Attempting to approve pull request: '$pr_title'" 
 # Get the id of the pr created and set the PR to be approved
 approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "$pr_title"
+# --------------------------------
+
+# ##################################
+# TODO 
+# Fix issues where image tag update not reflected in manifest yaml
+# Verify the lifecycle pipeline runs after above PR is approved. 
+# LifeCycle generates a PR on the HLD.
+# Approve that PR too. That in turn with kick off the manifest pipeline. 
+# Verify manifest repo after that.
+# Eventually add rings as some stage....
+# --------------------------------
 
 echo "Successfully reached the end of the service validations scripts."
 
-# TODO hook up helm chart, approve HLD pull request, verify manifest gen pipeline
+# ##################################
+# # SPK Introspection Validation START
+# ##################################
 
-# spk deployment get
 cd $TEST_WORKSPACE
 cd ..
 if [ -d "tests" ]; then
@@ -284,5 +358,6 @@ else
   echo "Error: Pipeline Id $pipeline1id is not found in data returned from get. "
   exit 1
 fi
+# --------------------------------
 
 echo "Successfully reached the end of spk deployment get tests."
