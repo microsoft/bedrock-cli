@@ -63,8 +63,6 @@ export interface IReconcileDependencies {
 
   writeFile: (path: string, contents: string) => void;
 
-  test: (option: shelljs.TestOptions, path: string) => boolean;
-
   getGitOrigin: (path?: string) => Promise<string>;
 
   generateAccessYaml: (
@@ -170,7 +168,6 @@ export const execute = async (
       exec: execAndLog,
       generateAccessYaml,
       getGitOrigin: tryGetGitOrigin,
-      test: shelljs.test,
       writeFile: writeFileSync
     };
 

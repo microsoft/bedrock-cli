@@ -312,7 +312,6 @@ describe("reconcile tests", () => {
       exec: jest.fn().mockReturnValue(Promise.resolve({})),
       generateAccessYaml: jest.fn(),
       getGitOrigin: jest.fn(),
-      test: jest.fn().mockReturnValue(false),
       writeFile: jest.fn()
     };
 
@@ -418,7 +417,32 @@ describe("reconcile tests", () => {
     expect(dependencies.createIngressRouteForRing).not.toHaveBeenCalled();
   });
 
-  it("will re-write rings, even if they exist", async () => {
+  it("overwrites existing rings", async () => {
+    bedrockYaml.rings = {
+      dev: {
+        isDefault: true
+      }
+    };
+
+    for (const i of Array(2)) {
+      await reconcileHld(
+        dependencies,
+        bedrockYaml,
+        "service",
+        "./path/to/hld",
+        "./path/to/app"
+      );
+    }
+
+    // Reconcile should run twice against the existing service's rings.
+    expect(dependencies.createRingComponent).toHaveBeenCalledTimes(2);
+    expect(dependencies.addChartToRing).toHaveBeenCalledTimes(2);
+    expect(dependencies.createStaticComponent).toHaveBeenCalledTimes(2);
+    expect(dependencies.createMiddlewareForRing).toHaveBeenCalledTimes(2);
+    expect(dependencies.createIngressRouteForRing).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not create rings, if they don't exist wihin bedrock.yaml", async () => {
     bedrockYaml.rings = {};
 
     await reconcileHld(
@@ -429,10 +453,10 @@ describe("reconcile tests", () => {
       "./path/to/app"
     );
 
-    expect(dependencies.createRingComponent).toHaveBeenCalled();
-    expect(dependencies.createStaticComponent).toHaveBeenCalled();
-    expect(dependencies.createMiddlewareForRing).toHaveBeenCalled();
-    expect(dependencies.createIngressRouteForRing).toHaveBeenCalled();
+    expect(dependencies.createRingComponent).not.toHaveBeenCalled();
+    expect(dependencies.createStaticComponent).not.toHaveBeenCalled();
+    expect(dependencies.createMiddlewareForRing).not.toHaveBeenCalled();
+    expect(dependencies.createIngressRouteForRing).not.toHaveBeenCalled();
   });
 
   it("does not create service components if the service path is `.`, and a display name does not exist", async () => {
