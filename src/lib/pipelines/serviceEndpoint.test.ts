@@ -3,27 +3,126 @@ jest.mock("azure-devops-node-api");
 jest.mock("../../config");
 jest.mock("../azdoClient");
 
-// Imports
+import { IRequestOptions, IRestResponse, RestClient } from "typed-rest-client";
 import uuid from "uuid/v4";
 import { Config, readYaml } from "../../config";
-import {
-  disableVerboseLogging,
-  enableVerboseLogging,
-  logger
-} from "../../logger";
-import { IVariableGroupData } from "../../types";
+import { deepClone } from "../../lib/util";
+import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
+import { IServiceEndpointData, IVariableGroupData } from "../../types";
+import * as azdoClient from "../azdoClient";
+import { IServiceEndpoint } from "./azdoInterfaces";
 import {
   addServiceEndpoint,
-  createServiceEndPointParams
+  createServiceEndpointIfNotExists,
+  createServiceEndPointParams,
+  getServiceEndpointByName
 } from "./serviceEndpoint";
+import * as serviceEndpoint from "./serviceEndpoint";
 
-// Tests
 const serviceEndpointName: string = uuid();
 const subscriptionId: string = uuid();
 const subscriptionName: string = uuid();
 const servicePrincipalId: string = uuid();
 const servicePrincipalSecret: string = uuid();
 const tenantId: string = uuid();
+
+const mockedConfig = {
+  azure_devops: {
+    orrg: uuid()
+  }
+};
+
+const mockedYaml = {
+  description: "mydesc",
+  key_vault_provider: {
+    name: "vault",
+    service_endpoint: {
+      name: serviceEndpointName,
+      service_principal_id: servicePrincipalId,
+      service_principal_secret: servicePrincipalSecret,
+      subscription_id: subscriptionId,
+      subscription_name: subscriptionName,
+      tenant_id: tenantId
+    }
+  },
+  name: "myvg"
+};
+
+const mockedMatchServiceEndpointResponse = {
+  result: {
+    count: 1,
+    value: [
+      {
+        authorization: {
+          parameters: {
+            authenticationType: "authenticationType",
+            serviceprincipalid: "serviceprincipalid",
+            serviceprincipalkey: "serviceprincipalkey",
+            tenantid: "tenantid"
+          },
+          scheme: "ssh"
+        },
+        createdBy: {
+          _links: {
+            avatar: {
+              href: "https://person.com"
+            }
+          },
+          descriptor: "test",
+          displayName: "tester",
+          id: "test",
+          imageUrl: "https://www.test.com",
+          uniqueName: "test",
+          url: "https://www.tester.com"
+        },
+        data: {
+          creationMode: "creationMode",
+          environment: "environment",
+          scopeLevel: "scopeLevel",
+          subscriptionId: "subscriptionId",
+          subscriptionName: "subscriptionName"
+        },
+        id: "test",
+        isReady: true,
+        isShared: false,
+        name: "test",
+        owner: "tester",
+        type: "test",
+        url: "https://www.test.com"
+      }
+    ]
+  },
+  statusCode: 200
+};
+
+const mockedNonMatchServiceEndpointResponse = {
+  result: {
+    count: 0,
+    value: []
+  },
+  statusCode: 200
+};
+
+const mockedInvalidServiceEndpointResponse = {
+  result: {
+    count: 2,
+    value: []
+  },
+  statusCode: 200
+};
+
+const createServiceEndpointInput: IServiceEndpointData = {
+  name: serviceEndpointName,
+  service_principal_id: servicePrincipalId,
+  service_principal_secret: servicePrincipalSecret,
+  subscription_id: subscriptionId,
+  subscription_name: subscriptionName,
+  tenant_id: tenantId
+};
+
+const getCreateServiceEndpointInput = (): IServiceEndpointData => {
+  return deepClone(createServiceEndpointInput);
+};
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -208,38 +307,128 @@ describe("Validate service endpoint parameters creation", () => {
   });
 });
 
-describe("addServiceEndpoint", () => {
-  test("should pass when service endpoint config is set", async () => {
-    (Config as jest.Mock).mockReturnValue({
-      azure_devops: {
-        orrg: uuid()
-      }
-    });
+const testAddServiceEndpoint = async (
+  positive = true,
+  getRestClientThrowException = false
+) => {
+  (Config as jest.Mock).mockReturnValueOnce(mockedConfig);
+  (readYaml as jest.Mock).mockReturnValueOnce(mockedYaml);
 
-    (readYaml as jest.Mock).mockReturnValue({
-      description: "mydesc",
-      key_vault_provider: {
-        name: "vault",
-        service_endpoint: {
-          name: serviceEndpointName,
-          service_principal_id: servicePrincipalId,
-          service_principal_secret: servicePrincipalSecret,
-          subscription_id: subscriptionId,
-          subscription_name: subscriptionName,
-          tenant_id: tenantId
+  jest.spyOn(azdoClient, "getRestClient").mockReturnValueOnce(
+    Promise.resolve({
+      create: async (
+        resource: string,
+        resources: any,
+        options?: IRequestOptions
+      ): Promise<IRestResponse<{ [key: string]: string }>> => {
+        if (getRestClientThrowException) {
+          return new Promise((_, reject) => {
+            reject(new Error("fake"));
+          });
         }
-      },
-      name: "myvg"
-    });
-    const input = readYaml<IVariableGroupData>("");
+        return new Promise(resolve => {
+          resolve({
+            result: {
+              status: "OK"
+            },
+            statusCode: positive ? 200 : 400
+          });
+        });
+      }
+    } as RestClient)
+  );
 
-    let invalidGroupError: Error | undefined;
-    try {
-      logger.info("calling add variable group");
-      await addServiceEndpoint(input.key_vault_provider!.service_endpoint);
-    } catch (err) {
-      invalidGroupError = err;
-    }
-    expect(invalidGroupError).toBeDefined();
+  const input = readYaml<IVariableGroupData>("");
+  return await addServiceEndpoint(input.key_vault_provider!.service_endpoint);
+};
+
+describe("test addServiceEndpoint function", () => {
+  it("+ve: should pass when service endpoint config is set", async () => {
+    const result = await testAddServiceEndpoint();
+    expect(result).toStrictEqual({
+      status: "OK"
+    });
+  });
+  it("-ve: create API returns non 200 status code", async () => {
+    await expect(testAddServiceEndpoint(false)).rejects.toThrow();
+  });
+  it("-ve: create API throw exection", async () => {
+    await expect(testAddServiceEndpoint(true, true)).rejects.toThrow();
+  });
+});
+
+const testGetServiceEndpointByName = async (positive = true, more = false) => {
+  (Config as jest.Mock).mockReturnValueOnce(mockedConfig);
+  (readYaml as jest.Mock).mockReturnValueOnce(mockedYaml);
+
+  jest.spyOn(azdoClient, "getRestClient").mockReturnValueOnce(
+    Promise.resolve({
+      get: async (
+        resource: string,
+        options?: IRequestOptions
+      ): Promise<
+        IRestResponse<{
+          count: number;
+          value: IServiceEndpoint[];
+        }>
+      > => {
+        return new Promise(resolve => {
+          if (more) {
+            resolve(mockedInvalidServiceEndpointResponse);
+          } else if (positive) {
+            resolve(mockedMatchServiceEndpointResponse);
+          } else {
+            resolve(mockedNonMatchServiceEndpointResponse);
+          }
+        });
+      }
+    } as RestClient)
+  );
+
+  const input = readYaml<IVariableGroupData>("");
+  return await getServiceEndpointByName("dummy");
+};
+
+describe("test getServiceEndpointByName function", () => {
+  it("positive test", async () => {
+    const result = await testGetServiceEndpointByName();
+    expect(result?.id).toBe("test");
+  });
+  it("negative test: no match", async () => {
+    const result = await testGetServiceEndpointByName(false);
+    expect(result).toBeNull();
+  });
+  it("negative test: too many matches", async () => {
+    await expect(testGetServiceEndpointByName(true, true)).rejects.toThrow();
+  });
+});
+
+describe("test createServiceEndpointIfNotExists function", () => {
+  it("+ve", async () => {
+    jest
+      .spyOn(serviceEndpoint, "getServiceEndpointByName")
+      .mockReturnValueOnce(Promise.resolve(null));
+    jest
+      .spyOn(serviceEndpoint, "addServiceEndpoint")
+      .mockReturnValueOnce(
+        Promise.resolve(mockedMatchServiceEndpointResponse.result.value[0])
+      );
+    const endpoint = await createServiceEndpointIfNotExists(
+      createServiceEndpointInput
+    );
+    expect(endpoint).toStrictEqual(
+      mockedMatchServiceEndpointResponse.result.value[0]
+    );
+  });
+  it("-ve: missing endpoint", async () => {
+    jest
+      .spyOn(serviceEndpoint, "getServiceEndpointByName")
+      .mockReturnValueOnce(Promise.resolve(null));
+    jest
+      .spyOn(serviceEndpoint, "addServiceEndpoint")
+      .mockReturnValueOnce(Promise.reject(new Error("fake")));
+    await expect(
+      createServiceEndpointIfNotExists(createServiceEndpointInput)
+    ).rejects.toThrow();
   });
 });

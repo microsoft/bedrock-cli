@@ -40,12 +40,9 @@ export const createServiceEndpointIfNotExists = async (
       serviceEndpoint = await addServiceEndpoint(serviceEndpointData!, opts);
     }
 
-    if (serviceEndpoint === null || serviceEndpoint === undefined) {
-      throw new Error(
-        "Either unable to find a existing service endpoint by name or create a new service endpoint"
-      );
-    }
-
+    // addServiceEndpoint always return a value of type, IServiceEndpoint
+    // it will never return null or undefined.
+    // it does throw exception
     return serviceEndpoint;
   } catch (err) {
     logger.error(
@@ -89,8 +86,8 @@ export const addServiceEndpoint = async (
     );
     logger.info(`Creating ${message}`);
 
-    const client: RestClient = await getRestClient(opts);
-    const resource: string = `${orgUrl}/${project}/${apiUrl}?${apiVersion}`;
+    const client = await getRestClient(opts);
+    const resource = `${orgUrl}/${project}/${apiUrl}?${apiVersion}`;
     logger.debug(` addServiceEndpoint:Resource: ${resource}`);
 
     resp = await client.create(resource, endPointParams);
