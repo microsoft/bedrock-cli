@@ -11,15 +11,16 @@ Usage:
 spk service [command] [options]
 ```
 
-Commands:
+## Commands
 
 - [create](https://catalystcode.github.io/spk/commands/index.html#service_create)
 - [install-build-pipeline](https://catalystcode.github.io/spk/commands/index.html#service_install-build-pipeline)
 - [create-revision](https://catalystcode.github.io/spk/commands/index.html#service_create-revision)
 
-Global options:
+## Global options
 
 ```
+  -V, --version        output the version number
   -v, --verbose        Enable verbose logging
   -h, --help           Usage information
 ```

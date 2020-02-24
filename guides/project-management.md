@@ -3,26 +3,17 @@
 Create and manage components for a Bedrock project. All project management
 commands will need to run in the order as listed below due to dependencies.
 
-Usage:
+## Prerequisites
+
+An Azure DevOps git repository.
+
+## Usage
 
 ```
 Usage: project [options] [command]
 
 Initialize and manage your Bedrock project.
-
-Options:
-  -v, --verbose                                              Enable verbose logging
-  -h, --help                                                 output usage information
-
-Commands:
-  create-variable-group|cvg [options] <variable-group-name>  Create a new variable group in Azure DevOps project with specific variables (ACR name, HLD Repo name, Personal Access Token, Service Principal id, Service Principal password, and Azure AD tenant id)
-  init|i [options]                                           Initialize your spk repository. Add starter bedrock.yaml, maintainers.yaml, hld-lifecycle.yaml, and .gitignore files to your project.
-  install-lifecycle-pipeline|p [options]                     Install the hld lifecycle pipeline to your Azure DevOps instance
 ```
-
-## Prerequisites
-
-An Azure DevOps git repository.
 
 ## Commands
 
@@ -32,3 +23,12 @@ An Azure DevOps git repository.
 
 **Please note all project management commands must run in the order as listed
 above.**
+
+## Global Options
+
+```
+  -V, --version        output the version number
+  -v, --verbose        Enable verbose logging
+  -h, --help           output usage information
+
+```
