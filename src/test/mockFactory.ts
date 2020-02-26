@@ -3,6 +3,7 @@ import { VM_IMAGE } from "../lib/constants";
 import {
   BUILD_REPO_NAME,
   generateYamlScript,
+  IMAGE_REPO,
   IMAGE_TAG,
   SAFE_SOURCE_BRANCH
 } from "../lib/fileutils";
@@ -72,10 +73,12 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
               {
                 script: generateYamlScript([
                   `export BUILD_REPO_NAME=$(echo $(Build.Repository.Name)-${serviceName} | tr '[:upper:]' '[:lower:]')`,
-                  `echo "Image Name: $BUILD_REPO_NAME"`,
+                  `export IMAGE_TAG=${IMAGE_TAG}`,
+                  `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
+                  `echo "Image Name: $IMAGE_NAME"`,
                   `cd ${relativeServicePathFormatted}`,
-                  `echo "az acr build -r $(ACR_NAME) --image $BUILD_REPO_NAME:${IMAGE_TAG} ."`,
-                  `az acr build -r $(ACR_NAME) --image $BUILD_REPO_NAME:${IMAGE_TAG} .`
+                  `echo "az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
+                  `az acr build -r $(ACR_NAME) --image $IMAGE_NAME .`
                 ]),
                 displayName: "ACR Build and Publish"
               }
@@ -130,7 +133,13 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
                   ``,
                   `# Update HLD`,
                   `git checkout -b "$BRANCH_NAME"`,
-                  `../fab/fab set --subcomponent $(Build.Repository.Name).$FAB_SAFE_SERVICE_NAME.${SAFE_SOURCE_BRANCH}.chart image.tag=${IMAGE_TAG}`,
+                  `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
+                  `export IMAGE_TAG=${IMAGE_TAG}`,
+                  `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
+                  `echo "Image Name: $IMAGE_NAME"`,
+                  `export IMAGE_REPO=${IMAGE_REPO}`,
+                  `echo "Image Repository: $IMAGE_REPO"`,
+                  `../fab/fab set --subcomponent $(Build.Repository.Name).$FAB_SAFE_SERVICE_NAME.${SAFE_SOURCE_BRANCH}.chart image.tag=$IMAGE_TAG image.repository=$IMAGE_REPO/$BUILD_REPO_NAME`,
                   `echo "GIT STATUS"`,
                   `git status`,
                   `echo "GIT ADD (git add -A)"`,

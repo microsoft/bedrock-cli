@@ -59,6 +59,12 @@ export const generateAccessYaml = (
 export const SAFE_SOURCE_BRANCH = `$(echo $(Build.SourceBranchName) | tr / - | tr . -)`;
 
 /**
+ * Outputs a bash script to generate a _safe_ azure container registry url where it's all lowercase.
+ * This will require ACR_NAME as an environment variable.
+ */
+export const IMAGE_REPO = `$(echo $(ACR_NAME).azurecr.io | tr '[:upper:]' '[:lower:]')`;
+
+/**
  * Outputs a bash string for a _safe_ image tag -- a string where all
  * '/' and '.' in the string have been replaced with a '-'`
  */
@@ -202,10 +208,12 @@ export const serviceBuildAndUpdatePipeline = (
               {
                 script: generateYamlScript([
                   `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
-                  `echo "Image Name: $BUILD_REPO_NAME"`,
+                  `export IMAGE_TAG=${IMAGE_TAG}`,
+                  `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
+                  `echo "Image Name: $IMAGE_NAME"`,
                   `cd ${relativeServicePathFormatted}`,
-                  `echo "az acr build -r $(ACR_NAME) --image $BUILD_REPO_NAME:${IMAGE_TAG} ."`,
-                  `az acr build -r $(ACR_NAME) --image $BUILD_REPO_NAME:${IMAGE_TAG} .`
+                  `echo "az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
+                  `az acr build -r $(ACR_NAME) --image $IMAGE_NAME .`
                 ]),
                 displayName: "ACR Build and Publish"
               }
@@ -260,7 +268,13 @@ export const serviceBuildAndUpdatePipeline = (
                   ``,
                   `# Update HLD`,
                   `git checkout -b "$BRANCH_NAME"`,
-                  `../fab/fab set --subcomponent $(Build.Repository.Name).$FAB_SAFE_SERVICE_NAME.${SAFE_SOURCE_BRANCH}.chart image.tag=${IMAGE_TAG}`,
+                  `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
+                  `export IMAGE_TAG=${IMAGE_TAG}`,
+                  `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
+                  `echo "Image Name: $IMAGE_NAME"`,
+                  `export IMAGE_REPO=${IMAGE_REPO}`,
+                  `echo "Image Repository: $IMAGE_REPO"`,
+                  `../fab/fab set --subcomponent $(Build.Repository.Name).$FAB_SAFE_SERVICE_NAME.${SAFE_SOURCE_BRANCH}.chart image.tag=$IMAGE_TAG image.repository=$IMAGE_REPO/$BUILD_REPO_NAME`,
                   `echo "GIT STATUS"`,
                   `git status`,
                   `echo "GIT ADD (git add -A)"`,
