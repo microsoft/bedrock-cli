@@ -3,18 +3,14 @@ jest.mock("@azure/arm-storage");
 jest.mock("azure-storage");
 jest.mock("../../config");
 
-// imports
 import uuid from "uuid/v4";
-import * as storage from "../../lib/azure/storage";
-import {
-  disableVerboseLogging,
-  enableVerboseLogging,
-  logger
-} from "../../logger";
+import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 
 import { StorageAccount } from "@azure/arm-storage/esm/models";
 import { Config } from "../../config";
 import { IAzureAccessOpts } from "../../types";
+import { getStorageAccount, validateStorageAccount } from "./storage";
+import * as storage from "./storage";
 
 const resourceGroupName = uuid();
 const storageAccountName = uuid();
@@ -30,26 +26,47 @@ const location = uuid();
     }
   }
 });
-jest.spyOn(storage, "getStorageManagementClient").mockImplementation(
-  async (opts: IAzureAccessOpts = {}): Promise<any> => {
-    return {
-      storageAccounts: {
-        checkNameAvailability: (name: string) => {
-          return { nameAvailable: true };
-        },
-        listByResourceGroup: (name: string) => {
-          return [
-            { name: "testAccountName" },
-            { name: "otherTestAccountName" }
-          ];
-        },
-        listKeys: (resourceGroup: string, accountName: string) => {
-          return {};
+
+const mockGetStorageManagementClient = (
+  nameAvaible = true,
+  hasResourceGroups = true
+) => {
+  jest.spyOn(storage, "getStorageManagementClient").mockImplementationOnce(
+    async (opts: IAzureAccessOpts = {}): Promise<any> => {
+      return {
+        storageAccounts: {
+          checkNameAvailability: (name: string) => {
+            return { nameAvailable: nameAvaible };
+          },
+          listByResourceGroup: (name: string) => {
+            if (hasResourceGroups) {
+              return [
+                { name: "testAccountName" },
+                { name: "otherTestAccountName" }
+              ];
+            }
+            return undefined;
+          },
+          listKeys: (resourceGroup: string, accountName: string) => {
+            return {};
+          },
+          create(
+            groupName: string,
+            accountName: string,
+            parameters: any,
+            options?: any
+          ): Promise<any> {
+            return new Promise(resolve => {
+              resolve({
+                status: "created"
+              });
+            });
+          }
         }
-      }
-    };
-  }
-);
+      };
+    }
+  );
+};
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -61,53 +78,65 @@ afterAll(() => {
 
 describe("create storage account", () => {
   test("should fail when all arguments are not specified", async () => {
-    let error: Error | undefined;
-    try {
-      await storage.createStorageAccount("", "", "");
-    } catch (err) {
-      logger.info(`createStorageAccount: ${JSON.stringify(err)}`);
-      logger.info(`createStorageAccount error: ${err}`);
-      error = err;
-    }
-    expect(error).toBeDefined();
+    await expect(storage.createStorageAccount("", "", "")).rejects.toThrow();
   });
-
-  test("should create storage account", async () => {
-    let account: StorageAccount | undefined;
-    try {
-      account = await storage.createStorageAccount(
+  test("name is not available", async () => {
+    mockGetStorageManagementClient(false);
+    await expect(
+      storage.createStorageAccount(
         resourceGroupName,
         storageAccountName,
         location
-      );
-    } catch (err) {
-      logger.error(err);
-    }
-    expect(account).toBeUndefined();
+      )
+    ).rejects.toThrow();
+  });
+  test("should create storage account", async () => {
+    mockGetStorageManagementClient();
+    const account = await storage.createStorageAccount(
+      resourceGroupName,
+      storageAccountName,
+      location
+    );
+    expect(account).toBeDefined();
   });
 });
 
 describe("get storage account key", () => {
   test("should fail getting storage account key when arguments are not specified", async () => {
-    let error: Error | undefined;
-    try {
-      await storage.getStorageAccountKey("", "");
-    } catch (err) {
-      logger.info(JSON.stringify(err));
-      error = err;
-    }
-    expect(error).toBeDefined();
+    await expect(storage.getStorageAccountKey("", "")).rejects.toThrow();
   });
-  test("should get storage account key", async () => {
-    let key: string | undefined;
-    try {
-      key = await storage.getStorageAccountKey(
-        resourceGroupName,
-        storageAccountName
-      );
-    } catch (err) {
-      logger.error(err);
-    }
+  test("negative test", async () => {
+    jest.spyOn(storage, "getStorageManagementClient").mockImplementationOnce(
+      async (opts: IAzureAccessOpts = {}): Promise<any> => {
+        return {
+          storageAccounts: {
+            listKeys: (resourceGroup: string, accountName: string) => {
+              throw Error("fake");
+            }
+          }
+        };
+      }
+    );
+    await expect(
+      storage.getStorageAccountKey(resourceGroupName, storageAccountName)
+    ).rejects.toThrow();
+  });
+  test("negative test: key not found", async () => {
+    jest.spyOn(storage, "getStorageManagementClient").mockImplementationOnce(
+      async (opts: IAzureAccessOpts = {}): Promise<any> => {
+        return {
+          storageAccounts: {
+            listKeys: (resourceGroup: string, accountName: string) => {
+              return {};
+            }
+          }
+        };
+      }
+    );
+    const key = await storage.getStorageAccountKey(
+      "testResourceGroup",
+      "testAccountName"
+    );
     expect(key).toBeUndefined();
   });
   test("get storage account key", async () => {
@@ -122,15 +151,11 @@ describe("get storage account key", () => {
         };
       }
     );
-    try {
-      const key = await storage.getStorageAccountKey(
-        "testResourceGroup",
-        "testAccountName"
-      );
-      expect(key).toBe("testkey");
-    } catch (err) {
-      logger.error(err);
-    }
+    const key = await storage.getStorageAccountKey(
+      "testResourceGroup",
+      "testAccountName"
+    );
+    expect(key).toBe("testkey");
   });
 });
 
@@ -191,6 +216,7 @@ describe("get storage account keys", () => {
   });
 
   test("should get no storage key", async () => {
+    mockGetStorageManagementClient();
     const keys = await storage.getStorageAccountKeys(
       "accountName",
       "resourceGroup"
@@ -202,6 +228,7 @@ describe("get storage account keys", () => {
 
 describe("storage account name available", () => {
   test("should get no storage key", async () => {
+    mockGetStorageManagementClient();
     const isAvailable = await storage.isStorageAccountNameAvailable(
       "accountName"
     );
@@ -210,9 +237,8 @@ describe("storage account name available", () => {
 });
 
 describe("storage account exists", () => {
-  jest
-    .spyOn(storage, "getStorageAccount")
-    .mockImplementationOnce(
+  test("invalid resource group", async () => {
+    jest.spyOn(storage, "getStorageAccount").mockImplementationOnce(
       async (
         resourceGroup: string,
         accountName: string,
@@ -223,18 +249,7 @@ describe("storage account exists", () => {
           location: "uswest"
         };
       }
-    )
-    .mockImplementationOnce(
-      async (
-        resourceGroup: string,
-        accountName: string,
-        opts: IAzureAccessOpts = {}
-      ): Promise<StorageAccount | undefined> => {
-        return undefined;
-      }
     );
-
-  test("invalid resource group", async () => {
     try {
       await storage.isStorageAccountExist("", "testAccountName");
     } catch (err) {
@@ -243,6 +258,15 @@ describe("storage account exists", () => {
   });
 
   test("invalid account name", async () => {
+    jest.spyOn(storage, "getStorageAccount").mockImplementationOnce(
+      async (
+        resourceGroup: string,
+        accountName: string,
+        opts: IAzureAccessOpts = {}
+      ): Promise<StorageAccount | undefined> => {
+        return undefined;
+      }
+    );
     try {
       await storage.isStorageAccountExist("testResourceGroup", "");
     } catch (err) {
@@ -289,16 +313,80 @@ describe("create table if it doesn't exist", () => {
   test("invalid account name", async () => {
     try {
       await storage.createTableIfNotExists("", "tableName", "accessKey");
+      expect(true).toBe(false);
     } catch (err) {
       expect(err.message).toEqual("\nInvalid accountName");
     }
   });
-
   test("invalid account name", async () => {
     try {
       await storage.createTableIfNotExists("testAccountName", "", "accesKey");
+      expect(true).toBe(false);
     } catch (err) {
       expect(err.message).toEqual("\nInvalid tableName");
     }
+  });
+});
+
+describe("test getStorageAccount function", () => {
+  it("positive test", async () => {
+    mockGetStorageManagementClient();
+    const res = await getStorageAccount(resourceGroupName, "testAccountName");
+    expect(res).toBeDefined();
+  });
+  it("negative test, no resource groups", async () => {
+    mockGetStorageManagementClient(true, false);
+    const res = await getStorageAccount(resourceGroupName, "testAccountName");
+    expect(res).toBeUndefined();
+  });
+});
+
+describe("test validateStorageAccount function", () => {
+  it("negative test: account does not exist", async () => {
+    jest
+      .spyOn(storage, "isStorageAccountNameAvailable")
+      .mockReturnValueOnce(Promise.resolve(true));
+    const res = await validateStorageAccount(
+      resourceGroupName,
+      "testAccountName",
+      "testkey"
+    );
+    expect(res).toBe(false);
+  });
+  it("negative test: key does not exist", async () => {
+    jest
+      .spyOn(storage, "isStorageAccountNameAvailable")
+      .mockReturnValueOnce(Promise.resolve(false));
+    jest
+      .spyOn(storage, "getStorageAccountKeys")
+      .mockReturnValueOnce(Promise.resolve([]));
+    const res = await validateStorageAccount(
+      resourceGroupName,
+      "testAccountName",
+      "testkey"
+    );
+    expect(res).toBe(false);
+  });
+  it("negative test: exception thrown", async () => {
+    jest
+      .spyOn(storage, "isStorageAccountNameAvailable")
+      .mockReturnValueOnce(Promise.reject(new Error("fake")));
+    await expect(
+      validateStorageAccount(resourceGroupName, "testAccountName", "testkey")
+    ).rejects.toThrow();
+  });
+  it("positive test", async () => {
+    jest
+      .spyOn(storage, "isStorageAccountNameAvailable")
+      .mockReturnValueOnce(Promise.resolve(false));
+    jest
+      .spyOn(storage, "getStorageAccountKeys")
+      .mockReturnValueOnce(Promise.resolve(["testkey"]));
+    const res = await validateStorageAccount(
+      resourceGroupName,
+      "testAccountName",
+      "testkey"
+    );
+    expect(res).toBe(true);
   });
 });

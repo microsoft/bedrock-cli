@@ -3,9 +3,7 @@ import {
   Kind,
   SkuName,
   StorageAccount,
-  StorageAccountsCheckNameAvailabilityResponse,
   StorageAccountsCreateResponse,
-  StorageAccountsListByResourceGroupResponse,
   StorageAccountsListKeysResponse
 } from "@azure/arm-storage/esm/models";
 import * as storage from "azure-storage";
@@ -73,21 +71,15 @@ export const validateStorageAccount = async (
       resourceGroup
     );
 
-    if (typeof storageAccountKeys !== "undefined") {
-      for (const storageKey of storageAccountKeys) {
-        if (storageKey === key) {
-          logger.info(
-            `Storage account validation for ${accountName} succeeded.`
-          );
-          return true;
-        }
-      }
+    const found = (storageAccountKeys || []).find(k => k === key);
+    if (found) {
+      logger.info(`Storage account validation for ${accountName} succeeded.`);
+      return true;
     }
 
     logger.error(
       `Storage account ${accountName} access keys is not valid or does not exist.`
     );
-
     return false;
   } catch (error) {
     logger.error(error);
@@ -229,28 +221,57 @@ export const getStorageAccount = async (
     logger.debug(`Finding ${message}`);
 
     const client = await getStorageManagementClient(opts);
-    const accounts: StorageAccountsListByResourceGroupResponse = await client.storageAccounts.listByResourceGroup(
+    const accounts = await client.storageAccounts.listByResourceGroup(
       resourceGroup
     );
 
-    if (typeof accounts === "undefined" || accounts === null) {
+    if (accounts === undefined || accounts === null || accounts.length === 0) {
       logger.debug(`No storage accounts found in ${resourceGroup}`);
-    } else {
-      logger.debug(
-        `${accounts.length} storage accounts found in ${resourceGroup}`
-      );
-      for (const account of accounts) {
-        logger.debug(`Found ${account.name} so far`);
-        if (account.name === accountName) {
-          return account;
-        }
-      }
+      return undefined;
     }
-    logger.debug(`Found ${message}`);
-    return undefined;
+
+    logger.debug(
+      `${accounts.length} storage accounts found in ${resourceGroup}`
+    );
+
+    const found = accounts.find(acc => acc.name === accountName);
+    if (found) {
+      logger.debug(`Found ${message}`);
+    }
+    return found;
   } catch (err) {
     logger.error(`Error occurred while getting ${message} \n ${err}`);
     throw err;
+  }
+};
+
+/**
+ * Validates all the values are available for creating a storage
+ * account.
+ *
+ * @param resourceGroup Name of Azure resource group
+ * @param accountName The Azure storage account name
+ * @param location The Azure storage account location
+ */
+const validateInputsForCreateAccount = (
+  resourceGroup: string,
+  accountName: string,
+  location: string
+) => {
+  // validate input
+  const errors: string[] = [];
+
+  if (!resourceGroup) {
+    errors.push(`Invalid resourceGroup`);
+  }
+  if (!accountName) {
+    errors.push(`Invalid accountName`);
+  }
+  if (!location) {
+    errors.push(`Invalid location`);
+  }
+  if (errors.length !== 0) {
+    throw new Error(`\n${errors.join("\n")}`);
   }
 };
 
@@ -269,33 +290,17 @@ export const createStorageAccount = async (
   location: string,
   opts: IAzureAccessOpts = {}
 ): Promise<StorageAccount> => {
-  // validate input
-  const errors: string[] = [];
-
-  if (!resourceGroup) {
-    errors.push(`Invalid resourceGroup`);
-  }
-
-  if (!accountName) {
-    errors.push(`Invalid accountName`);
-  }
-
-  if (!location) {
-    errors.push(`Invalid location`);
-  }
-
-  if (errors.length !== 0) {
-    throw new Error(`\n${errors.join("\n")}`);
-  }
-
   const message = `Azure storage account ${accountName} in resource group ${resourceGroup} in ${location} location.`;
+
   try {
+    validateInputsForCreateAccount(resourceGroup, accountName, location);
+
     logger.verbose(`Create storage client object.`);
     const client = await getStorageManagementClient(opts);
     logger.verbose(
       `Checking for storage account name ${accountName} availability`
     );
-    const response: StorageAccountsCheckNameAvailabilityResponse = await client.storageAccounts.checkNameAvailability(
+    const response = await client.storageAccounts.checkNameAvailability(
       accountName
     );
 
@@ -389,24 +394,21 @@ export const getStorageAccountKey = async (
 };
 
 /**
- * Creates table in storage account if not exists
+ * Validates input values for creating storage table.
+ *
  * @param accountName The storage account name
  * @param tableName The table name
  * @param accessKey The storage account access key
- *
  */
-export const createTableIfNotExists = async (
+const validateValuesForCreateStorageTable = (
   accountName: string,
-  tableName: string,
-  accessKey: string
-): Promise<boolean | undefined> => {
-  // validate input
+  tableName: string
+) => {
   const errors: string[] = [];
 
   if (!accountName) {
     errors.push(`Invalid accountName`);
   }
-
   if (!tableName) {
     errors.push(`Invalid tableName`);
   }
@@ -414,24 +416,42 @@ export const createTableIfNotExists = async (
   if (errors.length !== 0) {
     throw new Error(`\n${errors.join("\n")}`);
   }
+};
 
-  let retValue: boolean | undefined;
+/**
+ * Creates table in storage account if not exists
+ *
+ * @param accountName The storage account name
+ * @param tableName The table name
+ * @param accessKey The storage account access key
+ */
+export const createTableIfNotExists = (
+  accountName: string,
+  tableName: string,
+  accessKey: string
+): Promise<boolean | undefined> => {
+  return new Promise<boolean | undefined>((resolve, reject) => {
+    try {
+      validateValuesForCreateStorageTable(accountName, tableName);
+      const createTblService = storage.createTableService(
+        accountName,
+        accessKey
+      );
 
-  const storageClient = storage.createTableService(accountName, accessKey);
-  const retPromise = new Promise<boolean | undefined>((resolve, reject) => {
-    storageClient.createTableIfNotExists(tableName, (err, result) => {
-      if (err) {
-        logger.error(
-          `Unable to create table in storage account ${accountName} \n ${err}`
-        );
-        return reject(err);
-      }
-      logger.debug(`table result: ${JSON.stringify(result)}`);
-      retValue = result.created;
-      return resolve(retValue);
-    });
+      createTblService.createTableIfNotExists(tableName, (err, result) => {
+        if (err) {
+          logger.error(
+            `Unable to create table in storage account ${accountName} \n ${err}`
+          );
+          reject(err);
+        }
+        logger.debug(`table result: ${JSON.stringify(result)}`);
+        resolve(result.created);
+      });
+    } catch (err) {
+      reject(err);
+    }
   });
-  return retPromise;
 };
 
 /**
