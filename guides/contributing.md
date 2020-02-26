@@ -1,4 +1,4 @@
-# Contibuting
+# Contributing
 
 ### System Prerequisites
 
@@ -37,6 +37,11 @@ ts-node src/index.ts # this is the same as running `./spk` or 'node spk.js'
 # You can now do things like
 ts-node src/index.ts project init # same as running `./spk project init`
 ```
+
+### Implementing Commands
+
+Refer to this [doc](./guides/command-implementation.md) for guidelines for
+implementing commands.
 
 ### Running Tests
 
