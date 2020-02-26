@@ -22,12 +22,12 @@
       "required": true
     },
     {
-      "arg": "--personal-access-token <pat>",
+      "arg": "-a, --personal-access-token <personal-access-token>",
       "description": "Personal access token associated with your Azure DevOps token; falls back to azure_devops.access_token in your spk config",
       "required": true
     },
     {
-      "arg": "--org-name <organization-name>",
+      "arg": "-o, --org-name <organization-name>",
       "description": "Your Azure DevOps organization name; falls back to azure_devops.org in your spk config",
       "required": true
     },

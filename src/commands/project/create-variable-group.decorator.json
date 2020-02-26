@@ -29,7 +29,7 @@
       "required": true
     },
     {
-      "arg": "--org-name <organization-name>",
+      "arg": "-o, --org-name <organization-name>",
       "description": "Azure DevOps organization name; falls back to azure_devops.org in spk config.",
       "required": true
     },
@@ -39,7 +39,7 @@
       "required": true
     },
     {
-      "arg": "--personal-access-token <personal-access-token>",
+      "arg": "-a, --personal-access-token <personal-access-token>",
       "description": "Azure DevOps Personal access token; falls back to azure_devops.access_token in spk config.",
       "required": true
     }

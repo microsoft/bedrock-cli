@@ -142,7 +142,7 @@
         "defaultValue": ""
       },
       {
-        "arg": "-o, --output <output-format>",
+        "arg": "-O, --output <output-format>",
         "description": "Output the information one of the following: normal, wide, JSON",
         "defaultValue": "normal"
       },
@@ -258,12 +258,12 @@
         "defaultValue": ""
       },
       {
-        "arg": "-p, --personal-access-token <personal-access-token>",
+        "arg": "-a, --personal-access-token <personal-access-token>",
         "description": "Personal Access Token",
         "defaultValue": ""
       },
       {
-        "arg": "-o, --org-name <org-name>",
+        "arg": "-o, --org-name <organization-name>",
         "description": "Organization Name for Azure DevOps",
         "defaultValue": ""
       },
@@ -314,7 +314,7 @@
         "required": false
       },
       {
-        "arg": "-o, --output <path to create generated folder>",
+        "arg": "-O, --output <path to create generated folder>",
         "description": "Location of the generated directory that will be generated",
         "required": false
       }
@@ -384,7 +384,7 @@
         "required": true
       },
       {
-        "arg": "--org-name <organization-name>",
+        "arg": "-o, --org-name <organization-name>",
         "description": "Azure DevOps organization name; falls back to azure_devops.org in spk config.",
         "required": true
       },
@@ -394,7 +394,7 @@
         "required": true
       },
       {
-        "arg": "--personal-access-token <personal-access-token>",
+        "arg": "-a, --personal-access-token <personal-access-token>",
         "description": "Azure DevOps Personal access token; falls back to azure_devops.access_token in spk config.",
         "required": true
       }
@@ -426,12 +426,12 @@
         "required": true
       },
       {
-        "arg": "-p, --personal-access-token <personal-access-token>",
+        "arg": "-a, --personal-access-token <personal-access-token>",
         "description": "Personal Access Token",
         "required": true
       },
       {
-        "arg": "-o, --org-name <org-name>",
+        "arg": "-o, --org-name <organization-name>",
         "description": "Organization Name for Azure DevOps",
         "required": true
       },
@@ -483,12 +483,12 @@
         "required": true
       },
       {
-        "arg": "--personal-access-token <pat>",
+        "arg": "-a, --personal-access-token <personal-access-token>",
         "description": "Personal access token associated with your Azure DevOps token; falls back to azure_devops.access_token in your spk config",
         "required": true
       },
       {
-        "arg": "--org-name <organization-name>",
+        "arg": "-o, --org-name <organization-name>",
         "description": "Your Azure DevOps organization name; falls back to azure_devops.org in your spk config",
         "required": true
       },
@@ -593,12 +593,12 @@
         "defaultValue": ""
       },
       {
-        "arg": "-p, --personal-access-token <personal-access-token>",
+        "arg": "-a, --personal-access-token <personal-access-token>",
         "description": "Personal Access Token",
         "defaultValue": ""
       },
       {
-        "arg": "-o, --org-name <org-name>",
+        "arg": "-o, --org-name <organization-name>",
         "description": "Organization Name for Azure DevOps",
         "defaultValue": ""
       },
@@ -648,7 +648,7 @@
         "description": "Azure DevOps project name; falls back to azure_devops.project in spk config"
       },
       {
-        "arg": "-t, --personal-access-token <personal-access-token>",
+        "arg": "-a, --personal-access-token <personal-access-token>",
         "description": "Personal access token associated with the Azure DevOps org; falls back to azure_devops.access_token in spk config"
       }
     ]

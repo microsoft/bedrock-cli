@@ -16,7 +16,7 @@
       "description": "Azure DevOps project name; falls back to azure_devops.project in spk config"
     },
     {
-      "arg": "-t, --personal-access-token <personal-access-token>",
+      "arg": "-a, --personal-access-token <personal-access-token>",
       "description": "Personal access token associated with the Azure DevOps org; falls back to azure_devops.access_token in spk config"
     }
   ]

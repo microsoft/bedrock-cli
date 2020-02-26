@@ -145,7 +145,7 @@ pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name
 echo "hld_dir $hld_dir"
 echo "hld_repo_url $hld_repo_url"
 echo "manifest_repo_url $manifest_repo_url"
-spk hld install-manifest-pipeline -o $AZDO_ORG -d $AZDO_PROJECT -p $ACCESS_TOKEN_SECRET -u https://$hld_repo_url -m https://$manifest_repo_url >> $TEST_WORKSPACE/log.txt
+spk hld install-manifest-pipeline --org-name $AZDO_ORG -d $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET -u https://$hld_repo_url -m https://$manifest_repo_url >> $TEST_WORKSPACE/log.txt
 
 # Verify hld to manifest pipeline was created
 pipeline_created=$(az pipelines show --name $hld_to_manifest_pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
@@ -281,7 +281,7 @@ frontend_pipeline_name="$FrontEnd-pipeline"
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $frontend_pipeline_name
 
 # Create a pipeline since the code exists in remote repo
-spk service install-build-pipeline -o $AZDO_ORG -u $remote_repo_url -d $AZDO_PROJECT -l $services_dir -p $ACCESS_TOKEN_SECRET -n $frontend_pipeline_name -v $FrontEnd  >> $TEST_WORKSPACE/log.txt
+spk service install-build-pipeline --org-name $AZDO_ORG -u $remote_repo_url -d $AZDO_PROJECT -l $services_dir --personal-access-token $ACCESS_TOKEN_SECRET -n $frontend_pipeline_name -v $FrontEnd  >> $TEST_WORKSPACE/log.txt
 
 # Verify frontend service pipeline was created
 pipeline_created=$(az pipelines show --name $frontend_pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)

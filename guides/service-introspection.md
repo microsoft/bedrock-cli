@@ -88,7 +88,7 @@ Options:
   -i, --image-tag <image-tag>          Filter by a container image tag
   -e, --env <environment>              Filter by environment name
   -s, --service <service-name>         Filter by service name
-  -o, --output <output-format>         Output the information in one of the following formats: normal, wide, JSON
+  -O, --output <output-format>         Output the information in one of the following formats: normal, wide, JSON
   -w, --watch                          Watch the deployments for a live view
   -h, --help                           Usage information
 ```

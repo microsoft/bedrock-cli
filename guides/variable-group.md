@@ -57,9 +57,9 @@ spk variable-group create|c [options]
 
 Options:
   -f, --file <file>                     Path to the yaml file that contains variable group manifest
-  -o, --org-name <org>                  Azure DevOps organization name; falls back to azure_devops.org in spk config
+  -o, --org-name <organization-name>    Azure DevOps organization name; falls back to azure_devops.org in spk config
   -p, --project <project>               Azure DevOps project name; falls back to azure_devops.project in spk config
-  -t, --personal-access-token <token>   Personal access token from Azure DevOps org; falls back to azure_devops.access_token in spk config
+  -a, --personal-access-token <personal-access-token>   Personal access token from Azure DevOps org; falls back to azure_devops.access_token in spk config
 ```
 
 Variable Group Yaml Manifest File Format

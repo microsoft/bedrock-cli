@@ -9,12 +9,12 @@
       "required": true
     },
     {
-      "arg": "-p, --personal-access-token <personal-access-token>",
+      "arg": "-a, --personal-access-token <personal-access-token>",
       "description": "Personal Access Token",
       "required": true
     },
     {
-      "arg": "-o, --org-name <org-name>",
+      "arg": "-o, --org-name <organization-name>",
       "description": "Organization Name for Azure DevOps",
       "required": true
     },

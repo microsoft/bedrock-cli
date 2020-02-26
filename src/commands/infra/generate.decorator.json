@@ -9,7 +9,7 @@
       "required": false
     },
     {
-      "arg": "-o, --output <path to create generated folder>",
+      "arg": "-O, --output <path to create generated folder>",
       "description": "Location of the generated directory that will be generated",
       "required": false
     }
