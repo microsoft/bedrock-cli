@@ -66,14 +66,7 @@ export const populateValues = (opts: ICommandOptions) => {
 
   opts.buildScriptUrl = opts.buildScriptUrl || BUILD_SCRIPT_URL;
 
-  if (!opts.hldUrl || !opts.manifestUrl) {
-    throw Error(`HLD repo url or manifest url not defined`);
-  }
-  const hldGitUrlType = isGitHubUrl(opts.hldUrl);
-  const manifestGitUrlType = isGitHubUrl(opts.manifestUrl);
-  if (hldGitUrlType || manifestGitUrlType) {
-    throw Error(`GitHub repos are not supported`);
-  }
+  validateRepos(opts.hldUrl, opts.manifestUrl);
 
   logger.debug(`orgName: ${opts.orgName}`);
   logger.debug(`personalAccessToken: XXXXXXXXXXXXXXXXX`);
@@ -84,6 +77,14 @@ export const populateValues = (opts: ICommandOptions) => {
   logger.debug(`hldUrl: ${opts.hldUrl}`);
   logger.debug(`buildScriptUrl: ${opts.buildScriptUrl}`);
   return opts;
+};
+
+const validateRepos = (hldRepoUrl: string, manifestRepoUrl: string) => {
+  const hldGitUrlType = isGitHubUrl(hldRepoUrl);
+  const manifestGitUrlType = isGitHubUrl(manifestRepoUrl);
+  if (hldGitUrlType || manifestGitUrlType) {
+    throw Error(`GitHub repos are not supported`);
+  }
 };
 
 export const execute = async (
