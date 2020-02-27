@@ -1,6 +1,7 @@
 // imports
 import { getPersonalAccessTokenHandler, WebApi } from "azure-devops-node-api";
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
+import { ITaskAgentApi } from "azure-devops-node-api/TaskAgentApi";
 import { RestClient } from "typed-rest-client";
 import { Config } from "../config";
 import { logger } from "../logger";
@@ -11,6 +12,7 @@ import { GitAPI } from "./git/azure";
 let connection: WebApi | undefined;
 let restApi: RestClient | undefined;
 let buildApi: IBuildApi | undefined;
+let taskAgentApi: ITaskAgentApi | undefined;
 
 /**
  * Return a well-formed AzDo organization URL.
@@ -28,16 +30,15 @@ export const azdoUrl = (orgName: string): string =>
 export const getWebApi = async (
   opts: IAzureDevOpsOpts = {}
 ): Promise<WebApi> => {
-  if (typeof connection !== "undefined") {
+  if (connection) {
     return connection;
   }
 
   // Load config from opts and fallback to spk config
   const config = Config();
   const {
-    personalAccessToken = config.azure_devops &&
-      config.azure_devops.access_token,
-    orgName = config.azure_devops && config.azure_devops.org
+    personalAccessToken = config.azure_devops?.access_token,
+    orgName = config.azure_devops?.org
   } = opts;
 
   // PAT and devops URL are required
@@ -63,6 +64,10 @@ export const getWebApi = async (
   connection = new WebApi(orgUrl, authHandler);
 
   return connection;
+};
+
+export const invalidateWebApi = () => {
+  connection = undefined;
 };
 
 /**
@@ -97,6 +102,24 @@ export const getBuildApi = async (
   const webApi = await getWebApi(opts);
   buildApi = await webApi.getBuildApi();
   return buildApi;
+};
+
+/**
+ * Get Azure DevOps Task API client
+ *
+ * @param opts for organization name and personal access token value
+ * @returns AzDo `IBuildApi` object
+ */
+export const getTaskAgentApi = async (
+  opts: IAzureDevOpsOpts = {}
+): Promise<ITaskAgentApi> => {
+  if (typeof taskAgentApi !== "undefined") {
+    return taskAgentApi;
+  }
+
+  const webApi = await getWebApi(opts);
+  taskAgentApi = await webApi.getTaskAgentApi();
+  return taskAgentApi;
 };
 
 /**

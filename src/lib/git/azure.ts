@@ -6,7 +6,7 @@ import AZGitInterfaces, {
 import { IAzureDevOpsOpts, PullRequest } from ".";
 import { Config } from "../../config";
 import { logger } from "../../logger";
-import { azdoUrl } from "../azdoutil";
+import { azdoUrl } from "../azdoClient";
 import { getOriginUrl, safeGitUrlForLogging } from "../gitutils";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -169,18 +169,20 @@ export const createPullRequest: PullRequest = async (
   );
 
   // Search for repos with branches matching those to make the PR against
-  const reposWithMatchingBranches = (await Promise.all(
-    reposWithMatchingOrigin.map(async repo => {
-      logger.info(`Retrieving branches for repository '${repo.name}'`);
-      const branches = await gitAPI.getBranches(repo.id!);
-      return {
-        branches: branches.filter(branch => {
-          return [sourceRef, targetRef].includes(branch.name!);
-        }),
-        repo
-      };
-    })
-  )).filter(repo => {
+  const reposWithMatchingBranches = (
+    await Promise.all(
+      reposWithMatchingOrigin.map(async repo => {
+        logger.info(`Retrieving branches for repository '${repo.name}'`);
+        const branches = await gitAPI.getBranches(repo.id!);
+        return {
+          branches: branches.filter(branch => {
+            return [sourceRef, targetRef].includes(branch.name!);
+          }),
+          repo
+        };
+      })
+    )
+  ).filter(repo => {
     // Valid repos must contain both the source and target repo
     return repo.branches.length >= 2;
   });

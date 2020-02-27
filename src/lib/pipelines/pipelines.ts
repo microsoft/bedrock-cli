@@ -14,7 +14,7 @@ import {
   YamlProcess
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import { logger } from "../../logger";
-import { azdoUrl } from "../azdoutil";
+import { getBuildApi } from "../azdoClient";
 
 const hostedUbuntuPool = "Hosted Ubuntu 1604";
 const hostedUbuntuPoolId = 224;
@@ -37,25 +37,10 @@ export const getBuildApiClient = async (
   orgName: string,
   personalAccessToken: string
 ): Promise<IBuildApi> => {
-  return initBuildApiClient(
-    getPersonalAccessTokenHandler,
-    WebApi,
+  return await getBuildApi({
     orgName,
     personalAccessToken
-  );
-};
-
-export const initBuildApiClient = async (
-  tokenHandler: (n: string) => any,
-  webapi: typeof WebApi,
-  orgName: string,
-  token: string
-): Promise<IBuildApi> => {
-  const authHandler = tokenHandler(token);
-  const orgUrl = azdoUrl(orgName);
-  const connection = new webapi(orgUrl, authHandler);
-
-  return connection.getBuildApi();
+  });
 };
 
 interface IPipeline {

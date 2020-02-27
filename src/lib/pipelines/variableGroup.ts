@@ -4,41 +4,13 @@ import {
   VariableGroup,
   VariableGroupParameters
 } from "azure-devops-node-api/interfaces/TaskAgentInterfaces";
-import { ITaskAgentApi } from "azure-devops-node-api/TaskAgentApi";
 import { Config } from "../../config";
 import { logger } from "../../logger";
 import { IVariableGroupData, IVariableGroupDataVariable } from "../../types";
-import { getBuildApi, getWebApi } from "../azdoClient";
+import { getBuildApi, getTaskAgentApi } from "../azdoClient";
 import { IAzureDevOpsOpts } from "../git";
 import { IServiceEndpoint } from "./azdoInterfaces";
 import { createServiceEndpointIfNotExists } from "./serviceEndpoint";
-
-let taskApi: ITaskAgentApi | undefined; // keep track of the gitApi so it can be reused
-
-/**
- * Creates AzDo `azure-devops-node-api.WebApi.ITaskAgentApi` with `orgUrl` and
- * `token and returns `ITaskAgentApi`
- *
- * @param opts optionally override spk config with Azure DevOps access options
- * @returns new `ITaskAgentApi` object
- */
-export const TaskApi = async (
-  opts: IAzureDevOpsOpts = {}
-): Promise<ITaskAgentApi> => {
-  if (typeof taskApi !== "undefined") {
-    return taskApi;
-  }
-
-  const api = await getWebApi(opts);
-  try {
-    taskApi = await api.getTaskAgentApi();
-    logger.info(`Successfully connected to Azure DevOps Task API!`);
-  } catch (err) {
-    logger.error(`Error connecting Azure DevOps Task API\n ${err}`);
-    throw err;
-  }
-  return taskApi;
-};
 
 /**
  * Adds Variable group `groupConfig` in Azure DevOps project and returns
@@ -173,8 +145,8 @@ export const doAddVariableGroup = async (
       `Creating new Variable Group ${JSON.stringify(variableGroupData)}`
     );
     logger.info(`Attempting to create Variable Group in project '${project}'`);
-    const taskClient: ITaskAgentApi = await TaskApi(opts);
-    const group: VariableGroup = await taskClient.addVariableGroup(
+    const taskClient = await getTaskAgentApi(opts);
+    const group = await taskClient.addVariableGroup(
       variableGroupData,
       project!
     );

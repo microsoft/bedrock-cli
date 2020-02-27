@@ -8,9 +8,8 @@ import {
   VariableGroup,
   VariableGroupParameters
 } from "azure-devops-node-api/interfaces/TaskAgentInterfaces";
-import { ITaskAgentApi } from "azure-devops-node-api/TaskAgentApi";
 import uuid from "uuid/v4";
-import { Config, readYaml } from "../../config";
+import { readYaml } from "../../config";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
@@ -22,8 +21,7 @@ import {
   addVariableGroupWithKeyVaultMap,
   authorizeAccessToAllPipelines,
   buildVariablesMap,
-  doAddVariableGroup,
-  TaskApi
+  doAddVariableGroup
 } from "./variableGroup";
 
 // Tests
@@ -33,55 +31,6 @@ beforeAll(() => {
 
 afterAll(() => {
   disableVerboseLogging();
-});
-
-describe("TaskApi", () => {
-  test("should fail when PAT not set", async () => {
-    (Config as jest.Mock).mockReturnValue({
-      azure_devops: {}
-    });
-
-    let invalidPatError: Error | undefined;
-    try {
-      await TaskApi();
-    } catch (err) {
-      invalidPatError = err;
-    }
-    expect(invalidPatError).toBeDefined();
-  });
-
-  test("should fail when DevOps org is invalid", async () => {
-    (Config as jest.Mock).mockReturnValue({
-      azure_devops: {
-        access_token: uuid()
-      }
-    });
-
-    let invalidOrgError: Error | undefined;
-    try {
-      await TaskApi();
-    } catch (err) {
-      invalidOrgError = err;
-    }
-    expect(invalidOrgError).toBeDefined();
-  });
-
-  test("should pass if org url and PAT set", async () => {
-    (Config as jest.Mock).mockReturnValue({
-      azure_devops: {
-        access_token: uuid(),
-        org: uuid()
-      }
-    });
-
-    let api: ITaskAgentApi | undefined;
-    try {
-      api = await TaskApi();
-    } catch (err) {
-      logger.info(err);
-    }
-    expect(api).toBeUndefined();
-  });
 });
 
 describe("addVariableGroup", () => {

@@ -1,23 +1,21 @@
-// Mocks
 jest.mock("azure-devops-node-api");
 jest.mock("../config");
 
-// Imports
-import { IBuildApi } from "azure-devops-node-api/BuildApi";
-import { RestClient } from "typed-rest-client";
 import uuid from "uuid/v4";
 import { Config } from "../config";
 import {
   azdoUrl,
   getBuildApi,
   getRestClient,
+  getTaskAgentApi,
   getWebApi,
+  invalidateWebApi,
   repositoryHasFile
 } from "./azdoClient";
+import * as azdoClient from "./azdoClient";
 import { IAzureDevOpsOpts } from "./git";
 import * as azure from "./git/azure";
 
-// Tests
 describe("AzDo Pipeline utility functions", () => {
   test("azdo url is well formed", () => {
     const org = "test";
@@ -25,103 +23,120 @@ describe("AzDo Pipeline utility functions", () => {
   });
 });
 
-describe("getWebApi", () => {
-  test("should fail when personal access toekn is not set", async () => {
-    (Config as jest.Mock).mockReturnValue({
-      azure_devops: {}
-    });
+const TOKEN = uuid();
+const ORG = uuid();
 
-    let error: Error | undefined;
-    try {
-      await getWebApi();
-    } catch (err) {
-      error = err;
+beforeEach(() => {
+  invalidateWebApi();
+});
+
+const mockConfig = (token?: string, org?: string) => {
+  (Config as jest.Mock).mockReturnValueOnce({
+    azure_devops: {
+      access_token: token,
+      org
     }
-    expect(error).toBeDefined();
   });
+};
 
+describe("test getWebApi function", () => {
+  test("should fail when personal access token is not set", async () => {
+    mockConfig();
+    await expect(getWebApi()).rejects.toThrow();
+  });
   test("should fail when org is not set", async () => {
-    (Config as jest.Mock).mockReturnValue({
-      azure_devops: {
-        access_token: uuid()
-      }
-    });
-
-    let error: Error | undefined;
-    try {
-      await getWebApi();
-    } catch (err) {
-      error = err;
-    }
-    expect(error).toBeDefined();
+    mockConfig(TOKEN);
+    await expect(getWebApi()).rejects.toThrow();
   });
+  test("should pass when org and personal access token are set", async () => {
+    mockConfig(TOKEN, ORG);
+    const res = await getWebApi();
+    expect(res).toBeDefined();
 
-  test("should pass when org and personal access toekn are set", async () => {
-    (Config as jest.Mock).mockReturnValue({
-      azure_devops: {
-        access_token: uuid(),
-        org: uuid()
-      }
-    });
-
-    let error: Error | undefined;
-
-    try {
-      await getWebApi();
-    } catch (err) {
-      error = err;
-    }
-    expect(error).toBeUndefined();
+    mockConfig(); // empty config. still work because API client is cached
+    const again = await getWebApi();
+    expect(again).toBeDefined();
   });
 });
 
-describe("getRestClient", () => {
-  test("should fail when personal access toekn is not set", async () => {
-    (Config as jest.Mock).mockReturnValue({
-      azure_devops: {}
-    });
-
-    let api: RestClient | undefined;
-    try {
-      api = await getRestClient();
-    } catch (_) {
-      // ignore
-    }
-    expect(api).toBeUndefined();
+describe("test getTaskAgentApi function", () => {
+  test("should fail when PAT not set", async () => {
+    mockConfig();
+    await expect(getTaskAgentApi()).rejects.toThrow();
   });
+  test("should fail when DevOps org is invalid", async () => {
+    mockConfig(TOKEN);
+    await expect(getTaskAgentApi()).rejects.toThrow();
+  });
+  test("should pass if org url and PAT set", async () => {
+    mockConfig(TOKEN, ORG);
+    const mockFn = jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce({
+      getTaskAgentApi: () => {
+        return {};
+      }
+    } as any);
 
+    const res = await getTaskAgentApi();
+    expect(res).toBeDefined();
+    mockFn.mockReset();
+
+    mockConfig(); // empty config. still work because API client is cached
+    const again = await getTaskAgentApi();
+    expect(again).toBeDefined();
+  });
+});
+
+describe("test getRestClient function", () => {
+  test("should fail when personal access token is not set", async () => {
+    mockConfig();
+    await expect(getRestClient()).rejects.toThrow();
+  });
   test("should fail when org is not set", async () => {
-    (Config as jest.Mock).mockReturnValue({
-      azure_devops: {
-        access_token: uuid()
-      }
-    });
-
-    let api: RestClient | undefined;
-    try {
-      api = await getRestClient();
-    } catch (_) {
-      // ignore
-    }
-    expect(api).toBeUndefined();
+    mockConfig(TOKEN);
+    await expect(getRestClient()).rejects.toThrow();
   });
+  test("should pass when org and personal access token are set", async () => {
+    mockConfig(TOKEN, ORG);
+    const mockFn = jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce(
+      Promise.resolve({
+        rest: {}
+      } as any)
+    );
 
-  test("should pass when org and personal access toekn are set", async () => {
-    (Config as jest.Mock).mockReturnValue({
-      azure_devops: {
-        access_token: uuid(),
-        org: uuid()
+    const res = await getRestClient();
+    expect(res).toBeDefined();
+    mockFn.mockReset();
+
+    mockConfig(); // empty config. still work because API client is cached
+    const again = await getRestClient();
+    expect(again).toBeDefined();
+  });
+});
+
+describe("test getBuildApi function", () => {
+  test("should fail when personal access token is not set", async () => {
+    mockConfig();
+    await expect(getBuildApi()).rejects.toThrow();
+  });
+  test("should fail when org is not set", async () => {
+    mockConfig(TOKEN);
+    await expect(getBuildApi()).rejects.toThrow();
+  });
+  test("should pass when org and personal access token are set", async () => {
+    mockConfig(TOKEN, ORG);
+    const mockFn = jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce({
+      getBuildApi: () => {
+        return {};
       }
-    });
+    } as any);
 
-    let api: RestClient | undefined;
+    const api = await getBuildApi();
+    expect(api).toBeDefined();
+    mockFn.mockReset();
 
-    try {
-      api = await getRestClient();
-    } catch (_) {
-      // ignore
-    }
-    expect(api).toBeUndefined();
+    mockConfig(); // empty config. still work because API client is cached
+    const again = await getBuildApi();
+    expect(again).toBeDefined();
   });
 });
 
@@ -173,57 +188,5 @@ describe("repositoryHasFile", () => {
       hasError = true;
     }
     expect(hasError).toBe(true);
-  });
-});
-
-describe("getBuildApi", () => {
-  test("should fail when personal access toekn is not set", async () => {
-    (Config as jest.Mock).mockReturnValue({
-      azure_devops: {}
-    });
-
-    let error: Error | undefined;
-    try {
-      await getBuildApi();
-      expect(true).toBe(false);
-    } catch (err) {
-      error = err;
-    }
-    expect(error).toBeDefined();
-  });
-
-  test("should fail when org is not set", async () => {
-    (Config as jest.Mock).mockReturnValue({
-      azure_devops: {
-        access_token: uuid()
-      }
-    });
-
-    let api: IBuildApi | undefined;
-
-    try {
-      api = await getBuildApi();
-    } catch (_) {
-      // ignore
-    }
-    expect(api).toBeUndefined();
-  });
-
-  test("should pass when org and personal access toekn are set", async () => {
-    (Config as jest.Mock).mockReturnValue({
-      azure_devops: {
-        access_token: uuid(),
-        org: uuid()
-      }
-    });
-
-    let api: IBuildApi | undefined;
-
-    try {
-      api = await getBuildApi();
-    } catch (_) {
-      // ignored
-    }
-    expect(api).toBeUndefined();
   });
 });
