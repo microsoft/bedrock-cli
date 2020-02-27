@@ -23,10 +23,12 @@ import {
  * Should only be used by spk hld reconcile, which is an idempotent operation, but will not overwrite existing access.yaml keys
  * @param accessYamlPath
  * @param gitRepoUrl
+ * @param accessTokenEnvVar the environment variable to which will contain the PAT
  */
 export const generateAccessYaml = (
   accessYamlPath: string,
-  gitRepoUrl: string
+  gitRepoUrl: string,
+  accessTokenEnvVar: string = "ACCESS_TOKEN_SECRET"
 ) => {
   const filePath = path.resolve(path.join(accessYamlPath, ACCESS_FILENAME));
   let accessYaml: IAccessYaml | undefined;
@@ -36,10 +38,13 @@ export const generateAccessYaml = (
       `Existing ${ACCESS_FILENAME} found at ${filePath}, loading and updating, if needed.`
     );
     accessYaml = yaml.load(fs.readFileSync(filePath, "utf8")) as IAccessYaml;
-    accessYaml = { [gitRepoUrl]: "ACCESS_TOKEN_SECRET", ...accessYaml }; // Keep any existing configurations. Do not overwrite what's in `gitRepoUrl`.
+    accessYaml = {
+      [gitRepoUrl]: accessTokenEnvVar,
+      ...accessYaml // Keep any existing configurations. Do not overwrite what's in `gitRepoUrl`.
+    };
   } else {
     accessYaml = {
-      [gitRepoUrl]: "ACCESS_TOKEN_SECRET"
+      [gitRepoUrl]: accessTokenEnvVar
     };
   }
 

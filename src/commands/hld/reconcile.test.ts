@@ -1,6 +1,7 @@
+import path from "path";
 import { create as createBedrockYaml } from "../../lib/bedrockYaml";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
-
+import { IBedrockFile, IBedrockServiceConfig } from "../../types";
 import {
   addChartToRing,
   checkForFabrikate,
@@ -20,8 +21,6 @@ import {
   validateInputs
 } from "./reconcile";
 import * as reconcile from "./reconcile";
-
-import { IBedrockFile, IBedrockServiceConfig } from "../../types";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -270,21 +269,22 @@ describe("addChartToRing", () => {
 
     const branch = "v1";
     const git = "github.com/company/service";
-    const path = "/charts/service";
+    const chartPath = "/charts/service";
 
     const serviceConfig: IBedrockServiceConfig = {
       helm: {
         chart: {
           branch,
           git,
-          path
+          path: chartPath
         }
       },
       k8sBackendPort: 1337
     };
 
     /* tslint:disable-next-line: no-string-literal */
-    const addHelmChartCommand = `fab add chart --source ${git} --path ${path} --branch ${branch} --type helm`;
+    const addHelmChartCommand = `fab add chart --source ${git} --path ${chartPath} --branch ${branch} --type helm`;
+
     const expectedInvocation = `cd ${ringPath} && ${addHelmChartCommand}`;
 
     await addChartToRing(exec, ringPath, serviceConfig);
@@ -298,13 +298,13 @@ describe("addChartToRing", () => {
 
     const sha = "f8a33e1d";
     const git = "github.com/company/service";
-    const path = "/charts/service";
+    const chartPath = "/charts/service";
 
     const serviceConfig: IBedrockServiceConfig = {
       helm: {
         chart: {
           git,
-          path,
+          path: chartPath,
           sha
         }
       },
@@ -312,7 +312,8 @@ describe("addChartToRing", () => {
     };
 
     /* tslint:disable-next-line: no-string-literal */
-    const addHelmChartCommand = `fab add chart --source ${git} --path ${path} --version ${sha} --type helm`;
+    const addHelmChartCommand = `fab add chart --source ${git} --path ${chartPath} --version ${sha} --type helm`;
+
     const expectedInvocation = `cd ${ringPath} && ${addHelmChartCommand}`;
 
     await addChartToRing(exec, ringPath, serviceConfig);
@@ -425,8 +426,8 @@ describe("reconcile tests", () => {
   let bedrockYaml: IBedrockFile;
   const sha = "f8a33e1d";
   const git = "github.com/company/service";
-  const path = "/charts/service";
-
+  const pathToChart = "/charts/service";
+  const accessTokenVariable = "SECRET_TOKEN";
   beforeEach(() => {
     dependencies = {
       addChartToRing: jest.fn().mockReturnValue(Promise.resolve({})),
@@ -452,12 +453,13 @@ describe("reconcile tests", () => {
         prod: {}
       },
       services: {
-        "./path/to/svc/": {
+        "./path/to/a/svc/": {
           disableRouteScaffold: false,
           helm: {
             chart: {
+              accessTokenVariable,
               git,
-              path,
+              path: pathToChart,
               sha
             }
           },
@@ -486,6 +488,12 @@ describe("reconcile tests", () => {
     expect(dependencies.createStaticComponent).toHaveBeenCalledTimes(2);
     expect(dependencies.createMiddlewareForRing).toHaveBeenCalledTimes(2);
     expect(dependencies.createIngressRouteForRing).toHaveBeenCalledTimes(2);
+    expect(dependencies.generateAccessYaml).toHaveBeenCalledTimes(1);
+    expect(dependencies.generateAccessYaml).toBeCalledWith(
+      "path/to/hld/service",
+      git,
+      accessTokenVariable
+    );
   });
 
   it("should be able to create a HLD without rings, when no rings are provided", async () => {
@@ -519,7 +527,7 @@ describe("reconcile tests", () => {
           helm: {
             chart: {
               git,
-              path,
+              path: pathToChart,
               sha
             }
           },
@@ -597,7 +605,7 @@ describe("reconcile tests", () => {
         helm: {
           chart: {
             git,
-            path,
+            path: pathToChart,
             sha
           }
         },
@@ -626,7 +634,7 @@ describe("reconcile tests", () => {
         helm: {
           chart: {
             git,
-            path,
+            path: pathToChart,
             sha
           }
         },
@@ -659,7 +667,7 @@ describe("reconcile tests", () => {
         helm: {
           chart: {
             git,
-            path,
+            path: pathToChart,
             sha
           }
         },
@@ -680,6 +688,43 @@ describe("reconcile tests", () => {
     expect(
       (dependencies.createServiceComponent as jest.Mock).mock.calls[0][2]
     ).toBe(displayName);
+  });
+
+  it("properly updates access.yaml", async () => {
+    const anotherGit = "github.com/foobar/baz";
+    const anotherToken = "MY_FANCY_ENV_VAR";
+    bedrockYaml.services["another/service"] = {
+      disableRouteScaffold: false,
+      helm: {
+        chart: {
+          accessTokenVariable: anotherToken,
+          git: anotherGit,
+          path: "path/to/chart",
+          sha: "12345"
+        }
+      },
+      k8sBackendPort: 8888
+    };
+    const pathToHLD = "./the/path/to/hld";
+    const service = "service";
+    await reconcileHld(
+      dependencies,
+      bedrockYaml,
+      service,
+      pathToHLD,
+      "./path/to/app"
+    );
+    expect(dependencies.generateAccessYaml).toHaveBeenCalledTimes(2);
+    expect(dependencies.generateAccessYaml).toHaveBeenCalledWith(
+      path.join(pathToHLD, service),
+      git,
+      accessTokenVariable
+    );
+    expect(dependencies.generateAccessYaml).toHaveBeenCalledWith(
+      path.join(pathToHLD, service),
+      anotherGit,
+      anotherToken
+    );
   });
 });
 

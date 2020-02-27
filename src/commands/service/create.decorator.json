@@ -14,6 +14,11 @@
       "defaultValue": ""
     },
     {
+      "arg": "-g, --helm-config-git <helm-git>",
+      "description": "bedrock helm chart configuration git repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one.",
+      "defaultValue": ""
+    },
+    {
       "arg": "-b, --helm-config-branch <helm-branch>",
       "description": "bedrock custom helm chart configuration branch. --helm-chart-* and --helm-config-* are exclusive; you may only use one.",
       "defaultValue": ""
@@ -24,9 +29,9 @@
       "defaultValue": ""
     },
     {
-      "arg": "-g, --helm-config-git <helm-git>",
-      "description": "bedrock helm chart configuration git repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one.",
-      "defaultValue": ""
+      "arg": "--helm-config-access-token-variable <env-variable>",
+      "description": "An environment variable which will contain the value of PAT to access the git repository specified in --helm-config-git",
+      "defaultValue": "ACCESS_TOKEN_SECRET"
     },
     {
       "arg": "-d, --packages-dir <dir>",

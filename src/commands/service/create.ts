@@ -31,17 +31,18 @@ export interface ICommandOptions {
   gitPush: boolean;
   helmChartChart: string;
   helmChartRepository: string;
+  helmConfigAccessTokenVariable: string;
   helmConfigBranch: string;
   helmConfigGit: string;
   helmConfigPath: string;
   k8sBackend: string;
+  k8sBackendPort: string;
   maintainerEmail: string;
   maintainerName: string;
   middlewares: string;
   packagesDir: string;
   pathPrefix: string;
   pathPrefixMajorVersion: string;
-  k8sBackendPort: string;
 }
 
 export interface ICommandValues extends ICommandOptions {
@@ -70,6 +71,7 @@ export const fetchValues = (opts: ICommandOptions) => {
     gitPush: opts.gitPush,
     helmChartChart: opts.helmChartChart,
     helmChartRepository: opts.helmChartRepository,
+    helmConfigAccessTokenVariable: opts.helmConfigAccessTokenVariable,
     helmConfigBranch: opts.helmConfigBranch,
     helmConfigGit: opts.helmConfigGit,
     helmConfigPath: opts.helmConfigPath,
@@ -287,6 +289,7 @@ export const createService = async (
         }
       : {
           chart: {
+            accessTokenVariable: values.helmConfigAccessTokenVariable,
             branch: values.helmConfigBranch,
             git: values.helmConfigGit,
             path: values.helmConfigPath

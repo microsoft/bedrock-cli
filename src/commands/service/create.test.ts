@@ -45,6 +45,7 @@ const mockValues: ICommandValues = {
   gitPush: false,
   helmChartChart: "",
   helmChartRepository: "",
+  helmConfigAccessTokenVariable: "ACCESS_TOKEN_SECRET",
   helmConfigBranch: "",
   helmConfigGit: "",
   helmConfigPath: "",
@@ -268,6 +269,7 @@ describe("Adding a service to a repo directory", () => {
     values.packagesDir = "";
     values.k8sPort = 1337;
     values.displayName = "my-service-name";
+    values.helmConfigAccessTokenVariable = "SOME_ENV_VAR";
     const serviceName = ".";
 
     logger.info(
@@ -291,6 +293,9 @@ describe("Adding a service to a repo directory", () => {
     expect(newService).toBeDefined();
     expect(newService.k8sBackendPort).toBe(values.k8sPort);
     expect(newService.displayName).toBe(values.displayName);
+    expect((newService.helm.chart as any).accessTokenVariable).toBe(
+      values.helmConfigAccessTokenVariable
+    );
   });
 
   test("New directory is created under root directory with required service files.", async () => {

@@ -27,6 +27,7 @@ export interface IHelmConfig {
     | ({
         git: string; // git url to clone (eg; https://github.com/helm/charts.git)
         path: string; // path in the git repo to the directory containing the Chart.yaml (eg; incubator/zookeeper)
+        accessTokenVariable?: string; // environment variable containing a personal access token to authenticate against the git repository
       } & (
         | {
             sha: string; // sha to checkout (eg; 4e61eb234b0ac38956efc1b52a0455a43dba026f)
