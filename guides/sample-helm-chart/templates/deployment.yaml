@@ -3,19 +3,19 @@ kind: Deployment
 metadata:
   name:
 spec:
-  replicas: { { .Values.replicaCount } }
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: { { .Values.serviceName } }
+      app: {{ .Values.serviceName }}
   template:
     metadata:
       labels:
-        app: { { .Values.serviceName } }
+        app: {{ .Values.serviceName }}
     spec:
       containers:
-        - name: { { .Values.serviceName } }
+        - name: {{ .Values.serviceName }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: { { .Values.image.pullPolicy } }
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 80
               protocol: TCP
