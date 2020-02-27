@@ -339,7 +339,7 @@ if [ -d "tests" ]; then
 fi
 export sa_access_key=$(echo "$sa_access_key" | tr -d '"')
 spk init -f ./spk-config-test.yaml
-export output=$(spk deployment get -o json > file.json )
+export output=$(spk deployment get -O json > file.json )
 length=$(cat file.json | jq 'length')
 if (( length > 0 )); then
   echo "$length deployments were returned by spk deployment get"
