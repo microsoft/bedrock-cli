@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:
+spec:
+  replicas: { { .Values.replicaCount } }
+  selector:
+    matchLabels:
+      app: { { .Values.serviceName } }
+  template:
+    metadata:
+      labels:
+        app: { { .Values.serviceName } }
+    spec:
+      containers:
+        - name: { { .Values.serviceName } }
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: { { .Values.image.pullPolicy } }
+          ports:
+            - containerPort: 80
+              protocol: TCP
