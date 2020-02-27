@@ -6,11 +6,14 @@ import {
 import commander from "commander";
 import path from "path";
 import { Config } from "../../config";
+import { repositoryHasFile } from "../../lib/azdoClient";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
   BUILD_SCRIPT_URL,
   SERVICE_PIPELINE_FILENAME
 } from "../../lib/constants";
+import { IAzureDevOpsOpts } from "../../lib/git";
+import { GitAPI } from "../../lib/git/azure";
 import {
   getOriginUrl,
   getRepositoryName,
@@ -72,6 +75,19 @@ export const execute = async (
       );
     }
     await fetchValues(serviceName, opts);
+    const accessOpts: IAzureDevOpsOpts = {
+      orgName: opts.orgName,
+      personalAccessToken: opts.personalAccessToken,
+      project: opts.devopsProject
+    };
+
+    // By default the version descriptor is for the master branch
+    await repositoryHasFile(
+      SERVICE_PIPELINE_FILENAME,
+      opts.yamlFileBranch ? opts.yamlFileBranch : "master",
+      opts.repoName,
+      accessOpts
+    );
     await installBuildUpdatePipeline(serviceName, opts);
     await exitFn(0);
   } catch (err) {

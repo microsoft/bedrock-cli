@@ -5,6 +5,7 @@ import {
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
 import { Config } from "../../config";
+import { repositoryHasFile } from "../../lib/azdoClient";
 import { fileInfo as bedrockFileInfo } from "../../lib/bedrockYaml";
 import {
   build as buildCmd,
@@ -17,6 +18,7 @@ import {
   PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE,
   PROJECT_PIPELINE_FILENAME
 } from "../../lib/constants";
+import { IAzureDevOpsOpts } from "../../lib/git";
 import {
   getOriginUrl,
   getRepositoryName,
@@ -142,6 +144,17 @@ export const execute = async (
     if (values === null) {
       await exitFn(1);
     } else {
+      const accessOpts: IAzureDevOpsOpts = {
+        orgName: values.orgName,
+        personalAccessToken: values.personalAccessToken,
+        project: values.devopsProject
+      };
+      await repositoryHasFile(
+        PROJECT_PIPELINE_FILENAME,
+        values.yamlFileBranch ? opts.yamlFileBranch : "master",
+        values.repoName!,
+        accessOpts
+      );
       await installLifecyclePipeline(values);
       await exitFn(0);
     }

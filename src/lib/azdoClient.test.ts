@@ -7,7 +7,15 @@ import { IBuildApi } from "azure-devops-node-api/BuildApi";
 import { RestClient } from "typed-rest-client";
 import uuid from "uuid/v4";
 import { Config } from "../config";
-import { azdoUrl, getBuildApi, getRestClient, getWebApi } from "./azdoClient";
+import {
+  azdoUrl,
+  getBuildApi,
+  getRestClient,
+  getWebApi,
+  repositoryHasFile
+} from "./azdoClient";
+import { IAzureDevOpsOpts } from "./git";
+import * as azure from "./git/azure";
 
 // Tests
 describe("AzDo Pipeline utility functions", () => {
@@ -114,6 +122,57 @@ describe("getRestClient", () => {
       // ignore
     }
     expect(api).toBeUndefined();
+  });
+});
+
+describe("repositoryHasFile", () => {
+  test("repository contains the given file", async () => {
+    const createPullRequestFunc = jest.spyOn(azure, "GitAPI");
+    createPullRequestFunc.mockReturnValueOnce(
+      Promise.resolve({ getItem: () => ({ commitId: "3839fjfkj" }) } as any)
+    );
+    const accessOpts: IAzureDevOpsOpts = {
+      orgName: "testOrg",
+      personalAccessToken: "mytoken",
+      project: "testProject"
+    };
+    let hasError = false;
+
+    try {
+      await repositoryHasFile(
+        "testFile.txt",
+        "master",
+        "test-repo",
+        accessOpts
+      );
+    } catch (err) {
+      hasError = true;
+    }
+    expect(hasError).toBe(false);
+  });
+  test("repository does not contain the given file", async () => {
+    const createPullRequestFunc = jest.spyOn(azure, "GitAPI");
+    createPullRequestFunc.mockReturnValueOnce(
+      Promise.resolve({ getItem: () => null } as any)
+    );
+    const accessOpts: IAzureDevOpsOpts = {
+      orgName: "testOrg",
+      personalAccessToken: "mytoken",
+      project: "testProject"
+    };
+    let hasError = false;
+
+    try {
+      await repositoryHasFile(
+        "testFile2.txt",
+        "master",
+        "test-repo",
+        accessOpts
+      );
+    } catch (err) {
+      hasError = true;
+    }
+    expect(hasError).toBe(true);
   });
 });
 

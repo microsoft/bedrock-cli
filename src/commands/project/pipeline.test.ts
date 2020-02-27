@@ -1,4 +1,6 @@
+import * as azdo from "../../lib/azdoClient";
 import { create as createBedrockYaml } from "../../lib/bedrockYaml";
+import * as gitutils from "../../lib/gitutils";
 import { createTempDir } from "../../lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 jest.mock("../../lib/pipelines/pipelines");
@@ -37,6 +39,8 @@ const mockValues: ICommandOptions = {
   repoUrl: "repoUrl",
   yamlFileBranch: "master"
 };
+
+jest.spyOn(azdo, "repositoryHasFile").mockReturnValue(Promise.resolve());
 
 const mockMissingValues: ICommandOptions = {
   buildScriptUrl: undefined,

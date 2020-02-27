@@ -1,4 +1,5 @@
 import * as config from "../../config";
+import * as azdo from "../../lib/azdoClient";
 import { BUILD_SCRIPT_URL } from "../../lib/constants";
 import { getRepositoryName } from "../../lib/gitutils";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
@@ -56,6 +57,8 @@ beforeAll(() => {
 afterAll(() => {
   disableVerboseLogging();
 });
+
+jest.spyOn(azdo, "repositoryHasFile").mockReturnValue(Promise.resolve());
 
 describe("test emptyStringIfUndefined function", () => {
   it("pass in undefined", () => {

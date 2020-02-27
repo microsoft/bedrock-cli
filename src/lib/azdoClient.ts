@@ -5,6 +5,7 @@ import { RestClient } from "typed-rest-client";
 import { Config } from "../config";
 import { logger } from "../logger";
 import { IAzureDevOpsOpts } from "./git";
+import { GitAPI } from "./git/azure";
 
 // Module state Variables
 let connection: WebApi | undefined;
@@ -96,4 +97,40 @@ export const getBuildApi = async (
   const webApi = await getWebApi(opts);
   buildApi = await webApi.getBuildApi();
   return buildApi;
+};
+
+/**
+ * Checks if the repository has a given file.
+ * @param fileName The name of the file
+ * @param branch The branch name
+ * @param repoName The name of the repository
+ * @accessOpts The Azure DevOps access options to the repository
+ */
+export const repositoryHasFile = async (
+  fileName: string,
+  branch: string,
+  repoName: string,
+  accessOpts: IAzureDevOpsOpts
+): Promise<void> => {
+  const gitApi = await GitAPI(accessOpts);
+  const versionDescriptor = { version: branch }; // change to branch
+  const gitItem = await gitApi.getItem(
+    repoName,
+    fileName, // Add path to service
+    accessOpts.project,
+    "",
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    versionDescriptor
+  );
+
+  if (gitItem === null) {
+    throw Error(
+      "Error installing build pipeline. Repository does not have a " +
+        fileName +
+        " file."
+    );
+  }
 };

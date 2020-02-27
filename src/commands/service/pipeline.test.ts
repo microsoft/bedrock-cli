@@ -1,3 +1,4 @@
+import * as azdo from "../../lib/azdoClient";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 
 jest.mock("../../lib/pipelines/pipelines");
@@ -44,6 +45,8 @@ beforeEach(() => {
 const getMockedValues = () => {
   return deepClone(MOCKED_VALUES);
 };
+
+jest.spyOn(azdo, "repositoryHasFile").mockReturnValue(Promise.resolve());
 
 describe("test fetchValues function", () => {
   it("with all values set", async () => {
