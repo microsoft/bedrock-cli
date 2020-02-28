@@ -99,7 +99,8 @@
         "description": "Removes previously launched instances of the dashboard",
         "defaultValue": false
       }
-    ]
+    ],
+    "markdown": "## Description\n\nThis command launches the Service Introspection Dashboard for your current\nconfiguration. It requires `docker` to be installed on your machine in order to\nwork.\n"
   },
   "deployment get": {
     "command": "get",
@@ -151,7 +152,8 @@
         "description": "Watch the deployments for a live view",
         "defaultValue": false
       }
-    ]
+    ],
+    "markdown": "## Description\n\nThis commands retrieves the list of deployments by service name, release\nenvironment, build ID, commit ID, or container image tag.\n"
   },
   "deployment onboard": {
     "command": "onboard",
@@ -201,7 +203,8 @@
         "description": "The Azure subscription id",
         "required": true
       }
-    ]
+    ],
+    "markdown": "## Description\n\nPrepare storage for the service introspection tool. This will create a storage\naccount if it does not already exist in your subscription in the given\n`resource-group`. The storage table will also be created in a newly created or\nin an existing storage account if it does not exist already. When the Azure Key\nVault argument is specified, a secret with Azure storage access key will be\ncreated. Otherwise, the storage access key will need to be specified in\nenvironment variables manually.\n\nSee\n[Prerequisites](https://github.com/CatalystCode/spk/blob/master/guides/service-introspection.md#prerequisites)\n"
   },
   "deployment validate": {
     "command": "validate",
@@ -364,7 +367,7 @@
         "required": true
       },
       {
-        "arg": "-d, --hld-repo-url <hld-repo-url>",
+        "arg": "-U, --hld-repo-url <hld-repo-url>",
         "description": "The high level definition (HLD) git repo url; falls back to azure_devops.org in spk config.",
         "required": true
       },
@@ -389,7 +392,7 @@
         "required": true
       },
       {
-        "arg": "--project <project>",
+        "arg": "-d, --devops-project <project>",
         "description": "Azure DevOps project name; falls back to azure_devops.project in spk config.",
         "required": true
       },
@@ -644,7 +647,7 @@
         "description": "Azure DevOps organization name; falls back to azure_devops.org in spk config"
       },
       {
-        "arg": "-p, --project <project>",
+        "arg": "-d, --devops-project <project>",
         "description": "Azure DevOps project name; falls back to azure_devops.project in spk config"
       },
       {

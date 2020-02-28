@@ -54,6 +54,21 @@
     <div class="content-left">
     <div class="title">SPK Commands</div>
     <div>
+      
+      <div class="moniker-picker2" data-bi-name="moniker-picker" style="width:90%;margin-left:4px">
+        <div class="dropdown has-margin-bottom-small">
+          <button id="btnSelectRelease" class="dropdown-trigger has-flex-justify-content-start is-full-width button is-small has-border has-inner-focus" aria-expanded="false" aria-controls="ax-3">
+            <span class="visually-hidden"><!---->Select Version<!----></span>
+            <span id="selectedRelease" class="has-text-overflow-ellipsis"></span>
+            <span class="dropdown-button-chevron" aria-hidden="true">
+              <span class="icon docon docon-chevron-down-light expanded-indicator"></span>
+            </span>
+          </button>
+          <ul id="ulReleases" class="dropdown-menu is-full-width is-vertically-scrollable" id="ax-3" aria-label="Azure CLI" style="left: 0px; max-height: 140px;">
+          </ul> 
+        </div>
+      </div>
+      
       <div class="control has-icons-left">
         <input id="commandfilter" role="combobox" maxlength="100" aria-autocomplete="list" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" id="ax-0" class="autocomplete-input input control has-icons-left is-small is-full-width" type="text" aria-expanded="false" aria-owns="ax-1-listbox" aria-activedescendant="" placeholder="Filter by command">
   

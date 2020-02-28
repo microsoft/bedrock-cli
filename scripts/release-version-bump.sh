@@ -27,4 +27,10 @@ yarn config set version-git-message "release: ${RELEASE_TYPE} bump to v%s"
 
 # Bump version following the specified release type format
 yarn version "--${RELEASE_TYPE}"
+
+# copy a version of the command docs
+VERSION=$(cat package.json | grep '"version"' | sed -En 's/  "version": "(.*)",/\1/p')
+echo "${VERSION}" >> docs/commands/releases.txt
+cp docs/commands/data.json "docs/commands/data${VERSION}.json"
+
 git push ${REMOTE} ${RELEASE_BRANCH}

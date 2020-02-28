@@ -111,6 +111,7 @@ a:visited {
 }
 #commandfilter {
   width: 90% !important;
+  margin-left: 4px;
   margin-bottom: 8px;
 }
 .input-icon {
@@ -118,4 +119,8 @@ a:visited {
 }
 .small-font {
   font-size: 0.875rem;
+}
+#releases {
+  margin-left: 4px !important;
+  width: 90% !important;
 }
