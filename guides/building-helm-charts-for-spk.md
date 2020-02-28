@@ -157,7 +157,7 @@ services:
     k8sBackend: 'fabrikam-k8s-svc'
 ```
 
-The `serviceName` is generated from a combination of the `k8sBacend`,
+The `serviceName` is generated from a combination of the `k8sBackend`,
 `fabrikam-k8s-svc`, and the ring name, in this case `dev`.
 
 #### Static configuration

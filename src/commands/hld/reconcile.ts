@@ -104,12 +104,7 @@ export interface IReconcileDependencies {
     serviceConfig: IBedrockServiceConfig
   ) => Promise<IExecResult>;
 
-  configureChartForRing: (
-    execCmd: (commandToRun: string) => Promise<IExecResult>,
-    ringPathInHld: string,
-    ringName: string,
-    serviceConfig: IBedrockServiceConfig
-  ) => Promise<IExecResult>;
+  configureChartForRing: typeof configureChartForRing;
 
   createStaticComponent: (
     execCmd: (commandToRun: string) => Promise<IExecResult>,
