@@ -368,8 +368,8 @@ function create_spk_project_and_service () {
     variable_group_exists $1 $2 $var_group_name "delete"
 
     # Create variable group
-    echo "spk project create-variable-group $var_group_name -r $ACR_NAME -d $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --project $2 --personal-access-token $ACCESS_TOKEN_SECRET"
-    $spk project create-variable-group $var_group_name -r $ACR_NAME -d $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --project $2 --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
+    echo "spk project create-variable-group $var_group_name -r $ACR_NAME --hld-repo-url $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --devops-project $2 --personal-access-token $ACCESS_TOKEN_SECRET"
+    $spk project create-variable-group $var_group_name -r $ACR_NAME --hld-repo-url $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --devops-project $2 --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
 
     # Verify the variable group was created. Fail if not
     variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $var_group_name "fail"

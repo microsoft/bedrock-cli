@@ -49,7 +49,7 @@ const servicePrincipalId = uuid();
 const servicePrincipalPassword: string = uuid();
 const tenant = uuid();
 const orgName = uuid();
-const project = uuid();
+const devopsProject = uuid();
 const personalAccessToken = uuid();
 
 describe("test execute function", () => {
@@ -58,10 +58,10 @@ describe("test execute function", () => {
     await execute(
       "",
       {
+        devopsProject,
         hldRepoUrl,
         orgName,
         personalAccessToken,
-        project,
         registryName,
         servicePrincipalId,
         servicePrincipalPassword,
@@ -76,10 +76,10 @@ describe("test execute function", () => {
     await execute(
       variableGroupName,
       {
+        devopsProject,
         hldRepoUrl,
         orgName,
         personalAccessToken,
-        project,
         registryName: undefined,
         servicePrincipalId,
         servicePrincipalPassword,
@@ -96,7 +96,7 @@ describe("create", () => {
     const accessOpts: IAzureDevOpsOpts = {
       orgName,
       personalAccessToken,
-      project
+      project: devopsProject
     };
 
     let invalidDataError: Error | undefined;
@@ -125,7 +125,7 @@ describe("create", () => {
     const accessOpts: IAzureDevOpsOpts = {
       orgName,
       personalAccessToken,
-      project
+      project: devopsProject
     };
 
     try {

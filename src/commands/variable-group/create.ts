@@ -26,10 +26,10 @@ export const commandDecorator = (command: commander.Command): void => {
         );
       }
 
-      const { file, orgName, project, personalAccessToken } = opts;
+      const { file, orgName, devopsProject, personalAccessToken } = opts;
 
       logger.debug(
-        `opts: ${file}, ${orgName}, ${project}, ${personalAccessToken}`
+        `opts: ${file}, ${orgName}, ${devopsProject}, ${personalAccessToken}`
       );
 
       // type check
@@ -39,9 +39,12 @@ export const commandDecorator = (command: commander.Command): void => {
         );
       }
 
-      if (typeof project !== "undefined" && typeof project !== "string") {
+      if (
+        typeof devopsProject !== "undefined" &&
+        typeof devopsProject !== "string"
+      ) {
         throw Error(
-          `--project must be of type 'string', ${typeof project} specified.`
+          `--devops-project must be of type 'string', ${typeof devopsProject} specified.`
         );
       }
 
@@ -57,7 +60,7 @@ export const commandDecorator = (command: commander.Command): void => {
       const accessOpts: IAzureDevOpsOpts = {
         orgName,
         personalAccessToken,
-        project
+        project: devopsProject
       };
       logger.debug(`access options: ${JSON.stringify(accessOpts)}`);
 

@@ -12,7 +12,7 @@
       "description": "Azure DevOps organization name; falls back to azure_devops.org in spk config"
     },
     {
-      "arg": "-p, --project <project>",
+      "arg": "-d, --devops-project <project>",
       "description": "Azure DevOps project name; falls back to azure_devops.project in spk config"
     },
     {

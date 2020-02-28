@@ -35,7 +35,7 @@ interface ICommandOptions {
   hldRepoUrl: string | undefined;
   orgName: string | undefined;
   personalAccessToken: string | undefined;
-  project: string | undefined;
+  devopsProject: string | undefined;
 }
 
 export const checkDependencies = (projectPath: string) => {
@@ -77,22 +77,22 @@ export const execute = async (
       hldRepoUrl = azure_devops?.hld_repository,
       orgName = azure_devops?.org,
       personalAccessToken = azure_devops?.access_token,
-      project = azure_devops?.project
+      devopsProject = azure_devops?.project
     } = opts;
 
     const accessOpts: IAzureDevOpsOpts = {
       orgName,
       personalAccessToken,
-      project
+      project: devopsProject
     };
 
     logger.debug(`access options: ${JSON.stringify(accessOpts)}`);
 
     const errors = validateForRequiredValues(decorator, {
+      devopsProject,
       hldRepoUrl,
       orgName,
       personalAccessToken,
-      project,
       registryName,
       servicePrincipalId,
       servicePrincipalPassword,
