@@ -20,14 +20,16 @@ const getAllDecorators = (curDir: string): ICommandBuildElements[] => {
   const arrJson: ICommandElement[] = [];
   jsonFiles.forEach(fileName => {
     const json = require(path.join(curDir, fileName)) as ICommandElement;
-    const mdPath = path.join(
-      curDir,
-      fileName.replace(/decorator\.json$/, "md")
-    );
-    if (fs.existsSync(mdPath)) {
-      json.markdown = fs.readFileSync(mdPath, "utf8");
+    if (!json.disabled) {
+      const mdPath = path.join(
+        curDir,
+        fileName.replace(/decorator\.json$/, "md")
+      );
+      if (fs.existsSync(mdPath)) {
+        json.markdown = fs.readFileSync(mdPath, "utf8");
+      }
+      arrJson.push(json);
     }
-    arrJson.push(json);
   });
   return arrJson;
 };

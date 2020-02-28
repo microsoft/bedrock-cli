@@ -13,12 +13,8 @@ import {
   execute,
   getConfig,
   handleInteractiveMode,
-  ORG_NAME_VIOLATION,
   prompt,
-  validateAccessToken,
-  validateOrgName,
-  validatePersonalAccessToken,
-  validateProjectName
+  validatePersonalAccessToken
 } from "./init";
 import * as init from "./init";
 
@@ -104,72 +100,6 @@ describe("Test execute function", () => {
     );
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[0]]);
-  });
-});
-
-describe("test validateOrgName function", () => {
-  it("empty value and value with space", () => {
-    expect(validateOrgName("")).toBe("Must enter an organization");
-    expect(validateOrgName(" ")).toBe("Must enter an organization");
-  });
-  it("invalid value", () => {
-    expect(validateOrgName("-abc")).toBe(ORG_NAME_VIOLATION);
-    expect(validateOrgName(".abc")).toBe(ORG_NAME_VIOLATION);
-    expect(validateOrgName("abc.")).toBe(ORG_NAME_VIOLATION);
-    expect(validateOrgName("a b")).toBe(ORG_NAME_VIOLATION);
-  });
-  it("valid value", () => {
-    expect(validateOrgName("hello")).toBe(true);
-    expect(validateOrgName("1Microsoft")).toBe(true);
-    expect(validateOrgName("Microsoft#1")).toBe(true);
-  });
-});
-
-describe("test validateProjectName function", () => {
-  it("empty value and value with space", () => {
-    expect(validateProjectName("")).toBe("Must enter a project name");
-    expect(validateProjectName(" ")).toBe("Must enter a project name");
-  });
-  it("space in value", () => {
-    expect(validateProjectName("a b")).toBe(
-      "Project name cannot contains spaces"
-    );
-  });
-  it("value over 64 chars long", () => {
-    expect(validateProjectName("a".repeat(65))).toBe(
-      "Project name cannot be longer than 64 characters"
-    );
-  });
-  it("invalid value", () => {
-    expect(validateProjectName("_abc")).toBe(
-      "Project name cannot begin with an underscore"
-    );
-    expect(validateProjectName(".abc")).toBe(
-      "Project name cannot begin or end with a period"
-    );
-    expect(validateProjectName("abc.")).toBe(
-      "Project name cannot begin or end with a period"
-    );
-    expect(validateProjectName(".abc.")).toBe(
-      "Project name cannot begin or end with a period"
-    );
-    expect(validateProjectName("a*b")).toBe(
-      `Project name can't contain special characters, such as / : \ ~ & % ; @ ' " ? < > | # $ * } { , + = [ ]`
-    );
-  });
-  it("valid value", () => {
-    expect(validateProjectName("BedrockSPK")).toBe(true);
-  });
-});
-
-describe("test validateAccessToken function", () => {
-  it("empty value", () => {
-    expect(validateAccessToken("")).toBe(
-      "Must enter a personal access token with read/write/manage permissions"
-    );
-  });
-  it("validate value", () => {
-    expect(validateAccessToken("mysecretshhhh")).toBe(true);
   });
 });
 

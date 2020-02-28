@@ -15,6 +15,7 @@
 import "isomorphic-fetch";
 import { Command, executeCommand } from "./commands/command";
 import { commandDecorator as initCommandDecorator } from "./commands/init";
+import { commandDecorator as setupCommandDecorator } from "./commands/setup";
 
 (process as any).noDeprecation = true;
 
@@ -45,6 +46,7 @@ const commandModules = [
         c.version(require("../package.json").version);
       },
       initCommandDecorator
+      // setupCommandDecorator
     ],
     cmds
   );

@@ -21,6 +21,7 @@ export interface ICommandBuildElements {
   command: string;
   alias: string;
   description: string;
+  disabled?: boolean;
   options?: ICommandOption[];
 }
 

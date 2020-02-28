@@ -11,7 +11,12 @@ import {
 } from "../config";
 import { build as buildCmd, exit as exitCmd } from "../lib/commandBuilder";
 import { deepClone } from "../lib/util";
-import { hasValue } from "../lib/validator";
+import {
+  hasValue,
+  validateAccessToken,
+  validateOrgName,
+  validateProjectName
+} from "../lib/validator";
 import { logger } from "../logger";
 import { IConfigYaml } from "../types";
 import decorator from "./init.decorator.json";
@@ -27,9 +32,6 @@ interface IAnswer {
   azdo_pat: string;
 }
 
-export const ORG_NAME_VIOLATION =
-  "Organization names must start with a letter or number, followed by letters, numbers or hyphens, and must end with a letter or number.";
-
 /**
  * Handles the case where command is loading a file.
  *
@@ -39,91 +41,6 @@ export const handleFileConfig = (file: string) => {
   loadConfiguration(file);
   saveConfiguration(file);
   logger.info("Successfully initialized the spk tool!");
-};
-
-/**
- * Returns true if organization name is proper.
- *
- * @param value Organization Name
- */
-export const validateOrgName = (value: string): string | boolean => {
-  if (!hasValue(value.trim())) {
-    return "Must enter an organization";
-  }
-  const pass = value.match(
-    /^[0-9a-zA-Z][^\s]*[0-9a-zA-Z]$/ // No Spaces
-  );
-  if (pass) {
-    return true;
-  }
-  return ORG_NAME_VIOLATION;
-};
-
-/**
- * Returns true if project name is proper.
- *
- * @param value Project Name
- */
-export const validateProjectName = (value: string): string | boolean => {
-  if (!hasValue(value)) {
-    return "Must enter a project name";
-  }
-  if (value.indexOf(" ") !== -1) {
-    return "Project name cannot contains spaces";
-  }
-  if (value.length > 64) {
-    return "Project name cannot be longer than 64 characters";
-  }
-  if (value.startsWith("_")) {
-    return "Project name cannot begin with an underscore";
-  }
-  if (value.startsWith(".") || value.endsWith(".")) {
-    return "Project name cannot begin or end with a period";
-  }
-
-  const invalidChars = [
-    "/",
-    ":",
-    "\\",
-    "~",
-    "&",
-    "%",
-    ";",
-    "@",
-    "'",
-    '"',
-    "?",
-    "<",
-    ">",
-    "|",
-    "#",
-    "$",
-    "*",
-    "}",
-    "{",
-    ",",
-    "+",
-    "=",
-    "[",
-    "]"
-  ];
-  if (invalidChars.some(x => value.indexOf(x) !== -1)) {
-    return `Project name can't contain special characters, such as / : \ ~ & % ; @ ' " ? < > | # $ * } { , + = [ ]`;
-  }
-
-  return true;
-};
-
-/**
- * Returns true if access token is not empty string
- *
- * @param value Access token
- */
-export const validateAccessToken = (value: string): string | boolean => {
-  if (!hasValue(value)) {
-    return "Must enter a personal access token with read/write/manage permissions";
-  }
-  return true;
 };
 
 /**
