@@ -2,14 +2,17 @@
 
 ### Prerequsities
 
-This guide assumes that you are familiar with understanding and creating
-[helm charts](https://helm.sh) - which are consumed by
-[fabrikate](https://github.com/microsoft/fabrikate) and `spk`.
+- This guide assumes that you are familiar with understanding and creating
+  [helm charts](https://helm.sh) - which are consumed by
+  [fabrikate](https://github.com/microsoft/fabrikate) and `spk`.
 
-It also assumes that you have set up your `spk` project, and installed all
-necessary pipelines created via `spk project init` (the lifecycle pipeline),
-`spk service create` (build update hld pipeline), and `spk hld init` (manifest
-generation pipeline).
+- It also assumes that you have set up your `spk` project, and installed all
+  necessary pipelines created via `spk project init` (the lifecycle pipeline),
+  `spk service create` (build update hld pipeline), and `spk hld init` (manifest
+  generation pipeline).
+
+- A helm chart with values.yaml containing
+  [mandatory values](#mandatory-helm-chart-configuration).
 
 ### Introduction
 
@@ -194,7 +197,7 @@ services:
 - The backing service `fabrikam-k8s-svc-dev`, (highlighted in green) is
   generated from `k8sBackend` and the ring name (`dev`).
 
-#### Helm Configuration
+#### Mandatory Helm Chart Configuration
 
 Take a look at the [packaged reference helm chart](./sample-helm-chart), it
 contains a `values.yaml`, which is a set of default values for helm charts:
@@ -202,15 +205,25 @@ contains a `values.yaml`, which is a set of default values for helm charts:
 ```yaml
 image:
   tag: stable
+  repository: ""
 
 serviceName: "service"
 ```
 
-This configuration is overriden by the values from the
-[top-level configuration](#top-level-configuration) and the
-[ring-level-configuration](#ring-level-configuration) files, when `Fabrikate` is
-invoked in the manifest generation pipeline, thus allowing incremental builds to
-flow through pipelines to a cluster.
+This set of values is the _required_ set of values for `spk` created pipelines
+to operationalize building, updating, and deploying container images to your
+cluster.
+
+`image.tag`: This configuration is overriden by the values from the
+[top-level configuration](#top-level-configuration)
+
+`serviceName`: This configuration is overriden by the values form the
+[ring-level-configuration](#ring-level-configuration) file
+
+`image.repository`: This configuration is a special configuration, that can
+_only_ configured by a pipeline variable, `ACR_NAME`. `ACR_NAME` must be
+configured to be strictly the name of the Azure Container Registry, _not_ it's
+fully qualified url ie. `fabrikam` instead of `fabrikam.azurecr.io`.
 
 ### Manifest generation pipeline
 
