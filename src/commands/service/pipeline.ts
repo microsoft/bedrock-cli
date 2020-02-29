@@ -13,7 +13,6 @@ import {
   SERVICE_PIPELINE_FILENAME
 } from "../../lib/constants";
 import { IAzureDevOpsOpts } from "../../lib/git";
-import { GitAPI } from "../../lib/git/azure";
 import {
   getOriginUrl,
   getRepositoryName,
@@ -81,14 +80,21 @@ export const execute = async (
       project: opts.devopsProject
     };
 
+    // if a packages dir is supplied, its a mono-repo
+    const pipelinesYamlPath = opts.packagesDir
+      ? // if a packages dir is supplied, concat <packages-dir>/<service-name>
+        path.join(opts.packagesDir, serviceName, SERVICE_PIPELINE_FILENAME)
+      : // if no packages dir, then just concat with the service directory.
+        path.join(serviceName, SERVICE_PIPELINE_FILENAME);
+
     // By default the version descriptor is for the master branch
     await repositoryHasFile(
-      SERVICE_PIPELINE_FILENAME,
+      pipelinesYamlPath,
       opts.yamlFileBranch ? opts.yamlFileBranch : "master",
       opts.repoName,
       accessOpts
     );
-    await installBuildUpdatePipeline(serviceName, opts);
+    await installBuildUpdatePipeline(serviceName, pipelinesYamlPath, opts);
     await exitFn(0);
   } catch (err) {
     logger.error(err);
@@ -112,10 +118,12 @@ export const commandDecorator = (command: commander.Command) => {
  * @param serviceName Name of the service this pipeline belongs to;
  *        this is only used when `packagesDir` is defined as a means
  *        to locate the azure-pipelines.yaml file
+ * @param pipelinesYamlPath Relative path to the build update hld pipelines yaml file in the repository
  * @param values Values from commander
  */
 export const installBuildUpdatePipeline = async (
   serviceName: string,
+  pipelinesYamlPath: string,
   values: ICommandOptions
 ) => {
   let devopsClient: IBuildApi | undefined;
@@ -128,13 +136,6 @@ export const installBuildUpdatePipeline = async (
     );
     logger.info("Fetched DevOps Client");
 
-    // if a packages dir is supplied, its a mono-repo
-    const yamlFilePath = values.packagesDir
-      ? // if a packages dir is supplied, concat <packages-dir>/<service-name>
-        path.join(values.packagesDir, serviceName, SERVICE_PIPELINE_FILENAME)
-      : // if no packages dir, then just concat with the service directory.
-        path.join(serviceName, SERVICE_PIPELINE_FILENAME);
-
     const definition = definitionForAzureRepoPipeline({
       branchFilters: ["master"],
       maximumConcurrentBuilds: 1,
@@ -143,7 +144,7 @@ export const installBuildUpdatePipeline = async (
       repositoryUrl: values.repoUrl,
       variables: requiredPipelineVariables(values.buildScriptUrl),
       yamlFileBranch: values.yamlFileBranch,
-      yamlFilePath
+      yamlFilePath: pipelinesYamlPath
     });
 
     logger.debug(
@@ -153,7 +154,7 @@ export const installBuildUpdatePipeline = async (
     );
 
     logger.info(
-      `Attempting to create new pipeline: ${values.pipelineName} defined in repository:${values.repoUrl}, branch: ${values.yamlFileBranch}, filePath: ${yamlFilePath}`
+      `Attempting to create new pipeline: ${values.pipelineName} defined in repository:${values.repoUrl}, branch: ${values.yamlFileBranch}, filePath: ${pipelinesYamlPath}`
     );
 
     builtDefinition = await createPipelineForDefinition(

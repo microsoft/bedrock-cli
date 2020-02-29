@@ -118,18 +118,28 @@ describe("required pipeline variables", () => {
 describe("create pipeline tests", () => {
   it("should create a pipeline", async () => {
     (createPipelineForDefinition as jest.Mock).mockReturnValueOnce({ id: 10 });
-    await installBuildUpdatePipeline("serviceName", MOCKED_VALUES);
+    await installBuildUpdatePipeline(
+      "serviceName",
+      "/path/to/yaml",
+      MOCKED_VALUES
+    );
   });
+
   it("should fail if the build client cant be instantiated", async () => {
     (getBuildApiClient as jest.Mock).mockReturnValueOnce(Promise.reject());
 
     try {
-      await installBuildUpdatePipeline("serviceName", MOCKED_VALUES);
+      await installBuildUpdatePipeline(
+        "serviceName",
+        "/path/to/yaml",
+        MOCKED_VALUES
+      );
       expect(true).toBe(false);
     } catch (_) {
       // expecting exception to be thrown
     }
   });
+
   it("should fail if the pipeline definition cannot be created", async () => {
     (getBuildApiClient as jest.Mock).mockReturnValueOnce({});
     (createPipelineForDefinition as jest.Mock).mockReturnValueOnce(
@@ -137,19 +147,28 @@ describe("create pipeline tests", () => {
     );
 
     try {
-      await installBuildUpdatePipeline("serviceName", MOCKED_VALUES);
+      await installBuildUpdatePipeline(
+        "serviceName",
+        "/path/to/yaml",
+        MOCKED_VALUES
+      );
       expect(true).toBe(false);
     } catch (_) {
       // expecting exception to be thrown
     }
   });
+
   it("should fail if a build cannot be queued on the pipeline", async () => {
     (getBuildApiClient as jest.Mock).mockReturnValueOnce({});
     (createPipelineForDefinition as jest.Mock).mockReturnValueOnce({ id: 10 });
     (queueBuild as jest.Mock).mockReturnValueOnce(Promise.reject());
 
     try {
-      await installBuildUpdatePipeline("serviceName", MOCKED_VALUES);
+      await installBuildUpdatePipeline(
+        "serviceName",
+        "/path/to/yaml",
+        MOCKED_VALUES
+      );
       expect(true).toBe(false);
     } catch (_) {
       // expecting exception to be thrown
