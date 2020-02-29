@@ -2,6 +2,17 @@
 
 Add a new service into this initialized spk project repository.
 
+## Example
+
+  ```bash
+  spk service create . \ 
+    --display-name $app_name \
+    --helm-config-path $path_to_chart_in_repo \
+    --helm-config-git $helm_repo_url \ # Needs to start with https and not contain user name 
+    --helm-config-branch master \
+    --helm-chart-access-token-variable $ENV_VAR_NAME
+  ```
+ 
 ## Note
 
 - `--helm-chart-*` and `--helm-config-*` settings are exclusive. **You may only
@@ -10,13 +21,11 @@ Add a new service into this initialized spk project repository.
     repository, you can specify an environment variable in your
     HLD-to-Materialized pipeline containing your a PAT to authenticate with via
     the `--helm-chart-access-token-variable` option.
-    - For more information, checkout the
-      [git authentication guide](../../../guides/auth-private-helm-repos.md)
 - `--middlewares`, `--k8s-backend-port`, `--path-prefix`,
   `--path-prefix-major-version`, and `--k8s-backend` are all used to configure
   the generated Traefik2 IngressRoutes. ie.
   ```sh
-  spk service create my-example-documents-service
+  spk service create my-example-documents-service \
     --middlewares middleware \
     --k8s-backend-port 3001 \
     --k8s-backend docs-service \
