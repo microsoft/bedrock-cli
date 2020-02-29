@@ -20,12 +20,12 @@
     },
     {
       "arg": "-u, --repo-url <repo-url>",
-      "description": "Repository URL",
+      "description": "Repository URL in Azure DevOps for application/service source code",
       "required": true
     },
     {
       "arg": "-d, --devops-project <devops-project>",
-      "description": "Azure DevOps Project",
+      "description": "Azure DevOps Project name",
       "required": true
     },
     {
