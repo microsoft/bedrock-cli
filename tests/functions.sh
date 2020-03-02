@@ -157,7 +157,7 @@ function variable_group_variable_create () {
     n=$4
     v=$5
     s=$6
-    
+
     echo "Create variable '$n' in variable group"
     if [ "$s" = "secret" ]; then
         result=$(az pipelines variable-group variable create --id $id --org $org -p $p --name $n --value $v --secret)
@@ -172,7 +172,7 @@ function storage_account_exists () {
     sa_result=$(az storage account list --resource-group $rg)
     sa_exists=$(echo $sa_result | jq -r --arg sa_name "$sa_name" '.[].name | select(. == $sa_name ) != null')
     action=$3
-    
+
     if [ "$sa_exists" = "true" ]; then
         echo "The storage account '$sa_name' exists "
         if [ "$action" == "delete" ]; then
@@ -358,7 +358,7 @@ function create_spk_project_and_service () {
     cd $TEST_WORKSPACE
     mkdir $repo_dir_name
     cd $repo_dir_name
-    git init 
+    git init
 
     $spk project init #>> $TEST_WORKSPACE/log.txt
     file_we_expect=("spk.log" ".gitignore" "bedrock.yaml" "maintainers.yaml" "hld-lifecycle.yaml")
@@ -378,18 +378,18 @@ function create_spk_project_and_service () {
     echo "$spk service create . -n "$repo_dir_name-service" -p "$repo_dir_name/chart" -g $helm_repo_url -b master"
     $spk service create . -n "$repo_dir_name-service" -p "$repo_dir_name/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
     directory_to_check="$TEST_WORKSPACE/$repo_dir_name"
-    file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" "maintainers.yaml" "hld-lifecycle.yaml" "spk.log" "bedrock.yaml") 
+    file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" "maintainers.yaml" "hld-lifecycle.yaml" "spk.log" "bedrock.yaml")
     validate_directory $directory_to_check "${file_we_expect[@]}"
-}   
+}
 
 function create_helm_chart_v2 () {
     mkdir chart
     cd chart
     touch Chart.yaml
-    eval "echo \"$(cat $1//test.Chart.yaml)\"" > Chart.yaml 
-    
+    eval "echo \"$(cat $1//test.Chart.yaml)\"" > Chart.yaml
+
     touch values.yaml
-    eval "echo \"$(cat $1//test.values.yaml)\"" > values.yaml 
+    eval "echo \"$(cat $1//test.values.yaml)\"" > values.yaml
 
     touch .helmignore
 echo "
@@ -428,7 +428,7 @@ echo "
 function create_access_yaml () {
     touch access.yaml
     echo "$1: $2" >> access.yaml
-} 
+}
 
 function create_manifest_repo () {
     mkdir $1
@@ -493,7 +493,7 @@ function push_remote_git_repo () {
     git remote add origin https://service_account:$ACCESS_TOKEN_SECRET@$repo_url
     echo "git push"
     git push -u origin --all
-    
+
     cd ..
 }
 
@@ -520,14 +520,14 @@ function approve_pull_request () {
         echo "PR for '$pr_title' not found"
         exit 1
     fi
-    real_title=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[].title | startswith($pr_title)) | .[].title')
+    real_title=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[].title | startswith($pr_title)) | .[].title' | head -n 1)
     pull_request_id=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[].title | startswith($pr_title)) | .[0].pullRequestId')
     echo "Found pull request starting with phrase '$pr_title'"
     echo "Pull request id $pull_request_id is '$real_title'"
 
     approve_result=$(az repos pr update --id "$pull_request_id" --auto-complete true --output json )
     approve_result="${approve_result//\\n/}" #Escape the JSON result
-    
+
     if [ "$(echo $approve_result | jq '.mergeStatus' | grep 'succeeded')" != "" ]; then
         echo "PR $pull_request_id approved"
     else
