@@ -88,7 +88,7 @@
     "open": "^6.4.0",
     "shelljs": "^0.8.3",
     "simple-git": "^1.126.0",
-    "spektate": "^0.1.19",
+    "spektate": "^1.0.0",
     "ssh-url": "^0.1.5",
     "uuid": "^3.3.3",
     "winston": "^3.2.1"

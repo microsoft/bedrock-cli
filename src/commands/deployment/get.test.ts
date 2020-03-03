@@ -1,7 +1,10 @@
 import path from "path";
-import Deployment from "spektate/lib/Deployment";
-import { AzureDevOpsRepo } from "spektate/lib/repository/AzureDevOpsRepo";
-import { GitHub } from "spektate/lib/repository/GitHub";
+import { duration, IDeployment, status } from "spektate/lib/IDeployment";
+import * as Deployment from "spektate/lib/IDeployment";
+import { IAzureDevOpsRepo } from "spektate/lib/repository/IAzureDevOpsRepo";
+import * as AzureDevOpsRepo from "spektate/lib/repository/IAzureDevOpsRepo";
+import { IGitHub } from "spektate/lib/repository/IGitHub";
+import * as GitHub from "spektate/lib/repository/IGitHub";
 import { ITag } from "spektate/lib/repository/Tag";
 import { loadConfiguration } from "../../config";
 import { deepClone } from "../../lib/util";
@@ -66,30 +69,32 @@ const data = require("./mocks/data.json");
 const fakeDeployments = data;
 // tslint:disable-next-line: no-var-requires
 const fakeClusterSyncs = require("./mocks/cluster-sync.json");
-const mockedDeps: Deployment[] = fakeDeployments.data.map((dep: Deployment) => {
-  return new Deployment(
-    dep.deploymentId,
-    dep.commitId,
-    dep.hldCommitId || "",
-    dep.imageTag,
-    dep.timeStamp,
-    dep.environment,
-    dep.service,
-    dep.manifestCommitId,
-    dep.srcToDockerBuild,
-    dep.dockerToHldRelease,
-    dep.hldToManifestBuild
-  );
-});
+const mockedDeps: IDeployment[] = fakeDeployments.data.map(
+  (dep: IDeployment) => {
+    return {
+      commitId: dep.commitId,
+      deploymentId: dep.deploymentId,
+      dockerToHldRelease: dep.dockerToHldRelease,
+      environment: dep.environment,
+      hldCommitId: dep.hldCommitId || "",
+      hldToManifestBuild: dep.hldToManifestBuild,
+      imageTag: dep.imageTag,
+      manifestCommitId: dep.manifestCommitId,
+      service: dep.service,
+      srcToDockerBuild: dep.srcToDockerBuild,
+      timeStamp: dep.timeStamp
+    };
+  }
+);
 
 const mockedClusterSyncs: ITag[] = fakeClusterSyncs.data.map((sync: ITag) => {
   return sync;
 });
 jest
-  .spyOn(GitHub.prototype, "getManifestSyncState")
+  .spyOn(GitHub, "getManifestSyncState")
   .mockReturnValue(Promise.resolve(mockedClusterSyncs));
 jest
-  .spyOn(AzureDevOpsRepo.prototype, "getManifestSyncState")
+  .spyOn(AzureDevOpsRepo, "getManifestSyncState")
   .mockReturnValue(Promise.resolve(mockedClusterSyncs));
 
 let initObject: IInitObject;
@@ -277,14 +282,14 @@ describe("Watch get deployments", () => {
 
 describe("Introspect deployments", () => {
   test("verify basic fields are defined", () => {
-    mockedDeps.forEach((deployment: Deployment) => {
-      const dep = deployment as Deployment;
+    mockedDeps.forEach((deployment: IDeployment) => {
+      const dep = deployment as IDeployment;
 
       // Make sure the basic fields are defined
       expect(dep.deploymentId).not.toBe("");
       expect(dep.service).not.toBe("");
-      expect(dep.duration()).not.toBe("");
-      expect(dep.status()).not.toBe("");
+      expect(duration(dep)).not.toBe("");
+      expect(status(dep)).not.toBe("");
       expect(dep.environment).not.toBe("");
       expect(dep.timeStamp).not.toBe("");
 
@@ -327,7 +332,7 @@ describe("Print deployments", () => {
     const matchItems = table!.filter(field => field[2] === deployment[2]);
     expect(matchItems).toHaveLength(1); // one matching row
 
-    (matchItems[0] as Deployment[]).forEach((field, i) => {
+    (matchItems[0] as IDeployment[]).forEach((field, i) => {
       expect(field).toEqual(deployment[i]);
     });
     expect(matchItems[0]).toHaveLength(14);

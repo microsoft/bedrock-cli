@@ -1,10 +1,20 @@
 import Table from "cli-table";
 import commander from "commander";
-import Deployment from "spektate/lib/Deployment";
+import {
+  duration,
+  getDeploymentsBasedOnFilters,
+  IDeployment,
+  status as getDeploymentStatus
+} from "spektate/lib/IDeployment";
 import AzureDevOpsPipeline from "spektate/lib/pipeline/AzureDevOpsPipeline";
-import { AzureDevOpsRepo } from "spektate/lib/repository/AzureDevOpsRepo";
-import { GitHub } from "spektate/lib/repository/GitHub";
-import { IRepository } from "spektate/lib/repository/Repository";
+import {
+  getManifestSyncState as getAzureManifestSyncState,
+  IAzureDevOpsRepo
+} from "spektate/lib/repository/IAzureDevOpsRepo";
+import {
+  getManifestSyncState as getGithubManifestSyncState,
+  IGitHub
+} from "spektate/lib/repository/IGitHub";
 import { ITag } from "spektate/lib/repository/Tag";
 import { Config } from "../../config";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
@@ -152,10 +162,10 @@ export const processOutputFormat = (outputFormat: string): OUTPUT_FORMAT => {
 export const getDeployments = (
   initObj: IInitObject,
   values: IValidatedOptions
-): Promise<Deployment[]> => {
+): Promise<IDeployment[]> => {
   const config = initObj.config;
   const syncStatusesPromise = getClusterSyncStatuses(initObj);
-  const deploymentsPromise = Deployment.getDeploymentsBasedOnFilters(
+  const deploymentsPromise = getDeploymentsBasedOnFilters(
     config.introspection!.azure!.account_name!,
     initObj.key,
     config.introspection!.azure!.table_name!,
@@ -172,8 +182,8 @@ export const getDeployments = (
   );
   return new Promise((resolve, reject) => {
     Promise.all([deploymentsPromise, syncStatusesPromise])
-      .then((tuple: [Deployment[] | undefined, ITag[] | undefined]) => {
-        const deployments: Deployment[] | undefined = tuple[0];
+      .then((tuple: [IDeployment[] | undefined, ITag[] | undefined]) => {
+        const deployments: IDeployment[] | undefined = tuple[0];
         const syncStatuses: ITag[] | undefined = tuple[1];
         if (values.outputFormat === OUTPUT_FORMAT.JSON) {
           // tslint:disable-next-line: no-console
@@ -212,14 +222,15 @@ export const getClusterSyncStatuses = (
         const manifestUrlSplit = config.azure_devops?.manifest_repository.split(
           "/"
         );
-        const manifestRepo: IRepository = new AzureDevOpsRepo(
-          manifestUrlSplit[3],
-          manifestUrlSplit[4],
-          manifestUrlSplit[6],
+        const manifestRepo: IAzureDevOpsRepo = {
+          org: manifestUrlSplit[3],
+          project: manifestUrlSplit[4],
+          repo: manifestUrlSplit[6]
+        };
+        getAzureManifestSyncState(
+          manifestRepo,
           config.azure_devops.access_token
-        );
-        manifestRepo
-          .getManifestSyncState()
+        )
           .then((syncCommits: ITag[]) => {
             resolve(syncCommits);
           })
@@ -233,13 +244,15 @@ export const getClusterSyncStatuses = (
         const manifestUrlSplit = config.azure_devops?.manifest_repository.split(
           "/"
         );
-        const manifestRepo: IRepository = new GitHub(
-          manifestUrlSplit[3],
-          manifestUrlSplit[4],
+        const manifestRepo: IGitHub = {
+          reponame: manifestUrlSplit[4],
+          username: manifestUrlSplit[3]
+        };
+
+        getGithubManifestSyncState(
+          manifestRepo,
           config.azure_devops.access_token
-        );
-        manifestRepo
-          .getManifestSyncState()
+        )
           .then((syncCommits: ITag[]) => {
             resolve(syncCommits);
           })
@@ -330,7 +343,7 @@ export const watchGetDeployments = async (
  * @param outputFormat output format: normal | wide | json
  */
 export const printDeployments = (
-  deployments: Deployment[] | undefined,
+  deployments: IDeployment[] | undefined,
   outputFormat: OUTPUT_FORMAT,
   limit?: number,
   syncStatuses?: ITag[] | undefined
@@ -440,8 +453,8 @@ export const printDeployments = (
           : ""
       );
       if (outputFormat === OUTPUT_FORMAT.WIDE) {
-        row.push(deployment.duration() + " mins");
-        row.push(deployment.status());
+        row.push(duration(deployment) + " mins");
+        row.push(getDeploymentStatus(deployment));
         row.push(deployment.manifestCommitId || "-");
         row.push(
           deployment.hldToManifestBuild &&
@@ -481,7 +494,7 @@ export const printDeployments = (
  * @param syncStatuses list of sync statuses for manifest
  */
 export const getClusterSyncStatusForDeployment = (
-  deployment: Deployment,
+  deployment: IDeployment,
   syncStatuses: ITag[]
 ): ITag | undefined => {
   return syncStatuses.find(tag => tag.commit === deployment.manifestCommitId);
