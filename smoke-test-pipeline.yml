@@ -1,11 +1,12 @@
 trigger: none
 
 schedules:
-  - cron: "0 3 * * *"
+  - cron: "0 0,1,17,18,19,20,21,22,23 * * Mon-Fri"
     branches:
       include: [master]
-    displayName: M-F 7:00PM (UTC - 8:00) Pacific daily build
-    always: true
+    displayName: M-F 9:00AM to 5:00pm Hourly (UTC - 8:00) PST Builds
+    # Uncomment below if we want builds to run when the code has NOT changed
+    #always: true 
 
 variables:
   skipComponentGovernanceDetection: "true" 
