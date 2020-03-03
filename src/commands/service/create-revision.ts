@@ -167,10 +167,10 @@ export const makePullRequest = async (
   for (const ring of defaultRings) {
     const title = opts.title || `[SPK] ${opts.sourceBranch} => ${ring}`;
     await createPullRequest(title, opts.sourceBranch!, ring, {
-      description: opts.description,
-      orgName: opts.orgName,
-      originPushUrl: opts.remoteUrl,
-      personalAccessToken: opts.personalAccessToken
+      description: opts.description!,
+      orgName: opts.orgName!,
+      originPushUrl: opts.remoteUrl!,
+      personalAccessToken: opts.personalAccessToken!
     });
   }
 };

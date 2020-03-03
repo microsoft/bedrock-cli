@@ -11,7 +11,13 @@ import { WebApi } from "azure-devops-node-api";
 import uuid from "uuid/v4";
 import { Config } from "../../config";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
-import { createPullRequest, GitAPI } from "./azure";
+import * as gitutils from "../gitutils";
+import {
+  createPullRequest,
+  generatePRUrl,
+  getGitOrigin,
+  GitAPI
+} from "./azure";
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tests
@@ -24,52 +30,52 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
+describe("test getGitOrigin function", () => {
+  it("positive test: originPushUrl provided", async () => {
+    const res = await getGitOrigin("git-url");
+    expect(res).toBe("git-url");
+  });
+  it("positive test: originPushUrl not provided", async () => {
+    jest
+      .spyOn(gitutils, "getOriginUrl")
+      .mockReturnValueOnce(Promise.resolve("origin-url"));
+    const res = await getGitOrigin("");
+    expect(res).toBe("origin-url");
+  });
+  it("negative test: getOriginUrl throws error", async () => {
+    jest
+      .spyOn(gitutils, "getOriginUrl")
+      .mockReturnValueOnce(Promise.reject(new Error("Fake")));
+    await expect(getGitOrigin("")).rejects.toThrow();
+  });
+});
+
 describe("GitAPI", () => {
   test("should fail when PAT not set", async () => {
-    (Config as jest.Mock).mockReturnValue({
+    (Config as jest.Mock).mockReturnValueOnce({
       azure_devops: {}
     });
-
-    let invalidPatError: Error | undefined;
-    try {
-      await GitAPI();
-    } catch (err) {
-      invalidPatError = err;
-    }
-    expect(invalidPatError).toBeDefined();
+    await expect(GitAPI()).rejects.toThrow();
   });
 
   test("should fail when DevOps org is invalid", async () => {
-    (Config as jest.Mock).mockReturnValue({
+    (Config as jest.Mock).mockReturnValueOnce({
       azure_devops: {
         access_token: uuid()
       }
     });
-
-    let invalidOrgError: Error | undefined;
-    try {
-      await GitAPI();
-    } catch (err) {
-      invalidOrgError = err;
-    }
-    expect(invalidOrgError).toBeDefined();
+    await expect(GitAPI()).rejects.toThrow();
   });
 
   test("should pass if org url and PAT set", async () => {
-    (Config as jest.Mock).mockReturnValue({
+    (Config as jest.Mock).mockReturnValueOnce({
       azure_devops: {
         access_token: uuid(),
         org: uuid()
       }
     });
 
-    let error: Error | undefined;
-    try {
-      await GitAPI();
-    } catch (err) {
-      error = err;
-    }
-    expect(error).toBeUndefined();
+    await GitAPI();
   });
 });
 
@@ -159,5 +165,48 @@ describe("createPullRequest", () => {
     } catch (e) {
       expect(true).toBe(false);
     }
+  });
+  it("negative test", async () => {
+    gitApi.createPullRequest = async () => {
+      throw new Error("fake");
+    };
+
+    await expect(
+      createPullRequest("random title", "sourceRef", "targetRef", {
+        description: uuid(),
+        originPushUrl: "my-git-url"
+      })
+    ).rejects.toThrow();
+  });
+  it("negative test: TF401179 error", async () => {
+    gitApi.createPullRequest = async () => {
+      throw new Error("TF401179");
+    };
+
+    await expect(
+      createPullRequest("random title", "sourceRef", "targetRef", {
+        description: uuid(),
+        originPushUrl: "my-git-url"
+      })
+    ).rejects.toThrow();
+  });
+});
+
+describe("test generatePRUrl function", async () => {
+  test("positive test", async () => {
+    const res = await generatePRUrl({
+      pullRequestId: 1,
+      repository: {
+        id: "test"
+      }
+    });
+    expect(res).toBe("http://foobar.com/pullrequest/1");
+  });
+  test("negative test", async () => {
+    await expect(
+      generatePRUrl({
+        repository: {}
+      })
+    ).rejects.toThrow();
   });
 });

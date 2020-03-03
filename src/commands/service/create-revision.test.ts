@@ -26,7 +26,7 @@ describe("test makePullRequest function", () => {
     const createPullRequestFunc = jest.spyOn(azure, "createPullRequest");
 
     // two times because there are two branches: master and stable
-    createPullRequestFunc.mockReturnValue(Promise.resolve());
+    createPullRequestFunc.mockReturnValue(Promise.resolve({}));
 
     await makePullRequest(["master", "stable"], {
       description: "description",
