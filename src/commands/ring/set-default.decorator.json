@@ -1,0 +1,6 @@
+{
+  "command": "set-default <ring-name>",
+  "alias": "s",
+  "description": "Set a ring as the default for the current working directory project repository. This will affect all services within the project repository.",
+  "disabled": true
+}
