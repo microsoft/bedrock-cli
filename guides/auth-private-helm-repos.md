@@ -9,7 +9,7 @@ Helm chart repository, we can piggy back off the ability for
 
 ## Utilizing The Default PAT (ACCESS_TOKEN_SECRET)
 
-By default, all services created via `spk service create` with the the
+By default, all services created via `spk service create` with the
 `--helm-config-*` family of options will be setup to consume the environment
 variable `ACCESS_TOKEN_SECRET` -- The PAT used to clone the application
 repository in the HLD-to-Materialized pipeline. So if the PAT used to setup your
@@ -45,7 +45,7 @@ spk service create my-service \
 
 **Note**: it is important that the git URI you pass is an `https` URI and does
 NOT contain a username in it. By default, the clone URIs that the Azure DevOps
-creates presents in the UI contain your username in them (eg.
+creates presents in the UI contain your username in them (e.g.
 `https://<my-username>@dev.azure.com/my-org/my-project/_git/my-repo`). Fabrikate
 will not inject the PAT if the username is there as the value contained in place
 of the username can be a PAT itself.
@@ -76,7 +76,7 @@ variableGroups:
 
 ### Updating/Changing The Environment Variable
 
-If you want to change the the environment variable used after creating your
-service, simply change the value of `accessTokenVariable` in your `bedrock.yaml`
-to the target environment variable (and ensure that the environment variable
-exists in your HLD-to-Materialized pipeline).
+If you want to change the environment variable used after creating your service,
+simply change the value of `accessTokenVariable` in your `bedrock.yaml` to the
+target environment variable (and ensure that the environment variable exists in
+your HLD-to-Materialized pipeline).
