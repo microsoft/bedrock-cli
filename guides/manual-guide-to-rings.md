@@ -1,6 +1,6 @@
-# A manual guide to utilizing rings
+# A Manual Guide to Managing Rings
 
-### Introduction
+## Introduction
 
 This guide presumes that you have set up your `spk` project, and installed all
 necessary pipelines created via `spk project init` (the lifecycle pipeline),
@@ -15,7 +15,7 @@ request is routed to the `dev` revision of a service. Similarly, if a request is
 decorated with the `Ring: prod` header, the request is routed to the `prod`
 revision of a service.
 
-### Service Revisions and Git
+## Service Revisions and Git
 
 Service revisions are built and deployed by committing to bedrock.yaml tracked
 git branches in the form of a `ring`. A `ring` maps one to one with a service
@@ -59,7 +59,7 @@ the `fabrikam` application - one each for `dev`, `qa`, and `prod`. A user is
 then able to invoke each revision by making HTTP requests to a single endpoint,
 decorated with the proper header for each Ring.
 
-### How deploying service revisions with rings will work
+## How deploying service revisions with rings will work
 
 Refer to the `bedrock.yaml` above, with the following rings, and thus git
 branches:
@@ -70,12 +70,8 @@ branches:
 - qa
 ```
 
-A user wants to add a ring `test-new-homepage`, they first ensure that the git
-branch exists:
-
-- `git checkout dev -b test-new-homepage`
-
-and then invoke the relevant `spk` command to add a `ring`:
+A user wants to add a ring `test-new-homepage`, they first create the `ring`, by
+invoking the relevant `spk` command:
 
 - `spk ring create test-new-homepage`
 
@@ -129,6 +125,10 @@ include trigger_
 A user is then expected to commit and push the `bedrock.yaml`, and the updated
 pipelines yaml files.
 
+The user can then create the `test-new-homepage` branch, and check it out:
+
+- `git checkout dev -b test-new-homepage`
+
 When a user commits to the `test-new-homepage` branch in the application
 repository, the `build-update-hld` pipeline will be able to build the container
 image with the changes to the source code from the `test-new-homepage` branch.
@@ -136,7 +136,7 @@ It will continue to push the image to Azure Container Registry, and make a pull
 request against the High Level Definition repository with the newly built
 container image tag.
 
-### Status Quo and current work
+## Status Quo and current work
 
 At present, `spk` is at version `0.5.4`, which _does_ not implement `ring`
 management commands - ie adding or removing a `ring` using a _more_ user
@@ -148,12 +148,12 @@ friendly cli, however this work is being tracked in the following github issues:
 - [Setting a default Ring in SPK](https://github.com/microsoft/bedrock/issues/972)
 - [Removing a service and a ring from a Cluster](https://github.com/microsoft/bedrock/issues/858)
 
-### Bridging the gap
+## Bridging the gap
 
 While `ring` management features are not yet available in `spk`, we can bridge
 the gap to using `rings` with a few manual steps for configuration
 
-#### Adding a Ring
+### Adding a Ring
 
 See [this issue](https://github.com/microsoft/bedrock/issues/969) for details on
 how this feature will be implemented in `spk`.
@@ -205,7 +205,7 @@ variables:
 6. Change to the new `ring` branch: `test-new-feature`, and begin to commit, and
    push code as you normally would.
 
-#### Deleting a Ring
+### Deleting a Ring
 
 See: [this issue](https://github.com/microsoft/bedrock/issues/971) for details
 on how this feature will be implemented in `spk`.
