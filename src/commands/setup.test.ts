@@ -3,22 +3,29 @@ import { readYaml } from "../config";
 import * as config from "../config";
 import * as azdoClient from "../lib/azdoClient";
 import { createTempDir } from "../lib/ioUtil";
+import { WORKSPACE } from "../lib/setup/constants";
+import * as fsUtil from "../lib/setup/fsUtil";
+import * as gitService from "../lib/setup/gitService";
 import * as projectService from "../lib/setup/projectService";
 import * as promptInstance from "../lib/setup/prompt";
+import * as scaffold from "../lib/setup/scaffold";
+import * as setupLog from "../lib/setup/setupLog";
 import { IConfigYaml } from "../types";
-import { createSPKConfig, execute } from "./setup";
+import { createSPKConfig, execute, getErrorMessage } from "./setup";
 import * as setup from "./setup";
+
+const mockRequestContext = {
+  accessToken: "pat",
+  orgName: "orgname",
+  projectName: "project",
+  workspace: WORKSPACE
+};
 
 describe("test createSPKConfig function", () => {
   it("positive test", () => {
     const tmpFile = path.join(createTempDir(), "config.yaml");
     jest.spyOn(config, "defaultConfigFile").mockReturnValueOnce(tmpFile);
-    const input = {
-      azdo_org_name: "orgname",
-      azdo_pat: "pat",
-      azdo_project_name: "project"
-    };
-    createSPKConfig(input);
+    createSPKConfig(mockRequestContext);
     const data = readYaml<IConfigYaml>(tmpFile);
     expect(data.azure_devops).toStrictEqual({
       access_token: "pat",
@@ -29,22 +36,24 @@ describe("test createSPKConfig function", () => {
 });
 
 const testExecuteFunc = async (usePrompt = true, hasProject = true) => {
+  jest
+    .spyOn(gitService, "getGitApi")
+    .mockReturnValueOnce(Promise.resolve({} as any));
+  jest.spyOn(fsUtil, "createDirectory").mockReturnValueOnce();
+  jest.spyOn(scaffold, "hldRepo").mockReturnValueOnce(Promise.resolve());
+  jest.spyOn(scaffold, "manifestRepo").mockReturnValueOnce(Promise.resolve());
+  jest.spyOn(setupLog, "create").mockReturnValueOnce();
+
   const exitFn = jest.fn();
 
   if (usePrompt) {
-    jest.spyOn(promptInstance, "prompt").mockReturnValueOnce(
-      Promise.resolve({
-        azdo_org_name: "orgname",
-        azdo_pat: "pat",
-        azdo_project_name: "project"
-      })
-    );
+    jest
+      .spyOn(promptInstance, "prompt")
+      .mockReturnValueOnce(Promise.resolve(mockRequestContext));
   } else {
-    jest.spyOn(promptInstance, "getAnswerFromFile").mockReturnValueOnce({
-      azdo_org_name: "orgname",
-      azdo_pat: "pat",
-      azdo_project_name: "project"
-    });
+    jest
+      .spyOn(promptInstance, "getAnswerFromFile")
+      .mockReturnValueOnce(mockRequestContext);
   }
   jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
   jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce(
@@ -109,13 +118,9 @@ describe("test execute function", () => {
   it("negative test: 401 status code", async () => {
     const exitFn = jest.fn();
 
-    jest.spyOn(promptInstance, "prompt").mockReturnValueOnce(
-      Promise.resolve({
-        azdo_org_name: "orgname",
-        azdo_pat: "pat",
-        azdo_project_name: "project"
-      })
-    );
+    jest
+      .spyOn(promptInstance, "prompt")
+      .mockReturnValueOnce(Promise.resolve(mockRequestContext));
     jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
     jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce(
       Promise.resolve({
@@ -127,6 +132,8 @@ describe("test execute function", () => {
         }
       } as any)
     );
+    jest.spyOn(setupLog, "create").mockReturnValueOnce();
+
     await execute(
       {
         file: undefined
@@ -140,13 +147,9 @@ describe("test execute function", () => {
   it("negative test: VS402392 error", async () => {
     const exitFn = jest.fn();
 
-    jest.spyOn(promptInstance, "prompt").mockReturnValueOnce(
-      Promise.resolve({
-        azdo_org_name: "orgname",
-        azdo_pat: "pat",
-        azdo_project_name: "project"
-      })
-    );
+    jest
+      .spyOn(promptInstance, "prompt")
+      .mockReturnValueOnce(Promise.resolve(mockRequestContext));
     jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
     jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce(
       Promise.resolve({
@@ -157,6 +160,8 @@ describe("test execute function", () => {
         }
       } as any)
     );
+    jest.spyOn(setupLog, "create").mockReturnValueOnce();
+
     await execute(
       {
         file: undefined
@@ -170,13 +175,37 @@ describe("test execute function", () => {
   it("negative test: other error", async () => {
     const exitFn = jest.fn();
 
-    jest.spyOn(promptInstance, "prompt").mockReturnValueOnce(
+    jest
+      .spyOn(promptInstance, "prompt")
+      .mockReturnValueOnce(Promise.resolve(mockRequestContext));
+    jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
+    jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce(
       Promise.resolve({
-        azdo_org_name: "orgname",
-        azdo_pat: "pat",
-        azdo_project_name: "project"
-      })
+        getCoreApi: () => {
+          throw {
+            message: "other error"
+          };
+        }
+      } as any)
     );
+    jest.spyOn(setupLog, "create").mockReturnValueOnce();
+
+    await execute(
+      {
+        file: undefined
+      },
+      exitFn
+    );
+
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
+  it("negative test: other error", async () => {
+    const exitFn = jest.fn();
+
+    jest
+      .spyOn(promptInstance, "prompt")
+      .mockReturnValueOnce(Promise.resolve(mockRequestContext));
     jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
     jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce(
       Promise.resolve({
@@ -196,5 +225,29 @@ describe("test execute function", () => {
 
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
+  });
+});
+
+describe("test getErrorMessage function", () => {
+  it("without request context", () => {
+    const res = getErrorMessage(undefined, new Error("test"));
+    expect(res).toBe("Error: test");
+  });
+  it("with VS402392 error", () => {
+    const res = getErrorMessage(
+      {
+        accessToken: "pat",
+        orgName: "orgName",
+        projectName: "projectName",
+        workspace: WORKSPACE
+      },
+      {
+        message: "VS402392: ",
+        statusCode: 400
+      }
+    );
+    expect(res).toBe(
+      "Project, projectName might have been deleted less than 28 days ago. Choose a different project name."
+    );
   });
 });

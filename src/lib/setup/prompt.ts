@@ -5,21 +5,14 @@ import {
   validateOrgName,
   validateProjectName
 } from "../validator";
-
-export interface IAnswer {
-  azdo_org_name: string;
-  azdo_pat: string;
-  azdo_project_name: string;
-}
-
-export const DEFAULT_PROJECT_NAME = "BedrockRocks";
+import { DEFAULT_PROJECT_NAME, IRequestContext, WORKSPACE } from "./constants";
 
 /**
  * Prompts for questions
  *
  * @return answers to the questions
  */
-export const prompt = async (): Promise<IAnswer> => {
+export const prompt = async (): Promise<IRequestContext> => {
   const questions = [
     {
       message: "Enter organization name\n",
@@ -44,13 +37,19 @@ export const prompt = async (): Promise<IAnswer> => {
   ];
   const answers = await inquirer.prompt(questions);
   return {
-    azdo_org_name: answers.azdo_org_name as string,
-    azdo_pat: answers.azdo_pat as string,
-    azdo_project_name: answers.azdo_project_name as string
+    accessToken: answers.azdo_pat as string,
+    orgName: answers.azdo_org_name as string,
+    projectName: answers.azdo_project_name as string,
+    workspace: WORKSPACE
   };
 };
 
-export const getAnswerFromFile = (file: string): IAnswer => {
+/**
+ * Returns answers that are provided in a file.
+ *
+ * @param file file name
+ */
+export const getAnswerFromFile = (file: string): IRequestContext => {
   let content = "";
   try {
     content = fs.readFileSync(file, "utf-8");
@@ -86,8 +85,9 @@ export const getAnswerFromFile = (file: string): IAnswer => {
   }
 
   return {
-    azdo_org_name: map.azdo_org_name,
-    azdo_pat: map.azdo_pat,
-    azdo_project_name: map.azdo_project_name
+    accessToken: map.azdo_pat,
+    orgName: map.azdo_org_name,
+    projectName: map.azdo_project_name,
+    workspace: WORKSPACE
   };
 };

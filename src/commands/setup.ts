@@ -4,13 +4,13 @@ import yaml from "js-yaml";
 import { defaultConfigFile } from "../config";
 import { getWebApi } from "../lib/azdoClient";
 import { build as buildCmd, exit as exitCmd } from "../lib/commandBuilder";
+import { IRequestContext, WORKSPACE } from "../lib/setup/constants";
+import { createDirectory } from "../lib/setup/fsUtil";
+import { getGitApi } from "../lib/setup/gitService";
 import { createProjectIfNotExist } from "../lib/setup/projectService";
-import {
-  DEFAULT_PROJECT_NAME,
-  getAnswerFromFile,
-  IAnswer,
-  prompt
-} from "../lib/setup/prompt";
+import { getAnswerFromFile, prompt } from "../lib/setup/prompt";
+import { hldRepo, manifestRepo } from "../lib/setup/scaffold";
+import { create as createSetupLog } from "../lib/setup/setupLog";
 import { logger } from "../logger";
 import decorator from "./setup.decorator.json";
 
@@ -18,20 +18,42 @@ interface ICommandOptions {
   file: string | undefined;
 }
 
+interface IAPIError {
+  message: string;
+  statusCode: number;
+}
+
 /**
  * Creates SPK config file under `user-home/.spk` folder
  *
  * @param answers Answers provided to the commander
  */
-export const createSPKConfig = (answers: IAnswer) => {
+export const createSPKConfig = (rc: IRequestContext) => {
   const data = yaml.safeDump({
     azure_devops: {
-      access_token: answers.azdo_pat,
-      org: answers.azdo_org_name,
-      project: answers.azdo_project_name
+      access_token: rc.accessToken,
+      org: rc.orgName,
+      project: rc.projectName
     }
   });
   fs.writeFileSync(defaultConfigFile(), data);
+};
+
+export const getErrorMessage = (
+  rc: IRequestContext | undefined,
+  err: Error | IAPIError
+) => {
+  if (rc) {
+    if (err.message && err.message.indexOf("VS402392") !== -1) {
+      return `Project, ${
+        rc!.projectName
+      } might have been deleted less than 28 days ago. Choose a different project name.`;
+    }
+    if (!(err instanceof Error) && err.statusCode && err.statusCode === 401) {
+      return `Authentication Failed. Make sure that the organization name and access token are correct; or your access token may have expired.`;
+    }
+  }
+  return err.toString();
 };
 
 /**
@@ -45,27 +67,34 @@ export const execute = async (
   opts: ICommandOptions,
   exitFn: (status: number) => Promise<void>
 ) => {
-  try {
-    const answers = opts.file ? getAnswerFromFile(opts.file) : await prompt();
+  // tslint:disable-next-line: no-unnecessary-initializer
+  let requestContext: IRequestContext | undefined = undefined;
 
-    createSPKConfig(answers!);
+  try {
+    requestContext = opts.file ? getAnswerFromFile(opts.file) : await prompt();
+    createDirectory(WORKSPACE, true);
+
+    createSPKConfig(requestContext!);
     const webAPI = await getWebApi();
     const coreAPI = await webAPI.getCoreApi();
+    const gitAPI = await getGitApi(webAPI);
 
-    await createProjectIfNotExist(coreAPI, answers);
+    await createProjectIfNotExist(coreAPI, requestContext);
+    await hldRepo(gitAPI, requestContext);
+    await manifestRepo(gitAPI, requestContext);
+
+    createSetupLog(requestContext);
     await exitFn(0);
   } catch (err) {
-    if (err.statusCode === 401) {
-      logger.error(
-        `Authentication Failed. Make sure that the organization name and access token are correct; or your access token may have expired.`
-      );
-    } else if (err.message && err.message.indexOf("VS402392") !== -1) {
-      logger.error(
-        `Project, ${DEFAULT_PROJECT_NAME} might be deleted less than 28 days ago. Choose a different project name.`
-      );
-    } else {
-      logger.error(err);
+    const msg = getErrorMessage(requestContext, err);
+
+    // requestContext will not be created if input validation failed
+    if (requestContext) {
+      requestContext.error = msg;
     }
+    createSetupLog(requestContext!);
+
+    logger.error(msg);
     await exitFn(1);
   }
 };

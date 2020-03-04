@@ -4,7 +4,8 @@ import os from "os";
 import path from "path";
 import uuid from "uuid/v4";
 import { createTempDir } from "../../lib/ioUtil";
-import { DEFAULT_PROJECT_NAME, getAnswerFromFile, prompt } from "./prompt";
+import { DEFAULT_PROJECT_NAME, WORKSPACE } from "./constants";
+import { getAnswerFromFile, prompt } from "./prompt";
 
 describe("test prompt function", () => {
   it("positive test", async () => {
@@ -15,7 +16,12 @@ describe("test prompt function", () => {
     };
     jest.spyOn(inquirer, "prompt").mockResolvedValueOnce(answers);
     const ans = await prompt();
-    expect(ans).toStrictEqual(answers);
+    expect(ans).toStrictEqual({
+      accessToken: "pat",
+      orgName: "org",
+      projectName: "project",
+      workspace: WORKSPACE
+    });
   });
 });
 
@@ -29,20 +35,20 @@ describe("test getAnswerFromFile function", () => {
       "azdo_project_name=project"
     ];
     fs.writeFileSync(file, data.join("\n"));
-    const answer = getAnswerFromFile(file);
-    expect(answer.azdo_org_name).toBe("orgname");
-    expect(answer.azdo_pat).toBe("pat");
-    expect(answer.azdo_project_name).toBe("project");
+    const requestContext = getAnswerFromFile(file);
+    expect(requestContext.orgName).toBe("orgname");
+    expect(requestContext.accessToken).toBe("pat");
+    expect(requestContext.projectName).toBe("project");
   });
   it("positive test: without project name", () => {
     const dir = createTempDir();
     const file = path.join(dir, "testfile");
     const data = ["azdo_org_name=orgname", "azdo_pat=pat"];
     fs.writeFileSync(file, data.join("\n"));
-    const answer = getAnswerFromFile(file);
-    expect(answer.azdo_org_name).toBe("orgname");
-    expect(answer.azdo_pat).toBe("pat");
-    expect(answer.azdo_project_name).toBe(DEFAULT_PROJECT_NAME);
+    const requestContext = getAnswerFromFile(file);
+    expect(requestContext.orgName).toBe("orgname");
+    expect(requestContext.accessToken).toBe("pat");
+    expect(requestContext.projectName).toBe(DEFAULT_PROJECT_NAME);
   });
   it("negative test: file does not exist", () => {
     const file = path.join(os.tmpdir(), uuid());

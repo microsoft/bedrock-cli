@@ -58,12 +58,32 @@ describe("test createProject function", () => {
   it("positive test", async () => {
     await createProject(
       {
+        getProject: () => {
+          return {};
+        },
         queueCreateProject: async () => {
           return;
         }
       } as any,
       "test"
     );
+  });
+  it("negative test: creation failed", async () => {
+    await expect(
+      createProject(
+        {
+          getProject: () => {
+            return undefined;
+          },
+          queueCreateProject: async () => {
+            return;
+          }
+        } as any,
+        "test",
+        1,
+        500
+      )
+    ).rejects.toThrow();
   });
   it("negative test: Authorization issue", async () => {
     await expect(
