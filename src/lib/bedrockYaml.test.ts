@@ -9,7 +9,8 @@ import {
   DEFAULT_CONTENT,
   fileInfo,
   isExists,
-  read
+  read,
+  setDefaultRing
 } from "./bedrockYaml";
 
 describe("Creation and Existence test on bedrock.yaml", () => {
@@ -154,5 +155,40 @@ describe("Bedrock file info", () => {
     const file = fileInfo(dir);
     expect(file.exist).toEqual(true);
     expect(file.hasVariableGroups).toEqual(true);
+  });
+});
+
+describe("Set default ring", () => {
+  it("Should set the default ring", () => {
+    const dir = createTempDir();
+    const data = {
+      rings: {
+        master: { isDefault: false },
+        prod: {}
+      },
+      services: {},
+      variableGroups: [uuid()]
+    };
+    create(dir, data);
+    setDefaultRing(data, "master", dir);
+    const result = read(dir);
+    expect(result.rings.master.isDefault).toBe(true);
+    expect(result.rings.prod.isDefault).toBe(undefined);
+  });
+  it("Should change the default ring", () => {
+    const dir = createTempDir();
+    const data = {
+      rings: {
+        master: { isDefault: false },
+        prod: { isDefault: true }
+      },
+      services: {},
+      variableGroups: [uuid()]
+    };
+    create(dir, data);
+    setDefaultRing(data, "master", dir);
+    const result = read(dir);
+    expect(result.rings.master.isDefault).toBe(true);
+    expect(result.rings.prod.isDefault).toBe(undefined);
   });
 });

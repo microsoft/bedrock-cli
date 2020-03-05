@@ -106,6 +106,38 @@ export const addNewService = (
 };
 
 /**
+ * Sets the default ring in bedrock.yaml
+ * @param bedrockFile The bedrock.yaml file
+ * @param ringName The name of the ring
+ */
+export const setDefaultRing = (
+  bedrockFile: IBedrockFile,
+  ringName: string,
+  dir: string
+): void => {
+  const rings = Object.keys(bedrockFile.rings);
+  if (!rings.includes(ringName)) {
+    throw new Error(`The ring '${ringName}' is not defined in ${YAML_NAME}`);
+  }
+
+  for (const [name, value] of Object.entries(bedrockFile.rings)) {
+    if (value === null) {
+      bedrockFile.rings[name] = {};
+    }
+    const ring = bedrockFile.rings[name];
+
+    if (name === ringName) {
+      ring.isDefault = true;
+    } else {
+      if (typeof ring.isDefault !== "undefined") {
+        delete ring.isDefault;
+      }
+    }
+  }
+
+  create(dir, bedrockFile);
+};
+/**
  * Update bedrock.yaml with new ring
  *
  * @param dir Directory where <code>bedrock.yaml</code> file resides.

@@ -1,11 +1,14 @@
 import commander from "commander";
-import { fileInfo as bedrockFileInfo } from "../../lib/bedrockYaml";
+import {
+  fileInfo as bedrockFileInfo,
+  read as loadBedrockFile,
+  setDefaultRing
+} from "../../lib/bedrockYaml";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE } from "../../lib/constants";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
-import { IBedrockFileInfo } from "../../types";
-
+import { IBedrockFile, IBedrockFileInfo } from "../../types";
 import decorator from "./set-default.decorator.json";
 
 /**
@@ -29,9 +32,9 @@ export const execute = async (
 
     checkDependencies(projectPath);
 
-    // Check if ring exists in bedrock.yaml, if not, warn and exit.
-    // Check if ring is already default, if so, warn and exit.
-    // Set ring as default in bedrock.yaml
+    // Get bedrock.yaml
+    const bedrockFile = loadBedrockFile(projectPath);
+    setDefaultRing(bedrockFile, ringName, projectPath);
 
     logger.info(`Successfully set default ring: ${ringName} for this project!`);
     await exitFn(0);

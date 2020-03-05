@@ -39,12 +39,13 @@ describe("test execute function and logic", () => {
       rings: {
         master: {
           isDefault: true
-        }
+        },
+        prod: {}
       },
       services: {},
       variableGroups: ["testvg"]
     });
-    await execute("ring", tmpDir, exitFn);
+    await execute("prod", tmpDir, exitFn);
 
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[0]]);
