@@ -1,6 +1,6 @@
 import { Command } from "../command";
 
-const subcommands = ["add", "delete", "set-default"];
+const subcommands = ["create", "delete", "set-default"];
 
 export const commandDecorator = Command(
   "ring",

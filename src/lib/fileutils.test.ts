@@ -42,7 +42,8 @@ import {
   generateHldLifecyclePipelineYaml,
   generateServiceBuildAndUpdatePipelineYaml,
   generateYamlScript,
-  serviceBuildAndUpdatePipeline
+  serviceBuildAndUpdatePipeline,
+  updateTriggerBranchesForServiceBuildAndUpdatePipeline
 } from "./fileutils";
 
 beforeAll(() => {
@@ -236,6 +237,83 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
     expect(yamlWithNoDot?.trigger?.paths).toStrictEqual({
       include: ["./another-service"]
     });
+  });
+});
+
+describe("updateTriggerBranchesForServiceBuildAndUpdatePipeline", () => {
+  const targetDirectory = "app-repository";
+  const serviceDirectory = "my-service";
+  const writeSpy = jest.spyOn(fs, "writeFileSync");
+
+  beforeEach(() => {
+    mockFs({
+      "app-repository": {
+        "my-service": {}
+      }
+    });
+  });
+
+  afterEach(() => {
+    mockFs.restore();
+  });
+
+  it("should throw an error if build-update-hld.yaml does not exist", () => {
+    const mockFsOptions = {};
+    mockFs(mockFsOptions);
+
+    try {
+      updateTriggerBranchesForServiceBuildAndUpdatePipeline(
+        ["master", "new-ring"],
+        path.join(targetDirectory, serviceDirectory)
+      );
+      expect(true).toBe(false); // Should not reach here
+    } catch (e) {
+      expect(e).not.toBeNull();
+    }
+    expect(writeSpy).not.toBeCalled();
+  });
+
+  it("if a pipeline file already exists, it should update with the passed trigger branches (rings)", () => {
+    const existingPipelineAsString = createTestServiceBuildAndUpdatePipelineYaml(
+      true
+    );
+    const mockFsOptions = {
+      [`${targetDirectory}/${serviceDirectory}/${SERVICE_PIPELINE_FILENAME}`]: Buffer.from(
+        existingPipelineAsString
+      )
+    };
+    mockFs(mockFsOptions);
+
+    const newRings = ["master", "new-ring"];
+
+    try {
+      updateTriggerBranchesForServiceBuildAndUpdatePipeline(
+        newRings,
+        path.join(targetDirectory, serviceDirectory)
+      );
+    } catch (e) {
+      expect(true).toBe(false); // Should not reach here
+    }
+
+    const absTargetPath = path.resolve(targetDirectory);
+    const expectedFilePath = path.join(
+      absTargetPath,
+      serviceDirectory,
+      SERVICE_PIPELINE_FILENAME
+    );
+
+    expect(writeSpy).toBeCalledWith(
+      expectedFilePath,
+      createTestServiceBuildAndUpdatePipelineYaml(
+        true,
+        undefined,
+        undefined,
+        newRings,
+        undefined
+      ),
+      "utf8"
+    );
+    expect(writeSpy).toBeCalled();
   });
 });
 

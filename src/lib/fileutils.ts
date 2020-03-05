@@ -19,6 +19,21 @@ import {
 } from "../types";
 
 /**
+ * Read given pipeline file as json object.
+ *
+ * @param dir path
+ * @param pipelineFileName pipeline definition filename. Should be a value from "../lib/constants"
+ */
+const readPipelineFile = (
+  dir: string,
+  pipelineFileName: string
+): IAzurePipelinesYaml => {
+  const absPath = path.resolve(dir);
+  const file = path.join(absPath, pipelineFileName);
+  return yaml.safeLoad(fs.readFileSync(file, "utf8"));
+};
+
+/**
  * Create an access.yaml file for fabrikate authorization.
  * Should only be used by spk hld reconcile, which is an idempotent operation, but will not overwrite existing access.yaml keys
  * @param accessYamlPath
@@ -111,19 +126,23 @@ export const generateServiceBuildAndUpdatePipelineYaml = (
 ) => {
   const absProjectRoot = path.resolve(projectRoot);
   const absServicePath = path.resolve(servicePath);
-  const pipelineFilename = SERVICE_PIPELINE_FILENAME;
 
-  logger.info(`Generating ${pipelineFilename} in ${absServicePath}`);
+  logger.info(`Generating ${SERVICE_PIPELINE_FILENAME} in ${absServicePath}`);
 
   logger.debug(`variableGroups length: ${variableGroups?.length}`);
 
   // Check if build-update-hld-pipeline.yaml already exists; if it does, skip generation
-  const pipelineYamlFullPath = path.join(absServicePath, pipelineFilename);
-  logger.debug(`Writing ${pipelineFilename} file to ${pipelineYamlFullPath}`);
+  const pipelineYamlFullPath = path.join(
+    absServicePath,
+    SERVICE_PIPELINE_FILENAME
+  );
+  logger.debug(
+    `Writing ${SERVICE_PIPELINE_FILENAME} file to ${pipelineYamlFullPath}`
+  );
 
   if (fs.existsSync(pipelineYamlFullPath)) {
     logger.warn(
-      `Existing ${pipelineFilename} found at ${pipelineYamlFullPath}, skipping generation.`
+      `Existing ${SERVICE_PIPELINE_FILENAME} found at ${pipelineYamlFullPath}, skipping generation.`
     );
     return;
   }
@@ -354,6 +373,48 @@ export const serviceBuildAndUpdatePipeline = (
   );
 
   return pipelineYaml;
+};
+
+/**
+ * Updates the service build and update pipeline with the given rings list
+ *
+ * @param ringBranches Branches to trigger builds off of. Should be all the defined rings for this project.
+ * @param servicePath Full path to service directory
+ */
+export const updateTriggerBranchesForServiceBuildAndUpdatePipeline = (
+  ringBranches: string[],
+  servicePath: string
+) => {
+  const absServicePath = path.resolve(servicePath);
+
+  const pipelineYamlFullPath = path.join(
+    absServicePath,
+    SERVICE_PIPELINE_FILENAME
+  );
+
+  // Check if build-update-hld-pipeline.yaml already exists; if it doesn't, throw error.
+  if (!fs.existsSync(pipelineYamlFullPath)) {
+    throw new Error(
+      `Cannot find ${SERVICE_PIPELINE_FILENAME} for service in path '${pipelineYamlFullPath}'. Will not be able to update ring triggers.`
+    );
+  }
+
+  logger.info(
+    `Updating ${pipelineYamlFullPath} file with trigger rings: ${ringBranches}.`
+  );
+
+  const buildPipelineYaml: IAzurePipelinesYaml = readPipelineFile(
+    servicePath,
+    SERVICE_PIPELINE_FILENAME
+  );
+
+  buildPipelineYaml.trigger!.branches!.include = ringBranches;
+
+  fs.writeFileSync(
+    pipelineYamlFullPath,
+    yaml.safeDump(buildPipelineYaml, { lineWidth: Number.MAX_SAFE_INTEGER }),
+    "utf8"
+  );
 };
 
 /**

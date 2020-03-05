@@ -25,7 +25,7 @@ export const execute = async (
   }
 
   try {
-    logger.info(`project path: ${projectPath}`);
+    logger.info(`Project path: ${projectPath}`);
 
     checkDependencies(projectPath);
 

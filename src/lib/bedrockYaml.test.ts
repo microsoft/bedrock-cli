@@ -3,6 +3,7 @@ import { createTempDir } from "../lib/ioUtil";
 import { createTestBedrockYaml } from "../test/mockFactory";
 import { IBedrockFile, IHelmConfig } from "../types";
 import {
+  addNewRing,
   addNewService,
   create,
   DEFAULT_CONTENT,
@@ -74,7 +75,11 @@ describe("Adding a new service to a Bedrock file", () => {
     );
 
     const expected: IBedrockFile = {
-      rings: {},
+      rings: {
+        master: {
+          isDefault: true
+        }
+      },
       services: {
         ...(defaultBedrockFileObject as IBedrockFile).services,
         ["./" + servicePath]: {
@@ -86,6 +91,34 @@ describe("Adding a new service to a Bedrock file", () => {
           pathPrefix,
           pathPrefixMajorVersion
         }
+      },
+      variableGroups: []
+    };
+
+    expect(read(dir)).toEqual(expected);
+  });
+});
+
+describe("Adding a new ring to an existing bedrock.yaml", () => {
+  it("should update existing bedrock.yaml with a new service and its helm chart config", () => {
+    const defaultBedrockFileObject = createTestBedrockYaml(
+      false
+    ) as IBedrockFile;
+
+    // "" means that bedrock.yaml is written to a random directory
+    const dir = create("", defaultBedrockFileObject);
+
+    const ringName = "new-ring";
+
+    addNewRing(dir, ringName);
+
+    const expected: IBedrockFile = {
+      rings: {
+        ...(defaultBedrockFileObject as IBedrockFile).rings,
+        [ringName]: {}
+      },
+      services: {
+        ...(defaultBedrockFileObject as IBedrockFile).services
       },
       variableGroups: []
     };
