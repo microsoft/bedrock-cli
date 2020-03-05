@@ -1,5 +1,15 @@
 # RELEASE NOTES
 
+## [0.5.5] - 2020-03-04
+
+### Added
+
+- Initial version of `spk setup` command
+
+### Changed
+
+- Various bug fixes and refactoring
+
 ## [0.5.4] - 2020-02-25
 
 ### Changed
