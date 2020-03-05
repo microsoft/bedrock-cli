@@ -1,10 +1,10 @@
-import { create as createBedrockYaml } from "../../lib/bedrockYaml";
-import { read as loadBedrockFile } from "../../lib/bedrockYaml";
+import {
+  create as createBedrockYaml,
+  read as loadBedrockFile
+} from "../../lib/bedrockYaml";
+import * as fileUtils from "../../lib/fileutils";
 import { createTempDir } from "../../lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
-
-import * as fileUtils from "../../lib/fileutils";
-
 import { IBedrockFile } from "../../types";
 import { checkDependencies, execute } from "./create";
 

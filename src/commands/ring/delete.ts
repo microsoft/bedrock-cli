@@ -1,11 +1,11 @@
 import commander from "commander";
-import { fileInfo as bedrockFileInfo } from "../../lib/bedrockYaml";
+import * as bedrock from "../../lib/bedrockYaml";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE } from "../../lib/constants";
+import { updateTriggerBranchesForServiceBuildAndUpdatePipeline } from "../../lib/fileutils";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import { IBedrockFileInfo } from "../../types";
-
 import decorator from "./delete.decorator.json";
 
 /**
@@ -27,12 +27,24 @@ export const execute = async (
   try {
     logger.info(`Project path: ${projectPath}`);
 
+    // Check if bedrock config exists, if not, warn and exit
     checkDependencies(projectPath);
 
-    // Check if ring exists, if not, warn and exit
-    // Check if ring is default, if so, warn "Cannot delete default ring, set a new default via `spk ring set-default` first." and exit
-    // Delete ring from bedrock.yaml
+    // Remove the ring
+    const bedrockConfig = bedrock.read(projectPath);
+    const bedrockWithoutRing = bedrock.removeRing(bedrockConfig, ringName);
+
+    // Write out the updated bedrock.yaml
+    bedrock.create(projectPath, bedrockWithoutRing);
+
     // Delete ring from all linked service build pipelines' branch triggers
+    const ringBranches = Object.keys(bedrockWithoutRing.rings);
+    for (const servicePath of Object.keys(bedrockConfig.services)) {
+      updateTriggerBranchesForServiceBuildAndUpdatePipeline(
+        ringBranches,
+        servicePath
+      );
+    }
 
     logger.info(`Successfully deleted ring: ${ringName} from this project!`);
     await exitFn(0);
@@ -52,12 +64,12 @@ export const commandDecorator = (command: commander.Command): void => {
 };
 
 /**
- * Check for bedrock.yaml
+ * Check the bedrock.yaml and the target ring exists
  * @param projectPath
  */
 export const checkDependencies = (projectPath: string) => {
-  const fileInfo: IBedrockFileInfo = bedrockFileInfo(projectPath);
+  const fileInfo: IBedrockFileInfo = bedrock.fileInfo(projectPath);
   if (fileInfo.exist === false) {
-    throw new Error(PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE);
+    throw Error(PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE);
   }
 };

@@ -1,8 +1,12 @@
-import { create as createBedrockYaml } from "../../lib/bedrockYaml";
+import * as bedrock from "../../lib/bedrockYaml";
+import * as fileUtils from "../../lib/fileutils";
 import { createTempDir } from "../../lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
-
+import { createTestBedrockYaml } from "../../test/mockFactory";
+import { IBedrockFile } from "../../types";
 import { checkDependencies, execute } from "./delete";
+
+jest.mock("../../lib/fileutils");
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -12,15 +16,20 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
-describe("test valid function", () => {
-  it("negative test", async () => {
-    try {
-      const tmpDir = createBedrockYaml();
-      checkDependencies(tmpDir);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e).not.toBeNull();
-    }
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+describe("checkDependencies", () => {
+  it("throws when project not initialized", () => {
+    const tmpDir = createTempDir();
+    expect(() => checkDependencies(tmpDir)).toThrow();
+  });
+
+  it("does not throw when project initialized", () => {
+    const tmpDir = createTempDir();
+    bedrock.create(tmpDir, createTestBedrockYaml(false) as IBedrockFile);
+    expect(() => checkDependencies(tmpDir)).not.toThrow();
   });
 });
 
@@ -31,22 +40,34 @@ describe("test execute function and logic", () => {
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
+
   it("test execute function: working path with bedrock.yaml", async () => {
     const exitFn = jest.fn();
-
     const tmpDir = createTempDir();
-    createBedrockYaml(tmpDir, {
-      rings: {
-        master: {
-          isDefault: true
-        }
-      },
-      services: {},
-      variableGroups: ["testvg"]
-    });
-    await execute("ring", tmpDir, exitFn);
+    const bedrockConfig = createTestBedrockYaml(false) as IBedrockFile;
+    bedrock.create(tmpDir, bedrockConfig);
 
-    expect(exitFn).toBeCalledTimes(1);
+    // delete the first ring and write out the update
+    jest.spyOn(bedrock, "create");
+    const ringToDelete = Object.keys(bedrockConfig.rings).pop() as string;
+    expect(ringToDelete).toBeDefined();
+    await execute(ringToDelete, tmpDir, exitFn);
+    expect(bedrock.create).toBeCalledTimes(1);
+
+    // updateTriggerBranchesForServiceBuildAndUpdatePipeline should be called
+    // once per service
+    const numberOfServices = Object.keys(bedrockConfig.services).length;
+    const updatedRingList = Object.keys(
+      bedrock.removeRing(bedrockConfig, ringToDelete).rings
+    );
+    expect(
+      fileUtils.updateTriggerBranchesForServiceBuildAndUpdatePipeline
+    ).toBeCalledTimes(numberOfServices);
+    for (const serviceName of Object.keys(bedrockConfig.services)) {
+      expect(
+        fileUtils.updateTriggerBranchesForServiceBuildAndUpdatePipeline
+      ).toBeCalledWith(updatedRingList, serviceName);
+    }
     expect(exitFn.mock.calls).toEqual([[0]]);
   });
 });

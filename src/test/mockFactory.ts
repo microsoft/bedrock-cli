@@ -258,9 +258,12 @@ export const createTestBedrockYaml = (
 
   const data: IBedrockFile = {
     rings: {
+      develop: {},
       master: {
         isDefault: true
-      }
+      },
+      qa: {},
+      testing: {}
     },
     services: {
       "./": {

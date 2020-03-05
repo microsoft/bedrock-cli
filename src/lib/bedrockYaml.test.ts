@@ -1,4 +1,4 @@
-import uuid from "uuid/v4";
+import uuid = require("uuid/v4");
 import { createTempDir } from "../lib/ioUtil";
 import { createTestBedrockYaml } from "../test/mockFactory";
 import { IBedrockFile, IHelmConfig } from "../types";
@@ -10,7 +10,8 @@ import {
   fileInfo,
   isExists,
   read,
-  setDefaultRing
+  removeRing,
+  setDefaultRing,
 } from "./bedrockYaml";
 
 describe("Creation and Existence test on bedrock.yaml", () => {
@@ -76,11 +77,7 @@ describe("Adding a new service to a Bedrock file", () => {
     );
 
     const expected: IBedrockFile = {
-      rings: {
-        master: {
-          isDefault: true
-        }
-      },
+      ...defaultBedrockFileObject,
       services: {
         ...(defaultBedrockFileObject as IBedrockFile).services,
         ["./" + servicePath]: {
@@ -190,5 +187,36 @@ describe("Set default ring", () => {
     const result = read(dir);
     expect(result.rings.master.isDefault).toBe(true);
     expect(result.rings.prod.isDefault).toBe(undefined);
+  });
+});
+
+describe("removeRing", () => {
+  it("removes a valid matching ring", () => {
+    const original = createTestBedrockYaml(false) as IBedrockFile;
+    const ringToRemove = Object.keys(original.rings).pop() as string;
+    expect(ringToRemove).toBeDefined();
+    const updated = removeRing(original, ringToRemove);
+    const originalWithoutRing = (() => {
+      const copy: IBedrockFile = JSON.parse(JSON.stringify(original));
+      delete copy.rings[ringToRemove];
+      return copy;
+    })();
+    expect(Object.keys(updated.rings)).not.toContain(ringToRemove);
+    expect(updated).toStrictEqual(originalWithoutRing);
+  });
+
+  it("throws when the ring doesn't exist", () => {
+    const original = createTestBedrockYaml(false) as IBedrockFile;
+    expect(() => removeRing(original, uuid())).toThrow();
+  });
+
+  it("throws when the ring is found but isDefault === true", () => {
+    const original = createTestBedrockYaml(false) as IBedrockFile;
+    const defaultRing = Object.entries(original.rings)
+      .map(([name, config]) => ({ name, config }))
+      .find(({ config }) => config.isDefault);
+    const ringToRemove = defaultRing?.name;
+    expect(ringToRemove).toBeDefined();
+    expect(() => removeRing(original, ringToRemove as string)).toThrow();
   });
 });

@@ -39,16 +39,20 @@ export interface IHelmConfig {
       ));
 }
 
+export interface IRings {
+  [branchName: string]: IRingConfig;
+}
+
+export interface IRingConfig {
+  isDefault?: boolean; // indicates the branch is a default branch to PR against when creating a service revision
+}
+
 /**
  * Bedrock config file
  * Used to capture service meta-information regarding how to deploy
  */
 export interface IBedrockFile {
-  rings: {
-    [branchName: string]: {
-      isDefault?: boolean; // indicates the branch is a default branch to PR against when creating a service revision
-    };
-  };
+  rings: IRings;
   services: {
     [relativeDirectory: string]: IBedrockServiceConfig;
   };

@@ -3,7 +3,7 @@ import yaml from "js-yaml";
 import path from "path";
 import { createTempDir } from "../lib/ioUtil";
 import { logger } from "../logger";
-import { IBedrockFile, IBedrockFileInfo, IHelmConfig } from "../types";
+import { IBedrockFile, IBedrockFileInfo, IHelmConfig, IRings } from "../types";
 
 export const YAML_NAME = "bedrock.yaml";
 
@@ -182,4 +182,51 @@ export const fileInfo = (rootProjectPath?: string): IBedrockFileInfo => {
       hasVariableGroups: false
     };
   }
+};
+
+/**
+ * Deletes the target ring with name `ringToDelete` from the provided `bedrock`
+ * config.
+ *
+ * @throws {Error} if ring is not found in `bedrock`
+ * @throws {Error} if the matching ring is `isDefault === true`
+ *
+ * @param bedrock the bedrock file to remove the ring from
+ * @param ringToDelete the name of the ring to remove
+ */
+export const removeRing = (
+  bedrock: IBedrockFile,
+  ringToDelete: string
+): IBedrockFile => {
+  // Check if ring exists, if not, warn and exit
+  const rings = Object.entries(bedrock.rings).map(([name, config]) => ({
+    config,
+    name
+  }));
+  const matchingRing = rings.find(({ name }) => name === ringToDelete);
+  if (matchingRing === undefined) {
+    throw Error(`Ring ${ringToDelete} not found in bedrock.yaml`);
+  }
+
+  // Check if ring is default, if so, warn "Cannot delete default ring
+  // set a new default via `spk ring set-default` first." and exit
+  if (matchingRing.config.isDefault) {
+    throw Error(
+      `Ring ${matchingRing.name} is currently set to isDefault -- set another default ring with 'spk ring set-default' first before attempting to delete`
+    );
+  }
+
+  // Remove the ring
+  const updatedRings: IRings = rings.reduce((updated, ring) => {
+    if (ring.name === ringToDelete) {
+      return updated;
+    }
+    return { ...updated, [ring.name]: ring.config };
+  }, {});
+  const bedrockWithoutRing: IBedrockFile = {
+    ...bedrock,
+    rings: updatedRings
+  };
+
+  return bedrockWithoutRing;
 };
