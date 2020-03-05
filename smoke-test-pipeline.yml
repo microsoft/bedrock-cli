@@ -6,12 +6,13 @@ schedules:
       include: [master]
     displayName: M-F 9:00AM to 5:00pm Hourly (UTC - 8:00) PST Builds
     # Uncomment below if we want builds to run when the code has NOT changed
-    #always: true 
+    #always: true
 
 variables:
-  skipComponentGovernanceDetection: "true" 
+  skipComponentGovernanceDetection: "true"
 
 stages:
+  # CURRENTLY DISABLED INTROSPECTION TESTS
   - stage: integration_tests
     jobs:
       - job: introspection_onboard_integration_test
@@ -19,6 +20,7 @@ stages:
           - group: "spk-vg"
         pool:
           vmImage: "Ubuntu 16.04"
+        condition: eq(1,2) # disabling the test temporarily
         steps:
           - task: DownloadPipelineArtifact@2
             inputs:
@@ -78,7 +80,7 @@ stages:
 
               # Include dependent scripts
               . ./functions.sh
-              
+
               # Run the test
               bash ./introspection-validations.sh
 
@@ -153,7 +155,7 @@ stages:
               . ./functions.sh
               mkdir helm-artifacts
               cp ./tests/helm-artifacts/* helm-artifacts
-              
+
               # Run the test
               bash ./validations.sh
 
