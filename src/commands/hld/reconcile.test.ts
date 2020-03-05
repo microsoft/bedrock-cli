@@ -741,6 +741,15 @@ describe("normalizedName", () => {
     expect(normalizedName("fabrikam.frontend")).toBe("fabrikam-frontend");
   });
 
+  it("can handle multiple occurences of invalid characters", () => {
+    expect(normalizedName("fabrikam.frontend.foo")).toBe(
+      "fabrikam-frontend-foo"
+    );
+    expect(normalizedName("fabrikam/frontend/foo")).toBe(
+      "fabrikam-frontend-foo"
+    );
+  });
+
   it("can handle combinations of slashes and periods and caps in a name", () => {
     expect(normalizedName("Fabrikam.frontend/CartService")).toBe(
       "fabrikam-frontend-cartservice"

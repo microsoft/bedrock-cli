@@ -77,8 +77,8 @@ export interface IReconcileDependencies {
 export const normalizedName = (name: string): string => {
   return name
     .toLowerCase()
-    .replace("/", "-")
-    .replace(".", "-");
+    .replace(/\//g, "-")
+    .replace(/\./g, "-");
 };
 
 export const execute = async (
