@@ -30,8 +30,7 @@ two flavors:
 
 ### 2. Add Azure Pipeline Build YAML
 
-The SPK repository has an `azure-pipelines.yml`
-[template](../../infra-generation-pipeline.yml) that you may use as reference.
+The SPK repository has a [template](../../azure-pipelines/templates/infra-generation-pipeline.yml) Azure DevOps pipeline that you may use as reference.
 Add the `infra-generation-pipeline.yml` file to the root of the Infra HLD repo.
 
 ### 3. Create Pipeline
