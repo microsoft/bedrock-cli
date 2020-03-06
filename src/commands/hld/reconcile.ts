@@ -277,12 +277,6 @@ export const reconcileHld = async (
         serviceConfig
       );
 
-      // Create config directory, create static manifest directory.
-      await dependencies.createStaticComponent(
-        dependencies.exec,
-        normalizedRingPathInHld
-      );
-
       // Service explicitly requests no ingress-routes to be generated.
       if (serviceConfig.disableRouteScaffold) {
         logger.info(
@@ -290,6 +284,12 @@ export const reconcileHld = async (
         );
         continue;
       }
+
+      // Create config directory, create static manifest directory.
+      await dependencies.createStaticComponent(
+        dependencies.exec,
+        normalizedRingPathInHld
+      );
 
       // Calculate shared path for both IngressRoute and Middleware
       const ingressVersionAndPath = getFullPathPrefix(
