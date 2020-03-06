@@ -18,7 +18,10 @@ export const create = (rc: IRequestContext | undefined, file?: string) => {
       `workspace: ${rc.workspace}`,
       `Project Created: ${getBooleanVal(rc.createdProject)}`,
       `High Level Definition Repo Scaffolded: ${getBooleanVal(rc.scaffoldHLD)}`,
-      `Manifest Repo Scaffolded: ${getBooleanVal(rc.scaffoldManifest)}`
+      `Manifest Repo Scaffolded: ${getBooleanVal(rc.scaffoldManifest)}`,
+      `HLD to Manifest Pipeline Created: ${getBooleanVal(
+        rc.createdHLDtoManifestPipeline
+      )}`
     ];
     if (rc.error) {
       buff.push(`Error: ${rc.error}`);

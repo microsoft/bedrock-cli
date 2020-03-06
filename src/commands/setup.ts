@@ -2,11 +2,12 @@ import commander from "commander";
 import fs from "fs";
 import yaml from "js-yaml";
 import { defaultConfigFile } from "../config";
-import { getWebApi } from "../lib/azdoClient";
+import { getBuildApi, getWebApi } from "../lib/azdoClient";
 import { build as buildCmd, exit as exitCmd } from "../lib/commandBuilder";
 import { IRequestContext, WORKSPACE } from "../lib/setup/constants";
 import { createDirectory } from "../lib/setup/fsUtil";
 import { getGitApi } from "../lib/setup/gitService";
+import { createHLDtoManifestPipeline } from "../lib/setup/pipelineService";
 import { createProjectIfNotExist } from "../lib/setup/projectService";
 import { getAnswerFromFile, prompt } from "../lib/setup/prompt";
 import { hldRepo, manifestRepo } from "../lib/setup/scaffold";
@@ -78,10 +79,12 @@ export const execute = async (
     const webAPI = await getWebApi();
     const coreAPI = await webAPI.getCoreApi();
     const gitAPI = await getGitApi(webAPI);
+    const buildAPI = await getBuildApi();
 
     await createProjectIfNotExist(coreAPI, requestContext);
     await hldRepo(gitAPI, requestContext);
     await manifestRepo(gitAPI, requestContext);
+    await createHLDtoManifestPipeline(buildAPI, requestContext);
 
     createSetupLog(requestContext);
     await exitFn(0);

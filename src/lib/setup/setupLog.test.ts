@@ -15,6 +15,7 @@ const positiveTest = (logExist?: boolean) => {
   create(
     {
       accessToken: "accessToken",
+      createdHLDtoManifestPipeline: true,
       createdProject: true,
       orgName: "orgName",
       projectName: "projectName",
@@ -34,6 +35,7 @@ const positiveTest = (logExist?: boolean) => {
     "Project Created: yes",
     "High Level Definition Repo Scaffolded: yes",
     "Manifest Repo Scaffolded: yes",
+    "HLD to Manifest Pipeline Created: yes",
     "Status: Completed"
   ]);
 };
@@ -58,6 +60,7 @@ describe("test create function", () => {
     create(
       {
         accessToken: "accessToken",
+        createdHLDtoManifestPipeline: true,
         createdProject: true,
         error: "things broke",
         orgName: "orgName",
@@ -78,6 +81,7 @@ describe("test create function", () => {
       "Project Created: yes",
       "High Level Definition Repo Scaffolded: yes",
       "Manifest Repo Scaffolded: yes",
+      "HLD to Manifest Pipeline Created: yes",
       "Error: things broke",
       "Status: Incomplete"
     ]);

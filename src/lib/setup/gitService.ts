@@ -19,6 +19,21 @@ export const getGitApi = async (webAPI: WebApi): Promise<IGitApi> => {
 };
 
 /**
+ * Returns azure git URL.
+ *
+ * @param orgName Organization name
+ * @param projectName Project name
+ * @param repoName Repo name
+ */
+export const getAzureRepoUrl = (
+  orgName: string,
+  projectName: string,
+  repoName: string
+): string => {
+  return `https://dev.azure.com/${orgName}/${projectName}/_git/${repoName}`;
+};
+
+/**
  * Creates git repo
  *
  * @param gitApi Git API Client

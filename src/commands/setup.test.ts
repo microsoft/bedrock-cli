@@ -6,6 +6,7 @@ import { createTempDir } from "../lib/ioUtil";
 import { WORKSPACE } from "../lib/setup/constants";
 import * as fsUtil from "../lib/setup/fsUtil";
 import * as gitService from "../lib/setup/gitService";
+import * as pipelineService from "../lib/setup/pipelineService";
 import * as projectService from "../lib/setup/projectService";
 import * as promptInstance from "../lib/setup/prompt";
 import * as scaffold from "../lib/setup/scaffold";
@@ -42,6 +43,9 @@ const testExecuteFunc = async (usePrompt = true, hasProject = true) => {
   jest.spyOn(fsUtil, "createDirectory").mockReturnValueOnce();
   jest.spyOn(scaffold, "hldRepo").mockReturnValueOnce(Promise.resolve());
   jest.spyOn(scaffold, "manifestRepo").mockReturnValueOnce(Promise.resolve());
+  jest
+    .spyOn(pipelineService, "createHLDtoManifestPipeline")
+    .mockReturnValueOnce(Promise.resolve());
   jest.spyOn(setupLog, "create").mockReturnValueOnce();
 
   const exitFn = jest.fn();
@@ -63,6 +67,9 @@ const testExecuteFunc = async (usePrompt = true, hasProject = true) => {
       }
     } as any)
   );
+  jest
+    .spyOn(azdoClient, "getBuildApi")
+    .mockReturnValueOnce(Promise.resolve({} as any));
   if (hasProject) {
     jest
       .spyOn(projectService, "getProject")
@@ -117,7 +124,6 @@ describe("test execute function", () => {
   });
   it("negative test: 401 status code", async () => {
     const exitFn = jest.fn();
-
     jest
       .spyOn(promptInstance, "prompt")
       .mockReturnValueOnce(Promise.resolve(mockRequestContext));

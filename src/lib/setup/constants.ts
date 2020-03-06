@@ -6,6 +6,7 @@ export interface IRequestContext {
   createdProject?: boolean;
   scaffoldHLD?: boolean;
   scaffoldManifest?: boolean;
+  createdHLDtoManifestPipeline?: boolean;
   error?: string;
 }
 

@@ -6,6 +6,7 @@ import {
   createRepo,
   createRepoInAzureOrg,
   deleteRepo,
+  getAzureRepoUrl,
   getGitApi,
   getRepoInAzureOrg,
   getRepoURL
@@ -18,6 +19,14 @@ const mockRequestContext = {
   projectName: "project",
   workspace: WORKSPACE
 };
+
+describe("test getAzureRepoUrl function", () => {
+  it("sanity test", () => {
+    expect(getAzureRepoUrl("org", "project", "repo")).toBe(
+      "https://dev.azure.com/org/project/_git/repo"
+    );
+  });
+});
 
 describe("test getGitApi function", () => {
   it("mocked webAPI", async () => {
