@@ -69,7 +69,7 @@ AZDO_PROJECT_NAME: The name of the project in your Azure DevOps organization whe
 
 You can use `spk` to create the Azure DevOps Variable Groups by executing
 `spk variable-group create` described in this
-[doc](https://github.com/CatalystCode/spk/blob/master/docs/variable-group.md).
+[doc](../../guides/variable-group.md).
 This will require you to create a variable group manifest similar to the
 following:
 
