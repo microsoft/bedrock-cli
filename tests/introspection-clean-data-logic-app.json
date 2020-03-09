@@ -1,0 +1,80 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "actions": {
+      "Filter_array": {
+        "inputs": {
+          "from": "@body('List_tables')?['value']",
+          "where": "@startsWith(item()?['TableName'], 'spktest')"
+        },
+        "runAfter": {
+          "List_tables": ["Succeeded"]
+        },
+        "type": "Query"
+      },
+      "For_each": {
+        "actions": {
+          "Delete_a_table": {
+            "inputs": {
+              "host": {
+                "connection": {
+                  "name": "@parameters('$connections')['azuretables']['connectionId']"
+                }
+              },
+              "method": "delete",
+              "path": "/Tables/@{encodeURIComponent(items('For_each')?['TableName'])}"
+            },
+            "runAfter": {},
+            "type": "ApiConnection"
+          }
+        },
+        "foreach": "@body('Filter_array')",
+        "runAfter": {
+          "Filter_array": ["Succeeded"]
+        },
+        "type": "Foreach"
+      },
+      "List_tables": {
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azuretables']['connectionId']"
+            }
+          },
+          "method": "get",
+          "path": "/Tables"
+        },
+        "runAfter": {},
+        "type": "ApiConnection"
+      }
+    },
+    "contentVersion": "1.0.0.0",
+    "outputs": {},
+    "parameters": {
+      "$connections": {
+        "defaultValue": {},
+        "type": "Object"
+      }
+    },
+    "triggers": {
+      "Recurrence": {
+        "recurrence": {
+          "frequency": "Day",
+          "interval": 1
+        },
+        "type": "Recurrence"
+      }
+    }
+  },
+  "parameters": {
+    "$connections": {
+      "value": {
+        "azuretables": {
+          "connectionId": "/subscriptions/<subscription id>/resourceGroups/<resource group>/providers/Microsoft.Web/connections/azuretables",
+          "connectionName": "azuretables",
+          "id": "/subscriptions/<subscription id>/providers/Microsoft.Web/locations/centralus/managedApis/azuretables"
+        }
+      }
+    }
+  }
+}
