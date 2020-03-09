@@ -1,4 +1,4 @@
-import uuid from "uuid/v4";
+import uuid = require("uuid/v4");
 import { TraefikIngressRoute } from "./ingress-route";
 
 describe("TraefikIngressRoute", () => {
@@ -158,5 +158,36 @@ describe("TraefikIngressRoute", () => {
     expect(routeWithRing.spec.routes[0].match).toBe(
       "PathPrefix(`/version/and/Path`) && Headers(`Ring`, `prod`)"
     );
+  });
+
+  test("does not throw when meta.name and spec.routes[].services[].name is valid", () => {
+    expect(() =>
+      TraefikIngressRoute("valid-service", "valid-ring", 80, "v1")
+    ).not.toThrow();
+    expect(() =>
+      TraefikIngressRoute("valid-service", "valid-ring", 80, "v1", {
+        k8sBackend: "my.valid.service"
+      })
+    ).not.toThrow();
+  });
+
+  test("throws when meta.name is invalid", () => {
+    expect(() =>
+      TraefikIngressRoute("-invalid-serivce&name", "valid-ring", 80, "v1")
+    ).toThrow();
+    expect(() =>
+      TraefikIngressRoute("valid-service-name", "invalid-ring-!@#", 80, "v1")
+    ).toThrow();
+  });
+
+  test("throws when spec.routes[].services[].name is invalid", () => {
+    expect(() =>
+      TraefikIngressRoute("-invalid-service", "valid-ring", 80, "v1")
+    ).toThrow();
+    expect(() =>
+      TraefikIngressRoute("valid-service", "valid-ring", 80, "v1", {
+        k8sBackend: "-invalid"
+      })
+    ).toThrow();
   });
 });

@@ -755,6 +755,10 @@ describe("normalizedName", () => {
       "fabrikam-frontend-cartservice"
     );
   });
+
+  it("replaces non-(alphanumeric|dash) with dashes", () => {
+    expect(normalizedName("foo-!@#.#$%")).toBe("foo--------");
+  });
 });
 
 describe("execAndLog", () => {

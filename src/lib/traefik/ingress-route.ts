@@ -1,3 +1,5 @@
+import * as dns from "../net/dns";
+
 type TraefikEntryPoints = Array<"web" | "web-secure">; // web === 80; web-secure === 443;
 
 /**
@@ -46,6 +48,9 @@ interface ITraefikIngressRoute {
  *
  * If `ringName` is an empty string, the header match rule is not included.
  *
+ * @throws {Error} when meta.name or any spec.routes[].service[].name are not
+ *                 RFC1123 compliant
+ *
  * @param serviceName name of the service to create the IngressRoute for
  * @param ringName name of the ring to which the service belongs
  * @param opts options to specify the manifest namespace, IngressRoute entryPoints, pathPrefix, backend service, and version
@@ -73,6 +78,10 @@ export const TraefikIngressRoute = (
 
   const backendService =
     k8sBackend && ringName ? `${k8sBackend}-${ringName}` : name;
+
+  // validate fields
+  dns.assertIsValid("metadata.name", name);
+  dns.assertIsValid("spec.routes[].services[].name", backendService);
 
   return {
     apiVersion: "traefik.containo.us/v1alpha1",
