@@ -34,7 +34,7 @@ it or use an existing one.
 **Option 1:**
 
 Use the
-[`spk deployment onboard`](https://github.com/CatalystCode/spk/blob/master/docs/service-introspection.md#onboard)
+[`spk deployment onboard`](https://github.com/CatalystCode/spk/blob/master/guides/service-introspection.md#onboard)
 command.
 
 **Option 2:**
