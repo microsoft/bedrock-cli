@@ -73,10 +73,10 @@ export const generateAccessYaml = (
 
 /**
  * Outputs a bash string for a _safe_ source branch string -- a string where all
- * '/' and '.' in the string have been replaced with a '-'`
+ * '/', '.', and '_' in the string have been replaced with a '-'`
  */
 
-export const SAFE_SOURCE_BRANCH = `$(echo $(Build.SourceBranchName) | tr / - | tr . -)`;
+export const SAFE_SOURCE_BRANCH = `$(echo $(Build.SourceBranchName) | tr / - | tr . - | tr _ - )`;
 
 /**
  * Outputs a bash script to generate a _safe_ azure container registry url where it's all lowercase.
@@ -298,7 +298,9 @@ export const serviceBuildAndUpdatePipeline = (
                   `echo "Image Name: $IMAGE_NAME"`,
                   `export IMAGE_REPO=${IMAGE_REPO}`,
                   `echo "Image Repository: $IMAGE_REPO"`,
-                  `../fab/fab set --subcomponent $(Build.Repository.Name).$FAB_SAFE_SERVICE_NAME.${SAFE_SOURCE_BRANCH}.chart image.tag=$IMAGE_TAG image.repository=$IMAGE_REPO/$BUILD_REPO_NAME`,
+                  `cd $(Build.Repository.Name)/$FAB_SAFE_SERVICE_NAME/${SAFE_SOURCE_BRANCH}`,
+                  `echo "FAB SET"`,
+                  `fab set --subcomponent chart image.tag=$IMAGE_TAG image.repository=$IMAGE_REPO/$BUILD_REPO_NAME`,
                   `echo "GIT STATUS"`,
                   `git status`,
                   `echo "GIT ADD (git add -A)"`,
