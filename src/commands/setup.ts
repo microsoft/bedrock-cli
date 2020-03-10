@@ -30,14 +30,30 @@ interface IAPIError {
  * @param answers Answers provided to the commander
  */
 export const createSPKConfig = (rc: IRequestContext) => {
-  const data = yaml.safeDump({
-    azure_devops: {
-      access_token: rc.accessToken,
-      org: rc.orgName,
-      project: rc.projectName
-    }
-  });
-  fs.writeFileSync(defaultConfigFile(), data);
+  const data = rc.toCreateAppRepo
+    ? {
+        azure_devops: {
+          access_token: rc.accessToken,
+          org: rc.orgName,
+          project: rc.projectName
+        },
+        introspection: {
+          azure: {
+            service_principal_id: rc.servicePrincipalId,
+            service_principal_secret: rc.servicePrincipalPassword,
+            tenant_id: rc.servicePrincipalTenantId
+          }
+        }
+      }
+    : {
+        azure_devops: {
+          access_token: rc.accessToken,
+          org: rc.orgName,
+          project: rc.projectName
+        },
+        introspection: {}
+      };
+  fs.writeFileSync(defaultConfigFile(), yaml.safeDump(data));
 };
 
 export const getErrorMessage = (
@@ -74,8 +90,8 @@ export const execute = async (
   try {
     requestContext = opts.file ? getAnswerFromFile(opts.file) : await prompt();
     createDirectory(WORKSPACE, true);
+    createSPKConfig(requestContext);
 
-    createSPKConfig(requestContext!);
     const webAPI = await getWebApi();
     const coreAPI = await webAPI.getCoreApi();
     const gitAPI = await getGitApi(webAPI);

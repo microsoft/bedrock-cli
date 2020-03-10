@@ -112,6 +112,10 @@ export const validateOrgName = (value: string): string | boolean => {
   return ORG_NAME_VIOLATION;
 };
 
+export const isDashHex = (value: string): boolean => {
+  return !!value.match(/^[a-f0-9\-]+$/);
+};
+
 /**
  * Returns true if project name is proper.
  *
@@ -177,4 +181,48 @@ export const validateAccessToken = (value: string): string | boolean => {
     return "Must enter a personal access token with read/write/manage permissions";
   }
   return true;
+};
+
+export const validateServicePrincipal = (
+  value: string,
+  property: string
+): string | boolean => {
+  if (!hasValue(value)) {
+    return `Must enter a ${property}.`;
+  }
+  if (!isDashHex(value)) {
+    return `The value for ${property} is invalid.`;
+  }
+  return true;
+};
+
+/**
+ * Returns true if service principal id is valid
+ *
+ * @param value service principal id
+ */
+export const validateServicePrincipalId = (value: string): string | boolean => {
+  return validateServicePrincipal(value, "Service Principal Id");
+};
+
+/**
+ * Returns true if service principal password is valid
+ *
+ * @param value service principal password
+ */
+export const validateServicePrincipalPassword = (
+  value: string
+): string | boolean => {
+  return validateServicePrincipal(value, "Service Principal Password");
+};
+
+/**
+ * Returns true if service principal tenant identifier is valid
+ *
+ * @param value service principal tenant identifier.
+ */
+export const validateServicePrincipalTenantId = (
+  value: string
+): string | boolean => {
+  return validateServicePrincipal(value, "Service Principal Tenant Id");
 };

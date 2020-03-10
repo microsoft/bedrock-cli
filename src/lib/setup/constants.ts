@@ -3,10 +3,16 @@ export interface IRequestContext {
   projectName: string;
   accessToken: string;
   workspace: string;
+  toCreateAppRepo?: boolean;
+  toCreateSP?: boolean;
   createdProject?: boolean;
   scaffoldHLD?: boolean;
   scaffoldManifest?: boolean;
   createdHLDtoManifestPipeline?: boolean;
+  createServicePrincipal?: boolean;
+  servicePrincipalId?: string;
+  servicePrincipalPassword?: string;
+  servicePrincipalTenantId?: string;
   error?: string;
 }
 

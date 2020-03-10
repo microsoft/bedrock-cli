@@ -59,7 +59,9 @@ describe("test createProject function", () => {
     await createProject(
       {
         getProject: () => {
-          return {};
+          return {
+            state: "wellFormed"
+          };
         },
         queueCreateProject: async () => {
           return;

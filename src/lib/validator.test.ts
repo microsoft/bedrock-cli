@@ -2,6 +2,7 @@ import path from "path";
 import { Config, loadConfiguration } from "../config";
 import {
   hasValue,
+  isDashHex,
   isIntegerString,
   isPortNumberString,
   ORG_NAME_VIOLATION,
@@ -9,7 +10,10 @@ import {
   validateForNonEmptyValue,
   validateOrgName,
   validatePrereqs,
-  validateProjectName
+  validateProjectName,
+  validateServicePrincipalId,
+  validateServicePrincipalPassword,
+  validateServicePrincipalTenantId
 } from "./validator";
 
 describe("Tests on validator helper functions", () => {
@@ -183,5 +187,38 @@ describe("test validateAccessToken function", () => {
   });
   it("validate value", () => {
     expect(validateAccessToken("mysecretshhhh")).toBe(true);
+  });
+});
+
+describe("test isDashHex function", () => {
+  it("sanity test", () => {
+    expect(isDashHex("")).toBe(false);
+    expect(isDashHex("b510c1ff-358c-4ed4-96c8-eb23f42bb65b")).toBe(true);
+    expect(isDashHex(".eb23f42bb65b")).toBe(false);
+  });
+});
+
+describe("test validateServicePrincipal functions", () => {
+  it("sanity test", () => {
+    [
+      {
+        fn: validateServicePrincipalId,
+        prop: "Service Principal Id"
+      },
+      {
+        fn: validateServicePrincipalPassword,
+        prop: "Service Principal Password"
+      },
+      {
+        fn: validateServicePrincipalTenantId,
+        prop: "Service Principal Tenant Id"
+      }
+    ].forEach(item => {
+      expect(item.fn("")).toBe(`Must enter a ${item.prop}.`);
+      expect(item.fn("b510c1ff-358c-4ed4-96c8-eb23f42bb65b")).toBe(true);
+      expect(item.fn(".eb23f42bb65b")).toBe(
+        `The value for ${item.prop} is invalid.`
+      );
+    });
   });
 });

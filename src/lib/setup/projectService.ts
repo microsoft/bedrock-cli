@@ -1,5 +1,8 @@
 import { ICoreApi } from "azure-devops-node-api/CoreApi";
-import { ProjectVisibility } from "azure-devops-node-api/interfaces/CoreInterfaces";
+import {
+  ProjectVisibility,
+  TeamProject
+} from "azure-devops-node-api/interfaces/CoreInterfaces";
 import { sleep } from "../../lib/util";
 import { logger } from "../../logger";
 import { IRequestContext } from "./constants";
@@ -10,7 +13,10 @@ import { IRequestContext } from "./constants";
  * @param coreAPI Core API service
  * @param name Name of Project
  */
-export const getProject = async (coreAPI: ICoreApi, name: string) => {
+export const getProject = async (
+  coreAPI: ICoreApi,
+  name: string
+): Promise<TeamProject> => {
   try {
     return await coreAPI.getProject(name);
   } catch (err) {
@@ -55,7 +61,8 @@ export const createProject = async (
     // poll to check if project is checked.
     let created = false;
     while (tries > 0 && !created) {
-      created = !!(await getProject(coreAPI, name));
+      const p = await getProject(coreAPI, name);
+      created = p && p.state === "wellFormed";
       if (!created) {
         await sleep(sleepDuration);
         tries--;

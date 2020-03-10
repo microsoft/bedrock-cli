@@ -6,13 +6,15 @@ import uuid from "uuid/v4";
 import { createTempDir } from "../../lib/ioUtil";
 import { DEFAULT_PROJECT_NAME, WORKSPACE } from "./constants";
 import { getAnswerFromFile, prompt } from "./prompt";
+import * as servicePrincipalService from "./servicePrincipalService";
 
 describe("test prompt function", () => {
-  it("positive test", async () => {
+  it("positive test: No App Creation", async () => {
     const answers = {
       azdo_org_name: "org",
       azdo_pat: "pat",
-      azdo_project_name: "project"
+      azdo_project_name: "project",
+      create_app_repo: false
     };
     jest.spyOn(inquirer, "prompt").mockResolvedValueOnce(answers);
     const ans = await prompt();
@@ -20,6 +22,60 @@ describe("test prompt function", () => {
       accessToken: "pat",
       orgName: "org",
       projectName: "project",
+      toCreateAppRepo: false,
+      workspace: WORKSPACE
+    });
+  });
+  it("positive test: create SP", async () => {
+    const answers = {
+      azdo_org_name: "org",
+      azdo_pat: "pat",
+      azdo_project_name: "project",
+      create_app_repo: true
+    };
+    jest.spyOn(inquirer, "prompt").mockResolvedValueOnce(answers);
+    jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
+      create_service_principal: true
+    });
+    jest
+      .spyOn(servicePrincipalService, "createWithAzCLI")
+      .mockReturnValueOnce(Promise.resolve());
+    const ans = await prompt();
+    expect(ans).toStrictEqual({
+      accessToken: "pat",
+      orgName: "org",
+      projectName: "project",
+      toCreateAppRepo: true,
+      toCreateSP: true,
+      workspace: WORKSPACE
+    });
+  });
+  it("positive test: no create SP", async () => {
+    const answers = {
+      azdo_org_name: "org",
+      azdo_pat: "pat",
+      azdo_project_name: "project",
+      create_app_repo: true
+    };
+    jest.spyOn(inquirer, "prompt").mockResolvedValueOnce(answers);
+    jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
+      create_service_principal: false
+    });
+    jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
+      az_sp_id: "b510c1ff-358c-4ed4-96c8-eb23f42bb65b",
+      az_sp_password: "a510c1ff-358c-4ed4-96c8-eb23f42bbc5b",
+      az_sp_tenant: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+    });
+    const ans = await prompt();
+    expect(ans).toStrictEqual({
+      accessToken: "pat",
+      orgName: "org",
+      projectName: "project",
+      servicePrincipalId: "b510c1ff-358c-4ed4-96c8-eb23f42bb65b",
+      servicePrincipalPassword: "a510c1ff-358c-4ed4-96c8-eb23f42bbc5b",
+      servicePrincipalTenantId: "72f988bf-86f1-41af-91ab-2d7cd011db47",
+      toCreateAppRepo: true,
+      toCreateSP: false,
       workspace: WORKSPACE
     });
   });
@@ -86,5 +142,61 @@ describe("test getAnswerFromFile function", () => {
     expect(() => {
       getAnswerFromFile(file);
     }).toThrow();
+  });
+  it("positive test: with app creation, without SP creation", () => {
+    const dir = createTempDir();
+    const file = path.join(dir, "testfile");
+    const data = [
+      "azdo_org_name=orgname",
+      "azdo_pat=pat",
+      "azdo_project_name=project",
+      "az_create_app=true",
+      "az_sp_id=b510c1ff-358c-4ed4-96c8-eb23f42bb65b",
+      "az_sp_password=a510c1ff-358c-4ed4-96c8-eb23f42bbc5b",
+      "az_sp_tenant=72f988bf-86f1-41af-91ab-2d7cd011db47"
+    ];
+    fs.writeFileSync(file, data.join("\n"));
+    const requestContext = getAnswerFromFile(file);
+    expect(requestContext.orgName).toBe("orgname");
+    expect(requestContext.accessToken).toBe("pat");
+    expect(requestContext.projectName).toBe("project");
+    expect(requestContext.toCreateAppRepo).toBeTruthy();
+    expect(requestContext.toCreateSP).toBeFalsy();
+    expect(requestContext.servicePrincipalId).toBe(
+      "b510c1ff-358c-4ed4-96c8-eb23f42bb65b"
+    );
+    expect(requestContext.servicePrincipalPassword).toBe(
+      "a510c1ff-358c-4ed4-96c8-eb23f42bbc5b"
+    );
+    expect(requestContext.servicePrincipalTenantId).toBe(
+      "72f988bf-86f1-41af-91ab-2d7cd011db47"
+    );
+  });
+  it("negative test: with app creation, incorrect SP values", () => {
+    const dir = createTempDir();
+    const file = path.join(dir, "testfile");
+    const data = [
+      "azdo_org_name=orgname",
+      "azdo_pat=pat",
+      "azdo_project_name=project",
+      "az_create_app=true"
+    ];
+    [".", ".##", ".abc"].forEach((v, i) => {
+      if (i === 0) {
+        data.push(`az_sp_id=${v}`);
+      } else if (i === 1) {
+        data.pop();
+        data.push("az_sp_id=b510c1ff-358c-4ed4-96c8-eb23f42bb65b");
+        data.push(`az_sp_password=${v}`);
+      } else {
+        data.pop();
+        data.push("az_sp_password=a510c1ff-358c-4ed4-96c8-eb23f42bbc5b");
+        data.push(`az_sp_tenant=${v}`);
+      }
+      fs.writeFileSync(file, data.join("\n"));
+      expect(() => {
+        getAnswerFromFile(file);
+      }).toThrow();
+    });
   });
 });

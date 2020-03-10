@@ -3,7 +3,7 @@ import { readYaml } from "../config";
 import * as config from "../config";
 import * as azdoClient from "../lib/azdoClient";
 import { createTempDir } from "../lib/ioUtil";
-import { WORKSPACE } from "../lib/setup/constants";
+import { IRequestContext, WORKSPACE } from "../lib/setup/constants";
 import * as fsUtil from "../lib/setup/fsUtil";
 import * as gitService from "../lib/setup/gitService";
 import * as pipelineService from "../lib/setup/pipelineService";
@@ -11,6 +11,7 @@ import * as projectService from "../lib/setup/projectService";
 import * as promptInstance from "../lib/setup/prompt";
 import * as scaffold from "../lib/setup/scaffold";
 import * as setupLog from "../lib/setup/setupLog";
+import { deepClone } from "../lib/util";
 import { IConfigYaml } from "../types";
 import { createSPKConfig, execute, getErrorMessage } from "./setup";
 import * as setup from "./setup";
@@ -32,6 +33,31 @@ describe("test createSPKConfig function", () => {
       access_token: "pat",
       org: "orgname",
       project: "project"
+    });
+  });
+  it("positive test: with service principal", () => {
+    const tmpFile = path.join(createTempDir(), "config.yaml");
+    jest.spyOn(config, "defaultConfigFile").mockReturnValueOnce(tmpFile);
+    const rc: IRequestContext = deepClone(mockRequestContext);
+    rc.toCreateAppRepo = true;
+    rc.toCreateSP = true;
+    rc.servicePrincipalId = "1eba2d04-1506-4278-8f8c-b1eb2fc462a8";
+    rc.servicePrincipalPassword = "e4c19d72-96d6-4172-b195-66b3b1c36db1";
+    rc.servicePrincipalTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";
+    createSPKConfig(rc);
+
+    const data = readYaml<IConfigYaml>(tmpFile);
+    expect(data.azure_devops).toStrictEqual({
+      access_token: "pat",
+      org: "orgname",
+      project: "project"
+    });
+    expect(data.introspection).toStrictEqual({
+      azure: {
+        service_principal_id: rc.servicePrincipalId,
+        service_principal_secret: rc.servicePrincipalPassword,
+        tenant_id: rc.servicePrincipalTenantId
+      }
     });
   });
 });
