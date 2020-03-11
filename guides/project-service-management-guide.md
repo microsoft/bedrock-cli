@@ -20,8 +20,8 @@ This document describes the workflow for deploying a set of services
   configured to sync from the single Materialized Manifest Repositories, and
   multiple Project repositories can be pointed to the single High Level
   Definition Repository.
-- Step 5 can be repeated each time you need to onboard a service to your Bedrock
-  automated infrastructure.
+- Step 5 can be repeated each time you need to onboard a service to your
+  Bedrxock automated infrastructure.
 - Step 6 can be run as many times as required to add a service revision to a
   Bedrock project.
 
@@ -250,6 +250,72 @@ application repositories
 
 **NOTE** `spk service` command documentation can be found
 [here](/guides/service-management.md).
+
+#### Helm Configuration for SPK
+
+`spk service create` allows a user to configure a service a number fo ways with
+a backing helm chart.
+
+Presently, there are are a number of options for `spk service create` documented
+below:
+
+```
+  -c, --helm-chart-chart <helm-chart>                         bedrock helm chart name. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  -r, --helm-chart-repository <helm-repository>               bedrock helm chart repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+
+  -g, --helm-config-git <helm-git>                            bedrock helm chart configuration git repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  -b, --helm-config-branch <helm-branch>                      bedrock custom helm chart configuration branch. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  -p, --helm-config-path <helm-path>                          bedrock custom helm chart configuration path. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+```
+
+As noted by the the documentation text, `helm-chart-*` and `helm-config-*` are
+both mutually exclusive configurations ie: you can _only_ use one set of
+configurations or the other.
+
+This section intends on documenting the various use cases for both sets of
+mutually exclusive configurations.
+
+##### Helm Charts in a well-known Helm Repository
+
+A Helm Repository is a well known set of helm charts conforming to the
+[helm repository guidelines](https://helm.sh/docs/topics/chart_repository/).
+Perhaps the best known helm repository is the community run
+[helm charts repository](https://github.com/helm/charts).
+
+As an `spk` user, if you would like to incorporate helm charts from a well known
+public repository, you may simply run `spk` the following `helm-chart`
+arguments:
+
+```
+spk service create --helm-chart-chart stable/nginx --helm-chart-repository github.com/helm/charts
+```
+
+##### Helm Charts in a distinct Git Repository
+
+If your Helm Charts are in their own distinct Git Repository in an Azure DevOps
+project, you can use the `helm-config` arguments to configure `spk`:
+
+```
+spk service create --helm-config-git https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts --helm-config-branch master --helm-path /charts/fabrikam
+```
+
+The above invocation presumes that the helm chart repository configured for
+`spk` is _different_ from the application repository configured for `spk` usage.
+
+##### Helm Charts in the same repository as the application
+
+If your Helm Charts are intended to be placed adjacent to your application
+source (no distinct git repository), you may still use the `helm-config`
+arguments to configure `spk`.
+
+If you presume that the `fabrikam-app` repository is the _same_ repository as
+the repository of your application sources, then the following invocation will
+allow a user to configure a service with helm charts tracked in the _same_
+repository.
+
+```
+spk service create --helm-config-git https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-app --helm-config-branch master --helm-path /charts/fabrikam
+```
 
 #### Creating a Service Revision
 
