@@ -226,3 +226,18 @@ export const validateServicePrincipalTenantId = (
 ): string | boolean => {
   return validateServicePrincipal(value, "Service Principal Tenant Id");
 };
+
+/**
+ * Returns true if subscription identifier is valid
+ *
+ * @param value subscription identifier.
+ */
+export const validateSubscriptionId = (value: string): string | boolean => {
+  if (!hasValue(value)) {
+    return "Must enter a Subscription Id.";
+  }
+  if (!isDashHex(value)) {
+    return "The value for Subscription Id is invalid.";
+  }
+  return true;
+};

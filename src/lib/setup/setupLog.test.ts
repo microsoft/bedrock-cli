@@ -21,6 +21,7 @@ const positiveTest = (logExist?: boolean, withAppCreation = false) => {
     projectName: "projectName",
     scaffoldHLD: true,
     scaffoldManifest: true,
+    subscriptionId: "72f988bf-86f1-41af-91ab-2d7cd011db48",
     workspace: "workspace"
   };
 
@@ -45,6 +46,7 @@ const positiveTest = (logExist?: boolean, withAppCreation = false) => {
       "az_sp_id=b510c1ff-358c-4ed4-96c8-eb23f42bb65b",
       "az_sp_password=********",
       "az_sp_tenant=72f988bf-86f1-41af-91ab-2d7cd011db47",
+      "az_subscription_id=72f988bf-86f1-41af-91ab-2d7cd011db48",
       "workspace: workspace",
       "Project Created: yes",
       "High Level Definition Repo Scaffolded: yes",
@@ -63,6 +65,7 @@ const positiveTest = (logExist?: boolean, withAppCreation = false) => {
       "az_sp_id=",
       "az_sp_password=",
       "az_sp_tenant=",
+      "az_subscription_id=72f988bf-86f1-41af-91ab-2d7cd011db48",
       "workspace: workspace",
       "Project Created: yes",
       "High Level Definition Repo Scaffolded: yes",
@@ -119,6 +122,7 @@ describe("test create function", () => {
       "az_sp_id=",
       "az_sp_password=",
       "az_sp_tenant=",
+      "az_subscription_id=",
       "workspace: workspace",
       "Project Created: yes",
       "High Level Definition Repo Scaffolded: yes",

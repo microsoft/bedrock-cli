@@ -13,6 +13,7 @@ export interface IRequestContext {
   servicePrincipalId?: string;
   servicePrincipalPassword?: string;
   servicePrincipalTenantId?: string;
+  subscriptionId?: string;
   error?: string;
 }
 

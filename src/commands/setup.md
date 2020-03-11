@@ -18,6 +18,9 @@ for a few questions
       1. have the command line tool to create it. Azure command line tool shall
          be used
       2. provide the Service Principal Id, Password and Tenant Id.
+   2. Subscription Id is automatically retrieved with the Service Principal
+      credential. In case, there are two or more subscriptions, you will be
+      prompt to select one of them.
 
 It can also run in a non interactive mode by providing a file that contains
 answers to the above questions.

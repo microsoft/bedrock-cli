@@ -1,15 +1,41 @@
 import fs from "fs";
 import inquirer from "inquirer";
+
 import {
   validateAccessToken,
   validateOrgName,
   validateProjectName,
   validateServicePrincipalId,
   validateServicePrincipalPassword,
-  validateServicePrincipalTenantId
+  validateServicePrincipalTenantId,
+  validateSubscriptionId
 } from "../validator";
 import { DEFAULT_PROJECT_NAME, IRequestContext, WORKSPACE } from "./constants";
 import { createWithAzCLI } from "./servicePrincipalService";
+import { getSubscriptions } from "./subscriptionService";
+
+export const promptForSubscriptionId = async (rc: IRequestContext) => {
+  const subscriptions = await getSubscriptions(rc);
+  if (subscriptions.length === 0) {
+    throw Error("no subscriptions found");
+  }
+  if (subscriptions.length === 1) {
+    rc.subscriptionId = subscriptions[0].id;
+  } else {
+    const questions = [
+      {
+        choices: subscriptions.map(s => s.name),
+        message: "Select one of the subscription\n",
+        name: "az_subscription",
+        type: "list"
+      }
+    ];
+    const ans = await inquirer.prompt(questions);
+    rc.subscriptionId = subscriptions.find(
+      s => s.name === ans.az_subscription
+    )!.id;
+  }
+};
 
 /**
  * Prompts for service principal identifer, password and tenant identifer.
@@ -71,6 +97,7 @@ export const promptForServicePrincipalCreation = async (
     rc.toCreateSP = false;
     await promptForServicePrincipal(rc);
   }
+  await promptForSubscriptionId(rc);
 };
 
 /**
@@ -145,6 +172,12 @@ const validationServicePrincipalInfoFromFile = (
         throw new Error(vSPTenantId);
       }
     }
+
+    const vSubscriptionId = validateSubscriptionId(map.az_subscription_id);
+    if (typeof vSubscriptionId === "string") {
+      throw new Error(vSubscriptionId);
+    }
+    rc.subscriptionId = map.az_subscription_id;
   }
 };
 
@@ -205,5 +238,6 @@ export const getAnswerFromFile = (file: string): IRequestContext => {
 
   rc.toCreateAppRepo = map.az_create_app === "true";
   validationServicePrincipalInfoFromFile(rc, map);
+
   return rc;
 };

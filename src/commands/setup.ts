@@ -41,6 +41,7 @@ export const createSPKConfig = (rc: IRequestContext) => {
           azure: {
             service_principal_id: rc.servicePrincipalId,
             service_principal_secret: rc.servicePrincipalPassword,
+            subscription_id: rc.subscriptionId,
             tenant_id: rc.servicePrincipalTenantId
           }
         }
@@ -50,8 +51,7 @@ export const createSPKConfig = (rc: IRequestContext) => {
           access_token: rc.accessToken,
           org: rc.orgName,
           project: rc.projectName
-        },
-        introspection: {}
+        }
       };
   fs.writeFileSync(defaultConfigFile(), yaml.safeDump(data));
 };

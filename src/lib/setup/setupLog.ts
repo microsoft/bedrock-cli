@@ -20,6 +20,7 @@ export const create = (rc: IRequestContext | undefined, file?: string) => {
       `az_sp_id=${rc.servicePrincipalId || ""}`,
       `az_sp_password=${rc.servicePrincipalPassword ? "********" : ""}`,
       `az_sp_tenant=${rc.servicePrincipalTenantId || ""}`,
+      `az_subscription_id=${rc.subscriptionId || ""}`,
       `workspace: ${rc.workspace}`,
       `Project Created: ${getBooleanVal(rc.createdProject)}`,
       `High Level Definition Repo Scaffolded: ${getBooleanVal(rc.scaffoldHLD)}`,

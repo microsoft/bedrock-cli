@@ -44,6 +44,7 @@ describe("test createSPKConfig function", () => {
     rc.servicePrincipalId = "1eba2d04-1506-4278-8f8c-b1eb2fc462a8";
     rc.servicePrincipalPassword = "e4c19d72-96d6-4172-b195-66b3b1c36db1";
     rc.servicePrincipalTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";
+    rc.subscriptionId = "72f988bf-86f1-41af-91ab-2d7cd011db48";
     createSPKConfig(rc);
 
     const data = readYaml<IConfigYaml>(tmpFile);
@@ -56,6 +57,7 @@ describe("test createSPKConfig function", () => {
       azure: {
         service_principal_id: rc.servicePrincipalId,
         service_principal_secret: rc.servicePrincipalPassword,
+        subscription_id: rc.subscriptionId,
         tenant_id: rc.servicePrincipalTenantId
       }
     });

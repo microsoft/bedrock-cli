@@ -13,7 +13,8 @@ import {
   validateProjectName,
   validateServicePrincipalId,
   validateServicePrincipalPassword,
-  validateServicePrincipalTenantId
+  validateServicePrincipalTenantId,
+  validateSubscriptionId
 } from "./validator";
 
 describe("Tests on validator helper functions", () => {
@@ -220,5 +221,15 @@ describe("test validateServicePrincipal functions", () => {
         `The value for ${item.prop} is invalid.`
       );
     });
+  });
+});
+
+describe("test validateSubscriptionId function", () => {
+  it("sanity test", () => {
+    expect(validateSubscriptionId("")).toBe("Must enter a Subscription Id.");
+    expect(validateSubscriptionId("xyz")).toBe(
+      "The value for Subscription Id is invalid."
+    );
+    expect(validateSubscriptionId("abc123-456")).toBeTruthy();
   });
 });

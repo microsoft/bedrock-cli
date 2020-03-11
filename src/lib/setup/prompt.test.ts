@@ -4,9 +4,10 @@ import os from "os";
 import path from "path";
 import uuid from "uuid/v4";
 import { createTempDir } from "../../lib/ioUtil";
-import { DEFAULT_PROJECT_NAME, WORKSPACE } from "./constants";
-import { getAnswerFromFile, prompt } from "./prompt";
+import { DEFAULT_PROJECT_NAME, IRequestContext, WORKSPACE } from "./constants";
+import { getAnswerFromFile, prompt, promptForSubscriptionId } from "./prompt";
 import * as servicePrincipalService from "./servicePrincipalService";
+import * as subscriptionService from "./subscriptionService";
 
 describe("test prompt function", () => {
   it("positive test: No App Creation", async () => {
@@ -40,11 +41,19 @@ describe("test prompt function", () => {
     jest
       .spyOn(servicePrincipalService, "createWithAzCLI")
       .mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(subscriptionService, "getSubscriptions").mockResolvedValueOnce([
+      {
+        id: "72f988bf-86f1-41af-91ab-2d7cd011db48",
+        name: "test"
+      }
+    ]);
+
     const ans = await prompt();
     expect(ans).toStrictEqual({
       accessToken: "pat",
       orgName: "org",
       projectName: "project",
+      subscriptionId: "72f988bf-86f1-41af-91ab-2d7cd011db48",
       toCreateAppRepo: true,
       toCreateSP: true,
       workspace: WORKSPACE
@@ -66,6 +75,12 @@ describe("test prompt function", () => {
       az_sp_password: "a510c1ff-358c-4ed4-96c8-eb23f42bbc5b",
       az_sp_tenant: "72f988bf-86f1-41af-91ab-2d7cd011db47"
     });
+    jest.spyOn(subscriptionService, "getSubscriptions").mockResolvedValueOnce([
+      {
+        id: "72f988bf-86f1-41af-91ab-2d7cd011db48",
+        name: "test"
+      }
+    ]);
     const ans = await prompt();
     expect(ans).toStrictEqual({
       accessToken: "pat",
@@ -74,6 +89,7 @@ describe("test prompt function", () => {
       servicePrincipalId: "b510c1ff-358c-4ed4-96c8-eb23f42bb65b",
       servicePrincipalPassword: "a510c1ff-358c-4ed4-96c8-eb23f42bbc5b",
       servicePrincipalTenantId: "72f988bf-86f1-41af-91ab-2d7cd011db47",
+      subscriptionId: "72f988bf-86f1-41af-91ab-2d7cd011db48",
       toCreateAppRepo: true,
       toCreateSP: false,
       workspace: WORKSPACE
@@ -153,7 +169,8 @@ describe("test getAnswerFromFile function", () => {
       "az_create_app=true",
       "az_sp_id=b510c1ff-358c-4ed4-96c8-eb23f42bb65b",
       "az_sp_password=a510c1ff-358c-4ed4-96c8-eb23f42bbc5b",
-      "az_sp_tenant=72f988bf-86f1-41af-91ab-2d7cd011db47"
+      "az_sp_tenant=72f988bf-86f1-41af-91ab-2d7cd011db47",
+      "az_subscription_id=72f988bf-86f1-41af-91ab-2d7cd011db48"
     ];
     fs.writeFileSync(file, data.join("\n"));
     const requestContext = getAnswerFromFile(file);
@@ -171,6 +188,9 @@ describe("test getAnswerFromFile function", () => {
     expect(requestContext.servicePrincipalTenantId).toBe(
       "72f988bf-86f1-41af-91ab-2d7cd011db47"
     );
+    expect(requestContext.subscriptionId).toBe(
+      "72f988bf-86f1-41af-91ab-2d7cd011db48"
+    );
   });
   it("negative test: with app creation, incorrect SP values", () => {
     const dir = createTempDir();
@@ -179,7 +199,8 @@ describe("test getAnswerFromFile function", () => {
       "azdo_org_name=orgname",
       "azdo_pat=pat",
       "azdo_project_name=project",
-      "az_create_app=true"
+      "az_create_app=true",
+      "az_subscription_id=72f988bf-86f1-41af-91ab-2d7cd011db48"
     ];
     [".", ".##", ".abc"].forEach((v, i) => {
       if (i === 0) {
@@ -198,5 +219,61 @@ describe("test getAnswerFromFile function", () => {
         getAnswerFromFile(file);
       }).toThrow();
     });
+  });
+  it("negative test: with app creation, incorrect subscription id value", () => {
+    const dir = createTempDir();
+    const file = path.join(dir, "testfile");
+    const data = [
+      "azdo_org_name=orgname",
+      "azdo_pat=pat",
+      "azdo_project_name=project",
+      "az_create_app=true",
+      "az_sp_id=b510c1ff-358c-4ed4-96c8-eb23f42bb65b",
+      "az_sp_password=a510c1ff-358c-4ed4-96c8-eb23f42bbc5b",
+      "az_sp_tenant=72f988bf-86f1-41af-91ab-2d7cd011db47",
+      "az_subscription_id=xyz"
+    ];
+    fs.writeFileSync(file, data.join("\n"));
+    expect(() => {
+      getAnswerFromFile(file);
+    }).toThrow();
+  });
+});
+
+describe("test promptForSubscriptionId function", () => {
+  it("no subscriptions", async () => {
+    jest
+      .spyOn(subscriptionService, "getSubscriptions")
+      .mockResolvedValueOnce([]);
+    const mockRc: IRequestContext = {
+      accessToken: "pat",
+      orgName: "org",
+      projectName: "project",
+      workspace: WORKSPACE
+    };
+    await expect(promptForSubscriptionId(mockRc)).rejects.toThrow();
+  });
+  it("2 subscriptions", async () => {
+    jest.spyOn(subscriptionService, "getSubscriptions").mockResolvedValueOnce([
+      {
+        id: "123345",
+        name: "subscription1"
+      },
+      {
+        id: "12334567890",
+        name: "subscription2"
+      }
+    ]);
+    jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
+      az_subscription: "subscription2"
+    });
+    const mockRc: IRequestContext = {
+      accessToken: "pat",
+      orgName: "org",
+      projectName: "project",
+      workspace: WORKSPACE
+    };
+    await promptForSubscriptionId(mockRc);
+    expect(mockRc.subscriptionId).toBe("12334567890");
   });
 });
