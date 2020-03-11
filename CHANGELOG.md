@@ -1,5 +1,18 @@
 # RELEASE NOTES
 
+## [0.5.7] - 2020-03-10
+
+### Added
+
+- `spk setup` improvements
+
+### Changed
+
+- Fixed "Ring names must be DNS safe"
+- Fixed "fab set in build update hld pipeline should set image tag in different
+  config file"
+- Various bug fixes and refactoring
+
 ## [0.5.6] - 2020-03-06
 
 ### Changed
