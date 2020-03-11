@@ -279,13 +279,18 @@ application repositories
 To have spk's build pipelines work properly, an application needs an associated
 [Helm](https://helm.sh/) chart with specific variables.
 
+See the
+[guide to building helm charts with spk for more details](./building-helm-charts-for-spk.md)
+
 ### Requirements
 
 TBD
 
 ### Sample Helm Chart
 
-TBD
+This repository bundles a sample helm chart. Please refer to the
+[guide for building helm charts](./building-helm-charts-for-spk.md) and the
+[sample helm chart](./sample-helm-chart) for details.
 
 ## Variable Groups
 
