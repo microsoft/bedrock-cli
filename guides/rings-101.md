@@ -61,7 +61,7 @@ Traefik2 to the correct _Ringed Service_ based on the service requested and the
 
 ## Rings & SPK
 
-### Perquisites
+### Prerequisites
 
 [SPK](https://github.com/CatalystCode/spk) is command line tool meant to ease
 the adoption of [Bedrock](https://github.com/microsoft/bedrock/) methodologies
@@ -76,9 +76,28 @@ Creating/adding a Ring is based around a single command:
 
 This command adds a new ring to your spk project and tracks it in projects
 `bedrock.yaml` file. Subsequently, the command walks through every service in
-your project and updates their pipeline YAML to monitor the git branch the ring
-corresponds to. Making every merge into the ring branch trigger a new
-build/deployment of your ring.
+your project and updates their build pipeline YAML to monitor the git branch the
+ring corresponds to, so that every merge into the ring branch will trigger a new
+build/deployment of your ring for the associated service.
+
+Commiting these changes to the `master` branch, or the branch where the
+`hld-lifecycle.yaml` pipeline triggers off of, will trigger the project
+lifecycle pipeline to add the ring to each service defined in the project
+`bedrock.yaml` in the HLD repository.
+
+A sample HLD repository tree for a sample application repository
+(`fabrikam-project`) with a service (`fabrikam`) and a newly added ring (`dev`):
+
+![Sample HLD](./images/spk-hld-generated.png)
+
+**Note:** There should only ever be a single lifecycle pipeline associated with
+a project. The single branch on which it triggers, points to the "source of
+truth" `bedrock.yaml`. This is the branch on which ring creation and deletion
+needs to be commited to.
+
+**Note:** Because `spk` will add the branch triggers for each ring added to all
+associated service build pipelines within a project, no additional pipelines
+should be created when adding a ring.
 
 ### Deleting/Removing a Ring
 
@@ -88,6 +107,41 @@ Deleting/removing a ring does the inverse of [creating](#creatingadding-a-ring):
 This command removes the ring from your `bedrock.yaml` file and walks through
 all the services in your project and removing the ring branch from the service
 pipeline YAML.
+
+**Note:** The "default" ring cannot be deleted. If you wish to remove the ring
+defined under `bedrock.yaml` with `isDefault: true`, you must first set another
+ring to be the default ring via `spk ring set-default <new-default-ring-name>`.
+
+**Note:** Deleting a `ring` presently does not remove the service and `ring`
+from a cluster as the project lifecycle pipeline does not yet remove rings or
+services from the HLD repository. The work to support the automated removal of
+rings and services is being
+[tracked here.](https://github.com/microsoft/bedrock/issues/858) To manually
+remove the `ring` from the HLD repository and subsequently, the cluster, follow
+the manual steps outlined
+[here.](manual-guide-to-rings.md#removing-the-ring-from-the-cluster)
+
+### Setting the Default Ring
+
+For every bedrock project, there will be a default ring. By default, this is the
+`master` ring, which corresponds to the master branch of the repository.
+
+For a `bedrock.yaml`:
+
+```yaml
+rings:
+  master:
+    isDefault: true
+  develop:
+    isDefault: false
+services: ...
+```
+
+the property `isDefault` denotes which `ring` is the default ring.
+
+Currently this property is only being used by the `spk service create-revision`
+command. Details can be found
+[here.](https://catalystcode.github.io/spk/commands/index.html#service_create-revision)
 
 ### What Services Have What Rings?
 
