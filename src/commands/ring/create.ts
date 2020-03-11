@@ -10,6 +10,7 @@ import {
   PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE
 } from "../../lib/constants";
 import { updateTriggerBranchesForServiceBuildAndUpdatePipeline } from "../../lib/fileutils";
+import * as dns from "../../lib/net/dns";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import { IBedrockFile, IBedrockFileInfo } from "../../types";
@@ -35,6 +36,7 @@ export const execute = async (
   try {
     logger.info(`Project path: ${projectPath}`);
 
+    dns.assertIsValid("<ring-name>", ringName);
     checkDependencies(projectPath, ringName);
 
     // Add ring to bedrock.yaml

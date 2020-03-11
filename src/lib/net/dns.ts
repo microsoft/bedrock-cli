@@ -55,7 +55,7 @@ export function assertIsValid(
 ): asserts dns is string {
   if (!isValid(dns)) {
     throw Error(
-      `Invalid ${fieldName} '${dns}' provided for Traefik IngressRoute. Must be RFC1123 compliant and match regex: ${validDnsRegex}`
+      `Invalid ${fieldName} '${dns}' provided. Must be RFC1123 compliant and match regex: ${validDnsRegex}`
     );
   }
 }

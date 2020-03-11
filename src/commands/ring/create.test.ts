@@ -4,6 +4,7 @@ import {
 } from "../../lib/bedrockYaml";
 import * as fileUtils from "../../lib/fileutils";
 import { createTempDir } from "../../lib/ioUtil";
+import * as dns from "../../lib/net/dns";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { IBedrockFile } from "../../types";
 import { checkDependencies, execute } from "./create";
@@ -60,9 +61,19 @@ describe("test execute function and logic", () => {
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
+  it("test execute function: invalid ring input", async () => {
+    const exitFn = jest.fn();
+    jest.spyOn(dns, "assertIsValid");
+    await execute("-not!dns@compliant%", "someprojectpath", exitFn);
+    expect(dns.assertIsValid).toHaveReturnedTimes(0); // should never return because it throws
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
   it("test execute function: missing project path", async () => {
     const exitFn = jest.fn();
+    jest.spyOn(dns, "assertIsValid");
     await execute("ring", "", exitFn);
+    expect(dns.assertIsValid).toHaveReturnedTimes(1);
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
   });

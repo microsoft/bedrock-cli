@@ -1,7 +1,7 @@
-import fs from "fs";
-import path from "path";
+import * as fs from "fs";
+import * as path from "path";
 import { promisify } from "util";
-import uuid from "uuid/v4";
+import uuid = require("uuid/v4");
 import { Bedrock } from "../../config";
 import * as config from "../../config";
 import * as bedrockYaml from "../../lib/bedrockYaml";
@@ -9,6 +9,7 @@ import { DEFAULT_CONTENT as BedrockMockedContent } from "../../lib/bedrockYaml";
 import { SERVICE_PIPELINE_FILENAME } from "../../lib/constants";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import { createTempDir, removeDir } from "../../lib/ioUtil";
+import * as dns from "../../lib/net/dns";
 import { deepClone } from "../../lib/util";
 import {
   disableVerboseLogging,
@@ -20,12 +21,14 @@ import {
   createTestMaintainersYaml
 } from "../../test/mockFactory";
 import {
+  assertValidDnsInputs,
   createService,
   execute,
   fetchValues,
   ICommandValues,
   validateGitUrl
 } from "./create";
+
 jest.mock("../../lib/gitutils");
 
 beforeAll(() => {
@@ -130,7 +133,69 @@ describe("Test fetchValues function", () => {
   });
 });
 
+describe("isValidDnsInputs", () => {
+  test("valid inputs does not throw", () => {
+    expect(() =>
+      assertValidDnsInputs({
+        displayName: "bar",
+        k8sBackend: "my-service",
+        pathPrefix: "service",
+        pathPrefixMajorVersion: "v1"
+      })
+    ).not.toThrow();
+  });
+
+  test("invalid inputs throws", () => {
+    expect(() =>
+      assertValidDnsInputs({
+        displayName: "-not_dns_compliant",
+        k8sBackend: "",
+        pathPrefix: "",
+        pathPrefixMajorVersion: ""
+      })
+    ).toThrow();
+
+    expect(() =>
+      assertValidDnsInputs({
+        displayName: "",
+        k8sBackend: "-not_dns_compliant",
+        pathPrefix: "",
+        pathPrefixMajorVersion: ""
+      })
+    ).toThrow();
+
+    expect(() =>
+      assertValidDnsInputs({
+        displayName: "",
+        k8sBackend: "",
+        pathPrefix: "-not_dns_compliant",
+        pathPrefixMajorVersion: ""
+      })
+    ).toThrow();
+
+    expect(() =>
+      assertValidDnsInputs({
+        displayName: "",
+        k8sBackend: "",
+        pathPrefix: "",
+        pathPrefixMajorVersion: "-not_dns_compliant"
+      })
+    ).toThrow();
+  });
+});
+
 describe("Test execute function", () => {
+  it("Negative test: with non-dns compliant values", async () => {
+    const exitFn = jest.fn();
+    jest.spyOn(dns, "assertIsValid");
+    await execute(
+      "foo",
+      { ...getMockValues(), displayName: "-non_dns@compliant" },
+      exitFn
+    );
+    expect(dns.assertIsValid).toHaveBeenCalledTimes(1);
+  });
+
   it("Negative test: without service name", async () => {
     const exitFn = jest.fn();
     await execute("", getMockValues(), exitFn);

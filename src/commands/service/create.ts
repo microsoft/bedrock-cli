@@ -21,6 +21,7 @@ import {
   generateServiceBuildAndUpdatePipelineYaml
 } from "../../lib/fileutils";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
+import * as dns from "../../lib/net/dns";
 import { isPortNumberString } from "../../lib/validator";
 import { logger } from "../../logger";
 import { IBedrockFileInfo, IHelmConfig, IUser } from "../../types";
@@ -54,7 +55,7 @@ export interface ICommandValues extends ICommandOptions {
 
 export const fetchValues = (opts: ICommandOptions) => {
   if (!isPortNumberString(opts.k8sBackendPort)) {
-    throw new Error("value for --k8s-service-port is not a valid port number");
+    throw Error("value for --k8s-service-port is not a valid port number");
   }
 
   const bedrock = Bedrock();
@@ -97,9 +98,34 @@ export const fetchValues = (opts: ICommandOptions) => {
 export const checkDependencies = (projectPath: string) => {
   const fileInfo: IBedrockFileInfo = bedrockFileInfo(projectPath);
   if (fileInfo.exist === false) {
-    throw new Error(PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE);
+    throw Error(PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE);
   } else if (fileInfo.hasVariableGroups === false) {
-    throw new Error(PROJECT_CVG_DEPENDENCY_ERROR_MESSAGE);
+    throw Error(PROJECT_CVG_DEPENDENCY_ERROR_MESSAGE);
+  }
+};
+
+/**
+ * Validate that the provided ICommandOpts contain RFC1123 compliant values if
+ * they are were set by the user
+ *
+ * @throws {Error} when any of displayName, k8sBackend, pathPrefix,
+ *                 pathPrefixMajorVersion are provided and are non-DNS compliant
+ */
+export const assertValidDnsInputs = (opts: Partial<ICommandOptions>): void => {
+  if (opts.displayName) {
+    dns.assertIsValid("--display-name", opts.displayName);
+  }
+  if (opts.k8sBackend) {
+    dns.assertIsValid("--k8s-backend", opts.k8sBackend);
+  }
+  if (opts.pathPrefix) {
+    dns.assertIsValid("--path-prefix", opts.pathPrefix);
+  }
+  if (opts.pathPrefixMajorVersion) {
+    dns.assertIsValid(
+      "--path-prefix-major-version",
+      opts.pathPrefixMajorVersion
+    );
   }
 };
 
@@ -116,10 +142,18 @@ export const execute = async (
 
   if (serviceName === "." && opts.displayName === "") {
     logger.error(
-      `If specifying the current directory as service name, please incluce a display name using '-n'`
+      `If specifying the current directory as service name, please include a display name using '-n'`
     );
     await exitFn(1);
     return;
+  }
+
+  // validate user inputs are DNS compliant
+  try {
+    assertValidDnsInputs(opts);
+  } catch (err) {
+    logger.error(err);
+    await exitFn(1);
   }
 
   // Sanity checking the specified Helm URLs
@@ -242,7 +276,7 @@ export const createService = async (
     logger.error(
       `Cannot create service pipeline due to serviceName being '.'. Please include a displayName if you are trying to create a service in your project root directory.`
     );
-    throw new Error(
+    throw Error(
       "Cannot create service pipeline due to serviceName being '.'. Please include a displayName if you are trying to create a service in your project root directory."
     );
   }
