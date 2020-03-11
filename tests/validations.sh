@@ -40,6 +40,7 @@ services_dir=services
 mono_repo_dir=fabrikam2019
 helm_charts_dir=fabrikam-helm-charts
 services_full_dir="$TEST_WORKSPACE/$mono_repo_dir/$services_dir"
+FrontEndCompliant="${FrontEnd//./-}"
 
 shopt -s expand_aliases
 alias spk=$SPK_LOCATION
@@ -315,6 +316,21 @@ echo "Attempting to approve pull request: '$pr_title'"
 # Get the id of the pr created and set the PR to be approved
 approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "$pr_title"
 # --------------------------------
+
+##################################
+# Manifest Validation Start
+##################################
+
+echo "Validating image tag in manifest repo"
+cd $TEST_WORKSPACE/$hld_dir
+git pull
+cd $mono_repo_dir/$FrontEndCompliant/master/config
+image_repository=$(grep -A3 'image:' common.yaml | tail -n3 | awk '{print $2}' | head -n1 )
+image_tag=$(grep -A3 'image:' common.yaml | tail -n2 | awk '{print $2}' | head -n 1)
+cd $TEST_WORKSPACE/$manifests_dir
+git pull
+validate_commit $image_tag
+validate_file "$TEST_WORKSPACE/$manifests_dir/prod/$mono_repo_dir/$FrontEndCompliant/master/chart.yaml" "image: $image_repository:$image_tag"
 
 # ##################################
 # TODO

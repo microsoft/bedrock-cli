@@ -336,7 +336,7 @@ function verify_pipeline_with_poll () {
 }
 
 function validate_file () {
-    echo "Validatng file $1"
+    echo "Validating file $1"
     if grep -q "$2" "$1";
     then
         echo "File contents have been successfully validated in $1"
@@ -533,5 +533,17 @@ function approve_pull_request () {
     else
         echo "Issue approving PR $pull_request_id"
         exit 1
+    fi
+}
+
+function validate_commit () {
+    commit_history=$(git --no-pager log --decorate=short --pretty=oneline -n1)
+    if [[ "$commit_history" == *"$1"* ]]; then
+        echo "Commit Validated"
+    else
+        echo "Commit not validated. Retrying..."
+        sleep 10s
+        git pull
+        validate_commit $1
     fi
 }
