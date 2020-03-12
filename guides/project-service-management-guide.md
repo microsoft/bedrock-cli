@@ -296,7 +296,10 @@ If your Helm Charts are in their own distinct Git Repository in the _same_ Azure
 DevOps project, you can use the `helm-config` arguments to configure `spk`:
 
 ```
-spk service create --helm-config-git https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts --helm-config-branch master --helm-path /charts/fabrikam
+spk service create \
+  --helm-config-git https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts
+  --helm-config-branch master \
+  --helm-path /charts/fabrikam
 ```
 
 The above invocation presumes that the helm chart repository configured for
@@ -323,7 +326,11 @@ the environment variable containing the Personal Access Token to access the git
 repository in `helm-config-git`:
 
 ```
-spk service create --helm-config-git https://dev.azure.com/fabrikam/fabrikam-helm-charts-project/_git/fabrikam-helm-charts --helm-config-branch master --helm-path /charts/fabrikam --helm-config-access-token-variable FABRIKAM_HELM_CHARTS_REPO_PAT
+spk service create \
+  --helm-config-git https://dev.azure.com/fabrikam/fabrikam-helm-charts-project/_git/fabrikam-helm-charts \
+  --helm-config-branch master \
+  --helm-path /charts/fabrikam \
+  --helm-config-access-token-variable FABRIKAM_HELM_CHARTS_REPO_PAT
 ```
 
 The `helm-config-git` parameter _must not_ contain the username portion of a
@@ -367,7 +374,10 @@ allow a user to configure a service with helm charts tracked in the _same_
 repository.
 
 ```
-spk service create --helm-config-git https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-app --helm-config-branch master --helm-path /charts/fabrikam
+spk service create
+  --helm-config-git https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-app \
+  --helm-config-branch master \
+  --helm-path /charts/fabrikam
 ```
 
 The `helm-config-git` parameter _must not_ contain the username portion of a
