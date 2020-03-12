@@ -4,10 +4,11 @@ Reference: Introspection - An option to take variables in SPK scaffold
 command<br> Authors: Andre Briggs, Yvonne Radsmikham, Nathaniel Rose, Dennis
 Seah
 
-| Revision | Date         | Author      | Remarks                                           |
-| -------: | ------------ | ----------- | ------------------------------------------------- |
-|      0.1 | Mar-07, 2020 | Dennis Seah | Initial Draft                                     |
-|      0.2 | Mar-09, 2020 | Dennis Seah | Incorporated comments from Nate, Yvonne and Andre |
+| Revision | Date         | Author      | Remarks                                                |
+| -------: | ------------ | ----------- | ------------------------------------------------------ |
+|      0.1 | Mar-07, 2020 | Dennis Seah | Initial Draft                                          |
+|      0.2 | Mar-09, 2020 | Dennis Seah | Incorporated comments from Nate, Yvonne and Andre      |
+|      1.0 | Mar-11, 2020 | Dennis Seah | Added information on support YAML and JSON file format |
 
 ## 1. Overview
 
@@ -34,13 +35,25 @@ has 4 options (`--name`, `--source`, `--version` and `--template`). We shall
 introduce a new option `-f`, `--file` which allows user to specify a file that
 contains values for these variables.
 
-The format of this file is `key=value`. E.g.
+The format of the file can be YAML or JSON. The command line tool will detect
+the format automatically. Example of YAML file is
 
 ```
-address_space=10.10.0.0/16
-agent_vm_count=4
-agent_vm_size=Standard_D2s_v3
-cluster_name=discovery-service-west
+address_space: 10.10.0.0/16
+agent_vm_count: 4
+agent_vm_size: Standard_D2s_v3
+cluster_name: discovery-service-west
+```
+
+And example of JSON file is
+
+```
+{
+  "address_space": "10.10.0.0/16",
+  "agent_vm_count": 4,
+  "agent_vm_size": "Standard_D2s_v3",
+  "cluster_name": "discovery-service-west"
+}
 ```
 
 leading and trailing spaces should be trimmed. E.g. `address_space=10.10.0.0/16`
