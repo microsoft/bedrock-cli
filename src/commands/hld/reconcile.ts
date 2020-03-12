@@ -189,7 +189,7 @@ export const reconcileHld = async (
     normalizedName(repositoryName)
   );
 
-  // Create access.yaml containing the bedrock application repo's URL in
+  // Create access.yaml containing the bedrock application repo's URL
   await dependencies.createAccessYaml(
     dependencies.getGitOrigin,
     dependencies.generateAccessYaml,
