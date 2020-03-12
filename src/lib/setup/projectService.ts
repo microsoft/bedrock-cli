@@ -5,7 +5,7 @@ import {
 } from "azure-devops-node-api/interfaces/CoreInterfaces";
 import { sleep } from "../../lib/util";
 import { logger } from "../../logger";
-import { IRequestContext } from "./constants";
+import { RequestContext } from "./constants";
 
 /**
  * Returns Azure DevOps Project if it exists.
@@ -42,7 +42,7 @@ export const createProject = async (
   name: string,
   tries = 10,
   sleepDuration = 12000
-) => {
+): Promise<void> => {
   logger.info(`creating Project, ${name}.`);
   try {
     await coreAPI.queueCreateProject({
@@ -89,8 +89,8 @@ export const createProject = async (
  */
 export const createProjectIfNotExist = async (
   coreAPI: ICoreApi,
-  rc: IRequestContext
-) => {
+  rc: RequestContext
+): Promise<void> => {
   const projectName = rc.projectName;
   const project = await getProject(coreAPI, projectName);
   if (!project) {

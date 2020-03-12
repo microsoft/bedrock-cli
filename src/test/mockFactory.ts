@@ -8,22 +8,22 @@ import {
   SAFE_SOURCE_BRANCH
 } from "../lib/fileutils";
 import {
-  IAzurePipelinesYaml,
-  IBedrockFile,
-  IComponentYaml,
-  IHelmConfig,
-  IMaintainersFile
+  AzurePipelinesYaml,
+  BedrockFile,
+  ComponentYaml,
+  HelmConfig,
+  MaintainersFile
 } from "../types";
 
 export const createTestServiceBuildAndUpdatePipelineYaml = (
   asString = true,
-  serviceName: string = "my-service",
-  relativeServicePathFormatted: string = "./my-service",
+  serviceName = "my-service",
+  relativeServicePathFormatted = "./my-service",
   ringBranches: string[] = ["master", "qa", "test"],
   variableGroups: string[] = []
-): IAzurePipelinesYaml | string => {
+): AzurePipelinesYaml | string => {
   // tslint:disable: object-literal-sort-keys
-  const data: IAzurePipelinesYaml = {
+  const data: AzurePipelinesYaml = {
     trigger: {
       branches: { include: ringBranches },
       paths: { include: [relativeServicePathFormatted] } // Only building for a single service's path.
@@ -207,8 +207,8 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
 
 export const createTestMaintainersYaml = (
   asString = true
-): IMaintainersFile | string => {
-  const data: IMaintainersFile = {
+): MaintainersFile | string => {
+  const data: MaintainersFile = {
     services: {
       "./": {
         maintainers: [
@@ -234,8 +234,8 @@ export const createTestMaintainersYaml = (
 
 export const createTestBedrockYaml = (
   asString = true
-): IBedrockFile | string => {
-  const service1HelmConfig: IHelmConfig = {
+): BedrockFile | string => {
+  const service1HelmConfig: HelmConfig = {
     chart: {
       branch: "master",
       git: "https://github.com/catalystcode/spk-demo-repo.git",
@@ -243,7 +243,7 @@ export const createTestBedrockYaml = (
     }
   };
 
-  const service2HelmConfig: IHelmConfig = {
+  const service2HelmConfig: HelmConfig = {
     chart: {
       branch: "master",
       git: "https://github.com/catalystcode/spk-demo-repo.git",
@@ -251,14 +251,14 @@ export const createTestBedrockYaml = (
     }
   };
 
-  const zookeeperHelmConfig: IHelmConfig = {
+  const zookeeperHelmConfig: HelmConfig = {
     chart: {
       chart: "zookeeper",
       repository: "https://kubernetes-charts-incubator.storage.googleapis.com/"
     }
   };
 
-  const data: IBedrockFile = {
+  const data: BedrockFile = {
     rings: {
       develop: {},
       master: {
@@ -289,9 +289,9 @@ export const createTestBedrockYaml = (
 
 export const createTestHldLifecyclePipelineYaml = (
   asString = true
-): IAzurePipelinesYaml | string => {
+): AzurePipelinesYaml | string => {
   // tslint:disable: object-literal-sort-keys
-  const data: IAzurePipelinesYaml = {
+  const data: AzurePipelinesYaml = {
     trigger: {
       branches: {
         include: ["master"]
@@ -382,9 +382,9 @@ export const createTestHldLifecyclePipelineYaml = (
 
 export const createTestHldAzurePipelinesYaml = (
   asString = true
-): IAzurePipelinesYaml | string => {
+): AzurePipelinesYaml | string => {
   // tslint:disable: object-literal-sort-keys
-  const data: IAzurePipelinesYaml = {
+  const data: AzurePipelinesYaml = {
     trigger: {
       branches: {
         include: ["master"]
@@ -452,7 +452,7 @@ export const createTestHldAzurePipelinesYaml = (
           `download_spk`,
           `message="$(Build.SourceVersionMessage)"`,
           `if [[ $message == *"Merged PR"* ]]; then`,
-          `pr_id=$(echo $message | grep -oE '[0-9]+' | head -1 | sed -e 's/^0\+//')`,
+          `pr_id=$(echo $message | grep -oE '[0-9]+' | head -1 | sed -e 's/^0\\+//')`,
           `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --manifest-commit-id $latest_commit --pr $pr_id`,
           `else`,
           `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --manifest-commit-id $latest_commit`,
@@ -474,8 +474,8 @@ export const createTestHldAzurePipelinesYaml = (
 
 export const createTestComponentYaml = (
   asString = true
-): IComponentYaml | string => {
-  const component: IComponentYaml = {
+): ComponentYaml | string => {
+  const component: ComponentYaml = {
     name: "default-component",
     subcomponents: [
       {

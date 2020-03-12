@@ -1,15 +1,16 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 import fs from "fs";
 import path from "path";
 import { readYaml } from "../../config";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
-import { IAzureDevOpsOpts } from "../../lib/git";
+import { AzureDevOpsOpts } from "../../lib/git";
 import {
   addVariableGroup,
   addVariableGroupWithKeyVaultMap
 } from "../../lib/pipelines/variableGroup";
 import { logger } from "../../logger";
-import { IVariableGroupData } from "../../types";
+import { VariableGroupData } from "../../types";
 import decorator from "./create.decorator.json";
 
 /**
@@ -57,7 +58,7 @@ export const commandDecorator = (command: commander.Command): void => {
         );
       }
 
-      const accessOpts: IAzureDevOpsOpts = {
+      const accessOpts: AzureDevOpsOpts = {
         orgName,
         personalAccessToken,
         project: devopsProject
@@ -86,14 +87,14 @@ export const commandDecorator = (command: commander.Command): void => {
  */
 export const create = async (
   filepath: string,
-  accessOpts: IAzureDevOpsOpts
-) => {
+  accessOpts: AzureDevOpsOpts
+): Promise<void> => {
   logger.info(
     `Creating Variable Group from group definition '${path.resolve(filepath)}'`
   );
 
   fs.statSync(filepath);
-  const data = readYaml<IVariableGroupData>(filepath);
+  const data = readYaml<VariableGroupData>(filepath);
   logger.debug(`Variable Group Yaml data: ${JSON.stringify(data)}`);
 
   // validate variable group type

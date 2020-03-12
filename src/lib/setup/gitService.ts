@@ -3,7 +3,7 @@ import { IGitApi } from "azure-devops-node-api/GitApi";
 import { GitRepository } from "azure-devops-node-api/interfaces/TfvcInterfaces";
 import { SimpleGit } from "simple-git/promise";
 import { logger } from "../../logger";
-import { IRequestContext, SP_USER_NAME } from "./constants";
+import { RequestContext, SP_USER_NAME } from "./constants";
 
 let gitAPI: IGitApi | undefined;
 
@@ -15,6 +15,7 @@ export const getGitApi = async (webAPI: WebApi): Promise<IGitApi> => {
     return gitAPI;
   }
   gitAPI = await webAPI.getGitApi();
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   return gitAPI!;
 };
 
@@ -71,7 +72,7 @@ export const deleteRepo = async (
   gitApi: IGitApi,
   repo: GitRepository,
   projectName: string
-) => {
+): Promise<void> => {
   logger.info("Deleting repository " + repo.name);
   if (repo.id) {
     await gitApi.deleteRepository(repo.id, projectName);
@@ -143,7 +144,8 @@ export const createRepoInAzureOrg = async (
  * @param repo Repo object
  * @param orgName organization name
  */
-export const getRepoURL = (repo: GitRepository, orgName: string) => {
+export const getRepoURL = (repo: GitRepository, orgName: string): string => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   return repo.remoteUrl!.replace(`${orgName}@`, "");
 };
 
@@ -156,9 +158,9 @@ export const getRepoURL = (repo: GitRepository, orgName: string) => {
  */
 export const commitAndPushToRemote = async (
   git: SimpleGit,
-  rc: IRequestContext,
+  rc: RequestContext,
   repoName: string
-) => {
+): Promise<void> => {
   logger.info(`Pushing to ${repoName} repo.`);
   // Commit and check the local git log
   await git.commit(`Initial commit for ${repoName} repo`);

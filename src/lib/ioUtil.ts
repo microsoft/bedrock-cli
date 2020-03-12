@@ -22,7 +22,7 @@ export const createTempDir = (parent?: string): string => {
  * Removes directory, including all sub directory and files
  * @param dir Directory name
  */
-export const removeDir = (dir: string) => {
+export const removeDir = (dir: string): void => {
   const folder = path.resolve(dir);
   if (fs.existsSync(folder)) {
     fs.readdirSync(folder).forEach(item => {

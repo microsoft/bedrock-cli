@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { StorageManagementClient } from "@azure/arm-storage";
 import {
   Kind,
@@ -11,7 +13,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { Config } from "../../config";
 import { logger } from "../../logger";
-import { IAzureAccessOpts } from "../../types";
+import { AzureAccessOpts } from "../../types";
 import { getManagementCredentials } from "./azurecredentials";
 
 let storageManagementClient: StorageManagementClient | undefined; // singleton Storage Management Client so it can be reused
@@ -23,7 +25,7 @@ let storageManagementClient: StorageManagementClient | undefined; // singleton S
  *
  */
 export const getStorageManagementClient = async (
-  opts: IAzureAccessOpts = {}
+  opts: AzureAccessOpts = {}
 ): Promise<StorageManagementClient> => {
   if (storageManagementClient !== undefined) {
     logger.debug(`Returing singleton storageManagementClient object`);
@@ -115,7 +117,7 @@ export const isStorageAccountNameAvailable = async (
 export const getStorageAccountKeys = async (
   accountName: string,
   resourceGroup: string,
-  opts: IAzureAccessOpts = {}
+  opts: AzureAccessOpts = {}
 ): Promise<string[]> => {
   // validate input
   const errors: string[] = [];
@@ -161,7 +163,7 @@ export const getStorageAccountKeys = async (
 export const isStorageAccountExist = async (
   resourceGroup: string,
   accountName: string,
-  opts: IAzureAccessOpts = {}
+  opts: AzureAccessOpts = {}
 ): Promise<boolean> => {
   // validate input
   const errors: string[] = [];
@@ -199,7 +201,7 @@ export const isStorageAccountExist = async (
 export const getStorageAccount = async (
   resourceGroup: string,
   accountName: string,
-  opts: IAzureAccessOpts = {}
+  opts: AzureAccessOpts = {}
 ): Promise<StorageAccount | undefined> => {
   // validate input
   const errors: string[] = [];
@@ -257,7 +259,7 @@ const validateInputsForCreateAccount = (
   resourceGroup: string,
   accountName: string,
   location: string
-) => {
+): void => {
   // validate input
   const errors: string[] = [];
 
@@ -288,7 +290,7 @@ export const createStorageAccount = async (
   resourceGroup: string,
   accountName: string,
   location: string,
-  opts: IAzureAccessOpts = {}
+  opts: AzureAccessOpts = {}
 ): Promise<StorageAccount> => {
   const message = `Azure storage account ${accountName} in resource group ${resourceGroup} in ${location} location.`;
 
@@ -305,7 +307,7 @@ export const createStorageAccount = async (
     );
 
     if (response.nameAvailable === false) {
-      const nameErrorMessage: string = `Storage account name ${accountName} is not available. Please choose a different name.`;
+      const nameErrorMessage = `Storage account name ${accountName} is not available. Please choose a different name.`;
       logger.error(nameErrorMessage);
       throw new Error(nameErrorMessage);
     }
@@ -348,7 +350,7 @@ export const createStorageAccount = async (
 export const getStorageAccountKey = async (
   resourceGroup: string,
   accountName: string,
-  opts: IAzureAccessOpts = {}
+  opts: AzureAccessOpts = {}
 ): Promise<string | undefined> => {
   // validate input
   const errors: string[] = [];
@@ -403,7 +405,7 @@ export const getStorageAccountKey = async (
 const validateValuesForCreateStorageTable = (
   accountName: string,
   tableName: string
-) => {
+): void => {
   const errors: string[] = [];
 
   if (!accountName) {
@@ -464,7 +466,7 @@ export const createTableIfNotExists = (
 export const createResourceGroupIfNotExists = async (
   name: string,
   location: string
-) => {
+): Promise<void> => {
   // validate input
   const errors: string[] = [];
 

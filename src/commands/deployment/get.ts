@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import Table from "cli-table";
 import commander from "commander";
 import {
@@ -20,7 +22,7 @@ import { Config } from "../../config";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { isIntegerString } from "../../lib/validator";
 import { logger } from "../../logger";
-import { IConfigYaml } from "../../types";
+import { ConfigYaml } from "../../types";
 import decorator from "./get.decorator.json";
 
 /**
@@ -37,8 +39,8 @@ export enum OUTPUT_FORMAT {
  * objects and key during the initialization
  * process
  */
-export interface IInitObject {
-  config: IConfigYaml;
+export interface InitObject {
+  config: ConfigYaml;
   clusterPipeline: AzureDevOpsPipeline;
   hldPipeline: AzureDevOpsPipeline;
   key: string;
@@ -48,7 +50,7 @@ export interface IInitObject {
 /**
  * Command Line values from the commander
  */
-export interface ICommandOptions {
+export interface CommandOptions {
   watch: boolean;
   output: string;
   env: string;
@@ -64,7 +66,7 @@ export interface ICommandOptions {
  * Validated commandline values. After verify top value and
  * the output format.
  */
-export interface IValidatedOptions extends ICommandOptions {
+export interface ValidatedOptions extends CommandOptions {
   nTop: number;
   outputFormat: OUTPUT_FORMAT;
 }
@@ -76,7 +78,7 @@ export interface IValidatedOptions extends ICommandOptions {
  * @return validated values
  * @throws Error if opts.top is not a positive integer
  */
-export const validateValues = (opts: ICommandOptions): IValidatedOptions => {
+export const validateValues = (opts: CommandOptions): ValidatedOptions => {
   let top = 0; // no limits
   if (opts.top) {
     if (isIntegerString(opts.top)) {
@@ -109,9 +111,9 @@ export const validateValues = (opts: ICommandOptions): IValidatedOptions => {
  * @param exitFn exit function
  */
 export const execute = async (
-  opts: ICommandOptions,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   try {
     const values = validateValues(opts);
     const initObjects = await initialize();
@@ -133,7 +135,7 @@ export const execute = async (
  * @param command Commander command object to decorate
  */
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     await execute(opts, async (status: number) => {
       await exitCmd(logger, process.exit, status);
     });
@@ -160,8 +162,8 @@ export const processOutputFormat = (outputFormat: string): OUTPUT_FORMAT => {
  * @param values validated command line values
  */
 export const getDeployments = (
-  initObj: IInitObject,
-  values: IValidatedOptions
+  initObj: InitObject,
+  values: ValidatedOptions
 ): Promise<IDeployment[]> => {
   const config = initObj.config;
   const syncStatusesPromise = getClusterSyncStatuses(initObj);
@@ -210,7 +212,7 @@ export const getDeployments = (
  * @param initObj captures keys and objects during the initialization process
  */
 export const getClusterSyncStatuses = (
-  initObj: IInitObject
+  initObj: InitObject
 ): Promise<ITag[] | undefined> => {
   const config = initObj.config;
   return new Promise((resolve, reject) => {
@@ -272,7 +274,7 @@ export const getClusterSyncStatuses = (
 /**
  * Initializes the pipelines assuming that the configuration has been loaded
  */
-export const initialize = async (): Promise<IInitObject> => {
+export const initialize = async (): Promise<InitObject> => {
   const config = Config();
   const key = await config.introspection!.azure!.key;
 
@@ -324,9 +326,9 @@ export const initialize = async (): Promise<IInitObject> => {
  * @param values Validated values from commander
  */
 export const watchGetDeployments = async (
-  initObjects: IInitObject,
-  values: IValidatedOptions
-) => {
+  initObjects: InitObject,
+  values: ValidatedOptions
+): Promise<void> => {
   const timeInterval = 5000;
 
   // Call get deployments once, and then set the timer.
@@ -506,7 +508,7 @@ export const getClusterSyncStatusForDeployment = (
  * @param status Status
  * @return a status indicator icon
  */
-export const getStatus = (status: string) => {
+export const getStatus = (status: string): string => {
   if (status === "succeeded") {
     return "\u2713";
   } else if (!status) {

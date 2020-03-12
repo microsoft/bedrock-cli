@@ -9,6 +9,8 @@ import * as restAuth from "@azure/ms-rest-nodeauth";
 import { create, getResourceGroups, isExist } from "./resourceService";
 import * as resourceService from "./resourceService";
 
+const RESOURCE_GROUP_LOCATION = "westus2";
+
 jest.mock("@azure/arm-resources", () => {
   class MockClient {
     constructor(
@@ -52,7 +54,6 @@ const servicePrincipalTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";
 const subscriptionId = "test";
 const workspace = "test";
 const RESOURCE_GROUP = "quick-start-rg";
-const RESOURCE_GROUP_LOCATION = "westus2";
 
 describe("Resource Group tests", () => {
   it("getResourceGroups: negative test", async () => {

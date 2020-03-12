@@ -17,6 +17,7 @@ import { Command, executeCommand } from "./commands/command";
 import { commandDecorator as initCommandDecorator } from "./commands/init";
 import { commandDecorator as setupCommandDecorator } from "./commands/setup";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (process as any).noDeprecation = true;
 
 const commandModules = [
@@ -32,7 +33,7 @@ const commandModules = [
 ////////////////////////////////////////////////////////////////////////////////
 // Instantiate core command object
 ////////////////////////////////////////////////////////////////////////////////
-(async () => {
+(async (): Promise<void> => {
   const cmds = await Promise.all(
     commandModules.map(async m => {
       const cmd = await import(`./commands/${m}`);
@@ -43,7 +44,7 @@ const commandModules = [
     "spk",
     "The missing Bedrock CLI",
     [
-      c => {
+      (c): void => {
         c.version(require("../package.json").version);
       },
       initCommandDecorator,

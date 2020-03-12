@@ -1,4 +1,3 @@
-import { getPersonalAccessTokenHandler, WebApi } from "azure-devops-node-api";
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
 import {
   AgentPoolQueue,
@@ -43,7 +42,7 @@ export const getBuildApiClient = async (
   });
 };
 
-interface IPipeline {
+interface Pipeline {
   pipelineName: string;
   repositoryUrl: string;
   repositoryName: string;
@@ -61,13 +60,13 @@ interface IPipeline {
  * backed git repository.
  */
 // tslint:disable-next-line: no-empty-interface
-export interface IAzureRepoPipelineConfig extends IPipeline {}
+export type IAzureRepoPipelineConfig = Pipeline;
 
 /**
  * Interface that describes a Pipeline Configuration for a GitHub backed
  * git repository.
  */
-export interface IGithubRepoPipelineConfig extends IPipeline {
+export interface GithubRepoPipelineConfig extends Pipeline {
   serviceConnectionId: string;
 }
 
@@ -131,7 +130,7 @@ export const definitionForAzureRepoPipeline = (
  * @returns A BuildDefinition that can be consumed by a Build API Client
  */
 export const definitionForGithubRepoPipeline = (
-  pipelineConfig: IGithubRepoPipelineConfig
+  pipelineConfig: GithubRepoPipelineConfig
 ): BuildDefinition => {
   const pipelineDefinition: BuildDefinition = {} as BuildDefinition;
 

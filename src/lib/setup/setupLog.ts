@@ -1,11 +1,11 @@
 import fs from "fs";
-import { IRequestContext, SETUP_LOG } from "./constants";
+import { RequestContext, SETUP_LOG } from "./constants";
 
-const getBooleanVal = (val: boolean | undefined) => {
-  return !!val ? "yes" : "no";
+const getBooleanVal = (val: boolean | undefined): "yes" | "no" => {
+  return val ? "yes" : "no";
 };
 
-export const create = (rc: IRequestContext | undefined, file?: string) => {
+export const create = (rc: RequestContext | undefined, file?: string): void => {
   if (rc) {
     file = file || SETUP_LOG;
     if (fs.existsSync(file)) {

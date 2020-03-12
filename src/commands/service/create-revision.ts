@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/camelcase */
 import commander from "commander";
 import { join } from "path";
 import { Bedrock, Config } from "../../config";
@@ -14,10 +17,10 @@ import {
 } from "../../lib/gitutils";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
-import { IBedrockFile } from "../../types";
+import { BedrockFile } from "../../types";
 import decorator from "./create-revision.decorator.json";
 
-export interface ICommandOptions {
+export interface CommandOptions {
   sourceBranch: string | undefined;
   title: string | undefined;
   description: string | undefined;
@@ -43,9 +46,9 @@ export const getRemoteUrl = async (
 };
 
 export const execute = async (
-  opts: ICommandOptions,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   try {
     const { azure_devops } = Config();
     opts.orgName = opts.orgName || azure_devops?.org;
@@ -96,7 +99,7 @@ export const execute = async (
 };
 
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     await execute(opts, async (status: number) => {
       await exitCmd(logger, process.exit, status);
     });
@@ -110,7 +113,7 @@ export const commandDecorator = (command: commander.Command): void => {
  */
 export const getDefaultRings = (
   targetBranch: string | undefined,
-  bedrockConfig: IBedrockFile
+  bedrockConfig: BedrockFile
 ): string[] => {
   const defaultRings: string[] = targetBranch
     ? [targetBranch]
@@ -162,8 +165,8 @@ export const getSourceBranch = async (
  */
 export const makePullRequest = async (
   defaultRings: string[],
-  opts: ICommandOptions
-) => {
+  opts: CommandOptions
+): Promise<void> => {
   for (const ring of defaultRings) {
     const title = opts.title || `[SPK] ${opts.sourceBranch} => ${ring}`;
     await createPullRequest(title, opts.sourceBranch!, ring, {

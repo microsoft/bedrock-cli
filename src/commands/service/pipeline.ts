@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/camelcase */
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
 import {
   BuildDefinition,
@@ -12,7 +14,7 @@ import {
   BUILD_SCRIPT_URL,
   SERVICE_PIPELINE_FILENAME
 } from "../../lib/constants";
-import { IAzureDevOpsOpts } from "../../lib/git";
+import { AzureDevOpsOpts } from "../../lib/git";
 import {
   getOriginUrl,
   getRepositoryName,
@@ -28,7 +30,7 @@ import {
 import { logger } from "../../logger";
 import decorator from "./pipeline.decorator.json";
 
-export interface ICommandOptions {
+export interface CommandOptions {
   orgName: string;
   personalAccessToken: string;
   devopsProject: string;
@@ -42,8 +44,8 @@ export interface ICommandOptions {
 
 export const fetchValues = async (
   serviceName: string,
-  opts: ICommandOptions
-) => {
+  opts: CommandOptions
+): Promise<CommandOptions> => {
   const { azure_devops } = Config();
   const gitOriginUrl = await getOriginUrl();
 
@@ -60,9 +62,9 @@ export const fetchValues = async (
 
 export const execute = async (
   serviceName: string,
-  opts: ICommandOptions,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   try {
     if (!opts.repoUrl) {
       throw Error(`Repo url not defined`);
@@ -74,7 +76,7 @@ export const execute = async (
       );
     }
     await fetchValues(serviceName, opts);
-    const accessOpts: IAzureDevOpsOpts = {
+    const accessOpts: AzureDevOpsOpts = {
       orgName: opts.orgName,
       personalAccessToken: opts.personalAccessToken,
       project: opts.devopsProject
@@ -102,9 +104,9 @@ export const execute = async (
   }
 };
 
-export const commandDecorator = (command: commander.Command) => {
+export const commandDecorator = (command: commander.Command): void => {
   buildCmd(command, decorator).action(
-    async (serviceName: string, opts: ICommandOptions) => {
+    async (serviceName: string, opts: CommandOptions) => {
       await execute(serviceName, opts, async (status: number) => {
         await exitCmd(logger, process.exit, status);
       });
@@ -124,8 +126,8 @@ export const commandDecorator = (command: commander.Command) => {
 export const installBuildUpdatePipeline = async (
   serviceName: string,
   pipelinesYamlPath: string,
-  values: ICommandOptions
-) => {
+  values: CommandOptions
+): Promise<void> => {
   let devopsClient: IBuildApi | undefined;
   let builtDefinition: BuildDefinition | undefined;
 

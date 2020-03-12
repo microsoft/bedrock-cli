@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/camelcase */
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
 import {
   BuildDefinition,
@@ -18,7 +21,7 @@ import {
   PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE,
   PROJECT_PIPELINE_FILENAME
 } from "../../lib/constants";
-import { IAzureDevOpsOpts } from "../../lib/git";
+import { AzureDevOpsOpts } from "../../lib/git";
 import {
   getOriginUrl,
   getRepositoryName,
@@ -32,10 +35,10 @@ import {
   queueBuild
 } from "../../lib/pipelines/pipelines";
 import { logger } from "../../logger";
-import { IBedrockFileInfo, IConfigYaml } from "../../types";
+import { BedrockFileInfo, ConfigYaml } from "../../types";
 import decorator from "./pipeline.decorator.json";
 
-export interface ICommandOptions {
+export interface CommandOptions {
   orgName: string | undefined;
   personalAccessToken: string | undefined;
   devopsProject: string | undefined;
@@ -46,8 +49,8 @@ export interface ICommandOptions {
   yamlFileBranch: string;
 }
 
-export const checkDependencies = (projectPath: string) => {
-  const file: IBedrockFileInfo = bedrockFileInfo(projectPath);
+export const checkDependencies = (projectPath: string): void => {
+  const file: BedrockFileInfo = bedrockFileInfo(projectPath);
   if (file.exist === false) {
     throw new Error(PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE);
   } else if (file.hasVariableGroups === false) {
@@ -65,10 +68,10 @@ export const checkDependencies = (projectPath: string) => {
  * @returns values that are needed for this command.
  */
 export const fetchValidateValues = (
-  opts: ICommandOptions,
+  opts: CommandOptions,
   gitOriginUrl: string,
-  spkConfig: IConfigYaml | undefined
-): ICommandOptions | null => {
+  spkConfig: ConfigYaml | undefined
+): CommandOptions | null => {
   if (!spkConfig) {
     throw new Error("SPK Config is missing");
   }
@@ -76,7 +79,7 @@ export const fetchValidateValues = (
   if (!opts.repoUrl) {
     throw Error(`Repo url not defined`);
   }
-  const values: ICommandOptions = {
+  const values: CommandOptions = {
     buildScriptUrl: opts.buildScriptUrl || BUILD_SCRIPT_URL,
     devopsProject: opts.devopsProject || azure_devops?.project,
     orgName: opts.orgName || azure_devops?.org,
@@ -89,7 +92,7 @@ export const fetchValidateValues = (
   };
 
   const map: { [key: string]: string | undefined } = {};
-  (Object.keys(values) as Array<keyof ICommandOptions>).forEach(key => {
+  (Object.keys(values) as Array<keyof CommandOptions>).forEach(key => {
     const val = values[key];
     if (key === "personalAccessToken") {
       logger.debug(`${key}: XXXXXXXXXXXXXXXXX`);
@@ -111,10 +114,10 @@ export const fetchValidateValues = (
  * @param exitFn Exit function.
  */
 export const execute = async (
-  opts: ICommandOptions,
+  opts: CommandOptions,
   projectPath: string,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   if (!opts.repoUrl || !opts.pipelineName) {
     logger.error(`Values for repo url and/or pipeline name are missing`);
     await exitFn(1);
@@ -144,7 +147,7 @@ export const execute = async (
     if (values === null) {
       await exitFn(1);
     } else {
-      const accessOpts: IAzureDevOpsOpts = {
+      const accessOpts: AzureDevOpsOpts = {
         orgName: values.orgName,
         personalAccessToken: values.personalAccessToken,
         project: values.devopsProject
@@ -167,8 +170,8 @@ export const execute = async (
   }
 };
 
-export const commandDecorator = (command: commander.Command) => {
-  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     await execute(opts, process.cwd(), async (status: number) => {
       await exitCmd(logger, process.exit, status);
     });
@@ -176,7 +179,7 @@ export const commandDecorator = (command: commander.Command) => {
 };
 
 const createPipeline = async (
-  values: ICommandOptions,
+  values: CommandOptions,
   devopsClient: IBuildApi,
   definitionBranch: string
 ): Promise<BuildDefinition> => {
@@ -215,7 +218,9 @@ const createPipeline = async (
  * @param values Values from command line. These values are pre-checked
  * @param exitFn Exit function
  */
-export const installLifecyclePipeline = async (values: ICommandOptions) => {
+export const installLifecyclePipeline = async (
+  values: CommandOptions
+): Promise<void> => {
   const devopsClient = await getBuildApiClient(
     values.orgName!,
     values.personalAccessToken!

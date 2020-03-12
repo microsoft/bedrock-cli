@@ -4,7 +4,7 @@ import { DEFAULT_CONTENT as BedrockMockedContent } from "../../lib/bedrockYaml";
 import * as azure from "../../lib/git/azure";
 import * as gitutils from "../../lib/gitutils";
 import { createTempDir } from "../../lib/ioUtil";
-import { IBedrockFile } from "../../types";
+import { BedrockFile } from "../../types";
 import {
   execute,
   getDefaultRings,
@@ -46,7 +46,7 @@ describe("test makePullRequest function", () => {
 describe("Default rings", () => {
   test("Get multiple default rings", () => {
     const randomTmpDir = createTempDir();
-    const validBedrockYaml: IBedrockFile = {
+    const validBedrockYaml: BedrockFile = {
       rings: {
         master: { isDefault: true },
         prod: { isDefault: false },
@@ -77,7 +77,7 @@ describe("Default rings", () => {
 
   test("No default rings", () => {
     const randomTmpDir = createTempDir();
-    const validBedrockYaml: IBedrockFile = {
+    const validBedrockYaml: BedrockFile = {
       rings: {
         master: { isDefault: false },
         prod: { isDefault: false },

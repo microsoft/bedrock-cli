@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import * as config from "../../config";
 import * as azdo from "../../lib/azdoClient";
 import { BUILD_SCRIPT_URL } from "../../lib/constants";
@@ -11,19 +12,19 @@ import {
   queueBuild
 } from "../../lib/pipelines/pipelines";
 import { deepClone } from "../../lib/util";
-import { IConfigYaml } from "../../types";
+import { ConfigYaml } from "../../types";
 
 import {
   emptyStringIfUndefined,
   execute,
-  ICommandOptions,
+  CommandOptions,
   installHldToManifestPipeline,
   populateValues,
   requiredPipelineVariables
 } from "./pipeline";
 import * as pipeline from "./pipeline";
 
-const MOCKED_VALUES: ICommandOptions = {
+const MOCKED_VALUES: CommandOptions = {
   buildScriptUrl: "buildScriptUrl",
   devopsProject: "project",
   hldName: "hldName",
@@ -46,7 +47,7 @@ const MOCKED_CONFIG = {
   }
 };
 
-const getMockObject = (): ICommandOptions => {
+const getMockObject = (): CommandOptions => {
   return deepClone(MOCKED_VALUES);
 };
 
@@ -75,7 +76,7 @@ describe("test emptyStringIfUndefined function", () => {
 describe("test populateValues function", () => {
   it("with all values in command opts", () => {
     jest.spyOn(config, "Config").mockImplementationOnce(
-      (): IConfigYaml => {
+      (): ConfigYaml => {
         return MOCKED_CONFIG;
       }
     );
@@ -84,7 +85,7 @@ describe("test populateValues function", () => {
   });
   it("without any values in command opts", () => {
     jest.spyOn(config, "Config").mockImplementationOnce(
-      (): IConfigYaml => {
+      (): ConfigYaml => {
         return MOCKED_CONFIG;
       }
     );
@@ -155,7 +156,7 @@ describe("test populateValues function", () => {
 describe("test execute function", () => {
   it("positive test", async () => {
     jest.spyOn(config, "Config").mockImplementationOnce(
-      (): IConfigYaml => {
+      (): ConfigYaml => {
         return MOCKED_CONFIG;
       }
     );

@@ -8,12 +8,11 @@ import {
   HLD_DEFAULT_DEF_PATH,
   HLD_DEFAULT_GIT_URL,
   HLD_REPO,
-  IRequestContext,
+  RequestContext,
   MANIFEST_REPO
 } from "./constants";
 import { createDirectory, moveToAbsPath, moveToRelativePath } from "./fsUtil";
-import { createRepoInAzureOrg } from "./gitService";
-import { commitAndPushToRemote } from "./gitService";
+import { commitAndPushToRemote, createRepoInAzureOrg } from "./gitService";
 
 export const createRepo = async (
   gitApi: IGitApi,
@@ -37,7 +36,10 @@ export const createRepo = async (
  * @param gitApi Git API client
  * @param rc request Context
  */
-export const manifestRepo = async (gitApi: IGitApi, rc: IRequestContext) => {
+export const manifestRepo = async (
+  gitApi: IGitApi,
+  rc: RequestContext
+): Promise<void> => {
   logger.info("Scaffolding Manifest Repo");
   const repoName = MANIFEST_REPO;
   const curFolder = process.cwd();
@@ -67,7 +69,10 @@ export const manifestRepo = async (gitApi: IGitApi, rc: IRequestContext) => {
  * @param gitApi Git API client
  * @param rc request Context
  */
-export const hldRepo = async (gitApi: IGitApi, rc: IRequestContext) => {
+export const hldRepo = async (
+  gitApi: IGitApi,
+  rc: RequestContext
+): Promise<void> => {
   logger.info("Scaffolding HLD Repo");
   const repoName = HLD_REPO;
   const curFolder = process.cwd();

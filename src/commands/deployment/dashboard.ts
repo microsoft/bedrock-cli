@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/camelcase */
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import commander from "commander";
 import GitUrlParse from "git-url-parse";
 import open = require("open");
@@ -7,10 +10,10 @@ import { getRepositoryName } from "../../lib/gitutils";
 import { exec } from "../../lib/shell";
 import { isPortNumberString, validatePrereqs } from "../../lib/validator";
 import { logger } from "../../logger";
-import { IConfigYaml } from "../../types";
+import { ConfigYaml } from "../../types";
 import decorator from "./dashboard.decorator.json";
 
-export interface IIntrospectionManifest {
+export interface IntrospectionManifest {
   githubUsername?: string;
   manifestRepoName: string;
 }
@@ -18,7 +21,7 @@ export interface IIntrospectionManifest {
 /**
  * Command line option values from commander
  */
-export interface ICommandOptions {
+export interface CommandOptions {
   port: string;
   removeAll: boolean;
 }
@@ -29,7 +32,10 @@ export interface ICommandOptions {
  * @param config SPK Configuration
  * @param opts Command Line option values
  */
-export const validateValues = (config: IConfigYaml, opts: ICommandOptions) => {
+export const validateValues = (
+  config: ConfigYaml,
+  opts: CommandOptions
+): void => {
   if (opts.port) {
     if (!isPortNumberString(opts.port)) {
       throw new Error("value for port option has to be a valid port number");
@@ -61,9 +67,9 @@ export const validateValues = (config: IConfigYaml, opts: ICommandOptions) => {
  * @param exitFn exit function
  */
 export const execute = async (
-  opts: ICommandOptions,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   try {
     const config = Config();
     validateValues(config, opts);
@@ -84,7 +90,7 @@ export const execute = async (
  * @param command Commander command object to decorate
  */
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     await execute(opts, async (status: number) => {
       await exitCmd(logger, process.exit, status);
     });
@@ -94,7 +100,9 @@ export const commandDecorator = (command: commander.Command): void => {
 /**
  * Cleans previously launched spk dashboard docker containers
  */
-export const cleanDashboarContainers = async (config: IConfigYaml) => {
+export const cleanDashboardContainers = async (
+  config: ConfigYaml
+): Promise<void> => {
   let dockerOutput = await exec("docker", [
     "ps",
     "-a",
@@ -120,7 +128,7 @@ export const cleanDashboarContainers = async (config: IConfigYaml) => {
  * @param removeAll true to remove all previously launched instances of the dashboard
  */
 export const launchDashboard = async (
-  config: IConfigYaml,
+  config: ConfigYaml,
   port: number,
   removeAll: boolean
 ): Promise<string> => {
@@ -130,7 +138,7 @@ export const launchDashboard = async (
     }
 
     if (removeAll) {
-      await cleanDashboarContainers(config);
+      await cleanDashboardContainers(config);
     }
 
     const dockerRepository = config.introspection!.dashboard!.image!;
@@ -157,7 +165,7 @@ export const launchDashboard = async (
  * Creates and returns an array of env vars that need to be passed into the
  * docker run command
  */
-export const getEnvVars = async (config: IConfigYaml): Promise<string[]> => {
+export const getEnvVars = async (config: ConfigYaml): Promise<string[]> => {
   const key = await config.introspection!.azure!.key;
   const envVars = [];
   envVars.push("-e");
@@ -236,8 +244,8 @@ export const getEnvVars = async (config: IConfigYaml): Promise<string[]> => {
  * information on dashboard
  */
 export const extractManifestRepositoryInformation = (
-  config: IConfigYaml
-): IIntrospectionManifest | undefined => {
+  config: ConfigYaml
+): IntrospectionManifest | undefined => {
   const { azure_devops } = config;
   if (azure_devops!.manifest_repository) {
     const manifestRepoName = getRepositoryName(

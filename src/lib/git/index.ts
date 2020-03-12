@@ -1,4 +1,4 @@
-export interface IAzureDevOpsOpts {
+export interface AzureDevOpsOpts {
   personalAccessToken?: string;
   orgName?: string;
   project?: string;
@@ -12,5 +12,5 @@ export type PullRequest = (
   options?: {
     description?: string; // description for the PR
     originPushUrl?: string; // remote origin url; use this to search for the target repository. If not present, fallback to `git config --get remote.origin.url`
-  } & IAzureDevOpsOpts
+  } & AzureDevOpsOpts
 ) => Promise<unknown>;

@@ -3,7 +3,7 @@ import * as fileUtils from "../../lib/fileutils";
 import { createTempDir } from "../../lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { createTestBedrockYaml } from "../../test/mockFactory";
-import { IBedrockFile } from "../../types";
+import { BedrockFile } from "../../types";
 import { checkDependencies, execute } from "./delete";
 
 jest.mock("../../lib/fileutils");
@@ -28,7 +28,7 @@ describe("checkDependencies", () => {
 
   it("does not throw when project initialized", () => {
     const tmpDir = createTempDir();
-    bedrock.create(tmpDir, createTestBedrockYaml(false) as IBedrockFile);
+    bedrock.create(tmpDir, createTestBedrockYaml(false) as BedrockFile);
     expect(() => checkDependencies(tmpDir)).not.toThrow();
   });
 });
@@ -44,7 +44,7 @@ describe("test execute function and logic", () => {
   it("test execute function: working path with bedrock.yaml", async () => {
     const exitFn = jest.fn();
     const tmpDir = createTempDir();
-    const bedrockConfig = createTestBedrockYaml(false) as IBedrockFile;
+    const bedrockConfig = createTestBedrockYaml(false) as BedrockFile;
     bedrock.create(tmpDir, bedrockConfig);
 
     // delete the first ring and write out the update

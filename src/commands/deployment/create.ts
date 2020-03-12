@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import commander from "commander";
 import {
   addSrcToACRPipeline,
-  IDeploymentTable,
+  DeploymentTable,
   updateACRToHLDPipeline,
   updateHLDToManifestPipeline,
   updateManifestCommitId
@@ -14,7 +15,7 @@ import decorator from "./create.decorator.json";
 /**
  * Command Line values from the commander
  */
-export interface ICommandOptions {
+export interface CommandOptions {
   accessKey: string | undefined;
   commitId: string | undefined;
   env: string | undefined;
@@ -37,7 +38,7 @@ export interface ICommandOptions {
  *
  * @param opts values from commander
  */
-export const validateValues = (opts: ICommandOptions) => {
+export const validateValues = (opts: CommandOptions): void => {
   if (
     !hasValue(opts.accessKey) ||
     !hasValue(opts.name) ||
@@ -51,9 +52,9 @@ export const validateValues = (opts: ICommandOptions) => {
 };
 
 export const handlePipeline1 = async (
-  tableInfo: IDeploymentTable,
-  opts: ICommandOptions
-) => {
+  tableInfo: DeploymentTable,
+  opts: CommandOptions
+): Promise<void> => {
   if (
     !hasValue(opts.imageTag) ||
     !hasValue(opts.commitId) ||
@@ -74,9 +75,9 @@ export const handlePipeline1 = async (
 };
 
 export const handlePipeline2 = async (
-  tableInfo: IDeploymentTable,
-  opts: ICommandOptions
-) => {
+  tableInfo: DeploymentTable,
+  opts: CommandOptions
+): Promise<void> => {
   if (
     !hasValue(opts.hldCommitId) ||
     !hasValue(opts.env) ||
@@ -105,13 +106,13 @@ export const handlePipeline2 = async (
  * @param exitFn exit function
  */
 export const execute = async (
-  opts: ICommandOptions,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   try {
     validateValues(opts);
 
-    const tableInfo: IDeploymentTable = {
+    const tableInfo: DeploymentTable = {
       accountKey: opts.accessKey!,
       accountName: opts.name!,
       partitionKey: opts.partitionKey!,
@@ -153,7 +154,7 @@ export const execute = async (
  * @param command
  */
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     await execute(opts, async (status: number) => {
       await exitCmd(logger, process.exit, status);
     });

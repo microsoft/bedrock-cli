@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 jest.mock("azure-devops-node-api");
 jest.mock("../config");
 
@@ -13,7 +14,7 @@ import {
   repositoryHasFile
 } from "./azdoClient";
 import * as azdoClient from "./azdoClient";
-import { IAzureDevOpsOpts } from "./git";
+import { AzureDevOpsOpts } from "./git";
 import * as azure from "./git/azure";
 
 describe("AzDo Pipeline utility functions", () => {
@@ -30,7 +31,7 @@ beforeEach(() => {
   invalidateWebApi();
 });
 
-const mockConfig = (token?: string, org?: string) => {
+const mockConfig = (token?: string, org?: string): void => {
   (Config as jest.Mock).mockReturnValueOnce({
     azure_devops: {
       access_token: token,
@@ -74,6 +75,7 @@ describe("test getTaskAgentApi function", () => {
       getTaskAgentApi: () => {
         return {};
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const res = await getTaskAgentApi();
@@ -100,6 +102,7 @@ describe("test getRestClient function", () => {
     const mockFn = jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce(
       Promise.resolve({
         rest: {}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
     );
 
@@ -128,6 +131,7 @@ describe("test getBuildApi function", () => {
       getBuildApi: () => {
         return {};
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const api = await getBuildApi();
@@ -144,9 +148,10 @@ describe("repositoryHasFile", () => {
   test("repository contains the given file", async () => {
     const createPullRequestFunc = jest.spyOn(azure, "GitAPI");
     createPullRequestFunc.mockReturnValueOnce(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       Promise.resolve({ getItem: () => ({ commitId: "3839fjfkj" }) } as any)
     );
-    const accessOpts: IAzureDevOpsOpts = {
+    const accessOpts: AzureDevOpsOpts = {
       orgName: "testOrg",
       personalAccessToken: "mytoken",
       project: "testProject"
@@ -168,9 +173,10 @@ describe("repositoryHasFile", () => {
   test("repository does not contain the given file", async () => {
     const createPullRequestFunc = jest.spyOn(azure, "GitAPI");
     createPullRequestFunc.mockReturnValueOnce(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       Promise.resolve({ getItem: () => null } as any)
     );
-    const accessOpts: IAzureDevOpsOpts = {
+    const accessOpts: AzureDevOpsOpts = {
       orgName: "testOrg",
       personalAccessToken: "mytoken",
       project: "testProject"

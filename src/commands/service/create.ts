@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import { fail } from "assert";
 import commander from "commander";
 import path from "path";
@@ -24,10 +25,10 @@ import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import * as dns from "../../lib/net/dns";
 import { isPortNumberString } from "../../lib/validator";
 import { logger } from "../../logger";
-import { IBedrockFileInfo, IHelmConfig, IUser } from "../../types";
+import { BedrockFileInfo, HelmConfig, User } from "../../types";
 import decorator from "./create.decorator.json";
 
-export interface ICommandOptions {
+export interface CommandOptions {
   displayName: string;
   gitPush: boolean;
   helmChartChart: string;
@@ -46,14 +47,14 @@ export interface ICommandOptions {
   pathPrefixMajorVersion: string;
 }
 
-export interface ICommandValues extends ICommandOptions {
+export interface CommandValues extends CommandOptions {
   k8sPort: number;
   middlewaresArray: string[];
   ringNames: string[];
   variableGroups: string[];
 }
 
-export const fetchValues = (opts: ICommandOptions) => {
+export const fetchValues = (opts: CommandOptions): CommandValues => {
   if (!isPortNumberString(opts.k8sBackendPort)) {
     throw Error("value for --k8s-service-port is not a valid port number");
   }
@@ -67,7 +68,7 @@ export const fetchValues = (opts: ICommandOptions) => {
     middlewaresArray = opts.middlewares.split(",").map(str => str.trim());
   }
 
-  const values: ICommandValues = {
+  const values: CommandValues = {
     displayName: opts.displayName,
     gitPush: opts.gitPush,
     helmChartChart: opts.helmChartChart,
@@ -95,8 +96,8 @@ export const fetchValues = (opts: ICommandOptions) => {
   return values;
 };
 
-export const checkDependencies = (projectPath: string) => {
-  const fileInfo: IBedrockFileInfo = bedrockFileInfo(projectPath);
+export const checkDependencies = (projectPath: string): void => {
+  const fileInfo: BedrockFileInfo = bedrockFileInfo(projectPath);
   if (fileInfo.exist === false) {
     throw Error(PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE);
   } else if (fileInfo.hasVariableGroups === false) {
@@ -111,7 +112,7 @@ export const checkDependencies = (projectPath: string) => {
  * @throws {Error} when any of displayName, k8sBackend, pathPrefix,
  *                 pathPrefixMajorVersion are provided and are non-DNS compliant
  */
-export const assertValidDnsInputs = (opts: Partial<ICommandOptions>): void => {
+export const assertValidDnsInputs = (opts: Partial<CommandOptions>): void => {
   if (opts.displayName) {
     dns.assertIsValid("--display-name", opts.displayName);
   }
@@ -131,9 +132,9 @@ export const assertValidDnsInputs = (opts: Partial<ICommandOptions>): void => {
 
 export const execute = async (
   serviceName: string,
-  opts: ICommandOptions,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   if (!serviceName) {
     logger.error("Service name is missing");
     await exitFn(1);
@@ -228,7 +229,7 @@ export const validateGitUrl = async (
  */
 export const commandDecorator = (command: commander.Command): void => {
   buildCmd(command, decorator).action(
-    async (serviceName: string, opts: ICommandOptions) => {
+    async (serviceName: string, opts: CommandOptions) => {
       await execute(serviceName, opts, async (status: number) => {
         await exitCmd(logger, process.exit, status);
       });
@@ -246,8 +247,8 @@ export const commandDecorator = (command: commander.Command): void => {
 export const createService = async (
   rootProjectPath: string,
   serviceName: string,
-  values: ICommandValues
-) => {
+  values: CommandValues
+): Promise<void> => {
   logger.info(
     `Adding Service: ${serviceName}, to Project: ${rootProjectPath} under directory: ${values.packagesDir}`
   );
@@ -300,7 +301,7 @@ export const createService = async (
   const newUser = {
     email: values.maintainerEmail,
     name: values.maintainerName
-  } as IUser;
+  } as User;
 
   const newServiceRelativeDir = path.relative(rootProjectPath, newServiceDir);
   logger.debug(`newServiceRelPath: ${newServiceRelativeDir}`);
@@ -313,7 +314,7 @@ export const createService = async (
 
   // Add relevant bedrock info to parent bedrock.yaml
 
-  const helmConfig: IHelmConfig =
+  const helmConfig: HelmConfig =
     values.helmChartChart && values.helmChartRepository
       ? {
           chart: {

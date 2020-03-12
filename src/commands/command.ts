@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 import { enableVerboseLogging, logger } from "../logger";
 
@@ -9,11 +10,11 @@ import { enableVerboseLogging, logger } from "../logger";
  * Warning: Avoid implementing this interface directly; use Command() function
  * to generate concrete implementations.
  */
-interface ICommand {
+interface Command {
   name: string;
   description: string;
   command: commander.Command;
-  subCommands: ICommand[];
+  subCommands: Command[];
 }
 
 /**
@@ -39,8 +40,8 @@ export const Command = (
   name: string,
   description: string,
   decorators: Array<(c: commander.Command) => void> = [],
-  subCommands: ICommand[] = []
-): ICommand => {
+  subCommands: Command[] = []
+): Command => {
   // Initialize default command
   const cmd = new commander.Command();
   cmd
@@ -95,7 +96,7 @@ const decrementArgv = (argv: string[]): string[] => {
  * @param cmd ICommand object to execute against
  * @param argv Array of arguments, flags *must* come at the end (limitation of using git-style sub-commands)
  */
-export const executeCommand = (cmd: ICommand, argv: string[]): void => {
+export const executeCommand = (cmd: Command, argv: string[]): void => {
   const targetCommandName = argv.slice(2, 3)[0];
   const targetCommand = cmd.subCommands.find(
     sc => sc.name === targetCommandName
@@ -129,7 +130,7 @@ export const executeCommand = (cmd: ICommand, argv: string[]): void => {
  *
  * @param c ICommand object to prepare
  */
-const linkSubCommands = (c: ICommand): ICommand => {
+const linkSubCommands = (c: Command): Command => {
   const { command, subCommands } = c;
   // Add all sub-commands
   for (const subCommand of subCommands) {

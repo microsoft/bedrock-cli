@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import fs from "fs";
 import yaml from "js-yaml";
 import mockFs from "mock-fs";
@@ -10,7 +11,7 @@ import {
   read as readBedrockFile
 } from "../../lib/bedrockYaml";
 import { PROJECT_PIPELINE_FILENAME } from "../../lib/constants";
-import { IAzureDevOpsOpts } from "../../lib/git";
+import { AzureDevOpsOpts } from "../../lib/git";
 import { createTempDir } from "../../lib/ioUtil";
 import * as pipelineVariableGroup from "../../lib/pipelines/variableGroup";
 import {
@@ -22,7 +23,7 @@ import {
   createTestBedrockYaml,
   createTestHldLifecyclePipelineYaml
 } from "../../test/mockFactory";
-import { IAzurePipelinesYaml, IBedrockFile } from "../../types";
+import { AzurePipelinesYaml, BedrockFile } from "../../types";
 import {
   create,
   execute,
@@ -93,7 +94,7 @@ describe("test execute function", () => {
 
 describe("create", () => {
   test("Should fail with empty variable group arguments", async () => {
-    const accessOpts: IAzureDevOpsOpts = {
+    const accessOpts: AzureDevOpsOpts = {
       orgName,
       personalAccessToken,
       project: devopsProject
@@ -122,7 +123,7 @@ describe("create", () => {
       return Promise.resolve({});
     });
 
-    const accessOpts: IAzureDevOpsOpts = {
+    const accessOpts: AzureDevOpsOpts = {
       orgName,
       personalAccessToken,
       project: devopsProject
@@ -212,7 +213,7 @@ describe("setVariableGroupInBedrockFile", () => {
 
     const prevariableGroupName = uuid();
     logger.info(`prevariableGroupName: ${prevariableGroupName}`);
-    const bedrockFileData: IBedrockFile = {
+    const bedrockFileData: BedrockFile = {
       rings: {}, // rings is optional but necessary to create a bedrock file in config.write method
       services: {}, // service property is not optional so set it to null
       variableGroups: [prevariableGroupName]
@@ -232,6 +233,7 @@ describe("setVariableGroupInBedrockFile", () => {
 describe("updateLifeCyclePipeline", () => {
   beforeAll(() => {
     mockFs({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       "bedrock.yaml": createTestBedrockYaml() as any
     });
   });
@@ -273,15 +275,15 @@ describe("updateLifeCyclePipeline", () => {
 
     const defaultBedrockFileObject = createTestBedrockYaml(
       false
-    ) as IBedrockFile;
+    ) as BedrockFile;
 
     write(defaultBedrockFileObject, randomTmpDir);
 
     const hldFilePath = path.join(randomTmpDir, PROJECT_PIPELINE_FILENAME);
 
-    const hldLifeCycleFile: IAzurePipelinesYaml = createTestHldLifecyclePipelineYaml(
+    const hldLifeCycleFile: AzurePipelinesYaml = createTestHldLifecyclePipelineYaml(
       false
-    ) as IAzurePipelinesYaml;
+    ) as AzurePipelinesYaml;
 
     const asYaml = yaml.safeDump(hldLifeCycleFile, {
       lineWidth: Number.MAX_SAFE_INTEGER
@@ -291,7 +293,7 @@ describe("updateLifeCyclePipeline", () => {
 
     await updateLifeCyclePipeline(randomTmpDir);
 
-    const hldLifeCycleYaml = readYaml<IAzurePipelinesYaml>(hldFilePath);
+    const hldLifeCycleYaml = readYaml<AzurePipelinesYaml>(hldFilePath);
     logger.info(`filejson: ${JSON.stringify(hldLifeCycleYaml)}`);
     expect(hldLifeCycleYaml.variables!.length).toBeLessThanOrEqual(0);
   });
@@ -303,7 +305,7 @@ describe("updateLifeCyclePipeline", () => {
 
     const defaultBedrockFileObject = createTestBedrockYaml(
       false
-    ) as IBedrockFile;
+    ) as BedrockFile;
 
     // add new variabe group
     defaultBedrockFileObject.variableGroups = [
@@ -315,9 +317,9 @@ describe("updateLifeCyclePipeline", () => {
 
     const hldFilePath = path.join(randomTmpDir, PROJECT_PIPELINE_FILENAME);
 
-    const hldLifeCycleFile: IAzurePipelinesYaml = createTestHldLifecyclePipelineYaml(
+    const hldLifeCycleFile: AzurePipelinesYaml = createTestHldLifecyclePipelineYaml(
       false
-    ) as IAzurePipelinesYaml;
+    ) as AzurePipelinesYaml;
 
     const asYaml = yaml.safeDump(hldLifeCycleFile, {
       lineWidth: Number.MAX_SAFE_INTEGER
@@ -327,7 +329,7 @@ describe("updateLifeCyclePipeline", () => {
 
     await updateLifeCyclePipeline(randomTmpDir);
 
-    const hldLifeCycleYaml = readYaml<IAzurePipelinesYaml>(hldFilePath);
+    const hldLifeCycleYaml = readYaml<AzurePipelinesYaml>(hldFilePath);
     logger.info(`filejson: ${JSON.stringify(hldLifeCycleYaml)}`);
     expect(hldLifeCycleYaml.variables![0]).toEqual({
       group: variableGroupName

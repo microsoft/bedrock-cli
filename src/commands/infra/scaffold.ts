@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import commander from "commander";
 import fs from "fs";
 import fsextra from "fs-extra";
@@ -6,8 +8,8 @@ import path from "path";
 import { Config } from "../../config";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { logger } from "../../logger";
-import { IConfigYaml } from "../../types";
-import { ISourceInformation, validateRemoteSource } from "./generate";
+import { ConfigYaml } from "../../types";
+import { SourceInformation, validateRemoteSource } from "./generate";
 import {
   BACKEND_TFVARS,
   DEFAULT_VAR_VALUE,
@@ -19,7 +21,7 @@ import {
 } from "./infra_common";
 import decorator from "./scaffold.decorator.json";
 
-export interface ICommandOptions {
+export interface CommandOptions {
   name: string;
   source: string;
   template: string;
@@ -32,7 +34,10 @@ export interface ICommandOptions {
  * @param config Configuration
  * @param opts Command Line options that are passed in
  */
-export const validateValues = (config: IConfigYaml, opts: ICommandOptions) => {
+export const validateValues = (
+  config: ConfigYaml,
+  opts: CommandOptions
+): void => {
   if (
     !config.azure_devops ||
     !config.azure_devops.access_token ||
@@ -55,7 +60,7 @@ or PAT embedded in source URL.`);
 };
 
 // Construct the source based on the the passed configurations of spk-config.yaml
-export const constructSource = (config: IConfigYaml) => {
+export const constructSource = (config: ConfigYaml): string => {
   const devops = config.azure_devops!;
   const source = `https://spk:${devops.access_token}@${devops.infra_repository}`;
   logger.info(
@@ -65,17 +70,17 @@ export const constructSource = (config: IConfigYaml) => {
 };
 
 export const execute = async (
-  config: IConfigYaml,
-  opts: ICommandOptions,
+  config: ConfigYaml,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   try {
     validateValues(config, opts);
     opts.source = opts.source || constructSource(config);
 
     /* scaffoldDefinition will take in a definition object with a
         null configuration. Hence, the first index is "" */
-    const scaffoldDefinition: ISourceInformation = {
+    const scaffoldDefinition: SourceInformation = {
       source: opts.source,
       template: opts.template,
       version: opts.version
@@ -105,7 +110,7 @@ export const execute = async (
  * @param command Commander command object to decorate
  */
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     const config = Config();
     await execute(config, opts, async (status: number) => {
       await exitCmd(logger, process.exit, status);
@@ -118,7 +123,7 @@ export const commandDecorator = (command: commander.Command): void => {
  *
  * @param templatePath Path to the variables.tf file
  */
-export const validateVariablesTf = (templatePath: string) => {
+export const validateVariablesTf = (templatePath: string): void => {
   try {
     if (!fs.existsSync(templatePath)) {
       throw new Error(
@@ -159,7 +164,7 @@ export const copyTfTemplate = async (
   templatePath: string,
   envName: string,
   generation: boolean
-) => {
+): Promise<void> => {
   try {
     if (generation === true) {
       await fsextra.copy(templatePath, envName, {
@@ -186,7 +191,7 @@ export const copyTfTemplate = async (
  *
  * @param envPath path so the directory of Terraform templates
  */
-export const removeTemplateFiles = (envPath: string) => {
+export const removeTemplateFiles = (envPath: string): void => {
   // Remove template files after parsing
   try {
     const files = fs.readdirSync(envPath);
@@ -228,7 +233,7 @@ export const parseVariablesTf = (data: string): { [key: string]: string } => {
   // iterate through each 'block' and extract the variable name and any possible
   // default value.  if no default value found, null is used in it's place
   const fields: { [key: string]: string } = {};
-  const fieldSplitRegex = /\"\s{0,}\{/;
+  const fieldSplitRegex = /"\s{0,}\{/;
   const defaultRegex = /default\s{0,}=\s{0,}(.*)/;
   blocks.forEach(b => {
     b = b.trim();
@@ -262,12 +267,12 @@ export const parseBackendTfvars = (
   backendData: string
 ): { [key: string]: string } => {
   const backend: { [key: string]: string | "" } = {};
-  const block = backendData.replace(/\=/g, ":").split("\n");
+  const block = backendData.replace(/=/g, ":").split("\n");
   block.forEach(b => {
     const elt = b.split(":");
     if (elt[0].length > 0) {
       backend[elt[0]] = elt[1]
-        .replace(/\"/g, "")
+        .replace(/"/g, "")
         .replace(/(?:\\[rn]|[\r\n]+)+/g, "");
     }
   });
@@ -282,7 +287,7 @@ export const parseBackendTfvars = (
  * @param vartfData path to the variables.tf file
  */
 export const generateClusterDefinition = (
-  values: ICommandOptions,
+  values: CommandOptions,
   backendData: string,
   vartfData: string
 ): { [key: string]: string | { [key: string]: string } } => {
@@ -320,7 +325,7 @@ export const generateClusterDefinition = (
  *
  * @param values Values from command line
  */
-export const scaffold = (values: ICommandOptions) => {
+export const scaffold = (values: CommandOptions): void => {
   try {
     const tfVariableFile = path.join(values.name, VARIABLES_TF);
     const backendTfvarsFile = path.join(values.name, BACKEND_TFVARS);

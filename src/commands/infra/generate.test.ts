@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import fs from "fs";
 import * as fsExtra from "fs-extra";
 import path from "path";
@@ -6,7 +7,7 @@ import { loadConfigurationFromLocalEnv, readYaml } from "../../config";
 import { safeGitUrlForLogging } from "../../lib/gitutils";
 import { removeDir } from "../../lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
-import { IInfraConfigYaml } from "../../types";
+import { InfraConfigYaml } from "../../types";
 import {
   checkRemoteGitExist,
   createGenerated,
@@ -36,7 +37,7 @@ import {
 } from "./infra_common";
 import * as infraCommon from "./infra_common";
 
-interface IGitTestData {
+interface GitTestData {
   source: string;
   sourcePath: string;
   safeLoggingUrl: string;
@@ -73,7 +74,7 @@ afterEach(() => {
 //
 //////////////////////////////////////////////////////////////////////////////
 
-const testCheckRemoteGitExist = async (positive: boolean) => {
+const testCheckRemoteGitExist = async (positive: boolean): Promise<void> => {
   const { safeLoggingUrl, source, sourcePath } = await getMockedDataForGitTests(
     positive
   );
@@ -99,7 +100,7 @@ describe("test checkRemoteGitExist function", () => {
   });
 });
 
-const testGitFetchPull = async (positive: boolean) => {
+const testGitFetchPull = async (positive: boolean): Promise<void> => {
   const { safeLoggingUrl, sourcePath } = await getMockedDataForGitTests(
     positive
   );
@@ -123,7 +124,7 @@ describe("test gitFetchPull function", () => {
   });
 });
 
-const testGitCheckout = async (positive: boolean) => {
+const testGitCheckout = async (positive: boolean): Promise<void> => {
   const { sourcePath } = await getMockedDataForGitTests(positive);
   if (!positive || fs.existsSync(path.join(sourcePath, ".git"))) {
     await gitCheckout(sourcePath, "v0.0.1");
@@ -148,7 +149,7 @@ describe("test gitCheckout function", () => {
 describe("test gitClone function", () => {
   it("postive Test", async () => {
     const git = simpleGit();
-    git.clone = async () => {
+    git.clone = async (): Promise<"ok"> => {
       return "ok";
     };
     await gitClone(git, "source", "path");
@@ -156,7 +157,7 @@ describe("test gitClone function", () => {
   });
   it("negative Test", async () => {
     const git = simpleGit();
-    git.clone = () => {
+    git.clone = (): Promise<never> => {
       throw new Error("Error");
     };
 
@@ -693,7 +694,7 @@ describe("Validate sources in definition.yaml files", () => {
 
 const getMockedDataForGitTests = async (
   positive: boolean
-): Promise<IGitTestData> => {
+): Promise<GitTestData> => {
   const mockParentPath = "src/commands/infra/mocks/discovery-service";
   const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
   const sourceConfiguration = validateDefinition(
@@ -705,6 +706,7 @@ const getMockedDataForGitTests = async (
     mockParentPath,
     mockProjectPath
   );
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   let source = sourceConfig.source!;
   if (!positive) {
     source += "dummy";
@@ -756,16 +758,16 @@ describe("Validate replacement of variables between parent and leaf definitions"
       'enable_acr = "false"',
       `acr_name = "${DEFAULT_VAR_VALUE}"`
     ];
-    const parentData = readYaml<IInfraConfigYaml>(
+    const parentData = readYaml<InfraConfigYaml>(
       path.join(mockParentPath, DEFINITION_YAML)
     );
-    const parentInfraConfig: IInfraConfigYaml | undefined = parentData
+    const parentInfraConfig: InfraConfigYaml | undefined = parentData
       ? loadConfigurationFromLocalEnv(parentData)
       : undefined;
-    const leafData = readYaml<IInfraConfigYaml>(
+    const leafData = readYaml<InfraConfigYaml>(
       path.join(mockProjectPath, DEFINITION_YAML)
     );
-    const leafInfraConfig: IInfraConfigYaml | undefined = leafData
+    const leafInfraConfig: InfraConfigYaml | undefined = leafData
       ? loadConfigurationFromLocalEnv(leafData)
       : undefined;
     const finalDefinition = dirIteration(
@@ -780,7 +782,7 @@ describe("Validate replacement of variables between parent and leaf definitions"
 describe("Validate spk.tfvars file", () => {
   test("Validating that a spk.tfvars is generated and has appropriate format", () => {
     const mockProjectPath = "src/commands/infra/mocks/discovery-service";
-    const data = readYaml<IInfraConfigYaml>(
+    const data = readYaml<InfraConfigYaml>(
       path.join(mockProjectPath, DEFINITION_YAML)
     );
     const infraConfig = loadConfigurationFromLocalEnv(data);
@@ -792,7 +794,7 @@ describe("Validate spk.tfvars file", () => {
 describe("Validate backend.tfvars file", () => {
   test("Validating that a backend.tfvars is generated and has appropriate format", () => {
     const mockProjectPath = "src/commands/infra/mocks/discovery-service";
-    const data = readYaml<IInfraConfigYaml>(
+    const data = readYaml<InfraConfigYaml>(
       path.join(mockProjectPath, DEFINITION_YAML)
     );
     const infraConfig = loadConfigurationFromLocalEnv(data);

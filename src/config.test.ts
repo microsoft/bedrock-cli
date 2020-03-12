@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/camelcase */
 import os from "os";
 import path from "path";
 import shell from "shelljs";
@@ -13,7 +15,7 @@ import {
 } from "./config";
 import { createTempDir } from "./lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "./logger";
-import { IBedrockFile } from "./types";
+import { BedrockFile } from "./types";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -54,7 +56,7 @@ describe("Bedrock", () => {
   test("valid helm configuration passes", () => {
     const randomTmpDir = path.join(os.tmpdir(), uuid());
     shell.mkdir("-p", randomTmpDir);
-    const validBedrockYaml: IBedrockFile = {
+    const validBedrockYaml: BedrockFile = {
       rings: {},
       services: {
         "foo/a": {
@@ -86,7 +88,7 @@ describe("Bedrock", () => {
     };
     write(validBedrockYaml, randomTmpDir);
 
-    let bedrockConfig: IBedrockFile | undefined;
+    let bedrockConfig: BedrockFile | undefined;
     let error: Error | undefined;
     try {
       bedrockConfig = Bedrock(randomTmpDir);
@@ -100,7 +102,7 @@ describe("Bedrock", () => {
   test("invalid helm configuration fails", () => {
     const randomTmpDir = path.join(os.tmpdir(), uuid());
     shell.mkdir("-p", randomTmpDir);
-    const validBedrockYaml: IBedrockFile = {
+    const validBedrockYaml: BedrockFile = {
       rings: {},
       services: {
         "foo/a": {
@@ -121,10 +123,11 @@ describe("Bedrock", () => {
           }
         }
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
     write(validBedrockYaml, randomTmpDir);
 
-    let bedrockConfig: IBedrockFile | undefined;
+    let bedrockConfig: BedrockFile | undefined;
     let error: Error | undefined;
     try {
       bedrockConfig = Bedrock(randomTmpDir);

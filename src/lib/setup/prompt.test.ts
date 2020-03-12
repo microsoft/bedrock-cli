@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import fs from "fs";
 import inquirer from "inquirer";
 import os from "os";
 import path from "path";
 import uuid from "uuid/v4";
 import { createTempDir } from "../../lib/ioUtil";
-import { DEFAULT_PROJECT_NAME, IRequestContext, WORKSPACE } from "./constants";
+import { DEFAULT_PROJECT_NAME, RequestContext, WORKSPACE } from "./constants";
 import { getAnswerFromFile, prompt, promptForSubscriptionId } from "./prompt";
 import * as servicePrincipalService from "./servicePrincipalService";
 import * as subscriptionService from "./subscriptionService";
@@ -245,7 +246,7 @@ describe("test promptForSubscriptionId function", () => {
     jest
       .spyOn(subscriptionService, "getSubscriptions")
       .mockResolvedValueOnce([]);
-    const mockRc: IRequestContext = {
+    const mockRc: RequestContext = {
       accessToken: "pat",
       orgName: "org",
       projectName: "project",
@@ -267,7 +268,7 @@ describe("test promptForSubscriptionId function", () => {
     jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
       az_subscription: "subscription2"
     });
-    const mockRc: IRequestContext = {
+    const mockRc: RequestContext = {
       accessToken: "pat",
       orgName: "org",
       projectName: "project",

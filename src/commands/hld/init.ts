@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
@@ -12,7 +13,7 @@ import { logger } from "../../logger";
 import decorator from "./init.decorator.json";
 
 // values that we need to pull out from command operator
-interface ICommandOptions {
+interface CommandOptions {
   defaultComponentGit: string;
   defaultComponentName: string;
   defaultComponentPath: string;
@@ -26,7 +27,7 @@ export const execute = async (
   componentName: string,
   componentPath: string,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   try {
     if (!hasValue(hldRepoPath)) {
       throw new Error("project path is not provided");
@@ -49,7 +50,7 @@ export const execute = async (
 };
 
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     const hldRepoPath = process.cwd();
     // gitPush will is always true or false. It shall not be
     // undefined because default value is set in the commander decorator
@@ -73,7 +74,7 @@ export const initialize = async (
   componentGit: string,
   componentName: string,
   componentPath: string
-) => {
+): Promise<void> => {
   // Create manifest-generation.yaml for hld repository, if required.
   logger.info("Initializing bedrock HLD repository.");
 

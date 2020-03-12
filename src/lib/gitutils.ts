@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import GitUrlParse from "git-url-parse";
 import path from "path";
 import url from "url";
@@ -106,8 +107,8 @@ export const commitPath = async (
 export const pushBranch = async (branchName: string): Promise<void> => {
   try {
     await exec("git", ["push", "-u", "origin", `${branchName}`]);
-  } catch (_) {
-    throw Error(`Unable to push git branch ${branchName}: ` + _);
+  } catch (err) {
+    throw Error(`Unable to push git branch ${branchName}: ` + err);
   }
 };
 
@@ -118,7 +119,7 @@ export const pushBranch = async (branchName: string): Promise<void> => {
 export const tryGetGitOrigin = async (
   absRepoPath?: string
 ): Promise<string> => {
-  return getAzdoOriginUrl().catch(_ => {
+  return getAzdoOriginUrl().catch(() => {
     logger.warn(
       "Could not get Git Origin for Azure DevOps - are you running 'spk' _not_ in a pipeline?"
     );
@@ -168,7 +169,7 @@ export const getAzdoOriginUrl = async (): Promise<string> => {
  * Currently only AzDo repos are supported
  * @param originUrl
  */
-export const getRepositoryName = (originUrl: string) => {
+export const getRepositoryName = (originUrl: string): string => {
   const { resource, name } = GitUrlParse(originUrl);
   if (resource.includes("dev.azure.com")) {
     logger.debug("azure devops repo found.");
@@ -191,7 +192,7 @@ export const getRepositoryName = (originUrl: string) => {
  * Currently only AzDo and Github are supported.
  * @param originUrl
  */
-export const getRepositoryUrl = (originUrl: string) => {
+export const getRepositoryUrl = (originUrl: string): string => {
   const { resource, organization, owner, name, protocol } = GitUrlParse(
     originUrl
   );
@@ -339,7 +340,7 @@ export const checkoutCommitPushCreatePRLink = async (
  *
  * @param sUrl the url string
  */
-export const isGitHubUrl = (sUrl: string) => {
+export const isGitHubUrl = (sUrl: string): boolean => {
   const oUrl = url.parse(sUrl);
   return oUrl.hostname === "www.github.com" || oUrl.hostname === "github.com";
 };

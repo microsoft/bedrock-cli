@@ -1,15 +1,17 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { ClientSecretCredential } from "@azure/identity";
 import * as msRestNodeAuth from "@azure/ms-rest-nodeauth";
 import { Config } from "../../config";
 import { logger } from "../../logger";
-import { IAzureAccessOpts } from "../../types";
+import { AzureAccessOpts } from "../../types";
 
 /**
  * Create an instance of `ClientSecretCredential` and returns for Azure data plane activities
  * @param opts optionally override spk config with Azure subscription access options
  */
 export const getCredentials = async (
-  opts: IAzureAccessOpts = {}
+  opts: AzureAccessOpts = {}
 ): Promise<ClientSecretCredential | undefined> => {
   // Load config from opts and fallback to spk config
   const { azure } = Config().introspection!;
@@ -37,7 +39,7 @@ export const getCredentials = async (
  * @param opts optionally override spk config with Azure subscription access options
  */
 export const getManagementCredentials = async (
-  opts: IAzureAccessOpts = {}
+  opts: AzureAccessOpts = {}
 ): Promise<msRestNodeAuth.ApplicationTokenCredentials | undefined> => {
   // Load config from opts and fallback to spk config
   const { azure } = Config().introspection!;

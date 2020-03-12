@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/camelcase */
 import path from "path";
 import { Config, loadConfiguration } from "../config";
 import {
@@ -92,11 +94,11 @@ describe("Tests on validator helper functions", () => {
   });
 });
 
-const testvalidatePrereqs = (
+const testValidatePrereqs = (
   global: boolean,
   cmd: string,
   expectedResult: boolean
-) => {
+): void => {
   const filename = path.resolve("src/commands/mocks/spk-config.yaml");
   process.env.test_name = "my_storage_account";
   process.env.test_key = "my_storage_key";
@@ -117,11 +119,11 @@ const testvalidatePrereqs = (
 describe("Validating executable prerequisites in spk-config", () => {
   test("Validate that exectuable boolean matches in spk-config - global = true", () => {
     // Iterate through an array of non-existent binaries to create a force fail. If fails, then test pass
-    testvalidatePrereqs(true, "foobar", false);
+    testValidatePrereqs(true, "foobar", false);
   });
   test("Validate that exectuable boolean matches in spk-config - global = false", () => {
     // Iterate through an array of non-existent binaries to create a force fail. If fails, then test pass
-    testvalidatePrereqs(false, "foobar", false);
+    testValidatePrereqs(false, "foobar", false);
   });
 });
 
@@ -172,7 +174,7 @@ describe("test validateProjectName function", () => {
       "Project name cannot begin or end with a period"
     );
     expect(validateProjectName("a*b")).toBe(
-      `Project name can't contain special characters, such as / : \ ~ & % ; @ ' " ? < > | # $ * } { , + = [ ]`
+      `Project name can't contain special characters, such as / : \\ ~ & % ; @ ' " ? < > | # $ * } { , + = [ ]`
     );
   });
   it("valid value", () => {

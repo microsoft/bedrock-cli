@@ -1,14 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as fs from "fs-extra";
 import * as path from "path";
 import simpleGit from "simple-git/promise";
-import * as hldInit from "../../commands/hld/init";
 import { createTempDir } from "../ioUtil";
-import { HLD_REPO, IRequestContext, MANIFEST_REPO } from "./constants";
+import { HLD_REPO, RequestContext, MANIFEST_REPO } from "./constants";
 import * as gitService from "./gitService";
 import { hldRepo, manifestRepo } from "./scaffold";
-import * as scaffold from "./scaffold";
 
-const createRequestContext = (workspace: string): IRequestContext => {
+const createRequestContext = (workspace: string): RequestContext => {
   return {
     accessToken: "accessToken",
     orgName: "orgName",

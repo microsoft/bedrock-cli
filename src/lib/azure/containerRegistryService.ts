@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { ContainerRegistryManagementClient } from "@azure/arm-containerregistry";
 import { loginWithServicePrincipalSecret } from "@azure/ms-rest-nodeauth";
 import { logger } from "../../logger";
 
 let client: ContainerRegistryManagementClient;
 
-export interface IRegistryItem {
+export interface RegistryItem {
   id: string;
   name: string;
   resourceGroup: string;
@@ -29,6 +30,7 @@ const getClient = async (
   }
   // any is used because of a bug.
   // https://github.com/Azure/azure-sdk-for-js/issues/7763
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const creds: any = await loginWithServicePrincipalSecret(
     servicePrincipalId,
     servicePrincipalPassword,
@@ -51,7 +53,7 @@ export const getContainerRegistries = async (
   servicePrincipalPassword: string,
   servicePrincipalTenantId: string,
   subscriptionId: string
-): Promise<IRegistryItem[]> => {
+): Promise<RegistryItem[]> => {
   logger.info("attempting to get Azure container registries");
   await getClient(
     servicePrincipalId,
@@ -120,7 +122,7 @@ export const create = async (
   resourceGroup: string,
   name: string,
   location: string
-) => {
+): Promise<boolean> => {
   logger.info(
     `attempting to create Azure container registry, ${name} in ${resourceGroup}`
   );

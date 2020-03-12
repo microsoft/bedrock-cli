@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/camelcase */
 jest.mock("open");
 import open from "open";
 jest.mock("../../config");
@@ -28,7 +30,7 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
-const mockConfig = () => {
+const mockConfig = (): void => {
   (Config as jest.Mock).mockReturnValueOnce({
     azure_devops: {
       access_token: uuid(),

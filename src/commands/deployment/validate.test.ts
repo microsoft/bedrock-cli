@@ -1,18 +1,18 @@
+/* eslint-disable @typescript-eslint/camelcase */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // imports
-import { StorageManagementClient } from "@azure/arm-storage";
 import uuid from "uuid/v4";
 import * as deploymenttable from "../../lib/azure/deploymenttable";
 import {
-  IDeploymentTable,
-  IEntrySRCToACRPipeline,
-  IRowACRToHLDPipeline,
-  IRowHLDToManifestPipeline,
-  IRowManifest,
-  IRowSrcToACRPipeline
+  DeploymentTable,
+  RowACRToHLDPipeline,
+  RowHLDToManifestPipeline,
+  RowManifest,
+  RowSrcToACRPipeline
 } from "../../lib/azure/deploymenttable";
 import * as storage from "../../lib/azure/storage";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
-import { IAzureAccessOpts, IConfigYaml } from "../../types";
+import { ConfigYaml } from "../../types";
 import {
   deleteSelfTestData,
   execute,
@@ -23,13 +23,13 @@ import {
 import * as validate from "./validate";
 
 jest.spyOn(storage, "getStorageManagementClient").mockImplementation(
-  async (opts: IAzureAccessOpts = {}): Promise<any> => {
+  async (): Promise<any> => {
     return undefined;
   }
 );
 
 jest.spyOn(storage, "getStorageAccountKeys").mockImplementation(
-  async (accountName: string, resourceGroup: string): Promise<string[]> => {
+  async (accountName: string): Promise<string[]> => {
     if (accountName === "epi-test") {
       return ["mock access key", "mock access key2"];
     }
@@ -48,19 +48,15 @@ jest.spyOn(storage, "isStorageAccountNameAvailable").mockImplementation(
 );
 
 let mockedDB: Array<
-  | IRowSrcToACRPipeline
-  | IRowACRToHLDPipeline
-  | IRowHLDToManifestPipeline
-  | IRowManifest
+  | RowSrcToACRPipeline
+  | RowACRToHLDPipeline
+  | RowHLDToManifestPipeline
+  | RowManifest
 > = [];
 
 jest.spyOn(deploymenttable, "findMatchingDeployments").mockImplementation(
-  (
-    tableInfo: deploymenttable.IDeploymentTable,
-    filterName: string,
-    filterValue: string
-  ): Promise<IRowSrcToACRPipeline[]> => {
-    const array: IRowSrcToACRPipeline[] = [];
+  (): Promise<RowSrcToACRPipeline[]> => {
+    const array: RowSrcToACRPipeline[] = [];
     return new Promise(resolve => {
       mockedDB.forEach(row => {
         if (row.p1 === "500") {
@@ -76,47 +72,40 @@ jest
   .spyOn(deploymenttable, "insertToTable")
   .mockImplementation(
     (
-      tableInfo: deploymenttable.IDeploymentTable,
+      tableInfo: deploymenttable.DeploymentTable,
       entry:
-        | IRowSrcToACRPipeline
-        | IRowACRToHLDPipeline
-        | IRowHLDToManifestPipeline
+        | RowSrcToACRPipeline
+        | RowACRToHLDPipeline
+        | RowHLDToManifestPipeline
     ) => {
-      return new Promise(resolve => {
+      return new Promise<any>(resolve => {
         mockedDB.push(entry);
         resolve(entry);
       });
     }
   );
 
-jest
-  .spyOn(deploymenttable, "deleteFromTable")
-  .mockImplementation(
-    (
-      tableInfo: deploymenttable.IDeploymentTable,
-      entry: IEntrySRCToACRPipeline
-    ) => {
-      return new Promise(resolve => {
-        if (mockedDB.length === 1 && mockedDB[0].p1 === "500") {
-          mockedDB = [];
-        }
-        resolve(0);
-      });
+jest.spyOn(deploymenttable, "deleteFromTable").mockImplementation(async () => {
+  return new Promise<any>(resolve => {
+    if (mockedDB.length === 1 && mockedDB[0].p1 === "500") {
+      mockedDB = [];
     }
-  );
+    resolve(0);
+  });
+});
 
 jest
   .spyOn(deploymenttable, "updateEntryInTable")
   .mockImplementation(
     (
-      tableInfo: IDeploymentTable,
+      tableInfo: DeploymentTable,
       entry:
-        | IRowSrcToACRPipeline
-        | IRowACRToHLDPipeline
-        | IRowHLDToManifestPipeline
-        | IRowManifest
+        | RowSrcToACRPipeline
+        | RowACRToHLDPipeline
+        | RowHLDToManifestPipeline
+        | RowManifest
     ) => {
-      return new Promise(resolve => {
+      return new Promise<any>(resolve => {
         mockedDB.forEach((row, index: number) => {
           if (row.RowKey === entry.RowKey) {
             mockedDB[index] = entry;
@@ -142,7 +131,7 @@ afterAll(() => {
 
 describe("Validate deployment configuration", () => {
   test("valid deployment configuration", async () => {
-    const config: IConfigYaml = {
+    const config: ConfigYaml = {
       azure_devops: {
         org: uuid(),
         project: uuid()
@@ -215,7 +204,7 @@ describe("test runSelfTest function", () => {
       .spyOn(validate, "deleteSelfTestData")
       .mockReturnValueOnce(Promise.resolve(true));
 
-    const config: IConfigYaml = {
+    const config: ConfigYaml = {
       introspection: {
         azure: {
           key: Promise.resolve(uuid()),
@@ -234,7 +223,7 @@ describe("test runSelfTest function", () => {
       .spyOn(validate, "deleteSelfTestData")
       .mockReturnValueOnce(Promise.resolve(false));
 
-    const config: IConfigYaml = {
+    const config: ConfigYaml = {
       introspection: {
         azure: {
           key: Promise.resolve(uuid()),
@@ -249,7 +238,7 @@ describe("test runSelfTest function", () => {
       .spyOn(validate, "writeSelfTestData")
       .mockReturnValueOnce(Promise.reject(new Error("error")));
 
-    const config: IConfigYaml = {
+    const config: ConfigYaml = {
       introspection: {
         azure: {
           key: Promise.resolve(uuid()),
@@ -263,7 +252,7 @@ describe("test runSelfTest function", () => {
 
 describe("Validate missing deployment configuration", () => {
   test("no deployment configuration", async () => {
-    const config: IConfigYaml = {
+    const config: ConfigYaml = {
       introspection: undefined
     };
     await expect(isValidConfig(config)).rejects.toThrow();
@@ -272,7 +261,7 @@ describe("Validate missing deployment configuration", () => {
 
 describe("Validate missing deployment.storage configuration", () => {
   test("missing deployment.storage", async () => {
-    const config: IConfigYaml = {
+    const config: ConfigYaml = {
       introspection: {
         azure: undefined
       }
@@ -283,7 +272,7 @@ describe("Validate missing deployment.storage configuration", () => {
 
 describe("Validate missing deployment.storage configuration", () => {
   test("missing deployment.storage.account_name configuration", async () => {
-    const config: IConfigYaml = {
+    const config: ConfigYaml = {
       introspection: {
         azure: {
           account_name: undefined,
@@ -297,7 +286,7 @@ describe("Validate missing deployment.storage configuration", () => {
 
 describe("Validate missing deployment.storage configuration", () => {
   test("missing deployment.storage.table_name configuration", async () => {
-    const config: IConfigYaml = {
+    const config: ConfigYaml = {
       introspection: {
         azure: {
           key: Promise.resolve(uuid()),
@@ -311,7 +300,7 @@ describe("Validate missing deployment.storage configuration", () => {
 
 describe("Validate missing deployment.storage configuration", () => {
   test("missing deployment.storage.partition_key configuration", async () => {
-    const config: IConfigYaml = {
+    const config: ConfigYaml = {
       introspection: {
         azure: {
           key: Promise.resolve(uuid()),
@@ -325,7 +314,7 @@ describe("Validate missing deployment.storage configuration", () => {
 
 describe("Validate missing deployment.storage configuration", () => {
   test("missing deployment.storage.key configuration", async () => {
-    const config: IConfigYaml = {
+    const config: ConfigYaml = {
       introspection: {
         azure: {
           key: Promise.resolve(undefined)
@@ -338,7 +327,7 @@ describe("Validate missing deployment.storage configuration", () => {
 
 describe("Validate missing deployment.pipeline configuration", () => {
   test("missing deployment.pipeline configuration", async () => {
-    const config: IConfigYaml = {
+    const config: ConfigYaml = {
       introspection: {
         azure: {
           key: Promise.resolve(undefined)
@@ -351,7 +340,7 @@ describe("Validate missing deployment.pipeline configuration", () => {
 
 describe("Validate missing deployment.pipeline configuration", () => {
   test("missing deployment.pipeline.org configuration", async () => {
-    const config: IConfigYaml = {
+    const config: ConfigYaml = {
       azure_devops: {
         org: undefined
       },
@@ -367,7 +356,7 @@ describe("Validate missing deployment.pipeline configuration", () => {
 
 describe("Validate missing deployment.pipeline configuration", () => {
   test("missing deployment.pipeline.project configuration", async () => {
-    const config: IConfigYaml = {
+    const config: ConfigYaml = {
       azure_devops: {
         org: "org",
         project: undefined

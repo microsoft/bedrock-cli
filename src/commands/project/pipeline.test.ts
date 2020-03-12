@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import * as azdo from "../../lib/azdoClient";
 import { create as createBedrockYaml } from "../../lib/bedrockYaml";
-import * as gitutils from "../../lib/gitutils";
 import { createTempDir } from "../../lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 jest.mock("../../lib/pipelines/pipelines");
@@ -15,7 +15,7 @@ import {
   checkDependencies,
   execute,
   fetchValidateValues,
-  ICommandOptions,
+  CommandOptions,
   installLifecyclePipeline
 } from "./pipeline";
 
@@ -29,7 +29,7 @@ afterAll(() => {
 
 const gitUrl = "https://github.com/CatalystCode/spk.git";
 
-const mockValues: ICommandOptions = {
+const mockValues: CommandOptions = {
   buildScriptUrl: "buildScriptUrl",
   devopsProject: "azDoProject",
   orgName: "orgName",
@@ -42,7 +42,7 @@ const mockValues: ICommandOptions = {
 
 jest.spyOn(azdo, "repositoryHasFile").mockReturnValue(Promise.resolve());
 
-const mockMissingValues: ICommandOptions = {
+const mockMissingValues: CommandOptions = {
   buildScriptUrl: undefined,
   devopsProject: undefined,
   orgName: undefined,
@@ -53,7 +53,7 @@ const mockMissingValues: ICommandOptions = {
   yamlFileBranch: ""
 };
 
-const nullValues: ICommandOptions = {
+const nullValues: CommandOptions = {
   buildScriptUrl: undefined,
   devopsProject: undefined,
   orgName: undefined,

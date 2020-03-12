@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/camelcase */
 import child_process from "child_process";
 import commander from "commander";
 import { writeFileSync } from "fs";
@@ -12,12 +14,9 @@ import { generateAccessYaml } from "../../lib/fileutils";
 import { tryGetGitOrigin } from "../../lib/gitutils";
 import * as dns from "../../lib/net/dns";
 import { TraefikIngressRoute } from "../../lib/traefik/ingress-route";
-import {
-  ITraefikMiddleware,
-  TraefikMiddleware
-} from "../../lib/traefik/middleware";
+import { TraefikMiddleware } from "../../lib/traefik/middleware";
 import { logger } from "../../logger";
-import { IBedrockFile, IBedrockServiceConfig } from "../../types";
+import { BedrockFile, BedrockServiceConfig } from "../../types";
 import decorator from "./reconcile.decorator.json";
 
 /**
@@ -26,7 +25,7 @@ import decorator from "./reconcile.decorator.json";
  * which can be passed via a resolve() value instead of throwing an untyped
  * reject()
  */
-interface IExecResult {
+interface ExecResult {
   error?: child_process.ExecException;
   value?: { stdout: string; stderr: string };
 }
@@ -39,11 +38,8 @@ interface IExecResult {
  * @param cmd The command to shell out and exec
  * @param pipeIO if true, will pipe all stdio the executing parent process
  */
-const exec = async (
-  cmd: string,
-  pipeIO: boolean = false
-): Promise<IExecResult> => {
-  return new Promise<IExecResult>(resolve => {
+const exec = async (cmd: string, pipeIO = false): Promise<ExecResult> => {
+  return new Promise<ExecResult>(resolve => {
     const child = child_process.exec(cmd, (error, stdout, stderr) => {
       return resolve({
         error: error ?? undefined,
@@ -59,7 +55,7 @@ const exec = async (
   });
 };
 
-export interface IReconcileDependencies {
+export interface ReconcileDependencies {
   exec: typeof execAndLog;
   writeFile: typeof writeFileSync;
   getGitOrigin: typeof tryGetGitOrigin;
@@ -89,7 +85,7 @@ export const execute = async (
   hldPath: string,
   bedrockApplicationRepoPath: string,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   try {
     validateInputs(repositoryName, hldPath, bedrockApplicationRepoPath);
     checkForFabrikate(shelljs.which);
@@ -114,7 +110,7 @@ export const execute = async (
       `Attempting to reconcile HLD with services tracked in bedrock.yaml`
     );
 
-    const reconcileDependencies: IReconcileDependencies = {
+    const reconcileDependencies: ReconcileDependencies = {
       addChartToRing,
       configureChartForRing,
       createAccessYaml,
@@ -145,7 +141,7 @@ export const execute = async (
   }
 };
 
-export const commandDecorator = (command: commander.Command) => {
+export const commandDecorator = (command: commander.Command): void => {
   buildCmd(command, decorator).action(
     async (
       repositoryName: string,
@@ -167,12 +163,12 @@ export const commandDecorator = (command: commander.Command) => {
 };
 
 export const reconcileHld = async (
-  dependencies: IReconcileDependencies,
-  bedrockYaml: IBedrockFile,
+  dependencies: ReconcileDependencies,
+  bedrockYaml: BedrockFile,
   repositoryName: string,
   absHldPath: string,
   absBedrockPath: string
-) => {
+): Promise<void> => {
   const { services: managedServices, rings: managedRings } = bedrockYaml;
 
   // Create Repository Component if it doesn't exist.
@@ -347,9 +343,7 @@ export const getFullPathPrefix = (
  * @param commandToRun String version of the command that must be run
  * @throws {child_process.ExecException}
  */
-export const execAndLog = async (
-  commandToRun: string
-): Promise<IExecResult> => {
+export const execAndLog = async (commandToRun: string): Promise<ExecResult> => {
   logger.info(`Running: ${commandToRun}`);
   const pipeOutputToCurrentShell = true;
   const result = await exec(commandToRun, pipeOutputToCurrentShell);
@@ -365,7 +359,7 @@ export const createAccessYaml = async (
   writeAccessYaml: typeof generateAccessYaml,
   absBedrockApplicationPath: string,
   absRepositoryPathInHldPath: string
-) => {
+): Promise<void> => {
   const originUrl = await getGitOrigin(absBedrockApplicationPath);
 
   logger.info(
@@ -378,11 +372,11 @@ export const createAccessYaml = async (
 const createIngressRouteForRing = (
   ringPathInHld: string,
   serviceName: string,
-  serviceConfig: IBedrockServiceConfig,
-  middlewares: ITraefikMiddleware,
+  serviceConfig: BedrockServiceConfig,
+  middlewares: TraefikMiddleware,
   ring: string,
   ingressVersionAndPath: string
-) => {
+): void => {
   const staticComponentPathInRing = path.join(ringPathInHld, "static");
   const ingressRoutePathInStaticComponent = path.join(
     staticComponentPathInRing,
@@ -418,7 +412,7 @@ const createMiddlewareForRing = (
   serviceName: string,
   ring: string,
   ingressVersionAndPath: string
-): ITraefikMiddleware => {
+): TraefikMiddleware => {
   // Create Middlewares
   const staticComponentPathInRing = path.join(ringPathInHld, "static");
   const middlewaresPathInStaticComponent = path.join(
@@ -445,7 +439,7 @@ export const createRepositoryComponent = async (
   execCmd: typeof execAndLog,
   absHldPath: string,
   repositoryName: string
-) => {
+): Promise<ExecResult> => {
   assertIsStringWithContent(absHldPath, "hld-path");
   assertIsStringWithContent(repositoryName, "repository-name");
 
@@ -463,7 +457,7 @@ export const createServiceComponent = async (
   execCmd: typeof execAndLog,
   absRepositoryInHldPath: string,
   serviceName: string
-) => {
+): Promise<ExecResult> => {
   // Fab add is idempotent.
   // mkdir -p does not fail if ${pathBase} does not exist.
   assertIsStringWithContent(absRepositoryInHldPath, "project-path");
@@ -483,7 +477,7 @@ export const createRingComponent = async (
   execCmd: typeof execAndLog,
   svcPathInHld: string,
   normalizedRingName: string
-) => {
+): Promise<ExecResult> => {
   assertIsStringWithContent(svcPathInHld, "service-path");
   assertIsStringWithContent(normalizedRingName, "ring-name");
   const createRingInSvcCommand = `cd ${svcPathInHld} && mkdir -p ${normalizedRingName} config && fab add ${normalizedRingName} --path ./${normalizedRingName} --method local --type component && touch ./config/common.yaml`;
@@ -499,8 +493,8 @@ export const createRingComponent = async (
 export const addChartToRing = async (
   execCmd: typeof execAndLog,
   ringPathInHld: string,
-  serviceConfig: IBedrockServiceConfig
-): Promise<IExecResult> => {
+  serviceConfig: BedrockServiceConfig
+): Promise<ExecResult> => {
   let addHelmChartCommand = "";
   const { chart } = serviceConfig.helm;
   if ("git" in chart) {
@@ -532,11 +526,11 @@ export const addChartToRing = async (
 };
 
 export const configureChartForRing = async (
-  execCmd: (commandToRun: string) => Promise<IExecResult>,
+  execCmd: (commandToRun: string) => Promise<ExecResult>,
   normalizedRingPathInHld: string,
   normalizedRingName: string,
-  serviceConfig: IBedrockServiceConfig
-): Promise<IExecResult> => {
+  serviceConfig: BedrockServiceConfig
+): Promise<ExecResult> => {
   // Configue the k8s backend svc here along with master
   const k8sBackendName = serviceConfig.k8sBackend || "";
   const k8sSvcBackendAndName = [
@@ -555,7 +549,7 @@ export const configureChartForRing = async (
 export const createStaticComponent = async (
   execCmd: typeof execAndLog,
   ringPathInHld: string
-) => {
+): Promise<ExecResult> => {
   assertIsStringWithContent(ringPathInHld, "ring-path");
   const createConfigAndStaticComponentCommand = `cd ${ringPathInHld} && mkdir -p config static && fab add static --path ./static --method local --type static && touch ./config/common.yaml`;
 
@@ -569,7 +563,7 @@ export const validateInputs = (
   repositoryName: string,
   hldPath: string,
   bedrockApplicationRepoPath: string
-) => {
+): void => {
   assertIsStringWithContent(repositoryName, "repository-name");
   assertIsStringWithContent(hldPath, "hld-path");
   assertIsStringWithContent(
@@ -592,7 +586,7 @@ export const testAndGetAbsPath = (
   return absPath;
 };
 
-export const checkForFabrikate = (which: (path: string) => string) => {
+export const checkForFabrikate = (which: (path: string) => string): void => {
   const fabrikateInstalled = which("fab");
   if (fabrikateInstalled === "") {
     throw ReferenceError(

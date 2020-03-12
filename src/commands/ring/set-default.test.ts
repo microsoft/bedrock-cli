@@ -1,7 +1,6 @@
 import { create as createBedrockYaml } from "../../lib/bedrockYaml";
 import { createTempDir } from "../../lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
-
 import { checkDependencies, execute } from "./set-default";
 
 beforeAll(() => {

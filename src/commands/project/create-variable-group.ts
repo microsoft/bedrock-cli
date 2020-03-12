@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/camelcase */
 import { VariableGroup } from "azure-devops-node-api/interfaces/ReleaseInterfaces";
 import commander from "commander";
 import path from "path";
@@ -13,21 +16,20 @@ import {
   PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE,
   PROJECT_PIPELINE_FILENAME
 } from "../../lib/constants";
-import { IAzureDevOpsOpts } from "../../lib/git";
+import { AzureDevOpsOpts } from "../../lib/git";
 import { addVariableGroup } from "../../lib/pipelines/variableGroup";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import {
-  IAzurePipelinesYaml,
-  IBedrockFile,
-  IBedrockFileInfo,
-  IVariableGroupData,
-  IVariableGroupDataVariable
+  AzurePipelinesYaml,
+  BedrockFileInfo,
+  VariableGroupData,
+  VariableGroupDataVariable
 } from "../../types";
 import decorator from "./create-variable-group.decorator.json";
 
 // values that we need to pull out from command operator
-interface ICommandOptions {
+interface CommandOptions {
   registryName: string | undefined;
   servicePrincipalId: string | undefined;
   servicePrincipalPassword: string | undefined;
@@ -38,8 +40,8 @@ interface ICommandOptions {
   devopsProject: string | undefined;
 }
 
-export const checkDependencies = (projectPath: string) => {
-  const fileInfo: IBedrockFileInfo = bedrockFileInfo(projectPath);
+export const checkDependencies = (projectPath: string): void => {
+  const fileInfo: BedrockFileInfo = bedrockFileInfo(projectPath);
   if (fileInfo.exist === false) {
     throw new Error(PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE);
   }
@@ -53,9 +55,9 @@ export const checkDependencies = (projectPath: string) => {
  */
 export const execute = async (
   variableGroupName: string,
-  opts: ICommandOptions,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   if (!hasValue(variableGroupName)) {
     await exitFn(1);
     return;
@@ -80,7 +82,7 @@ export const execute = async (
       devopsProject = azure_devops?.project
     } = opts;
 
-    const accessOpts: IAzureDevOpsOpts = {
+    const accessOpts: AzureDevOpsOpts = {
       orgName,
       personalAccessToken,
       project: devopsProject
@@ -115,10 +117,10 @@ export const execute = async (
     );
 
     // set the variable group name
-    await setVariableGroupInBedrockFile(projectPath, variableGroup.name!);
+    setVariableGroupInBedrockFile(projectPath, variableGroup.name!);
 
     // update hld-lifecycle.yaml with variable groups in bedrock.yaml
-    await updateLifeCyclePipeline(projectPath);
+    updateLifeCyclePipeline(projectPath);
 
     // print newly created variable group
     echo(JSON.stringify(variableGroup, null, 2));
@@ -141,7 +143,7 @@ export const execute = async (
  */
 export const commandDecorator = (command: commander.Command): void => {
   buildCmd(command, decorator).action(
-    async (variableGroupName: string, opts: ICommandOptions) => {
+    async (variableGroupName: string, opts: CommandOptions) => {
       await execute(variableGroupName, opts, async (status: number) => {
         await exitCmd(logger, process.exit, status);
       });
@@ -167,12 +169,12 @@ export const create = (
   servicePrincipalId: string | undefined,
   servicePrincipalPassword: string | undefined,
   tenantId: string | undefined,
-  accessOpts: IAzureDevOpsOpts
+  accessOpts: AzureDevOpsOpts
 ): Promise<VariableGroup> => {
   logger.info(
     `Creating Variable Group from group definition '${variableGroupName}'`
   );
-  const vars: IVariableGroupDataVariable = {
+  const vars: VariableGroupDataVariable = {
     ACR_NAME: {
       value: registryName
     },
@@ -196,7 +198,7 @@ export const create = (
       value: tenantId
     }
   };
-  const variableGroupData: IVariableGroupData = {
+  const variableGroupData: VariableGroupData = {
     description: "Created from spk CLI",
     name: variableGroupName,
     type: "Vsts",
@@ -209,12 +211,12 @@ export const create = (
  * Writes the variable group name in a default bedrock.yaml
  *
  * @param rootProjectPath Path to generate/update the the bedrock.yaml file in
- * @param variableGroupName The varible group name
+ * @param variableGroupName The variable group name
  */
 export const setVariableGroupInBedrockFile = (
   rootProjectPath: string,
   variableGroupName: string
-) => {
+): void => {
   if (!hasValue(rootProjectPath)) {
     throw new Error("Project root path is not valid");
   }
@@ -225,10 +227,8 @@ export const setVariableGroupInBedrockFile = (
   const absProjectRoot = path.resolve(rootProjectPath);
   logger.info(`Setting variable group ${variableGroupName}`);
 
-  let bedrockFile: IBedrockFile | undefined;
-
   // Get bedrock.yaml
-  bedrockFile = Bedrock(rootProjectPath);
+  const bedrockFile = Bedrock(rootProjectPath);
 
   if (typeof bedrockFile === "undefined") {
     throw new Error(`Bedrock file does not exist.`);
@@ -240,7 +240,7 @@ export const setVariableGroupInBedrockFile = (
     )}`
   );
 
-  // add new variabe group
+  // add new variable group
   bedrockFile.variableGroups = [
     ...(bedrockFile.variableGroups ?? []),
     variableGroupName
@@ -255,7 +255,7 @@ export const setVariableGroupInBedrockFile = (
  *
  * @param rootProjectPath Path to project files
  */
-export const updateLifeCyclePipeline = (rootProjectPath: string) => {
+export const updateLifeCyclePipeline = (rootProjectPath: string): void => {
   if (!hasValue(rootProjectPath)) {
     throw new Error("Project root path is not valid");
   }
@@ -267,7 +267,7 @@ export const updateLifeCyclePipeline = (rootProjectPath: string) => {
   const bedrockFile = Bedrock(rootProjectPath);
   const pipelineFile = readYaml(
     path.join(absProjectRoot, fileName)
-  ) as IAzurePipelinesYaml;
+  ) as AzurePipelinesYaml;
 
   if (typeof pipelineFile === "undefined") {
     throw new Error("${fileName} file does not exist in ${absProjectRoot}.");

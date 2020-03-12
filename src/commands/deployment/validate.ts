@@ -1,21 +1,23 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 import { Config } from "../../config";
 import {
   addSrcToACRPipeline,
   deleteFromTable,
   findMatchingDeployments,
-  IDeploymentTable,
-  IEntrySRCToACRPipeline,
+  DeploymentTable,
+  EntrySRCToACRPipeline,
   updateACRToHLDPipeline
 } from "../../lib/azure/deploymenttable";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { logger } from "../../logger";
-import { IConfigYaml } from "../../types";
+import { ConfigYaml } from "../../types";
 import decorator from "./validator.decorator.json";
 
 const service = "spk-self-test";
 
-export interface ICommandOptions {
+export interface CommandOptions {
   selfTest: boolean;
 }
 
@@ -27,9 +29,9 @@ export interface ICommandOptions {
  * @param exitFn exit function
  */
 export const execute = async (
-  opts: ICommandOptions,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   try {
     const config = Config();
     await isValidConfig(config);
@@ -49,7 +51,7 @@ export const execute = async (
  * @param command Commander command object to decorate
  */
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     await execute(opts, async (status: number) => {
       await exitCmd(logger, process.exit, status);
     });
@@ -59,7 +61,7 @@ export const commandDecorator = (command: commander.Command): void => {
 /**
  * Validates that the deployment configuration is specified.
  */
-export const isValidConfig = async (config: IConfigYaml) => {
+export const isValidConfig = async (config: ConfigYaml): Promise<void> => {
   const missingConfig = [];
 
   if (!config.introspection) {
@@ -110,7 +112,7 @@ export const isValidConfig = async (config: IConfigYaml) => {
  *
  * @param config spk configuration values
  */
-export const runSelfTest = async (config: IConfigYaml) => {
+export const runSelfTest = async (config: ConfigYaml): Promise<void> => {
   try {
     logger.info("Writing self-test data for introspection...");
     const key = await config.introspection!.azure!.key;
@@ -158,7 +160,7 @@ export const writeSelfTestData = async (
   tableName: string
 ): Promise<string> => {
   // call create
-  const tableInfo: IDeploymentTable = {
+  const tableInfo: DeploymentTable = {
     accountKey,
     accountName,
     partitionKey,
@@ -204,7 +206,7 @@ export const deleteSelfTestData = async (
   buildId: string
 ): Promise<boolean> => {
   // search by service
-  const tableInfo: IDeploymentTable = {
+  const tableInfo: DeploymentTable = {
     accountKey,
     accountName,
     partitionKey,
@@ -218,7 +220,7 @@ export const deleteSelfTestData = async (
   ).then(async results => {
     logger.info("Deleting test data...");
     let foundEntry = false;
-    const entries = results as IEntrySRCToACRPipeline[];
+    const entries = results as EntrySRCToACRPipeline[];
     try {
       for (const entry of entries) {
         if (entry.p1 && entry.p1._ === buildId) {

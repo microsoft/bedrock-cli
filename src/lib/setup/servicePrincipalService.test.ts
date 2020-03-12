@@ -1,5 +1,5 @@
 import * as shell from "../shell";
-import { IRequestContext, WORKSPACE } from "./constants";
+import { RequestContext, WORKSPACE } from "./constants";
 import { azCLILogin, createWithAzCLI } from "./servicePrincipalService";
 import * as servicePrincipalService from "./servicePrincipalService";
 
@@ -29,7 +29,7 @@ describe("test createWithAzCLI function", () => {
     jest
       .spyOn(shell, "exec")
       .mockReturnValueOnce(Promise.resolve(JSON.stringify(result)));
-    const rc: IRequestContext = {
+    const rc: RequestContext = {
       accessToken: "pat",
       orgName: "orgName",
       projectName: "project",
@@ -47,7 +47,7 @@ describe("test createWithAzCLI function", () => {
     jest
       .spyOn(shell, "exec")
       .mockReturnValueOnce(Promise.reject(Error("fake")));
-    const rc: IRequestContext = {
+    const rc: RequestContext = {
       accessToken: "pat",
       orgName: "orgName",
       projectName: "project",

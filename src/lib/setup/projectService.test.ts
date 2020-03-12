@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createProject, getProject } from "./projectService";
 
 describe("test getProject function", () => {

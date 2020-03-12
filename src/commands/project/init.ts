@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 import fs from "fs";
 import path from "path";
@@ -9,19 +10,19 @@ import {
 } from "../../lib/fileutils";
 import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
-import { IBedrockFile, IMaintainersFile } from "../../types";
+import { BedrockFile, MaintainersFile } from "../../types";
 import decorator from "./init.decorator.json";
 
 // values that we need to pull out from command operator
-interface ICommandOptions {
+interface CommandOptions {
   defaultRing: string;
 }
 
 export const execute = async (
-  opts: ICommandOptions,
+  opts: CommandOptions,
   projectPath: string,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   // defaultRing shall always have value (not undefined nor null)
   // because it has default value as "master"
   const defaultRing = opts.defaultRing;
@@ -43,7 +44,7 @@ export const execute = async (
 };
 
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     await execute(opts, process.cwd(), async (status: number) => {
       await exitCmd(logger, process.exit, status);
     });
@@ -61,8 +62,8 @@ export const commandDecorator = (command: commander.Command): void => {
  */
 export const initialize = async (
   rootProjectPath: string,
-  opts?: ICommandOptions
-) => {
+  opts?: CommandOptions
+): Promise<void> => {
   const absProjectRoot = path.resolve(rootProjectPath);
   logger.info(`Initializing project Bedrock project ${absProjectRoot}`);
 
@@ -83,7 +84,7 @@ export const initialize = async (
 const generateMaintainersFile = async (
   projectPath: string,
   packagePaths: string[]
-) => {
+): Promise<void> => {
   const absProjectPath = path.resolve(projectPath);
   const absPackagePaths = packagePaths.map(p => path.resolve(p));
   logger.info(`Generating maintainers.yaml file in ${absProjectPath}`);
@@ -104,8 +105,8 @@ const generateMaintainersFile = async (
   );
 
   // Populate maintainers file
-  const maintainersFile: IMaintainersFile = absPackagePaths.reduce<
-    IMaintainersFile
+  const maintainersFile: MaintainersFile = absPackagePaths.reduce<
+    MaintainersFile
   >(
     (file, absPackagePath) => {
       const relPathToPackageFromRoot = path.relative(
@@ -157,11 +158,11 @@ const generateMaintainersFile = async (
 const generateBedrockFile = (
   projectPath: string,
   defaultRings: string[] = []
-) => {
+): void => {
   const absProjectPath = path.resolve(projectPath);
   logger.info(`Generating bedrock.yaml file in ${absProjectPath}`);
 
-  const baseBedrockFile: IBedrockFile = {
+  const baseBedrockFile: BedrockFile = {
     rings: defaultRings.reduce<{ [ring: string]: { isDefault: boolean } }>(
       (defaults, ring) => {
         defaults[ring] = { isDefault: true };

@@ -3,7 +3,7 @@
  *
  * @see https://docs.traefik.io/routing/providers/kubernetes-crd/
  */
-export interface ITraefikMiddleware {
+export interface TraefikMiddleware {
   apiVersion: "traefik.containo.us/v1alpha1";
   kind: "Middleware";
   metadata: {
@@ -26,16 +26,16 @@ export const TraefikMiddleware = (
     forceSlash?: boolean;
     namespace?: string;
   } = {}
-): ITraefikMiddleware => {
+): TraefikMiddleware => {
   const { forceSlash = false, namespace } = opts;
-  const name = !!ringName ? `${serviceName}-${ringName}` : serviceName;
+  const name = ringName ? `${serviceName}-${ringName}` : serviceName;
 
   return {
     apiVersion: "traefik.containo.us/v1alpha1",
     kind: "Middleware",
     metadata: {
       name,
-      ...(() => (!!namespace ? { namespace } : {}))()
+      ...(namespace ? { namespace } : {})
     },
     spec: {
       stripPrefix: {

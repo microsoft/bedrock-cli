@@ -1,19 +1,19 @@
-export interface IServiceEndpoint {
-  data: IData;
+export interface ServiceEndpoint {
+  data: Data;
   id: string;
   name: string;
   type: string;
   url: string;
-  createdBy: ICreatedBy;
-  authorization: IServicePrincipalAuthorization;
+  createdBy: CreatedBy;
+  authorization: ServicePrincipalAuthorization;
   isShared: boolean;
   isReady: boolean;
   owner: string;
   serviceEndpointProjectReferences?:
-    | IServiceEndpointProjectReferencesEntity[]
+    | ServiceEndpointProjectReferencesEntity[]
     | null;
 }
-export interface IData {
+export interface Data {
   subscriptionId: string;
   subscriptionName: string;
   environment: string;
@@ -21,56 +21,56 @@ export interface IData {
   creationMode: string;
 }
 
-export interface ICreatedBy {
+export interface CreatedBy {
   displayName: string;
   url: string;
-  _links: ILinks;
+  _links: Links;
   id: string;
   uniqueName: string;
   imageUrl: string;
   descriptor: string;
 }
 
-export interface ILinks {
-  avatar: IAvatar;
+export interface Links {
+  avatar: Avatar;
 }
 
-export interface IAvatar {
+export interface Avatar {
   href: string;
 }
 
-export interface IServicePrincipalAuthorization {
-  parameters: IServicePrincipalAuthorizationParameters;
+export interface ServicePrincipalAuthorization {
+  parameters: ServicePrincipalAuthorizationParameters;
   scheme: string;
 }
 
-export interface IServicePrincipalAuthorizationParameters {
+export interface ServicePrincipalAuthorizationParameters {
   tenantid: string;
   serviceprincipalid: string;
   authenticationType: string;
   serviceprincipalkey: string;
 }
 
-export interface IServiceEndpointProjectReferencesEntity {
-  projectReference: IProjectReference;
+export interface ServiceEndpointProjectReferencesEntity {
+  projectReference: ProjectReference;
   name: string;
 }
 
-export interface IProjectReference {
+export interface ProjectReference {
   id: string;
   name?: null;
 }
 
-export interface IServiceEndpointParams {
-  data: IDataParams;
+export interface ServiceEndpointParams {
+  data: DataParams;
   id: string;
   name: string;
   type: string;
-  authorization: IServicePrincipalAuthorization;
+  authorization: ServicePrincipalAuthorization;
   isReady: boolean;
 }
 
-export interface IDataParams {
+export interface DataParams {
   subscriptionId: string;
   subscriptionName: string;
 }

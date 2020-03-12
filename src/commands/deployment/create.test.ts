@@ -2,7 +2,7 @@ import uuid = require("uuid");
 import * as azure from "../../lib/azure/deploymenttable";
 import { deepClone } from "../../lib/util";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
-import { execute, ICommandOptions } from "./create";
+import { execute, CommandOptions } from "./create";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -12,7 +12,7 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
-const MOCKED_VALS: ICommandOptions = {
+const MOCKED_VALS: CommandOptions = {
   accessKey: undefined,
   commitId: undefined,
   env: undefined,
@@ -30,7 +30,7 @@ const MOCKED_VALS: ICommandOptions = {
   tableName: undefined
 };
 
-const getMockedValues = (withKeyValue = false): ICommandOptions => {
+const getMockedValues = (withKeyValue = false): CommandOptions => {
   const vals = deepClone(MOCKED_VALS);
 
   if (withKeyValue) {

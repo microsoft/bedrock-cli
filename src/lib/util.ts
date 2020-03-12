@@ -10,12 +10,12 @@ export function deepClone<T>(obj: T): T {
 /**
  * Halt the thread for a duration.
  *
- * @param timeInSecond duration in milli second
+ * @param timeInSecond duration in millisecond
  */
-export const sleep = (timeInMilliSecond: number) => {
+export const sleep = (timeInMs: number): Promise<unknown> => {
   return new Promise(resolve => {
     setTimeout(() => {
       resolve();
-    }, timeInMilliSecond);
+    }, timeInMs);
   });
 };

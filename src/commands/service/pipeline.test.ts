@@ -12,13 +12,13 @@ import { deepClone } from "../../lib/util";
 import {
   execute,
   fetchValues,
-  ICommandOptions,
+  CommandOptions,
   installBuildUpdatePipeline,
   requiredPipelineVariables
 } from "./pipeline";
 import * as pipeline from "./pipeline";
 
-const MOCKED_VALUES: ICommandOptions = {
+const MOCKED_VALUES: CommandOptions = {
   buildScriptUrl: "buildScriptUrl",
   devopsProject: "project",
   orgName: "orgName",
@@ -42,7 +42,7 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-const getMockedValues = () => {
+const getMockedValues = (): CommandOptions => {
   return deepClone(MOCKED_VALUES);
 };
 

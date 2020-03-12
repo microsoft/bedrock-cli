@@ -1,12 +1,5 @@
-////////////////////////////////////////////////////////////////////////////////
-// Mocks
-////////////////////////////////////////////////////////////////////////////////
-jest.mock("azure-devops-node-api");
-jest.mock("../../config");
-
-////////////////////////////////////////////////////////////////////////////////
-// Imports
-////////////////////////////////////////////////////////////////////////////////
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/camelcase */
 import { WebApi } from "azure-devops-node-api";
 import uuid from "uuid/v4";
 import { Config } from "../../config";
@@ -19,9 +12,9 @@ import {
   GitAPI
 } from "./azure";
 
-////////////////////////////////////////////////////////////////////////////////
-// Tests
-////////////////////////////////////////////////////////////////////////////////
+jest.mock("azure-devops-node-api");
+jest.mock("../../config");
+
 beforeAll(() => {
   enableVerboseLogging();
 });
@@ -95,6 +88,7 @@ describe("createPullRequest", () => {
     }
   }));
   // Mutable copy of the gitApi
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const gitApi: { [name: string]: (...args: any) => Promise<any> } = {
     createPullRequest: async () => ({
       pullRequestId: 123,
@@ -108,7 +102,7 @@ describe("createPullRequest", () => {
   // Keep a reference to the original gitApi functions so they be reused to reset the mocks
   const originalGitApi = { ...gitApi };
   ((WebApi as unknown) as jest.Mock).mockImplementation(() => ({
-    getGitApi: async () => gitApi
+    getGitApi: async (): Promise<unknown> => gitApi
   }));
 
   beforeEach(() => {
@@ -120,7 +114,7 @@ describe("createPullRequest", () => {
 
   test("should throw an error when 0 repositories found ", async () => {
     // local mock
-    gitApi.getRepositories = async () => [];
+    gitApi.getRepositories = async (): Promise<unknown[]> => [];
 
     let err: Error | undefined;
     try {
@@ -132,6 +126,7 @@ describe("createPullRequest", () => {
       err = e;
     }
     expect(err).not.toBeUndefined();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     expect(err!.message).toMatch(
       /0 repositories found in Azure DevOps associated with PAT/
     );
@@ -140,7 +135,7 @@ describe("createPullRequest", () => {
   test("should fail when source ref for PR is not in DevOps instance", async () => {
     // mock such that the 'sourceRef' has not been pushed to the azdo git
     const originalBranches = gitApi.getBranches;
-    gitApi.getBranches = async () => [{ name: "targetRef" }];
+    gitApi.getBranches = async (): Promise<unknown> => [{ name: "targetRef" }];
 
     try {
       await createPullRequest("random title", "sourceRef", "targetRef", {
@@ -167,7 +162,7 @@ describe("createPullRequest", () => {
     }
   });
   it("negative test", async () => {
-    gitApi.createPullRequest = async () => {
+    gitApi.createPullRequest = async (): Promise<unknown> => {
       throw new Error("fake");
     };
 
@@ -179,7 +174,7 @@ describe("createPullRequest", () => {
     ).rejects.toThrow();
   });
   it("negative test: TF401179 error", async () => {
-    gitApi.createPullRequest = async () => {
+    gitApi.createPullRequest = async (): Promise<unknown> => {
       throw new Error("TF401179");
     };
 

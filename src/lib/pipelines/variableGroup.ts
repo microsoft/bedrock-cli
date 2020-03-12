@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import { DefinitionResourceReference } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import {
   AzureKeyVaultVariableGroupProviderData,
@@ -6,10 +8,9 @@ import {
 } from "azure-devops-node-api/interfaces/TaskAgentInterfaces";
 import { Config } from "../../config";
 import { logger } from "../../logger";
-import { IVariableGroupData, IVariableGroupDataVariable } from "../../types";
+import { VariableGroupData, VariableGroupDataVariable } from "../../types";
 import { getBuildApi, getTaskAgentApi } from "../azdoClient";
-import { IAzureDevOpsOpts } from "../git";
-import { IServiceEndpoint } from "./azdoInterfaces";
+import { AzureDevOpsOpts } from "../git";
 import { createServiceEndpointIfNotExists } from "./serviceEndpoint";
 
 /**
@@ -21,10 +22,10 @@ import { createServiceEndpointIfNotExists } from "./serviceEndpoint";
  * @returns newly created `VariableGroup` object
  */
 export const addVariableGroup = async (
-  variableGroupData: IVariableGroupData,
-  opts: IAzureDevOpsOpts = {}
+  variableGroupData: VariableGroupData,
+  opts: AzureDevOpsOpts = {}
 ): Promise<VariableGroup> => {
-  const message: string = `Variable Group ${variableGroupData.name}`;
+  const message = `Variable Group ${variableGroupData.name}`;
   try {
     logger.info(`Creating ${message}`);
 
@@ -62,14 +63,13 @@ export const addVariableGroup = async (
  * @returns newly created `VariableGroup` object
  */
 export const addVariableGroupWithKeyVaultMap = async (
-  variableGroupData: IVariableGroupData,
-  opts: IAzureDevOpsOpts = {}
+  variableGroupData: VariableGroupData,
+  opts: AzureDevOpsOpts = {}
 ): Promise<VariableGroup> => {
-  const message: string = `Variable Group ${variableGroupData.name}`;
+  const message = `Variable Group ${variableGroupData.name}`;
 
   try {
     logger.info(`Creating ${message}`);
-    let serviceEndpoint: IServiceEndpoint;
     if (
       typeof variableGroupData.key_vault_provider === undefined ||
       typeof variableGroupData.key_vault_provider === null ||
@@ -84,7 +84,7 @@ export const addVariableGroupWithKeyVaultMap = async (
 
     // get service endpoint id
     logger.info(`Checking for Service endpoint`);
-    serviceEndpoint = await createServiceEndpointIfNotExists(
+    const serviceEndpoint = await createServiceEndpointIfNotExists(
       variableGroupData.key_vault_provider!.service_endpoint,
       opts
     );
@@ -130,9 +130,9 @@ export const addVariableGroupWithKeyVaultMap = async (
 export const doAddVariableGroup = async (
   variableGroupData: VariableGroupParameters,
   accessToAllPipelines: boolean,
-  opts: IAzureDevOpsOpts = {}
+  opts: AzureDevOpsOpts = {}
 ): Promise<VariableGroup> => {
-  const message: string = `Variable Group ${variableGroupData.name}`;
+  const message = `Variable Group ${variableGroupData.name}`;
   const config = Config();
   const { project = config.azure_devops && config.azure_devops.project } = opts;
   if (typeof project !== "string") {
@@ -174,9 +174,9 @@ export const doAddVariableGroup = async (
  */
 export const authorizeAccessToAllPipelines = async (
   variableGroup: VariableGroup,
-  opts: IAzureDevOpsOpts = {}
+  opts: AzureDevOpsOpts = {}
 ): Promise<boolean> => {
-  const message: string = `Resource definition for all pipelines to access Variable Group ${variableGroup.name}`;
+  const message = `Resource definition for all pipelines to access Variable Group ${variableGroup.name}`;
 
   if (typeof variableGroup === undefined || variableGroup === null) {
     throw new Error("Invalid input");
@@ -230,9 +230,9 @@ export const authorizeAccessToAllPipelines = async (
  * @returns `IVariablesMap[]` with Varibale Group variables
  */
 export const buildVariablesMap = async (
-  variables: IVariableGroupDataVariable
-): Promise<IVariableGroupDataVariable> => {
-  const variablesMap: IVariableGroupDataVariable = {};
+  variables: VariableGroupDataVariable
+): Promise<VariableGroupDataVariable> => {
+  const variablesMap: VariableGroupDataVariable = {};
   logger.debug(`variables: ${JSON.stringify(variables)}`);
 
   for (const [key, value] of Object.entries(variables)) {

@@ -35,7 +35,7 @@ const testExecuteFn = async (
   componentName: string,
   componentPath: string,
   expectedExitCode: number
-) => {
+): Promise<void> => {
   const exitFn = jest.fn();
   await execute(
     projectRootPath,
@@ -77,7 +77,7 @@ const testRepoInitialization = async (
   componentGit: string,
   componentName: string,
   componentPath: string
-) => {
+): Promise<void> => {
   // Create random directory to initialize
   const randomTmpDir = createTempDir();
 

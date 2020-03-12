@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import * as msRestNodeAuth from "@azure/ms-rest-nodeauth";
 import * as config from "../../config";
-import { IConfigYaml } from "../../types";
+import { ConfigYaml } from "../../types";
 import { getCredentials, getManagementCredentials } from "./azurecredentials";
 
 describe("test getCredentials function", () => {
@@ -21,7 +22,7 @@ describe("test getCredentials function", () => {
           tenant_id: "tenantId"
         }
       }
-    } as IConfigYaml);
+    } as ConfigYaml);
     const cred = await getCredentials({});
     expect(cred).toBeDefined();
     done();
@@ -58,7 +59,7 @@ describe("test getManagementCredentials function", () => {
           tenant_id: "tenantId"
         }
       }
-    } as IConfigYaml);
+    } as ConfigYaml);
     jest
       .spyOn(msRestNodeAuth, "loginWithServicePrincipalSecret")
       .mockReturnValueOnce();

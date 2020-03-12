@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 import * as bedrock from "../../lib/bedrockYaml";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
@@ -5,7 +6,7 @@ import { PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE } from "../../lib/constants";
 import { updateTriggerBranchesForServiceBuildAndUpdatePipeline } from "../../lib/fileutils";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
-import { IBedrockFileInfo } from "../../types";
+import { BedrockFileInfo } from "../../types";
 import decorator from "./delete.decorator.json";
 
 /**
@@ -18,7 +19,7 @@ export const execute = async (
   ringName: string,
   projectPath: string,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   if (!hasValue(ringName)) {
     await exitFn(1);
     return;
@@ -67,8 +68,8 @@ export const commandDecorator = (command: commander.Command): void => {
  * Check the bedrock.yaml and the target ring exists
  * @param projectPath
  */
-export const checkDependencies = (projectPath: string) => {
-  const fileInfo: IBedrockFileInfo = bedrock.fileInfo(projectPath);
+export const checkDependencies = (projectPath: string): void => {
+  const fileInfo: BedrockFileInfo = bedrock.fileInfo(projectPath);
   if (fileInfo.exist === false) {
     throw Error(PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE);
   }

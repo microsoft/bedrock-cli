@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/camelcase */
 import path from "path";
 import { readYaml } from "../config";
 import * as config from "../config";
@@ -5,7 +7,7 @@ import * as azdoClient from "../lib/azdoClient";
 import * as azureContainerRegistryService from "../lib/azure/containerRegistryService";
 import * as resourceService from "../lib/azure/resourceService";
 import { createTempDir } from "../lib/ioUtil";
-import { IRequestContext, WORKSPACE } from "../lib/setup/constants";
+import { RequestContext, WORKSPACE } from "../lib/setup/constants";
 import * as fsUtil from "../lib/setup/fsUtil";
 import * as gitService from "../lib/setup/gitService";
 import * as pipelineService from "../lib/setup/pipelineService";
@@ -14,11 +16,11 @@ import * as promptInstance from "../lib/setup/prompt";
 import * as scaffold from "../lib/setup/scaffold";
 import * as setupLog from "../lib/setup/setupLog";
 import { deepClone } from "../lib/util";
-import { IConfigYaml } from "../types";
+import { ConfigYaml } from "../types";
 import { createSPKConfig, execute, getErrorMessage } from "./setup";
 import * as setup from "./setup";
 
-const mockRequestContext: IRequestContext = {
+const mockRequestContext: RequestContext = {
   accessToken: "pat",
   orgName: "orgname",
   projectName: "project",
@@ -35,7 +37,7 @@ describe("test createSPKConfig function", () => {
     const tmpFile = path.join(createTempDir(), "config.yaml");
     jest.spyOn(config, "defaultConfigFile").mockReturnValueOnce(tmpFile);
     createSPKConfig(mockRequestContext);
-    const data = readYaml<IConfigYaml>(tmpFile);
+    const data = readYaml<ConfigYaml>(tmpFile);
     expect(data.azure_devops).toStrictEqual({
       access_token: "pat",
       org: "orgname",
@@ -45,7 +47,7 @@ describe("test createSPKConfig function", () => {
   it("positive test: with service principal", () => {
     const tmpFile = path.join(createTempDir(), "config.yaml");
     jest.spyOn(config, "defaultConfigFile").mockReturnValueOnce(tmpFile);
-    const rc: IRequestContext = deepClone(mockRequestContext);
+    const rc: RequestContext = deepClone(mockRequestContext);
     rc.toCreateAppRepo = true;
     rc.toCreateSP = true;
     rc.servicePrincipalId = "1eba2d04-1506-4278-8f8c-b1eb2fc462a8";
@@ -54,7 +56,7 @@ describe("test createSPKConfig function", () => {
     rc.subscriptionId = "72f988bf-86f1-41af-91ab-2d7cd011db48";
     createSPKConfig(rc);
 
-    const data = readYaml<IConfigYaml>(tmpFile);
+    const data = readYaml<ConfigYaml>(tmpFile);
     expect(data.azure_devops).toStrictEqual({
       access_token: "pat",
       org: "orgname",
@@ -71,7 +73,10 @@ describe("test createSPKConfig function", () => {
   });
 });
 
-const testExecuteFunc = async (usePrompt = true, hasProject = true) => {
+const testExecuteFunc = async (
+  usePrompt = true,
+  hasProject = true
+): Promise<void> => {
   jest
     .spyOn(gitService, "getGitApi")
     .mockReturnValueOnce(Promise.resolve({} as any));

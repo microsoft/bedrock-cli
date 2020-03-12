@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import * as azure from "azure-storage";
 import uuid from "uuid/v4";
 import { logger } from "../../logger";
 /**
  * Deployment Table interface to hold necessary information about a table for deployments
  */
-export interface IDeploymentTable {
+export interface DeploymentTable {
   accountName: string;
   accountKey: string;
   tableName: string;
@@ -14,7 +15,7 @@ export interface IDeploymentTable {
 /**
  * Row interface to hold necessary information about SRC -> ACR entry
  */
-export interface IRowSrcToACRPipeline {
+export interface RowSrcToACRPipeline {
   PartitionKey: string;
   RowKey: string;
   commitId: string;
@@ -27,7 +28,7 @@ export interface IRowSrcToACRPipeline {
 /**
  * Row interface to add ACR -> HLD entry
  */
-export interface IRowACRToHLDPipeline extends IRowSrcToACRPipeline {
+export interface RowACRToHLDPipeline extends RowSrcToACRPipeline {
   p2: string;
   hldCommitId: string;
   env: string;
@@ -38,7 +39,7 @@ export interface IRowACRToHLDPipeline extends IRowSrcToACRPipeline {
 /**
  * Row interface to hold necessary information about SRC -> ACR entry
  */
-export interface IEntrySRCToACRPipeline {
+export interface EntrySRCToACRPipeline {
   RowKey: string;
   PartitionKey: string;
   commitId: string;
@@ -56,7 +57,7 @@ export interface IEntrySRCToACRPipeline {
 /**
  * Row interface to hold necessary information about ACR -> HLD entry
  */
-export interface IEntryACRToHLDPipeline {
+export interface EntryACRToHLDPipeline {
   RowKey: string;
   PartitionKey: string;
   commitId: string;
@@ -79,7 +80,7 @@ export interface IEntryACRToHLDPipeline {
 /**
  * Row interface to hold necessary information about HLD -> Manifest entry
  */
-export interface IRowHLDToManifestPipeline extends IRowACRToHLDPipeline {
+export interface RowHLDToManifestPipeline extends RowACRToHLDPipeline {
   p3: string;
   manifestCommitId?: string;
   manifestRepo?: string;
@@ -88,7 +89,7 @@ export interface IRowHLDToManifestPipeline extends IRowACRToHLDPipeline {
 /**
  * Row interface to hold necessary information about HLD -> Manifest entry
  */
-export interface IEntryHLDToManifestPipeline {
+export interface EntryHLDToManifestPipeline {
   RowKey: string;
   PartitionKey: string;
   commitId: string;
@@ -112,7 +113,7 @@ export interface IEntryHLDToManifestPipeline {
 /**
  * Row interface to hold necessary information Manifest update entry
  */
-export interface IRowManifest extends IRowHLDToManifestPipeline {
+export interface RowManifest extends RowHLDToManifestPipeline {
   manifestCommitId: string;
   manifestRepo?: string;
 }
@@ -122,7 +123,7 @@ export interface IRowManifest extends IRowHLDToManifestPipeline {
  * @param tableInfo tableInfo object containing necessary table info
  */
 export const getTableService = (
-  tableInfo: IDeploymentTable
+  tableInfo: DeploymentTable
 ): azure.TableService => {
   return azure.createTableService(tableInfo.accountName, tableInfo.accountKey);
 };
@@ -137,14 +138,14 @@ export const getTableService = (
  * @param commitId commit identifier
  */
 export const addSrcToACRPipeline = async (
-  tableInfo: IDeploymentTable,
+  tableInfo: DeploymentTable,
   pipelineId: string,
   imageTag: string,
   serviceName: string,
   commitId: string,
   repository?: string
-): Promise<IRowSrcToACRPipeline> => {
-  const entry: IRowSrcToACRPipeline = {
+): Promise<RowSrcToACRPipeline> => {
+  const entry: RowSrcToACRPipeline = {
     PartitionKey: tableInfo.partitionKey,
     RowKey: getRowKey(),
     commitId,
@@ -171,16 +172,16 @@ export const addSrcToACRPipeline = async (
  * @param pr Pull request Id (if available)
  */
 export const updateMatchingArcToHLDPipelineEntry = async (
-  entries: IEntryACRToHLDPipeline[],
-  tableInfo: IDeploymentTable,
+  entries: EntryACRToHLDPipeline[],
+  tableInfo: DeploymentTable,
   pipelineId: string,
   imageTag: string,
   hldCommitId: string,
   env: string,
   pr?: string,
   repository?: string
-): Promise<IRowACRToHLDPipeline | null> => {
-  const found = (entries || []).find((entry: IEntryACRToHLDPipeline) => {
+): Promise<RowACRToHLDPipeline | null> => {
+  const found = (entries || []).find((entry: EntryACRToHLDPipeline) => {
     return (
       (entry.p2 ? entry.p2._ === pipelineId : true) &&
       (entry.hldCommitId ? entry.hldCommitId._ === hldCommitId : true) &&
@@ -189,7 +190,7 @@ export const updateMatchingArcToHLDPipelineEntry = async (
   });
 
   if (found) {
-    const updateEntry: IRowACRToHLDPipeline = {
+    const updateEntry: RowACRToHLDPipeline = {
       PartitionKey: found.PartitionKey,
       RowKey: found.RowKey,
       commitId: found.commitId,
@@ -229,17 +230,17 @@ export const updateMatchingArcToHLDPipelineEntry = async (
  * @param pr Pull request Id (if available)
  */
 export const updateLastRowOfArcToHLDPipelines = async (
-  entries: IEntryACRToHLDPipeline[],
-  tableInfo: IDeploymentTable,
+  entries: EntryACRToHLDPipeline[],
+  tableInfo: DeploymentTable,
   pipelineId: string,
   imageTag: string,
   hldCommitId: string,
   env: string,
   pr?: string,
   repository?: string
-): Promise<IRowACRToHLDPipeline> => {
+): Promise<RowACRToHLDPipeline> => {
   const lastEntry = entries[entries.length - 1];
-  const last: IRowACRToHLDPipeline = {
+  const last: RowACRToHLDPipeline = {
     PartitionKey: lastEntry.PartitionKey,
     RowKey: getRowKey(),
     commitId: lastEntry.commitId,
@@ -277,15 +278,15 @@ export const updateLastRowOfArcToHLDPipelines = async (
  * @param pr Pull request Id (if available)
  */
 export const addNewRowToArcToHLDPipelines = async (
-  tableInfo: IDeploymentTable,
+  tableInfo: DeploymentTable,
   pipelineId: string,
   imageTag: string,
   hldCommitId: string,
   env: string,
   pr?: string,
   repository?: string
-): Promise<IRowACRToHLDPipeline> => {
-  const newEntry: IRowACRToHLDPipeline = {
+): Promise<RowACRToHLDPipeline> => {
+  const newEntry: RowACRToHLDPipeline = {
     PartitionKey: tableInfo.partitionKey,
     RowKey: getRowKey(),
     commitId: "",
@@ -318,15 +319,15 @@ export const addNewRowToArcToHLDPipelines = async (
  * @param env environment name, such as Dev, Staging etc.
  */
 export const updateACRToHLDPipeline = async (
-  tableInfo: IDeploymentTable,
+  tableInfo: DeploymentTable,
   pipelineId: string,
   imageTag: string,
   hldCommitId: string,
   env: string,
   pr?: string,
   repository?: string
-): Promise<IRowACRToHLDPipeline> => {
-  const entries = await findMatchingDeployments<IEntryACRToHLDPipeline>(
+): Promise<RowACRToHLDPipeline> => {
+  const entries = await findMatchingDeployments<EntryACRToHLDPipeline>(
     tableInfo,
     "imageTag",
     imageTag
@@ -392,14 +393,14 @@ export const updateACRToHLDPipeline = async (
  * @param pr pull request identifier
  */
 export const updateHLDToManifestPipeline = async (
-  tableInfo: IDeploymentTable,
+  tableInfo: DeploymentTable,
   hldCommitId: string,
   pipelineId: string,
   manifestCommitId?: string,
   pr?: string,
   repository?: string
-): Promise<IRowHLDToManifestPipeline> => {
-  let entries = await findMatchingDeployments<IEntryHLDToManifestPipeline>(
+): Promise<RowHLDToManifestPipeline> => {
+  let entries = await findMatchingDeployments<EntryHLDToManifestPipeline>(
     tableInfo,
     "hldCommitId",
     hldCommitId
@@ -408,7 +409,7 @@ export const updateHLDToManifestPipeline = async (
   // cannot find entries by hldCommitId.
   // attempt to find entries by pr
   if ((!entries || entries.length === 0) && pr) {
-    entries = await findMatchingDeployments<IEntryHLDToManifestPipeline>(
+    entries = await findMatchingDeployments<EntryHLDToManifestPipeline>(
       tableInfo,
       "pr",
       pr
@@ -437,16 +438,16 @@ export const updateHLDToManifestPipeline = async (
  * @param pr pull request identifier
  */
 export const updateHLDtoManifestEntry = async (
-  entries: IEntryHLDToManifestPipeline[],
-  tableInfo: IDeploymentTable,
+  entries: EntryHLDToManifestPipeline[],
+  tableInfo: DeploymentTable,
   hldCommitId: string,
   pipelineId: string,
   manifestCommitId?: string,
   pr?: string,
   repository?: string
-): Promise<IRowHLDToManifestPipeline | null> => {
+): Promise<RowHLDToManifestPipeline | null> => {
   const found = entries.find(
-    (entry: IEntryHLDToManifestPipeline) =>
+    (entry: EntryHLDToManifestPipeline) =>
       (entry.p3 ? entry.p3._ === pipelineId : true) &&
       (entry.manifestCommitId
         ? entry.manifestCommitId._ === manifestCommitId
@@ -454,7 +455,7 @@ export const updateHLDtoManifestEntry = async (
   );
 
   if (found) {
-    const entry: IRowHLDToManifestPipeline = {
+    const entry: RowHLDToManifestPipeline = {
       PartitionKey: found.PartitionKey,
       RowKey: found.RowKey,
       commitId: found.commitId,
@@ -501,16 +502,16 @@ export const updateHLDtoManifestEntry = async (
  * @param pr pull request identifier
  */
 export const updateLastHLDtoManifestEntry = async (
-  entries: IEntryHLDToManifestPipeline[],
-  tableInfo: IDeploymentTable,
+  entries: EntryHLDToManifestPipeline[],
+  tableInfo: DeploymentTable,
   hldCommitId: string,
   pipelineId: string,
   manifestCommitId?: string,
   pr?: string,
   repository?: string
-): Promise<IRowHLDToManifestPipeline> => {
+): Promise<RowHLDToManifestPipeline> => {
   const lastEntry = entries[entries.length - 1];
-  const newEntry: IRowHLDToManifestPipeline = {
+  const newEntry: RowHLDToManifestPipeline = {
     PartitionKey: lastEntry.PartitionKey,
     RowKey: getRowKey(),
     commitId: lastEntry.commitId,
@@ -553,14 +554,14 @@ export const updateLastHLDtoManifestEntry = async (
  * @param pr pull request identifier
  */
 export const addNewRowToHLDtoManifestPipeline = async (
-  tableInfo: IDeploymentTable,
+  tableInfo: DeploymentTable,
   hldCommitId: string,
   pipelineId: string,
   manifestCommitId?: string,
   pr?: string,
   repository?: string
-) => {
-  const newEntry: IRowHLDToManifestPipeline = {
+): Promise<RowHLDToManifestPipeline> => {
+  const newEntry: RowHLDToManifestPipeline = {
     PartitionKey: tableInfo.partitionKey,
     RowKey: getRowKey(),
     commitId: "",
@@ -602,14 +603,14 @@ export const addNewRowToHLDtoManifestPipeline = async (
  * @param pr pull request identifier
  */
 export const updateHLDtoManifestHelper = async (
-  entries: IEntryHLDToManifestPipeline[],
-  tableInfo: IDeploymentTable,
+  entries: EntryHLDToManifestPipeline[],
+  tableInfo: DeploymentTable,
   hldCommitId: string,
   pipelineId: string,
   manifestCommitId?: string,
   pr?: string,
   repository?: string
-): Promise<IRowHLDToManifestPipeline> => {
+): Promise<RowHLDToManifestPipeline> => {
   if (entries && entries.length > 0) {
     const updated = await updateHLDtoManifestEntry(
       entries,
@@ -658,12 +659,12 @@ export const updateHLDtoManifestHelper = async (
  * @param manifestCommitId manifest commit identifier to be updated
  */
 export const updateManifestCommitId = async (
-  tableInfo: IDeploymentTable,
+  tableInfo: DeploymentTable,
   pipelineId: string,
   manifestCommitId: string,
   repository?: string
-): Promise<IRowManifest> => {
-  const entries = await findMatchingDeployments<IRowManifest>(
+): Promise<RowManifest> => {
+  const entries = await findMatchingDeployments<RowManifest>(
     tableInfo,
     "p3",
     pipelineId
@@ -693,7 +694,7 @@ export const updateManifestCommitId = async (
  * @param filterValue value of the filter, such as `hello-spk-master-1234`
  */
 export const findMatchingDeployments = <T>(
-  tableInfo: IDeploymentTable,
+  tableInfo: DeploymentTable,
   filterName: string,
   filterValue: string
 ): Promise<T[]> => {
@@ -706,6 +707,7 @@ export const findMatchingDeployments = <T>(
   // To get around issue https://github.com/Azure/azure-storage-node/issues/545, set below to null
   const nextContinuationToken:
     | azure.TableService.TableContinuationToken
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     | any = null;
 
   return new Promise((resolve, reject) => {
@@ -731,9 +733,9 @@ export const findMatchingDeployments = <T>(
  * @param entry entry to insert
  */
 export const insertToTable = (
-  tableInfo: IDeploymentTable,
-  entry: IRowSrcToACRPipeline | IRowACRToHLDPipeline | IRowHLDToManifestPipeline
-) => {
+  tableInfo: DeploymentTable,
+  entry: RowSrcToACRPipeline | RowACRToHLDPipeline | RowHLDToManifestPipeline
+): Promise<void> => {
   const tableService = getTableService(tableInfo);
 
   return new Promise((resolve, reject) => {
@@ -753,9 +755,9 @@ export const insertToTable = (
  * @param entry entry to be deleted
  */
 export const deleteFromTable = (
-  tableInfo: IDeploymentTable,
-  entry: IEntrySRCToACRPipeline
-) => {
+  tableInfo: DeploymentTable,
+  entry: EntrySRCToACRPipeline
+): Promise<void> => {
   const tableService = getTableService(tableInfo);
 
   return new Promise((resolve, reject) => {
@@ -776,13 +778,13 @@ export const deleteFromTable = (
  * @param entry entry to update
  */
 export const updateEntryInTable = (
-  tableInfo: IDeploymentTable,
+  tableInfo: DeploymentTable,
   entry:
-    | IRowSrcToACRPipeline
-    | IRowACRToHLDPipeline
-    | IRowHLDToManifestPipeline
-    | IRowManifest
-) => {
+    | RowSrcToACRPipeline
+    | RowACRToHLDPipeline
+    | RowHLDToManifestPipeline
+    | RowManifest
+): Promise<void> => {
   const tableService = getTableService(tableInfo);
 
   return new Promise((resolve, reject) => {

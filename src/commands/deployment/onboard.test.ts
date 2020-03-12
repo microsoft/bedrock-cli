@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/camelcase */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import fs from "fs";
 import yaml from "js-yaml";
 import * as path from "path";
-
 import { Config, loadConfiguration } from "../../config";
 import * as config from "../../config";
 import * as keyvault from "../../lib/azure/keyvault";
@@ -13,12 +14,12 @@ import {
   enableVerboseLogging,
   logger
 } from "../../logger";
-import { IAzureAccessOpts, IConfigYaml } from "../../types";
+import { AzureAccessOpts, ConfigYaml } from "../../types";
 import {
   createKeyVault,
   execute,
   getStorageAccessKey,
-  ICommandOptions,
+  CommandOptions,
   onboard,
   populateValues,
   setConfiguration,
@@ -37,7 +38,7 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
-const MOCKED_VALUES: ICommandOptions = {
+const MOCKED_VALUES: CommandOptions = {
   keyVaultName: "testKeyVault",
   servicePrincipalId: "servicePrincipalId",
   servicePrincipalPassword: "servicePrincipalPassword",
@@ -52,11 +53,11 @@ const MOCKED_VALUES: ICommandOptions = {
 const randomTmpDir = createTempDir();
 const testConfigFile = path.join(randomTmpDir, "config.yaml");
 
-const getMockedValues = (): ICommandOptions => {
+const getMockedValues = (): CommandOptions => {
   return deepClone(MOCKED_VALUES);
 };
 
-const getMockedAccessOpts = (values: ICommandOptions): IAzureAccessOpts => {
+const getMockedAccessOpts = (values: CommandOptions): AzureAccessOpts => {
   return {
     servicePrincipalId: values.servicePrincipalId,
     servicePrincipalPassword: values.servicePrincipalPassword,
@@ -70,11 +71,11 @@ jest.spyOn(config, "defaultConfigFile").mockReturnValue(testConfigFile);
 jest.spyOn(logger, "info");
 
 const testPopulatedVal = (
-  configFn: (configYaml: IConfigYaml) => void,
-  mockedFn: (values: ICommandOptions) => void,
-  verifyFn: (values: ICommandOptions) => void
-) => {
-  const configYaml: IConfigYaml = {
+  configFn: (configYaml: ConfigYaml) => void,
+  mockedFn: (values: CommandOptions) => void,
+  verifyFn: (values: CommandOptions) => void
+): void => {
+  const configYaml: ConfigYaml = {
     introspection: {
       azure: {
         key: Promise.resolve("key")
@@ -109,10 +110,10 @@ describe("test populateValues", () => {
   });
   it("storageAccountName default to config.introspection.azure.account_name", () => {
     testPopulatedVal(
-      (configYaml: IConfigYaml) => {
+      (configYaml: ConfigYaml) => {
         configYaml.introspection!.azure!.account_name = "AccountName";
       },
-      (values: ICommandOptions) => {
+      (values: CommandOptions) => {
         values.storageAccountName = undefined;
       },
       values => {
@@ -122,10 +123,10 @@ describe("test populateValues", () => {
   });
   it("storageTableName default to config.introspection.azure.table_name", () => {
     testPopulatedVal(
-      (configYaml: IConfigYaml) => {
+      (configYaml: ConfigYaml) => {
         configYaml.introspection!.azure!.table_name = "TableName";
       },
-      (values: ICommandOptions) => {
+      (values: CommandOptions) => {
         values.storageTableName = undefined;
       },
       values => {
@@ -135,10 +136,10 @@ describe("test populateValues", () => {
   });
   it("keyVaultName default to config.introspection.azure.key_vault_name", () => {
     testPopulatedVal(
-      (configYaml: IConfigYaml) => {
+      (configYaml: ConfigYaml) => {
         configYaml.key_vault_name = "KeyVaulteName";
       },
-      (values: ICommandOptions) => {
+      (values: CommandOptions) => {
         values.keyVaultName = undefined;
       },
       values => {
@@ -148,11 +149,11 @@ describe("test populateValues", () => {
   });
   it("servicePrincipalId default to config.introspection.azure.service_principal_id", () => {
     testPopulatedVal(
-      (configYaml: IConfigYaml) => {
+      (configYaml: ConfigYaml) => {
         configYaml.introspection!.azure!.service_principal_id =
           "ServicePrincipalId";
       },
-      (values: ICommandOptions) => {
+      (values: CommandOptions) => {
         values.servicePrincipalId = undefined;
       },
       values => {
@@ -162,11 +163,11 @@ describe("test populateValues", () => {
   });
   it("servicePrincipalPassword default to config.introspection.azure.service_principal_secret", () => {
     testPopulatedVal(
-      (configYaml: IConfigYaml) => {
+      (configYaml: ConfigYaml) => {
         configYaml.introspection!.azure!.service_principal_secret =
           "ServicePrincipalSecret";
       },
-      (values: ICommandOptions) => {
+      (values: CommandOptions) => {
         values.servicePrincipalPassword = undefined;
       },
       values => {
@@ -176,10 +177,10 @@ describe("test populateValues", () => {
   });
   it("tenantId default to config.introspection.azure.tenant_id", () => {
     testPopulatedVal(
-      (configYaml: IConfigYaml) => {
+      (configYaml: ConfigYaml) => {
         configYaml.introspection!.azure!.tenant_id = "tenantId";
       },
-      (values: ICommandOptions) => {
+      (values: CommandOptions) => {
         values.tenantId = undefined;
       },
       values => {
@@ -189,10 +190,10 @@ describe("test populateValues", () => {
   });
   it("subscriptionId default to config.introspection.azure.subscription_id", () => {
     testPopulatedVal(
-      (configYaml: IConfigYaml) => {
+      (configYaml: ConfigYaml) => {
         configYaml.introspection!.azure!.subscription_id = "subscriptionId";
       },
-      (values: ICommandOptions) => {
+      (values: CommandOptions) => {
         values.subscriptionId = undefined;
       },
       values => {

@@ -1,14 +1,16 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import { generateUuid } from "@azure/core-http";
 import { IRestResponse, RestClient } from "typed-rest-client";
 import { Config } from "../../config";
 import { logger } from "../../logger";
-import { IServiceEndpointData } from "../../types";
+import { ServiceEndpointData } from "../../types";
 import { azdoUrl, getRestClient } from "../azdoClient";
-import { IAzureDevOpsOpts } from "../git";
-import { IServiceEndpoint, IServiceEndpointParams } from "./azdoInterfaces";
+import { AzureDevOpsOpts } from "../git";
+import { ServiceEndpoint, ServiceEndpointParams } from "./azdoInterfaces";
 
-const apiUrl: string = "_apis/serviceendpoint/endpoints";
-const apiVersion: string = "api-version=5.1-preview.2";
+const apiUrl = "_apis/serviceendpoint/endpoints";
+const apiVersion = "api-version=5.1-preview.2";
 
 /**
  * Check for Azdo Service Endpoint by name `serviceEndpointConfig.name` and creates `serviceEndpoint` if it does not exist
@@ -18,9 +20,9 @@ const apiVersion: string = "api-version=5.1-preview.2";
  * @returns newly created `IServiceEndpoint` object
  */
 export const createServiceEndpointIfNotExists = async (
-  serviceEndpointData: IServiceEndpointData,
-  opts: IAzureDevOpsOpts = {}
-): Promise<IServiceEndpoint> => {
+  serviceEndpointData: ServiceEndpointData,
+  opts: AzureDevOpsOpts = {}
+): Promise<ServiceEndpoint> => {
   const serviceEndpointName = serviceEndpointData.name;
   const message = `service endpoint ${serviceEndpointName}`;
 
@@ -60,13 +62,13 @@ export const createServiceEndpointIfNotExists = async (
  * @returns newly created `IServiceEndpoint` object
  */
 export const addServiceEndpoint = async (
-  serviceEndpointData: IServiceEndpointData,
-  opts: IAzureDevOpsOpts = {}
-): Promise<IServiceEndpoint> => {
+  serviceEndpointData: ServiceEndpointData,
+  opts: AzureDevOpsOpts = {}
+): Promise<ServiceEndpoint> => {
   const message = `service endpoint ${serviceEndpointData.name}`;
   logger.info(`addServiceEndpoint method called with ${message}`);
 
-  let resp: IRestResponse<IServiceEndpoint>;
+  let resp: IRestResponse<ServiceEndpoint>;
 
   const config = Config();
   const {
@@ -77,7 +79,7 @@ export const addServiceEndpoint = async (
   const orgUrl = azdoUrl(orgName!);
 
   try {
-    const endPointParams: IServiceEndpointParams = createServiceEndPointParams(
+    const endPointParams: ServiceEndpointParams = createServiceEndPointParams(
       serviceEndpointData
     );
 
@@ -113,9 +115,9 @@ export const addServiceEndpoint = async (
   }
 };
 
-interface IServiceEndpointByNameResult {
+interface ServiceEndpointByNameResult {
   count: number;
-  value: IServiceEndpoint[];
+  value: ServiceEndpoint[];
 }
 
 /**
@@ -127,10 +129,9 @@ interface IServiceEndpointByNameResult {
  */
 export const getServiceEndpointByName = async (
   serviceEndpointName: string,
-  opts: IAzureDevOpsOpts = {}
-): Promise<IServiceEndpoint | null> => {
+  opts: AzureDevOpsOpts = {}
+): Promise<ServiceEndpoint | null> => {
   logger.info(`getServiceEndpointByName called with ${serviceEndpointName}`);
-  let resp: IRestResponse<IServiceEndpointByNameResult>;
 
   const config = Config();
   const {
@@ -141,42 +142,40 @@ export const getServiceEndpointByName = async (
   const orgUrl = azdoUrl(orgName!);
   logger.info(`getServiceEndpointByName orgUrl: ${orgUrl}`);
 
-  try {
-    const uriParameter = `?endpointNames=${serviceEndpointName}`;
-    const client: RestClient = await getRestClient(opts);
-    const resource: string = `${orgUrl}/${project}/${apiUrl}${uriParameter}&${apiVersion}`;
-    logger.info(`getServiceEndpointByName:Resource: ${resource}`);
+  const uriParameter = `?endpointNames=${serviceEndpointName}`;
+  const client: RestClient = await getRestClient(opts);
+  const resource = `${orgUrl}/${project}/${apiUrl}${uriParameter}&${apiVersion}`;
+  logger.info(`getServiceEndpointByName:Resource: ${resource}`);
 
-    resp = await client.get(resource);
+  // TODO: Figure out what the actual return type from client.get is
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const resp: any = await client.get(resource);
 
-    logger.debug(
-      `getServiceEndpointByName: Service Endpoint Response results: ${JSON.stringify(
-        resp.result
-      )}`
-    );
+  logger.debug(
+    `getServiceEndpointByName: Service Endpoint Response results: ${JSON.stringify(
+      resp.result
+    )}`
+  );
 
-    // check for response conditions
-    if (resp === null || resp.result === null || resp.result.count === 0) {
-      logger.info(
-        `Service Endpoint was not found by name: ${serviceEndpointName}`
-      );
-      return null;
-    }
-
-    if (resp.result.count > 1) {
-      const errMessage = `Found ${resp.result.count} service endpoints by name ${serviceEndpointName}`;
-      throw new Error(errMessage);
-    }
-
-    const endpoints = resp.result.value as IServiceEndpoint[];
+  // check for response conditions
+  if (resp === null || resp.result === null || resp.result.count === 0) {
     logger.info(
-      `Found Service Endpoint by name ${serviceEndpointName} with a id ${endpoints[0].id}`
+      `Service Endpoint was not found by name: ${serviceEndpointName}`
     );
-
-    return resp.result.count === 0 ? null : endpoints[0];
-  } catch (err) {
-    throw err;
+    return null;
   }
+
+  if (resp.result.count > 1) {
+    const errMessage = `Found ${resp.result.count} service endpoints by name ${serviceEndpointName}`;
+    throw new Error(errMessage);
+  }
+
+  const endpoints = resp.result.value as ServiceEndpoint[];
+  logger.info(
+    `Found Service Endpoint by name ${serviceEndpointName} with a id ${endpoints[0].id}`
+  );
+
+  return resp.result.count === 0 ? null : endpoints[0];
 };
 
 /**
@@ -186,10 +185,10 @@ export const getServiceEndpointByName = async (
  * @returns `IServiceEndpointParams` object
  */
 export const createServiceEndPointParams = (
-  serviceEndpointData: IServiceEndpointData
-): IServiceEndpointParams => {
+  serviceEndpointData: ServiceEndpointData
+): ServiceEndpointParams => {
   validateServiceEndpointInput(serviceEndpointData);
-  const endPointParams: IServiceEndpointParams = {
+  const endPointParams: ServiceEndpointParams = {
     authorization: {
       parameters: {
         authenticationType: "spnKey",
@@ -219,8 +218,8 @@ export const createServiceEndPointParams = (
  * @throws `Error` object when required variables is specified
  */
 const validateServiceEndpointInput = (
-  serviceEndpointData: IServiceEndpointData
-) => {
+  serviceEndpointData: ServiceEndpointData
+): void => {
   const errors: string[] = [];
 
   // name is required

@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 jest.mock("./pipelines");
 
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 
 import {
   IAzureRepoPipelineConfig,
-  IGithubRepoPipelineConfig,
+  GithubRepoPipelineConfig,
   RepositoryTypes
 } from "./pipelines";
 
@@ -87,7 +88,7 @@ describe("It builds a github repo pipeline definition", () => {
       },
       yamlFileBranch: "master",
       yamlFilePath: "path/to/azure-pipelines.yml"
-    } as IGithubRepoPipelineConfig;
+    } as GithubRepoPipelineConfig;
 
     const definition: BuildDefinition = definitionForGithubRepoPipeline(
       sampleGithubConfig

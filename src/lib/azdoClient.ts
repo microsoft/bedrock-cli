@@ -5,7 +5,7 @@ import { ITaskAgentApi } from "azure-devops-node-api/TaskAgentApi";
 import { RestClient } from "typed-rest-client";
 import { Config } from "../config";
 import { logger } from "../logger";
-import { IAzureDevOpsOpts } from "./git";
+import { AzureDevOpsOpts } from "./git";
 import { GitAPI } from "./git/azure";
 
 // Module state Variables
@@ -28,7 +28,7 @@ export const azdoUrl = (orgName: string): string =>
  * @returns AzDo `WebApi` object
  */
 export const getWebApi = async (
-  opts: IAzureDevOpsOpts = {}
+  opts: AzureDevOpsOpts = {}
 ): Promise<WebApi> => {
   if (connection) {
     return connection;
@@ -66,7 +66,7 @@ export const getWebApi = async (
   return connection;
 };
 
-export const invalidateWebApi = () => {
+export const invalidateWebApi = (): void => {
   connection = undefined;
 };
 
@@ -76,7 +76,7 @@ export const invalidateWebApi = () => {
  * @returns AzDo `RestClient` object
  */
 export const getRestClient = async (
-  opts: IAzureDevOpsOpts = {}
+  opts: AzureDevOpsOpts = {}
 ): Promise<RestClient> => {
   if (typeof restApi !== "undefined") {
     return restApi;
@@ -93,7 +93,7 @@ export const getRestClient = async (
  * @returns AzDo `IBuildApi` object
  */
 export const getBuildApi = async (
-  opts: IAzureDevOpsOpts = {}
+  opts: AzureDevOpsOpts = {}
 ): Promise<IBuildApi> => {
   if (typeof buildApi !== "undefined") {
     return buildApi;
@@ -111,7 +111,7 @@ export const getBuildApi = async (
  * @returns AzDo `IBuildApi` object
  */
 export const getTaskAgentApi = async (
-  opts: IAzureDevOpsOpts = {}
+  opts: AzureDevOpsOpts = {}
 ): Promise<ITaskAgentApi> => {
   if (typeof taskAgentApi !== "undefined") {
     return taskAgentApi;
@@ -133,7 +133,7 @@ export const repositoryHasFile = async (
   fileName: string,
   branch: string,
   repoName: string,
-  accessOpts: IAzureDevOpsOpts
+  accessOpts: AzureDevOpsOpts
 ): Promise<void> => {
   const gitApi = await GitAPI(accessOpts);
   const versionDescriptor = { version: branch }; // change to branch

@@ -8,7 +8,7 @@ export const ORG_NAME_VIOLATION =
 /**
  * Values to be validated
  */
-export interface IValidationValue {
+export interface ValidationValue {
   value: undefined | null | string;
   error: string;
 }
@@ -59,7 +59,7 @@ export const isPortNumberString = (val: unknown): val is string => {
  * @param err Error message
  */
 export const validateForNonEmptyValue = (
-  validValue: IValidationValue
+  validValue: ValidationValue
 ): string => {
   return hasValue(validValue.value) ? "" : validValue.error;
 };
@@ -113,7 +113,7 @@ export const validateOrgName = (value: string): string | boolean => {
 };
 
 export const isDashHex = (value: string): boolean => {
-  return !!value.match(/^[a-f0-9\-]+$/);
+  return !!value.match(/^[a-f0-9-]+$/);
 };
 
 /**
@@ -165,7 +165,7 @@ export const validateProjectName = (value: string): string | boolean => {
     "]"
   ];
   if (invalidChars.some(x => value.indexOf(x) !== -1)) {
-    return `Project name can't contain special characters, such as / : \ ~ & % ; @ ' " ? < > | # $ * } { , + = [ ]`;
+    return `Project name can't contain special characters, such as / : \\ ~ & % ; @ ' " ? < > | # $ * } { , + = [ ]`;
   }
 
   return true;

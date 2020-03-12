@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import fs from "fs";
 import yaml from "js-yaml";
 import path from "path";
@@ -11,11 +12,11 @@ import {
 } from "../lib/constants";
 import { logger } from "../logger";
 import {
-  IAccessYaml,
-  IAzurePipelinesYaml,
-  IComponentYaml,
-  IMaintainersFile,
-  IUser
+  AccessYaml,
+  AzurePipelinesYaml,
+  ComponentYaml,
+  MaintainersFile,
+  User
 } from "../types";
 
 /**
@@ -27,7 +28,7 @@ import {
 const readPipelineFile = (
   dir: string,
   pipelineFileName: string
-): IAzurePipelinesYaml => {
+): AzurePipelinesYaml => {
   const absPath = path.resolve(dir);
   const file = path.join(absPath, pipelineFileName);
   return yaml.safeLoad(fs.readFileSync(file, "utf8"));
@@ -43,16 +44,16 @@ const readPipelineFile = (
 export const generateAccessYaml = (
   accessYamlPath: string,
   gitRepoUrl: string,
-  accessTokenEnvVar: string = "ACCESS_TOKEN_SECRET"
-) => {
+  accessTokenEnvVar = "ACCESS_TOKEN_SECRET"
+): void => {
   const filePath = path.resolve(path.join(accessYamlPath, ACCESS_FILENAME));
-  let accessYaml: IAccessYaml | undefined;
+  let accessYaml: AccessYaml | undefined;
 
   if (fs.existsSync(filePath)) {
     logger.info(
       `Existing ${ACCESS_FILENAME} found at ${filePath}, loading and updating, if needed.`
     );
-    accessYaml = yaml.load(fs.readFileSync(filePath, "utf8")) as IAccessYaml;
+    accessYaml = yaml.load(fs.readFileSync(filePath, "utf8")) as AccessYaml;
     accessYaml = {
       [gitRepoUrl]: accessTokenEnvVar,
       ...accessYaml // Keep any existing configurations. Do not overwrite what's in `gitRepoUrl`.
@@ -95,7 +96,7 @@ export const IMAGE_TAG = `${SAFE_SOURCE_BRANCH}-$(Build.BuildNumber)`;
  *
  * @param serviceName name of the service being built
  */
-export const BUILD_REPO_NAME = (serviceName: string) =>
+export const BUILD_REPO_NAME = (serviceName: string): string =>
   `$(echo $(Build.Repository.Name)-${serviceName} | tr '[:upper:]' '[:lower:]')`;
 
 /**
@@ -123,7 +124,7 @@ export const generateServiceBuildAndUpdatePipelineYaml = (
   serviceName: string,
   servicePath: string,
   variableGroups: string[]
-) => {
+): void => {
   const absProjectRoot = path.resolve(projectRoot);
   const absServicePath = path.resolve(servicePath);
 
@@ -174,13 +175,13 @@ export const serviceBuildAndUpdatePipeline = (
   relServicePath: string,
   ringBranches: string[],
   variableGroups?: string[]
-): IAzurePipelinesYaml => {
+): AzurePipelinesYaml => {
   const relativeServicePathFormatted = relServicePath.startsWith("./")
     ? relServicePath
     : "./" + relServicePath;
 
   // tslint:disable: object-literal-sort-keys
-  const pipelineYaml: IAzurePipelinesYaml = {
+  const pipelineYaml: AzurePipelinesYaml = {
     trigger: {
       branches: { include: ringBranches },
       ...(relativeServicePathFormatted === "./"
@@ -386,7 +387,7 @@ export const serviceBuildAndUpdatePipeline = (
 export const updateTriggerBranchesForServiceBuildAndUpdatePipeline = (
   ringBranches: string[],
   servicePath: string
-) => {
+): void => {
   const absServicePath = path.resolve(servicePath);
 
   const pipelineYamlFullPath = path.join(
@@ -405,11 +406,12 @@ export const updateTriggerBranchesForServiceBuildAndUpdatePipeline = (
     `Updating ${pipelineYamlFullPath} file with trigger rings: ${ringBranches}.`
   );
 
-  const buildPipelineYaml: IAzurePipelinesYaml = readPipelineFile(
+  const buildPipelineYaml: AzurePipelinesYaml = readPipelineFile(
     servicePath,
     SERVICE_PIPELINE_FILENAME
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   buildPipelineYaml.trigger!.branches!.include = ringBranches;
 
   fs.writeFileSync(
@@ -424,7 +426,9 @@ export const updateTriggerBranchesForServiceBuildAndUpdatePipeline = (
  *
  * @param hldRepoDirectory Path to write the manifest-generation.yaml file to
  */
-export const generateHldAzurePipelinesYaml = (targetDirectory: string) => {
+export const generateHldAzurePipelinesYaml = (
+  targetDirectory: string
+): void => {
   const absTargetPath = path.resolve(targetDirectory);
   logger.info(`Generating hld manifest-generation in ${absTargetPath}`);
 
@@ -465,7 +469,7 @@ export const generateDefaultHldComponentYaml = (
   componentGit: string,
   componentName: string,
   componentPath: string
-) => {
+): void => {
   const absTargetPath = path.resolve(targetDirectory);
   logger.info(`Generating component.yaml in ${absTargetPath}`);
 
@@ -503,8 +507,8 @@ const defaultComponentYaml = (
   componentGit: string,
   componentName: string,
   componentPath: string
-): IComponentYaml => {
-  const componentYaml: IComponentYaml = {
+): ComponentYaml => {
+  const componentYaml: ComponentYaml = {
     name: "default-component",
     subcomponents: [
       {
@@ -523,11 +527,11 @@ const defaultComponentYaml = (
 /**
  * Returns a the Manifest Generation Pipeline as defined here: https://github.com/microsoft/bedrock/blob/master/gitops/azure-devops/ManifestGeneration.md#add-azure-pipelines-build-yaml
  */
-const manifestGenerationPipelineYaml = () => {
+const manifestGenerationPipelineYaml = (): string => {
   // based on https://github.com/microsoft/bedrock/blob/master/gitops/azure-devops/ManifestGeneration.md#add-azure-pipelines-build-yaml
   // tslint:disable: object-literal-sort-keys
   // tslint:disable: no-empty
-  const pipelineYaml: IAzurePipelinesYaml = {
+  const pipelineYaml: AzurePipelinesYaml = {
     trigger: {
       branches: {
         include: ["master"]
@@ -595,7 +599,7 @@ const manifestGenerationPipelineYaml = () => {
           `download_spk`,
           `message="$(Build.SourceVersionMessage)"`,
           `if [[ $message == *"Merged PR"* ]]; then`,
-          `pr_id=$(echo $message | grep -oE '[0-9]+' | head -1 | sed -e 's/^0\+//')`,
+          `pr_id=$(echo $message | grep -oE '[0-9]+' | head -1 | sed -e 's/^0\\+//')`,
           `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --manifest-commit-id $latest_commit --pr $pr_id`,
           `else`,
           `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --manifest-commit-id $latest_commit`,
@@ -620,7 +624,9 @@ const manifestGenerationPipelineYaml = () => {
  *
  * @param projectRoot
  */
-export const generateHldLifecyclePipelineYaml = async (projectRoot: string) => {
+export const generateHldLifecyclePipelineYaml = async (
+  projectRoot: string
+): Promise<void> => {
   logger.info(
     `Generating hld lifecycle pipeline ${PROJECT_PIPELINE_FILENAME} in ${projectRoot}`
   );
@@ -654,10 +660,10 @@ export const generateHldLifecyclePipelineYaml = async (projectRoot: string) => {
   );
 };
 
-const hldLifecyclePipelineYaml = () => {
+const hldLifecyclePipelineYaml = (): string => {
   // tslint:disable: object-literal-sort-keys
   // tslint:disable: no-empty
-  const pipelineyaml: IAzurePipelinesYaml = {
+  const pipelineyaml: AzurePipelinesYaml = {
     trigger: {
       branches: {
         include: ["master"]
@@ -756,11 +762,11 @@ const hldLifecyclePipelineYaml = () => {
 export const addNewServiceToMaintainersFile = (
   maintainersFilePath: string,
   newServicePath: string,
-  serviceMaintainers: IUser[]
-) => {
+  serviceMaintainers: User[]
+): void => {
   const maintainersFile = yaml.safeLoad(
     fs.readFileSync(maintainersFilePath, "utf8")
-  ) as IMaintainersFile;
+  ) as MaintainersFile;
 
   maintainersFile.services["./" + newServicePath] = {
     maintainers: serviceMaintainers
@@ -779,7 +785,7 @@ export const addNewServiceToMaintainersFile = (
 export const generateGitIgnoreFile = (
   targetDirectory: string,
   content: string
-) => {
+): void => {
   const absTargetPath = path.resolve(targetDirectory);
   logger.info(`Generating starter .gitignore in ${absTargetPath}`);
 
@@ -803,7 +809,7 @@ export const generateGitIgnoreFile = (
  * @param targetDirectory directory to generate the Dockerfile
  * @param content content of file
  */
-export const generateDockerfile = (targetDirectory: string) => {
+export const generateDockerfile = (targetDirectory: string): void => {
   const absTargetPath = path.resolve(targetDirectory);
   logger.info(`Generating starter Dockerfile in ${absTargetPath}`);
 

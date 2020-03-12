@@ -3,11 +3,11 @@ import yaml from "js-yaml";
 import path from "path";
 import { createTempDir } from "../lib/ioUtil";
 import { logger } from "../logger";
-import { IBedrockFile, IBedrockFileInfo, IHelmConfig, IRings } from "../types";
+import { BedrockFile, BedrockFileInfo, HelmConfig, Rings } from "../types";
 
 export const YAML_NAME = "bedrock.yaml";
 
-export const DEFAULT_CONTENT: IBedrockFile = {
+export const DEFAULT_CONTENT: BedrockFile = {
   rings: {},
   services: {},
   variableGroups: []
@@ -23,7 +23,7 @@ export const DEFAULT_CONTENT: IBedrockFile = {
  *             created if this value is not provided
  * @return Folder where yaml is created.
  */
-export const create = (dir?: string, data?: IBedrockFile): string => {
+export const create = (dir?: string, data?: BedrockFile): string => {
   dir = dir || createTempDir();
   const absPath = path.resolve(dir);
   data = data || DEFAULT_CONTENT;
@@ -56,7 +56,7 @@ export const isExists = (dir: string): boolean => {
  *
  * @param dir path where bedrock.yaml is supposed to reside.
  */
-export const read = (dir: string): IBedrockFile => {
+export const read = (dir: string): BedrockFile => {
   const absPath = path.resolve(dir);
   const file = path.join(absPath, YAML_NAME);
   return yaml.safeLoad(fs.readFileSync(file, "utf8"));
@@ -79,13 +79,13 @@ export const addNewService = (
   dir: string,
   newServicePath: string,
   svcDisplayName: string,
-  helmConfig: IHelmConfig,
+  helmConfig: HelmConfig,
   middlewares: string[],
   k8sBackendPort: number,
   k8sBackend: string,
   pathPrefix: string,
   pathPrefixMajorVersion: string
-) => {
+): void => {
   const absPath = path.resolve(dir);
   const data = read(absPath);
 
@@ -111,7 +111,7 @@ export const addNewService = (
  * @param ringName The name of the ring
  */
 export const setDefaultRing = (
-  bedrockFile: IBedrockFile,
+  bedrockFile: BedrockFile,
   ringName: string,
   dir: string
 ): void => {
@@ -143,9 +143,9 @@ export const setDefaultRing = (
  * @param dir Directory where <code>bedrock.yaml</code> file resides.
  * @param ringName ring to be added.
  */
-export const addNewRing = (dir: string, ringName: string) => {
+export const addNewRing = (dir: string, ringName: string): void => {
   const absPath = path.resolve(dir);
-  const data: IBedrockFile = read(absPath);
+  const data: BedrockFile = read(absPath);
 
   data.rings[ringName] = {}; // Alternatively, we can set isDefault = false or some passable value.
 
@@ -160,7 +160,7 @@ export const addNewRing = (dir: string, ringName: string) => {
  *
  * @param rootProjectPath Path to read the bedrock.yaml file
  */
-export const fileInfo = (rootProjectPath?: string): IBedrockFileInfo => {
+export const fileInfo = (rootProjectPath?: string): BedrockFileInfo => {
   rootProjectPath = rootProjectPath || process.cwd();
 
   const absProjectPath = path.resolve(rootProjectPath);
@@ -195,9 +195,9 @@ export const fileInfo = (rootProjectPath?: string): IBedrockFileInfo => {
  * @param ringToDelete the name of the ring to remove
  */
 export const removeRing = (
-  bedrock: IBedrockFile,
+  bedrock: BedrockFile,
   ringToDelete: string
-): IBedrockFile => {
+): BedrockFile => {
   // Check if ring exists, if not, warn and exit
   const rings = Object.entries(bedrock.rings).map(([name, config]) => ({
     config,
@@ -217,13 +217,13 @@ export const removeRing = (
   }
 
   // Remove the ring
-  const updatedRings: IRings = rings.reduce((updated, ring) => {
+  const updatedRings: Rings = rings.reduce((updated, ring) => {
     if (ring.name === ringToDelete) {
       return updated;
     }
     return { ...updated, [ring.name]: ring.config };
   }, {});
-  const bedrockWithoutRing: IBedrockFile = {
+  const bedrockWithoutRing: BedrockFile = {
     ...bedrock,
     rings: updatedRings
   };

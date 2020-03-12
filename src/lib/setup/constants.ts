@@ -1,4 +1,4 @@
-export interface IRequestContext {
+export interface RequestContext {
   orgName: string;
   projectName: string;
   accessToken: string;

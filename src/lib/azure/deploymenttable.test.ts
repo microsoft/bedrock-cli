@@ -1,4 +1,3 @@
-import * as azure from "azure-storage";
 import uuid from "uuid";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import * as deploymenttable from "./deploymenttable";
@@ -9,11 +8,11 @@ import {
   deleteFromTable,
   findMatchingDeployments,
   getTableService,
-  IDeploymentTable,
-  IEntryACRToHLDPipeline,
+  DeploymentTable,
+  EntryACRToHLDPipeline,
   insertToTable,
-  IRowHLDToManifestPipeline,
-  IRowManifest,
+  RowHLDToManifestPipeline,
+  RowManifest,
   updateACRToHLDPipeline,
   updateEntryInTable,
   updateHLDtoManifestEntry,
@@ -25,7 +24,7 @@ import {
   updateMatchingArcToHLDPipelineEntry
 } from "./deploymenttable";
 
-const mockedTableInfo: IDeploymentTable = {
+const mockedTableInfo: DeploymentTable = {
   accountKey: Buffer.from(uuid()).toString("base64"),
   accountName: uuid(),
   partitionKey: uuid(),
@@ -42,7 +41,7 @@ const mockedEnv = uuid();
 const mockedPr = uuid();
 const mockedManifestCommitId = uuid();
 
-const mockedEntryACRPipeline: deploymenttable.IEntrySRCToACRPipeline = {
+const mockedEntryACRPipeline: deploymenttable.EntrySRCToACRPipeline = {
   PartitionKey: uuid(),
   RowKey: uuid(),
   commitId: mockedCommitId,
@@ -111,7 +110,7 @@ const mockedRowHLDToManifestPipeline = Object.assign(
     p3: mockedPipelineId3
   },
   mockedRowACRToHLDPipeline
-) as IRowHLDToManifestPipeline;
+) as RowHLDToManifestPipeline;
 
 const mockedEntryHLDToManifestPipeline = {
   PartitionKey: uuid(),
@@ -131,7 +130,7 @@ const mockedEntryHLDToManifestPipeline = {
   service: mockedServiceName
 };
 
-const mockedManifestRow: IRowManifest = Object.assign(
+const mockedManifestRow: RowManifest = Object.assign(
   {
     manifestCommitId: uuid()
   },
@@ -217,7 +216,7 @@ describe("test updateMatchingArcToHLDPipelineEntry function", () => {
     jest
       .spyOn(deploymenttable, "updateEntryInTable")
       .mockReturnValueOnce(Promise.resolve());
-    const entries: IEntryACRToHLDPipeline[] = [mockedEntryACRToHLDPipeline];
+    const entries: EntryACRToHLDPipeline[] = [mockedEntryACRToHLDPipeline];
     const result = await updateMatchingArcToHLDPipelineEntry(
       entries,
       mockedTableInfo,
@@ -245,7 +244,7 @@ describe("test updateMatchingArcToHLDPipelineEntry function", () => {
   });
 });
 
-const mockInsertIntoTable = (positive = true) => {
+const mockInsertIntoTable = (positive = true): void => {
   if (positive) {
     jest
       .spyOn(deploymenttable, "insertToTable")
@@ -257,9 +256,11 @@ const mockInsertIntoTable = (positive = true) => {
   }
 };
 
-const testUpdateLastRowOfArcToHLDPipelines = async (positive = true) => {
+const testUpdateLastRowOfArcToHLDPipelines = async (
+  positive = true
+): Promise<deploymenttable.RowACRToHLDPipeline> => {
   mockInsertIntoTable(positive);
-  const entries: IEntryACRToHLDPipeline[] = [mockedEntryACRToHLDPipeline];
+  const entries: EntryACRToHLDPipeline[] = [mockedEntryACRToHLDPipeline];
   return await updateLastRowOfArcToHLDPipelines(
     entries,
     mockedTableInfo,
@@ -283,7 +284,9 @@ describe("test updateLastRowOfArcToHLDPipelines function", () => {
   });
 });
 
-const testAddNewRowToArcToHLDPipelines = async (positive = true) => {
+const testAddNewRowToArcToHLDPipelines = async (
+  positive = true
+): Promise<deploymenttable.RowACRToHLDPipeline> => {
   mockInsertIntoTable(positive);
 
   return await addNewRowToArcToHLDPipelines(
@@ -311,7 +314,7 @@ describe("test addNewRowToArcToHLDPipelines function", () => {
 const testUpdateACRToHLDPipeline = async (
   noEntry: boolean,
   matched: boolean
-) => {
+): Promise<void> => {
   const fnUpdateFound = jest.spyOn(
     deploymenttable,
     "updateMatchingArcToHLDPipelineEntry"
@@ -392,7 +395,9 @@ describe("test updateACRToHLDPipeline function", () => {
   });
 });
 
-const testUpdateHLDToManifestPipeline = async (matchEntries = true) => {
+const testUpdateHLDToManifestPipeline = async (
+  matchEntries = true
+): Promise<void> => {
   const findFnuc = jest.spyOn(deploymenttable, "findMatchingDeployments");
   findFnuc.mockReset();
 
@@ -553,7 +558,7 @@ describe("test addNewRowToHLDtoManifestPipeline function", () => {
 const testUpdateHLDtoManifestHelper = async (
   empty: boolean,
   match: boolean
-) => {
+): Promise<void> => {
   const updateFn = jest.spyOn(deploymenttable, "updateHLDtoManifestEntry");
   const updateLastFn = jest.spyOn(
     deploymenttable,

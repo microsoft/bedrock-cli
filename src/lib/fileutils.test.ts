@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 ////////////////////////////////////////////////////////////////////////////////
 // !!NOTE!!
 // This test suite uses mock-fs to mock out the the file system
@@ -31,7 +32,7 @@ import {
   createTestMaintainersYaml,
   createTestServiceBuildAndUpdatePipelineYaml
 } from "../test/mockFactory";
-import { IAccessYaml, IAzurePipelinesYaml, IMaintainersFile } from "../types";
+import { AccessYaml, AzurePipelinesYaml, MaintainersFile } from "../types";
 import {
   addNewServiceToMaintainersFile,
   generateAccessYaml,
@@ -83,7 +84,7 @@ describe("generateAccessYaml", () => {
     const gitRepoUrl =
       "https://fabrikam@dev.azure.com/someorg/someproject/_git/fabrikam2019";
 
-    const accessYaml: IAccessYaml = {};
+    const accessYaml: AccessYaml = {};
     accessYaml[gitRepoUrl] = "ACCESS_TOKEN_SECRET";
 
     generateAccessYaml(absTargetPath, gitRepoUrl);
@@ -111,7 +112,7 @@ describe("generateAccessYaml", () => {
 
     const gitRepoUrl2 =
       "https://fabrikam@dev.azure.com/someorg/someproject/_git/private-helm-repo";
-    const accessYaml: IAccessYaml = {};
+    const accessYaml: AccessYaml = {};
     accessYaml[gitRepoUrl2] = "ACCESS_TOKEN_SECRET";
     accessYaml[gitRepoUrl] = "ACCESS_TOKEN_SECRET";
 
@@ -138,7 +139,7 @@ describe("generateAccessYaml", () => {
     const gitRepoUrl =
       "https://fabrikam@dev.azure.com/someorg/someproject/_git/fabrikam2019";
 
-    const accessYaml: IAccessYaml = {};
+    const accessYaml: AccessYaml = {};
     accessYaml[gitRepoUrl] = "MY_CUSTOM_SECRET";
 
     generateAccessYaml(absTargetPath, gitRepoUrl);
@@ -443,6 +444,7 @@ describe("generateDefaultHldComponentYaml", () => {
 describe("Adding a new service to a Maintainer file", () => {
   beforeAll(() => {
     mockFs({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       "maintainers.yaml": createTestMaintainersYaml() as any
     });
   });
@@ -469,9 +471,10 @@ describe("Adding a new service to a Maintainer file", () => {
 
     const defaultMaintainersFileObject = createTestMaintainersYaml(false);
 
-    const expected: IMaintainersFile = {
+    const expected: MaintainersFile = {
       services: {
-        ...((defaultMaintainersFileObject as any) as IMaintainersFile).services,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...((defaultMaintainersFileObject as any) as MaintainersFile).services,
         ["./" + servicePath]: {
           maintainers: [newUser]
         }
@@ -642,7 +645,7 @@ describe("serviceBuildUpdatePipeline", () => {
       expect(fs.existsSync(serviceReference.servicePath)).toBe(true);
 
       // pipeline triggers should include the relative path to the service
-      const azureYaml: IAzurePipelinesYaml = yaml.safeLoad(
+      const azureYaml: AzurePipelinesYaml = yaml.safeLoad(
         fs.readFileSync(
           path.join(serviceReference.servicePath, SERVICE_PIPELINE_FILENAME),
           "utf8"
@@ -653,8 +656,8 @@ describe("serviceBuildUpdatePipeline", () => {
       );
       expect(hasCorrectIncludes).toBe(true);
 
-      let hasCorrectVariableGroup1: boolean = false;
-      let hasCorrectVariableGroup2: boolean = false;
+      let hasCorrectVariableGroup1 = false;
+      let hasCorrectVariableGroup2 = false;
       for (const value of Object.values(azureYaml.variables!)) {
         const item = value as { group: string };
 

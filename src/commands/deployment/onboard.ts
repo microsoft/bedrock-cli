@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/camelcase */
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { StorageAccount } from "@azure/arm-storage/esm/models";
 import commander from "commander";
 import fs from "fs";
@@ -16,10 +19,10 @@ import {
   validateForRequiredValues
 } from "../../lib/commandBuilder";
 import { logger } from "../../logger";
-import { IAzureAccessOpts, IConfigYaml } from "../../types";
+import { AzureAccessOpts, ConfigYaml } from "../../types";
 import decorator from "./onboard.decorator.json";
 
-export interface ICommandOptions {
+export interface CommandOptions {
   storageAccountName: string | undefined;
   storageTableName: string | undefined;
   storageLocation: string | undefined;
@@ -36,7 +39,7 @@ export interface ICommandOptions {
  *
  * @param opts values from commander
  */
-export const populateValues = (opts: ICommandOptions) => {
+export const populateValues = (opts: CommandOptions): CommandOptions => {
   const config = Config();
   const { azure } = config.introspection!;
 
@@ -82,7 +85,7 @@ export const validateStorageName = (name: string): boolean => {
  *
  * @param opts values from commander (including populated values from spk config)
  */
-export const validateValues = (opts: ICommandOptions) => {
+export const validateValues = (opts: CommandOptions): void => {
   const errors = validateForRequiredValues(decorator, {
     servicePrincipalId: opts.servicePrincipalId,
     servicePrincipalPassword: opts.servicePrincipalPassword,
@@ -115,9 +118,9 @@ export const validateValues = (opts: ICommandOptions) => {
  * @param exitFn exit function
  */
 export const execute = async (
-  opts: ICommandOptions,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   try {
     populateValues(opts);
     validateValues(opts);
@@ -139,7 +142,7 @@ export const execute = async (
  * @param command Commander command object to decorate
  */
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     await execute(opts, async (status: number) => {
       await exitCmd(logger, process.exit, status);
     });
@@ -153,8 +156,8 @@ export const commandDecorator = (command: commander.Command): void => {
  * @param accessOpts Azure Access Opts
  */
 export const validateAndCreateStorageAccount = async (
-  values: ICommandOptions,
-  accessOpts: IAzureAccessOpts
+  values: CommandOptions,
+  accessOpts: AzureAccessOpts
 ): Promise<StorageAccount | undefined> => {
   const isExist = await isStorageAccountExist(
     values.storageResourceGroupName!,
@@ -189,8 +192,8 @@ export const validateAndCreateStorageAccount = async (
  * @throws Error if access key cannot be obtained.
  */
 export const getStorageAccessKey = async (
-  values: ICommandOptions,
-  accessOpts: IAzureAccessOpts
+  values: CommandOptions,
+  accessOpts: AzureAccessOpts
 ): Promise<string> => {
   const accessKey = await getStorageAccountKey(
     values.storageResourceGroupName!,
@@ -214,10 +217,10 @@ export const getStorageAccessKey = async (
  * @param accessKey Access Key
  */
 export const createKeyVault = async (
-  values: ICommandOptions,
-  accessOpts: IAzureAccessOpts,
+  values: CommandOptions,
+  accessOpts: AzureAccessOpts,
   accessKey: string
-) => {
+): Promise<void> => {
   // if key vault is not specified, exit without reading storage account
   // key and setting it in the key vault
   if (values.keyVaultName) {
@@ -249,14 +252,14 @@ export const createKeyVault = async (
  * @param values Values from commander.
  */
 export const onboard = async (
-  values: ICommandOptions
+  values: CommandOptions
 ): Promise<StorageAccount | undefined> => {
   logger.debug(
     `onboard called with ${values.storageTableName}, ${values.storageTableName},
     ${values.storageResourceGroupName}, ${values.storageLocation}, and ${values.keyVaultName}`
   );
 
-  const accessOpts: IAzureAccessOpts = {
+  const accessOpts: AzureAccessOpts = {
     servicePrincipalId: values.servicePrincipalId,
     servicePrincipalPassword: values.servicePrincipalPassword,
     subscriptionId: values.subscriptionId,
@@ -305,7 +308,7 @@ export const setConfiguration = (
   storageTableName: string
 ): boolean => {
   try {
-    const data = readYaml<IConfigYaml>(defaultConfigFile());
+    const data = readYaml<ConfigYaml>(defaultConfigFile());
     data.introspection!.azure!.account_name = storageAccountName;
     data.introspection!.azure!.table_name = storageTableName;
     const jsonData = yaml.safeDump(data);

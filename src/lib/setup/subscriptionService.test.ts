@@ -1,19 +1,12 @@
-import {
-  Subscription,
-  SubscriptionClientOptions
-} from "@azure/arm-subscriptions/src/models";
-import { ApplicationTokenCredentials } from "@azure/ms-rest-nodeauth";
 import * as restAuth from "@azure/ms-rest-nodeauth";
 import { getSubscriptions } from "./subscriptionService";
 
 jest.mock("@azure/arm-subscriptions", () => {
   class MockClient {
-    constructor(
-      cred: ApplicationTokenCredentials,
-      options?: SubscriptionClientOptions
-    ) {
+    constructor() {
       return {
         subscriptions: {
+          // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
           list: () => {
             return [
               {
@@ -26,6 +19,7 @@ jest.mock("@azure/arm-subscriptions", () => {
       };
     }
   }
+
   return {
     SubscriptionClient: MockClient
   };

@@ -6,8 +6,6 @@
  * `ts-node src/lib/pipelines/try_pipeline.ts`
  */
 
-/* tslint:disable no-console */
-
 import {
   createPipelineForDefinition,
   definitionForAzureRepoPipeline,
@@ -38,7 +36,7 @@ if (
   process.exit(1);
 }
 
-const start = async () => {
+const start = async (): Promise<void> => {
   const buildApi = await getBuildApiClient(orgName, token);
 
   const definition = definitionForAzureRepoPipeline({

@@ -17,12 +17,12 @@ export const logger = createLogger({
   ]
 });
 
-export const enableVerboseLogging = () => {
+export const enableVerboseLogging = (): void => {
   logger.info("Enabling verbose logging");
   logger.level = "silly";
 };
 
-export const disableVerboseLogging = () => {
+export const disableVerboseLogging = (): void => {
   logger.info("Disabling verbose logging");
   logger.level = "info";
 };

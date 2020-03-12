@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 import fs from "fs";
 import fsExtra from "fs-extra";
@@ -10,7 +12,7 @@ import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { safeGitUrlForLogging } from "../../lib/gitutils";
 import { deepClone } from "../../lib/util";
 import { logger } from "../../logger";
-import { IInfraConfigYaml } from "../../types";
+import { InfraConfigYaml } from "../../types";
 import decorator from "./generate.decorator.json";
 import {
   BACKEND_TFVARS,
@@ -21,12 +23,12 @@ import {
 } from "./infra_common";
 import { copyTfTemplate } from "./scaffold";
 
-interface ICommandOptions {
+interface CommandOptions {
   project: string | undefined;
   output: string | undefined;
 }
 
-export interface ISourceInformation {
+export interface SourceInformation {
   source?: string;
   template?: string;
   version?: string;
@@ -38,9 +40,9 @@ export enum DefinitionYAMLExistence {
 }
 
 export const execute = async (
-  opts: ICommandOptions,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   const parentPath = process.cwd();
   // if the "--project" argument is not specified, then it is assumed
   // that the current working directory is the project path.
@@ -75,7 +77,7 @@ export const execute = async (
  * @param command Commander command object to decorate
  */
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     await execute(opts, async (status: number) => {
       await exitCmd(logger, process.exit, status);
     });
@@ -117,10 +119,8 @@ export const validateDefinition = (
   throw new Error(`${DEFINITION_YAML} was not found in ${parentPath}`);
 };
 
-export const getDefinitionYaml = (dir: string): IInfraConfigYaml => {
-  const parentData = readYaml<IInfraConfigYaml>(
-    path.join(dir, DEFINITION_YAML)
-  );
+export const getDefinitionYaml = (dir: string): InfraConfigYaml => {
+  const parentData = readYaml<InfraConfigYaml>(path.join(dir, DEFINITION_YAML));
   return loadConfigurationFromLocalEnv(parentData || {});
 };
 
@@ -136,13 +136,13 @@ export const validateTemplateSources = (
   configuration: DefinitionYAMLExistence,
   parentDir: string,
   projectDir: string
-): ISourceInformation => {
+): SourceInformation => {
   const sourceKeys = ["source", "template", "version"] as Array<
-    keyof ISourceInformation
+    keyof SourceInformation
   >;
-  const source: ISourceInformation = {};
-  let parentInfraConfig: IInfraConfigYaml;
-  let leafInfraConfig: IInfraConfigYaml;
+  const source: SourceInformation = {};
+  let parentInfraConfig: InfraConfigYaml;
+  let leafInfraConfig: InfraConfigYaml;
 
   if (configuration === DefinitionYAMLExistence.PARENT_ONLY) {
     parentInfraConfig = getDefinitionYaml(parentDir);
@@ -179,7 +179,7 @@ export const checkRemoteGitExist = async (
   sourcePath: string,
   source: string,
   safeLoggingUrl: string
-) => {
+): Promise<void> => {
   // Checking for git remote
   if (!fs.existsSync(sourcePath)) {
     throw new Error(`${sourcePath} does not exist`);
@@ -198,18 +198,17 @@ The remote repo may not exist or you do not have the rights to access it`);
 export const gitFetchPull = async (
   sourcePath: string,
   safeLoggingUrl: string
-) => {
-  try {
-    // Make sure we have the latest version of all releases cached locally
-    await simpleGit(sourcePath).fetch("all");
-    await simpleGit(sourcePath).pull("origin", "master");
-    logger.info(`${safeLoggingUrl} already cloned. Performing 'git pull'...`);
-  } catch (error) {
-    throw error;
-  }
+): Promise<void> => {
+  // Make sure we have the latest version of all releases cached locally
+  await simpleGit(sourcePath).fetch("all");
+  await simpleGit(sourcePath).pull("origin", "master");
+  logger.info(`${safeLoggingUrl} already cloned. Performing 'git pull'...`);
 };
 
-export const gitCheckout = async (sourcePath: string, version: string) => {
+export const gitCheckout = async (
+  sourcePath: string,
+  version: string
+): Promise<void> => {
   // Checkout tagged version
   logger.info(`Checking out template version: ${version}`);
   await simpleGit(sourcePath).checkout(version);
@@ -221,8 +220,8 @@ export const gitCheckout = async (sourcePath: string, version: string) => {
  * @param sourceConfig definition object
  */
 export const validateRemoteSource = async (
-  sourceConfig: ISourceInformation
-) => {
+  sourceConfig: SourceInformation
+): Promise<void> => {
   const source = sourceConfig.source!;
   const version = sourceConfig.version!;
 
@@ -310,12 +309,8 @@ export const gitClone = async (
   source: string,
   sourcePath: string
 ): Promise<void> => {
-  try {
-    await git.clone(source, `${sourcePath}`);
-    logger.info(`Cloning source repo to .spk/templates was successful.`);
-  } catch (error) {
-    throw error;
-  }
+  await git.clone(source, `${sourcePath}`);
+  logger.info(`Cloning source repo to .spk/templates was successful.`);
 };
 
 export const getParentGeneratedFolder = (
@@ -323,7 +318,7 @@ export const getParentGeneratedFolder = (
   outputPath: string
 ): string => {
   if (outputPath !== "") {
-    const folderName = parentPath.replace(/^.*[\\\/]/, "");
+    const folderName = parentPath.replace(/^.*[\\/]/, "");
     return path.join(outputPath, folderName + "-generated");
   }
   return parentPath + "-generated";
@@ -332,8 +327,8 @@ export const getParentGeneratedFolder = (
 export const generateConfigWithParentEqProjectPath = async (
   parentDirectory: string,
   templatePath: string,
-  parentInfraConfig: IInfraConfigYaml
-) => {
+  parentInfraConfig: InfraConfigYaml
+): Promise<void> => {
   createGenerated(parentDirectory);
   if (parentInfraConfig.variables) {
     const spkTfvarsObject = generateTfvars(parentInfraConfig.variables);
@@ -367,9 +362,9 @@ export const generateConfig = async (
   parentPath: string,
   projectPath: string,
   definitionConfig: DefinitionYAMLExistence,
-  sourceConfig: ISourceInformation,
+  sourceConfig: SourceInformation,
   outputPath: string
-) => {
+): Promise<void> => {
   const parentDirectory = getParentGeneratedFolder(parentPath, outputPath);
   const sourceFolder = getSourceFolderNameFromURL(sourceConfig.source!);
   const templatePath = path.join(
@@ -430,11 +425,13 @@ export const generateConfig = async (
 };
 
 const combineVariable = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parentVars: { [key: string]: any },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   leafVars: { [key: string]: any },
   childDirectory: string,
   fileName: string
-) => {
+): void => {
   const merged = dirIteration(parentVars, leafVars);
   // Generate Terraform files in generated directory
   const combined = generateTfvars(merged);
@@ -452,7 +449,7 @@ const combineVariable = (
  * @param templatePath Path to the versioned Terraform template
  */
 export const singleDefinitionGeneration = async (
-  infraConfig: IInfraConfigYaml,
+  infraConfig: InfraConfigYaml,
   parentDirectory: string,
   childDirectory: string,
   templatePath: string
@@ -502,7 +499,7 @@ export const dirIteration = (
  *
  * @param projectPath path to the project directory
  */
-export const createGenerated = (projectPath: string) => {
+export const createGenerated = (projectPath: string): void => {
   mkdirp.sync(projectPath);
   logger.info(`Created generated directory: ${projectPath}`);
 };
@@ -521,20 +518,16 @@ export const retryRemoteValidate = async (
   sourcePath: string,
   safeLoggingUrl: string,
   version: string
-) => {
-  try {
-    // SPK can assume that there is a remote that it has access to since it was able to compare commit histories. Delete cache and reset on provided remote
-    fsExtra.removeSync(sourcePath);
-    createGenerated(sourcePath);
-    const git = simpleGit();
-    await gitClone(git, source, sourcePath);
-    await gitFetchPull(sourcePath, safeLoggingUrl);
-    logger.info(`Checking out template version: ${version}`);
-    await gitCheckout(sourcePath, version);
-    logger.info(`Successfully re-cloned repo`);
-  } catch (error) {
-    throw error;
-  }
+): Promise<void> => {
+  // SPK can assume that there is a remote that it has access to since it was able to compare commit histories. Delete cache and reset on provided remote
+  fsExtra.removeSync(sourcePath);
+  createGenerated(sourcePath);
+  const git = simpleGit();
+  await gitClone(git, source, sourcePath);
+  await gitFetchPull(sourcePath, safeLoggingUrl);
+  logger.info(`Checking out template version: ${version}`);
+  await gitCheckout(sourcePath, version);
+  logger.info(`Successfully re-cloned repo`);
 };
 
 /**
@@ -543,7 +536,10 @@ export const retryRemoteValidate = async (
  * @param generatedPath Path to the spk.tfvars file
  * @param tfvarsFilename Name of .tfvars file
  */
-export const checkTfvars = (generatedPath: string, tfvarsFilename: string) => {
+export const checkTfvars = (
+  generatedPath: string,
+  tfvarsFilename: string
+): void => {
   // Remove existing spk.tfvars if it already exists
   if (fs.existsSync(path.join(generatedPath, tfvarsFilename))) {
     fs.unlinkSync(path.join(generatedPath, tfvarsFilename));
@@ -557,7 +553,7 @@ export const checkTfvars = (generatedPath: string, tfvarsFilename: string) => {
  *   keyA: "Value1",
  *   keyB: "\"Value2"
  * }
- * results in  ["keyA = "Value1"", "keyB = "\"Value2""]
+ * results in ["keyA = "Value1"", "keyB = "\"Value2""]
  *
  * @param definition a dictionary of key, value
  */
@@ -581,7 +577,7 @@ export const writeTfvarsFile = (
   spkTfVars: string[],
   generatedPath: string,
   tfvarsFilename: string
-) => {
+): void => {
   spkTfVars.forEach(tfvar => {
     fs.appendFileSync(path.join(generatedPath, tfvarsFilename), tfvar + "\n");
   });

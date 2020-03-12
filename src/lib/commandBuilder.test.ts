@@ -6,11 +6,11 @@ import { logger } from "../logger";
 import {
   build,
   exit as exitCmd,
-  ICommandBuildElements,
+  CommandBuildElements,
   validateForRequiredValues
 } from "./commandBuilder";
 
-interface ICommandOption {
+interface CommandOption {
   flags: string;
   description: string;
   defaultValue: string | boolean;
@@ -18,7 +18,7 @@ interface ICommandOption {
 
 describe("Tests Command Builder's build function", () => {
   it("Declaration with no options", () => {
-    const descriptor: ICommandBuildElements = {
+    const descriptor: CommandBuildElements = {
       alias: "cbt",
       command: "command-build-test",
       description: "description of command"
@@ -31,7 +31,7 @@ describe("Tests Command Builder's build function", () => {
     expect(cmd.options.length).toBe(0);
   });
   it("Sanity tests", () => {
-    const descriptor: ICommandBuildElements = {
+    const descriptor: CommandBuildElements = {
       alias: "cbt",
       command: "command-build-test",
       description: "description of command",
@@ -71,7 +71,7 @@ describe("Tests Command Builder's build function", () => {
     expect(cmd.description()).toBe("description of command");
     expect(cmd.alias()).toBe("cbt");
 
-    cmd.options.forEach((opt: ICommandOption, i: number) => {
+    cmd.options.forEach((opt: CommandOption, i: number) => {
       const declared = (descriptor.options || [])[i];
       expect(opt.flags).toBe(declared.arg);
       expect(opt.description).toBe(declared.description);
@@ -85,7 +85,7 @@ describe("Tests Command Builder's build function", () => {
 
 describe("Tests Command Builder's validation function", () => {
   it("Validation tests", () => {
-    const descriptor: ICommandBuildElements = {
+    const descriptor: CommandBuildElements = {
       alias: "cbt",
       command: "command-build-test",
       description: "description of command"
@@ -96,7 +96,7 @@ describe("Tests Command Builder's validation function", () => {
     expect(errors.length).toBe(0);
   });
   it("Validation tests", () => {
-    const descriptor: ICommandBuildElements = {
+    const descriptor: CommandBuildElements = {
       alias: "cbt",
       command: "command-build-test",
       description: "description of command",

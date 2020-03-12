@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 jest.mock("./generate");
 
 import fs from "fs";
@@ -24,7 +25,7 @@ import {
   copyTfTemplate,
   execute,
   generateClusterDefinition,
-  ICommandOptions,
+  CommandOptions,
   parseVariablesTf,
   removeTemplateFiles,
   validateBackendTfvars,
@@ -80,7 +81,7 @@ describe("test validateBackendTfvars function", () => {
   });
 });
 
-const testCopyTfTemplateFn = async (generation: boolean) => {
+const testCopyTfTemplateFn = async (generation: boolean): Promise<void> => {
   const source = createTempDir();
   fs.writeFileSync(path.join(source, "hello"), "hello");
   fs.writeFileSync(path.join(source, TERRAFORM_TFVARS), TERRAFORM_TFVARS);
@@ -203,13 +204,13 @@ describe("test constructSource function", () => {
 });
 
 describe("test execute function", () => {
-  const EMPTY_VALS: ICommandOptions = {
+  const EMPTY_VALS: CommandOptions = {
     name: "",
     source: "",
     template: "",
     version: ""
   };
-  const MOCKED_VALS: ICommandOptions = {
+  const MOCKED_VALS: CommandOptions = {
     name: "name",
     source: "source",
     template: "template",

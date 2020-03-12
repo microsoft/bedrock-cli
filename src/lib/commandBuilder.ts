@@ -7,7 +7,7 @@ import { hasValue } from "./validator";
 /**
  * Command Option
  */
-export interface ICommandOption {
+export interface CommandOption {
   arg: string;
   description: string;
   required?: boolean;
@@ -17,16 +17,16 @@ export interface ICommandOption {
 /**
  * Command Descriptor
  */
-export interface ICommandBuildElements {
+export interface CommandBuildElements {
   command: string;
   alias: string;
   description: string;
   disabled?: boolean;
-  options?: ICommandOption[];
+  options?: CommandOption[];
 }
 
-interface ICommandVariableName2Opt {
-  opt: ICommandOption;
+interface CommandVariableName2Opt {
+  opt: CommandOption;
   variableName: string;
 }
 
@@ -39,7 +39,7 @@ interface ICommandVariableName2Opt {
  */
 export const build = (
   command: commander.Command,
-  decorator: ICommandBuildElements
+  decorator: CommandBuildElements
 ): commander.Command => {
   const cmd = command
     .command(decorator.command)
@@ -66,25 +66,26 @@ export const build = (
  * @return error messages.
  */
 export const validateForRequiredValues = (
-  decorator: ICommandBuildElements,
+  decorator: CommandBuildElements,
   values: { [key: string]: string | undefined }
 ): string[] => {
   // gather the required options
-  const requireds = (decorator.options || []).filter(opt => opt.required);
+  const required = (decorator.options || []).filter(opt => opt.required);
 
   // no required variables hence return empty error array
-  if (requireds.length === 0) {
+  if (required.length === 0) {
     return [];
   }
 
   // opt name to variable name mapping
   // example --org-name is orgName
-  const mapVariableName2Opt: ICommandVariableName2Opt[] = requireds
+  const mapVariableName2Opt: CommandVariableName2Opt[] = required
     .filter(opt => !!opt.arg.match(/\s?--([-\w]+)\s?/))
     .map(opt => {
       const match = opt.arg.match(/\s?--([-\w]+)\s?/);
 
       // match! cannot be null because it is prefilter
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const variableName = match![1]
         .replace(/\.?(-[a-z])/g, (_, y) => {
           return y.toUpperCase();
@@ -98,6 +99,7 @@ export const validateForRequiredValues = (
 
   // figure out which variables have missing values
   const missingItems = mapVariableName2Opt.filter(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     item => !hasValue(values[item.variableName!])
   );
 

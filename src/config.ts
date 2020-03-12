@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/camelcase */
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import dotenv from "dotenv";
 import fs from "fs";
 import yaml from "js-yaml";
@@ -6,16 +8,16 @@ import path from "path";
 import { getSecret } from "./lib/azure/keyvault";
 import { logger } from "./logger";
 import {
-  IAzurePipelinesYaml,
-  IBedrockFile,
-  IConfigYaml,
-  IMaintainersFile
+  AzurePipelinesYaml,
+  BedrockFile,
+  ConfigYaml,
+  MaintainersFile
 } from "./types";
 
 ////////////////////////////////////////////////////////////////////////////////
 // State
 ////////////////////////////////////////////////////////////////////////////////
-let spkConfig: IConfigYaml = {}; // DANGEROUS! this var is globally retrievable and mutable via Config()
+let spkConfig: ConfigYaml = {}; // DANGEROUS! this var is globally retrievable and mutable via Config()
 let hasWarnedAboutUninitializedConfig = false; // has emitted an initialization warning if global config does not exist
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
@@ -45,7 +47,8 @@ export const readYaml = <T>(filepath: string): T => {
  * @returns The original object passed with the values referencing environment variables being swapped to their literal value
  */
 export const loadConfigurationFromLocalEnv = <T>(configObj: T): T => {
-  const iterate = (obj: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const iterate = (obj: any): void => {
     if (obj !== null && obj !== undefined) {
       for (const [key, value] of Object.entries(obj)) {
         obj[key] = updateVariableWithLocalEnv(value as string);
@@ -113,7 +116,7 @@ const getKeyVaultSecret = async (
 /**
  * Returns the global spk-config from the host user
  */
-export const Config = (): IConfigYaml => {
+export const Config = (): ConfigYaml => {
   // Only load the config if it hasn't been loaded before (ie; its empty)
   if (Object.keys(spkConfig).length === 0) {
     try {
@@ -155,9 +158,9 @@ export const Config = (): IConfigYaml => {
  *
  * @param fileDirectory the project directory containing the bedrock.yaml file
  */
-export const Bedrock = (fileDirectory = process.cwd()): IBedrockFile => {
+export const Bedrock = (fileDirectory = process.cwd()): BedrockFile => {
   const bedrockYamlPath = path.join(fileDirectory, "bedrock.yaml");
-  const bedrock = readYaml<IBedrockFile>(bedrockYamlPath);
+  const bedrock = readYaml<BedrockFile>(bedrockYamlPath);
   const { services } = bedrock;
 
   // validate service helm configurations
@@ -202,15 +205,15 @@ export const Bedrock = (fileDirectory = process.cwd()): IBedrockFile => {
  */
 export const BedrockAsync = async (
   fileDirectory = process.cwd()
-): Promise<IBedrockFile> => Bedrock(fileDirectory);
+): Promise<BedrockFile> => Bedrock(fileDirectory);
 
 /**
  * Returns the current maintainers.yaml file for the project
  */
 export const Maintainers = (
   fileDirectory: string = process.cwd()
-): IMaintainersFile =>
-  readYaml<IMaintainersFile>(path.join(fileDirectory, "maintainers.yaml"));
+): MaintainersFile =>
+  readYaml<MaintainersFile>(path.join(fileDirectory, "maintainers.yaml"));
 
 /**
  * Async wrapper for Maintainers() function
@@ -219,8 +222,9 @@ export const Maintainers = (
  *
  * @param fileDirectory the project directory containing the maintainers.yaml file
  */
-export const MaintainersAsync = (fileDirectory: string = process.cwd()) =>
-  Maintainers(fileDirectory);
+export const MaintainersAsync = async (
+  fileDirectory: string = process.cwd()
+): Promise<MaintainersFile> => Maintainers(fileDirectory);
 
 /**
  * Helper to write out a bedrock.yaml or maintainers.yaml file to the project root
@@ -228,10 +232,10 @@ export const MaintainersAsync = (fileDirectory: string = process.cwd()) =>
  * @param file config file object to serialize and write out
  */
 export const write = (
-  file: IBedrockFile | IMaintainersFile | IAzurePipelinesYaml,
+  file: BedrockFile | MaintainersFile | AzurePipelinesYaml,
   targetDirectory = process.cwd(),
   fileName?: string
-) => {
+): void => {
   const asYaml = yaml.safeDump(file, { lineWidth: Number.MAX_SAFE_INTEGER });
   if ("rings" in file) {
     // Is bedrock.yaml
@@ -255,7 +259,7 @@ export const write = (
 /**
  * Fetches the absolute default directory of the spk global config
  */
-export const defaultConfigDir = () => {
+export const defaultConfigDir = (): string => {
   const dir = path.join(os.homedir(), ".spk");
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
@@ -266,7 +270,7 @@ export const defaultConfigDir = () => {
 /**
  * Fetches the absolute default path of the spk global config
  */
-export const defaultConfigFile = () =>
+export const defaultConfigFile = (): string =>
   path.join(defaultConfigDir(), "config.yaml");
 
 /**
@@ -275,11 +279,13 @@ export const defaultConfigFile = () =>
  *
  * @param filepath file to load configuration from
  */
-export const loadConfiguration = (filepath: string = defaultConfigFile()) => {
+export const loadConfiguration = (
+  filepath: string = defaultConfigFile()
+): void => {
   try {
     fs.statSync(filepath);
     dotenv.config();
-    const data = readYaml<IConfigYaml>(filepath);
+    const data = readYaml<ConfigYaml>(filepath);
     spkConfig = loadConfigurationFromLocalEnv(data || {});
   } catch (err) {
     logger.verbose(`An error occurred while loading configuration\n ${err}`);
@@ -295,9 +301,9 @@ export const loadConfiguration = (filepath: string = defaultConfigFile()) => {
 export const saveConfiguration = (
   sourceFilePath: string,
   targetDir: string = defaultConfigDir()
-) => {
+): void => {
   try {
-    const data = yaml.safeDump(readYaml<IConfigYaml>(sourceFilePath));
+    const data = yaml.safeDump(readYaml<ConfigYaml>(sourceFilePath));
     const targetFile = path.join(targetDir, "config.yaml");
     fs.writeFileSync(targetFile, data);
   } catch (err) {

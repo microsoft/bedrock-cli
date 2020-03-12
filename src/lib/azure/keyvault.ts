@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { SecretClient } from "@azure/keyvault-secrets";
 import { logger } from "../../logger";
-import { IAzureAccessOpts } from "../../types";
+import { AzureAccessOpts } from "../../types";
 import { getCredentials } from "./azurecredentials";
 
 export const validateValues = (
   keyVaultName: string,
   secretName: string,
   secretValue?: string
-) => {
+): void => {
   const errors: string[] = [];
   if (!keyVaultName) {
     errors.push(`Invalid keyVaultName`);
@@ -19,14 +20,14 @@ export const validateValues = (
     errors.push(`Invalid secretValue`);
   }
   if (errors.length !== 0) {
-    throw new Error(`\n${errors.join("\n")}`);
+    throw Error(`\n${errors.join("\n")}`);
   }
 };
 
 export const getClient = async (
   keyVaultName: string,
-  opts: IAzureAccessOpts
-) => {
+  opts: AzureAccessOpts
+): Promise<SecretClient> => {
   const url = `https://${keyVaultName}.vault.azure.net`;
   const credentials = await getCredentials(opts);
   return new SecretClient(url, credentials!);
@@ -45,8 +46,8 @@ export const setSecret = async (
   keyVaultName: string,
   secretName: string,
   secretValue: string,
-  opts: IAzureAccessOpts = {}
-) => {
+  opts: AzureAccessOpts = {}
+): Promise<void> => {
   validateValues(keyVaultName, secretName, secretValue);
   const messageWithNoValue = `secret ${secretName} in key vault ${keyVaultName}`;
 
@@ -72,7 +73,7 @@ export const setSecret = async (
 export const getSecret = async (
   keyVaultName: string,
   secretName: string,
-  opts: IAzureAccessOpts = {}
+  opts: AzureAccessOpts = {}
 ): Promise<string | undefined> => {
   validateValues(keyVaultName, secretName);
 

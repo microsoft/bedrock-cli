@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as GitInterfaces from "azure-devops-node-api/interfaces/GitInterfaces";
-import * as azdoClient from "../azdoClient";
 import { WORKSPACE } from "./constants";
+import * as gitService from "./gitService";
 import {
   commitAndPushToRemote,
   createRepo,
@@ -11,7 +13,6 @@ import {
   getRepoInAzureOrg,
   getRepoURL
 } from "./gitService";
-import * as gitService from "./gitService";
 
 const mockRequestContext = {
   accessToken: "pat",

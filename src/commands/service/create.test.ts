@@ -1,5 +1,7 @@
-import * as fs from "fs";
-import * as path from "path";
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-use-before-define */
+import fs from "fs";
+import path from "path";
 import { promisify } from "util";
 import uuid = require("uuid/v4");
 import { Bedrock } from "../../config";
@@ -25,7 +27,7 @@ import {
   createService,
   execute,
   fetchValues,
-  ICommandValues,
+  CommandValues,
   validateGitUrl
 } from "./create";
 
@@ -43,7 +45,7 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-const mockValues: ICommandValues = {
+const mockValues: CommandValues = {
   displayName: "",
   gitPush: false,
   helmChartChart: "",
@@ -66,15 +68,15 @@ const mockValues: ICommandValues = {
   variableGroups: []
 };
 
-const getMockValues = (): ICommandValues => {
+const getMockValues = (): CommandValues => {
   return deepClone(mockValues);
 };
 
 const validateDirNFiles = (
   dir: string,
   serviceName: string,
-  values: ICommandValues
-) => {
+  values: CommandValues
+): void => {
   // Check temp test directory exists
   expect(fs.existsSync(dir)).toBe(true);
 
@@ -291,7 +293,7 @@ describe("Validate Git URLs", () => {
 });
 
 describe("Adding a service to a repo directory", () => {
-  let randomTmpDir: string = "";
+  let randomTmpDir = "";
   beforeEach(() => {
     // Create random directory to initialize
     randomTmpDir = createTempDir();
@@ -358,6 +360,7 @@ describe("Adding a service to a repo directory", () => {
     expect(newService).toBeDefined();
     expect(newService.k8sBackendPort).toBe(values.k8sPort);
     expect(newService.displayName).toBe(values.displayName);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((newService.helm.chart as any).accessTokenVariable).toBe(
       values.helmConfigAccessTokenVariable
     );
@@ -499,7 +502,9 @@ describe("Adding a service to a repo directory", () => {
   });
 });
 
-const writeSampleMaintainersFileToDir = async (maintainersFilePath: string) => {
+const writeSampleMaintainersFileToDir = async (
+  maintainersFilePath: string
+): Promise<void> => {
   await promisify(fs.writeFile)(
     maintainersFilePath,
     createTestMaintainersYaml(),
@@ -507,7 +512,9 @@ const writeSampleMaintainersFileToDir = async (maintainersFilePath: string) => {
   );
 };
 
-const writeSampleBedrockFileToDir = async (bedrockFilePath: string) => {
+const writeSampleBedrockFileToDir = async (
+  bedrockFilePath: string
+): Promise<void> => {
   await promisify(fs.writeFile)(
     bedrockFilePath,
     createTestBedrockYaml(),

@@ -5,7 +5,7 @@ import {
   SERVICE_PIPELINE_FILENAME
 } from "../../lib/constants";
 import { createTempDir, getMissingFilenames } from "../../lib/ioUtil";
-import { IBedrockFile, IMaintainersFile } from "../../types";
+import { BedrockFile, MaintainersFile } from "../../types";
 import { execute, initialize } from "./init";
 import * as init from "./init";
 
@@ -45,7 +45,7 @@ describe("Initializing a blank/new bedrock repository", () => {
 describe("initializing an existing file does not modify it", () => {
   test("bedrock.yaml does not get modified", async () => {
     const randomDir = createTempDir();
-    const bedrockFile: IBedrockFile = {
+    const bedrockFile: BedrockFile = {
       rings: { master: { isDefault: true } },
       services: {
         "some/random/dir": {
@@ -70,7 +70,7 @@ describe("initializing an existing file does not modify it", () => {
 
   test("maintainers.yaml does not get modified", async () => {
     const randomDir = createTempDir();
-    const maintainersFile: IMaintainersFile = {
+    const maintainersFile: MaintainersFile = {
       services: {
         "some/random/dir": {
           maintainers: [{ name: "foo bar", email: "foobar@baz.com" }]

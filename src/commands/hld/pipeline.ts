@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/camelcase */
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
 import {
   BuildDefinition,
@@ -11,7 +13,7 @@ import {
   BUILD_SCRIPT_URL,
   RENDER_HLD_PIPELINE_FILENAME
 } from "../../lib/constants";
-import { IAzureDevOpsOpts } from "../../lib/git";
+import { AzureDevOpsOpts } from "../../lib/git";
 import { getRepositoryName, isGitHubUrl } from "../../lib/gitutils";
 import {
   createPipelineForDefinition,
@@ -23,7 +25,7 @@ import {
 import { logger } from "../../logger";
 import decorator from "./pipeline.decorator.json";
 
-export interface ICommandOptions {
+export interface CommandOptions {
   pipelineName: string;
   personalAccessToken: string;
   orgName: string;
@@ -35,11 +37,11 @@ export interface ICommandOptions {
   yamlFileBranch: string;
 }
 
-export const emptyStringIfUndefined = (val: string | undefined) => {
+export const emptyStringIfUndefined = (val: string | undefined): string => {
   return val ? val : "";
 };
 
-export const populateValues = (opts: ICommandOptions) => {
+export const populateValues = (opts: CommandOptions): CommandOptions => {
   // NOTE: all the values in opts are defaulted to ""
 
   // exception will be thrown if spk's config.yaml is missing
@@ -81,7 +83,7 @@ export const populateValues = (opts: ICommandOptions) => {
   return opts;
 };
 
-const validateRepos = (hldRepoUrl: string, manifestRepoUrl: string) => {
+const validateRepos = (hldRepoUrl: string, manifestRepoUrl: string): void => {
   const hldGitUrlType = isGitHubUrl(hldRepoUrl);
   const manifestGitUrlType = isGitHubUrl(manifestRepoUrl);
   if (hldGitUrlType || manifestGitUrlType) {
@@ -90,12 +92,12 @@ const validateRepos = (hldRepoUrl: string, manifestRepoUrl: string) => {
 };
 
 export const execute = async (
-  opts: ICommandOptions,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   try {
     populateValues(opts);
-    const accessOpts: IAzureDevOpsOpts = {
+    const accessOpts: AzureDevOpsOpts = {
       orgName: opts.orgName,
       personalAccessToken: opts.personalAccessToken,
       project: opts.devopsProject
@@ -119,8 +121,8 @@ export const execute = async (
   }
 };
 
-export const commandDecorator = (command: commander.Command) => {
-  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     await execute(opts, async (status: number) => {
       await exitCmd(logger, process.exit, status);
     });
@@ -133,19 +135,16 @@ export const commandDecorator = (command: commander.Command) => {
  *
  * @param values Values for command Options
  */
-export const installHldToManifestPipeline = async (values: ICommandOptions) => {
-  let devopsClient;
+export const installHldToManifestPipeline = async (
+  values: CommandOptions
+): Promise<void> => {
   let builtDefinition;
 
-  try {
-    devopsClient = await getBuildApiClient(
-      values.orgName,
-      values.personalAccessToken
-    );
-    logger.info("Fetched DevOps Client");
-  } catch (err) {
-    throw err; // caller will catch and exit
-  }
+  const devopsClient = await getBuildApiClient(
+    values.orgName,
+    values.personalAccessToken
+  );
+  logger.info("Fetched DevOps Client");
 
   const definition = definitionForAzureRepoPipeline({
     branchFilters: ["master"],

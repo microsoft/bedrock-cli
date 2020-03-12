@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { SubscriptionClient } from "@azure/arm-subscriptions";
 import {
   ApplicationTokenCredentials,
   loginWithServicePrincipalSecret
 } from "@azure/ms-rest-nodeauth";
 import { logger } from "../../logger";
-import { IRequestContext } from "./constants";
+import { RequestContext } from "./constants";
 
-export interface ISubscriptionItem {
+export interface SubscriptionItem {
   id: string;
   name: string;
 }
@@ -17,8 +18,8 @@ export interface ISubscriptionItem {
  * @param rc Request Context
  */
 export const getSubscriptions = (
-  rc: IRequestContext
-): Promise<ISubscriptionItem[]> => {
+  rc: RequestContext
+): Promise<SubscriptionItem[]> => {
   logger.info("attempting to get subscription list");
   return new Promise((resolve, reject) => {
     loginWithServicePrincipalSecret(

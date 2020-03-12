@@ -1,15 +1,15 @@
 import fs from "fs";
 import path from "path";
-import { ICommandBuildElements } from "../src/lib/commandBuilder";
+import { CommandBuildElements } from "../src/lib/commandBuilder";
 
-interface ICommandElement extends ICommandBuildElements {
+interface ICommandElement extends CommandBuildElements {
   markdown?: string;
 }
 
 // get all the *.json under commands folder recursively.
 // and get the content of its corresponding md file (if any).
 // add this content into the json file
-const getAllDecorators = (curDir: string): ICommandBuildElements[] => {
+const getAllDecorators = (curDir: string): CommandBuildElements[] => {
   const allFiles = fs.readdirSync(curDir);
   const jsonFiles = allFiles.filter(f => f.endsWith(".json"));
   const arrJson: ICommandElement[] = [];
@@ -29,7 +29,7 @@ const getSubDirectories = (curDir: string): string[] => {
 };
 
 const consolidateAliases = (
-  allCommands: ICommandBuildElements[]
+  allCommands: CommandBuildElements[]
 ): { [key: string]: string[] } => {
   const mainCommands: { [key: string]: string[] } = {};
   allCommands.forEach(cmd => {
@@ -56,7 +56,7 @@ const dir = path.join(process.cwd(), "src", "commands");
 const commandDirs = getSubDirectories(dir);
 commandDirs.unshift(dir); // this is needed because `spk init` is outside `commands` folder
 
-let commands: ICommandBuildElements[] = [];
+let commands: CommandBuildElements[] = [];
 commandDirs.forEach(folder => {
   commands = commands.concat(getAllDecorators(folder));
 });

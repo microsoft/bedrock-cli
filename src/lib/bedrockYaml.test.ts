@@ -1,7 +1,7 @@
 import uuid = require("uuid/v4");
 import { createTempDir } from "../lib/ioUtil";
 import { createTestBedrockYaml } from "../test/mockFactory";
-import { IBedrockFile, IHelmConfig } from "../types";
+import { BedrockFile, HelmConfig } from "../types";
 import {
   addNewRing,
   addNewService,
@@ -11,7 +11,7 @@ import {
   isExists,
   read,
   removeRing,
-  setDefaultRing,
+  setDefaultRing
 } from "./bedrockYaml";
 
 describe("Creation and Existence test on bedrock.yaml", () => {
@@ -45,7 +45,7 @@ describe("Adding a new service to a Bedrock file", () => {
   it("should update existing bedrock.yml with a new service and its helm chart config", () => {
     const servicePath = "packages/my-new-service";
     const svcDisplayName = "my-new-service";
-    const helmConfig: IHelmConfig = {
+    const helmConfig: HelmConfig = {
       chart: {
         chart: "somehelmchart",
         repository: "somehelmrepository"
@@ -59,7 +59,7 @@ describe("Adding a new service to a Bedrock file", () => {
 
     const defaultBedrockFileObject = createTestBedrockYaml(
       false
-    ) as IBedrockFile;
+    ) as BedrockFile;
 
     // "" means that bedrock.yaml is written to a random directory
     const dir = create("", defaultBedrockFileObject);
@@ -76,10 +76,10 @@ describe("Adding a new service to a Bedrock file", () => {
       pathPrefixMajorVersion
     );
 
-    const expected: IBedrockFile = {
+    const expected: BedrockFile = {
       ...defaultBedrockFileObject,
       services: {
-        ...(defaultBedrockFileObject as IBedrockFile).services,
+        ...(defaultBedrockFileObject as BedrockFile).services,
         ["./" + servicePath]: {
           displayName: svcDisplayName,
           helm: helmConfig,
@@ -101,7 +101,7 @@ describe("Adding a new ring to an existing bedrock.yaml", () => {
   it("should update existing bedrock.yaml with a new service and its helm chart config", () => {
     const defaultBedrockFileObject = createTestBedrockYaml(
       false
-    ) as IBedrockFile;
+    ) as BedrockFile;
 
     // "" means that bedrock.yaml is written to a random directory
     const dir = create("", defaultBedrockFileObject);
@@ -110,13 +110,13 @@ describe("Adding a new ring to an existing bedrock.yaml", () => {
 
     addNewRing(dir, ringName);
 
-    const expected: IBedrockFile = {
+    const expected: BedrockFile = {
       rings: {
-        ...(defaultBedrockFileObject as IBedrockFile).rings,
+        ...(defaultBedrockFileObject as BedrockFile).rings,
         [ringName]: {}
       },
       services: {
-        ...(defaultBedrockFileObject as IBedrockFile).services
+        ...(defaultBedrockFileObject as BedrockFile).services
       },
       variableGroups: []
     };
@@ -192,12 +192,12 @@ describe("Set default ring", () => {
 
 describe("removeRing", () => {
   it("removes a valid matching ring", () => {
-    const original = createTestBedrockYaml(false) as IBedrockFile;
+    const original = createTestBedrockYaml(false) as BedrockFile;
     const ringToRemove = Object.keys(original.rings).pop() as string;
     expect(ringToRemove).toBeDefined();
     const updated = removeRing(original, ringToRemove);
-    const originalWithoutRing = (() => {
-      const copy: IBedrockFile = JSON.parse(JSON.stringify(original));
+    const originalWithoutRing = ((): BedrockFile => {
+      const copy: BedrockFile = JSON.parse(JSON.stringify(original));
       delete copy.rings[ringToRemove];
       return copy;
     })();
@@ -206,12 +206,12 @@ describe("removeRing", () => {
   });
 
   it("throws when the ring doesn't exist", () => {
-    const original = createTestBedrockYaml(false) as IBedrockFile;
+    const original = createTestBedrockYaml(false) as BedrockFile;
     expect(() => removeRing(original, uuid())).toThrow();
   });
 
   it("throws when the ring is found but isDefault === true", () => {
-    const original = createTestBedrockYaml(false) as IBedrockFile;
+    const original = createTestBedrockYaml(false) as BedrockFile;
     const defaultRing = Object.entries(original.rings)
       .map(([name, config]) => ({ name, config }))
       .find(({ config }) => config.isDefault);

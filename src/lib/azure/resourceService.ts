@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { ResourceManagementClient } from "@azure/arm-resources";
 import { loginWithServicePrincipalSecret } from "@azure/ms-rest-nodeauth";
 import { logger } from "../../logger";
 
 let client: ResourceManagementClient;
 
-export interface IResourceGroupItem {
+export interface ResourceGroupItem {
   id: string;
   name: string;
   location: string;
@@ -49,7 +50,7 @@ export const getResourceGroups = async (
   servicePrincipalPassword: string,
   servicePrincipalTenantId: string,
   subscriptionId: string
-): Promise<IResourceGroupItem[]> => {
+): Promise<ResourceGroupItem[]> => {
   logger.info("attempting to get resource groups");
   await getClient(
     servicePrincipalId,

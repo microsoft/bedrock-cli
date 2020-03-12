@@ -7,7 +7,7 @@ type TraefikEntryPoints = Array<"web" | "web-secure">; // web === 80; web-secure
  *
  * @see https://docs.traefik.io/routing/providers/kubernetes-crd/
  */
-interface ITraefikIngressRoute {
+interface TraefikIngressRoute {
   apiVersion: "traefik.containo.us/v1alpha1";
   kind: "IngressRoute";
   metadata: {
@@ -66,9 +66,9 @@ export const TraefikIngressRoute = (
     middlewares?: string[];
     namespace?: string;
   }
-): ITraefikIngressRoute => {
+): TraefikIngressRoute => {
   const { entryPoints, k8sBackend, middlewares = [], namespace } = opts ?? {};
-  const name = !!ringName ? `${serviceName}-${ringName}` : serviceName;
+  const name = ringName ? `${serviceName}-${ringName}` : serviceName;
 
   const routeMatchPathPrefix = `PathPrefix(\`${versionAndPath}\`)`;
   const routeMatchHeaders = ringName && `Headers(\`Ring\`, \`${ringName}\`)`; // no 'X-' prefix for header: https://tools.ietf.org/html/rfc6648
@@ -88,7 +88,7 @@ export const TraefikIngressRoute = (
     kind: "IngressRoute",
     metadata: {
       name,
-      ...(!!namespace ? { namespace } : {})
+      ...(namespace ? { namespace } : {})
     },
     spec: {
       ...((entryPoints ?? []).length > 0 ? { entryPoints } : {}),

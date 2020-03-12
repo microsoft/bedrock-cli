@@ -2,10 +2,10 @@ import fs from "fs";
 import path from "path";
 import uuid from "uuid/v4";
 import { createTempDir } from "../ioUtil";
-import { IRequestContext } from "./constants";
+import { RequestContext } from "./constants";
 import { create } from "./setupLog";
 
-const positiveTest = (logExist?: boolean, withAppCreation = false) => {
+const positiveTest = (logExist?: boolean, withAppCreation = false): void => {
   const dir = createTempDir();
   const file = path.join(dir, uuid());
 
@@ -13,7 +13,7 @@ const positiveTest = (logExist?: boolean, withAppCreation = false) => {
     fs.writeFileSync(file, "dummy");
   }
 
-  const rc: IRequestContext = {
+  const rc: RequestContext = {
     accessToken: "accessToken",
     createdACR: false,
     createdHLDtoManifestPipeline: true,

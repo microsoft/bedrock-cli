@@ -6,7 +6,7 @@ import * as fileUtils from "../../lib/fileutils";
 import { createTempDir } from "../../lib/ioUtil";
 import * as dns from "../../lib/net/dns";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
-import { IBedrockFile } from "../../types";
+import { BedrockFile } from "../../types";
 import { checkDependencies, execute } from "./create";
 
 beforeAll(() => {
@@ -108,14 +108,14 @@ describe("test execute function and logic", () => {
     });
 
     const newRingName = "my-new-ring";
-    const oldBedrockFile: IBedrockFile = loadBedrockFile(tmpDir);
+    const oldBedrockFile: BedrockFile = loadBedrockFile(tmpDir);
     expect(
       Object.entries(oldBedrockFile.rings).map(([ring]) => ring)
     ).not.toContain(newRingName);
 
     await execute(newRingName, tmpDir, exitFn);
 
-    const updatedBedrockFile: IBedrockFile = loadBedrockFile(tmpDir);
+    const updatedBedrockFile: BedrockFile = loadBedrockFile(tmpDir);
     expect(
       Object.entries(updatedBedrockFile.rings).map(([ring]) => ring)
     ).toContain(newRingName);

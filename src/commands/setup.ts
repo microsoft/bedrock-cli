@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/camelcase */
 import commander from "commander";
 import fs from "fs";
 import yaml from "js-yaml";
@@ -8,7 +10,7 @@ import { create as createResourceGroup } from "../lib/azure/resourceService";
 import { build as buildCmd, exit as exitCmd } from "../lib/commandBuilder";
 import {
   ACR,
-  IRequestContext,
+  RequestContext,
   RESOURCE_GROUP,
   RESOURCE_GROUP_LOCATION,
   WORKSPACE
@@ -23,11 +25,11 @@ import { create as createSetupLog } from "../lib/setup/setupLog";
 import { logger } from "../logger";
 import decorator from "./setup.decorator.json";
 
-interface ICommandOptions {
+interface CommandOptions {
   file: string | undefined;
 }
 
-interface IAPIError {
+interface APIError {
   message: string;
   statusCode: number;
 }
@@ -37,7 +39,7 @@ interface IAPIError {
  *
  * @param answers Answers provided to the commander
  */
-export const createSPKConfig = (rc: IRequestContext) => {
+export const createSPKConfig = (rc: RequestContext): void => {
   const data = rc.toCreateAppRepo
     ? {
         azure_devops: {
@@ -65,9 +67,9 @@ export const createSPKConfig = (rc: IRequestContext) => {
 };
 
 export const getErrorMessage = (
-  rc: IRequestContext | undefined,
-  err: Error | IAPIError
-) => {
+  rc: RequestContext | undefined,
+  err: Error | APIError
+): string => {
   if (rc) {
     if (err.message && err.message.indexOf("VS402392") !== -1) {
       return `Project, ${
@@ -89,11 +91,11 @@ export const getErrorMessage = (
  * @param exitFn exit function
  */
 export const execute = async (
-  opts: ICommandOptions,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
-) => {
+): Promise<void> => {
   // tslint:disable-next-line: no-unnecessary-initializer
-  let requestContext: IRequestContext | undefined = undefined;
+  let requestContext: RequestContext | undefined = undefined;
 
   try {
     requestContext = opts.file ? getAnswerFromFile(opts.file) : await prompt();
@@ -151,7 +153,7 @@ export const execute = async (
  * @param command Commander command object to decorate
  */
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: ICommandOptions) => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     await execute(opts, async (status: number) => {
       await exitCmd(logger, process.exit, status);
     });
