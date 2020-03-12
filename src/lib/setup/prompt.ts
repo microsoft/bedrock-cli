@@ -32,7 +32,7 @@ export const promptForSubscriptionId = async (rc: IRequestContext) => {
     ];
     const ans = await inquirer.prompt(questions);
     rc.subscriptionId = subscriptions.find(
-      s => s.name === ans.az_subscription
+      s => s.name === (ans.az_subscription as string)
     )!.id;
   }
 };

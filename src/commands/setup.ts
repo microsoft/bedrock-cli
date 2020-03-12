@@ -3,8 +3,16 @@ import fs from "fs";
 import yaml from "js-yaml";
 import { defaultConfigFile } from "../config";
 import { getBuildApi, getWebApi } from "../lib/azdoClient";
+import { create as createACR } from "../lib/azure/containerRegistryService";
+import { create as createResourceGroup } from "../lib/azure/resourceService";
 import { build as buildCmd, exit as exitCmd } from "../lib/commandBuilder";
-import { IRequestContext, WORKSPACE } from "../lib/setup/constants";
+import {
+  ACR,
+  IRequestContext,
+  RESOURCE_GROUP,
+  RESOURCE_GROUP_LOCATION,
+  WORKSPACE
+} from "../lib/setup/constants";
 import { createDirectory } from "../lib/setup/fsUtil";
 import { getGitApi } from "../lib/setup/gitService";
 import { createHLDtoManifestPipeline } from "../lib/setup/pipelineService";
@@ -101,6 +109,26 @@ export const execute = async (
     await hldRepo(gitAPI, requestContext);
     await manifestRepo(gitAPI, requestContext);
     await createHLDtoManifestPipeline(buildAPI, requestContext);
+
+    if (requestContext.toCreateAppRepo) {
+      requestContext.createdResourceGroup = await createResourceGroup(
+        requestContext.servicePrincipalId!,
+        requestContext.servicePrincipalPassword!,
+        requestContext.servicePrincipalTenantId!,
+        requestContext.subscriptionId!,
+        RESOURCE_GROUP,
+        RESOURCE_GROUP_LOCATION
+      );
+      requestContext.createdACR = await createACR(
+        requestContext.servicePrincipalId!,
+        requestContext.servicePrincipalPassword!,
+        requestContext.servicePrincipalTenantId!,
+        requestContext.subscriptionId!,
+        RESOURCE_GROUP,
+        ACR,
+        RESOURCE_GROUP_LOCATION
+      );
+    }
 
     createSetupLog(requestContext);
     await exitFn(0);

@@ -2,6 +2,8 @@ import path from "path";
 import { readYaml } from "../config";
 import * as config from "../config";
 import * as azdoClient from "../lib/azdoClient";
+import * as azureContainerRegistryService from "../lib/azure/containerRegistryService";
+import * as resourceService from "../lib/azure/resourceService";
 import { createTempDir } from "../lib/ioUtil";
 import { IRequestContext, WORKSPACE } from "../lib/setup/constants";
 import * as fsUtil from "../lib/setup/fsUtil";
@@ -16,10 +18,15 @@ import { IConfigYaml } from "../types";
 import { createSPKConfig, execute, getErrorMessage } from "./setup";
 import * as setup from "./setup";
 
-const mockRequestContext = {
+const mockRequestContext: IRequestContext = {
   accessToken: "pat",
   orgName: "orgname",
   projectName: "project",
+  servicePrincipalId: "1eba2d04-1506-4278-8f8c-b1eb2fc462a8",
+  servicePrincipalPassword: "e4c19d72-96d6-4172-b195-66b3b1c36db1",
+  servicePrincipalTenantId: "72f988bf-86f1-41af-91ab-2d7cd011db47",
+  subscriptionId: "72f988bf-86f1-41af-91ab-2d7cd011db48",
+  toCreateAppRepo: true,
   workspace: WORKSPACE
 };
 
@@ -74,6 +81,8 @@ const testExecuteFunc = async (usePrompt = true, hasProject = true) => {
   jest
     .spyOn(pipelineService, "createHLDtoManifestPipeline")
     .mockReturnValueOnce(Promise.resolve());
+  jest.spyOn(resourceService, "create").mockResolvedValue(true);
+  jest.spyOn(azureContainerRegistryService, "create").mockResolvedValue(true);
   jest.spyOn(setupLog, "create").mockReturnValueOnce();
 
   const exitFn = jest.fn();

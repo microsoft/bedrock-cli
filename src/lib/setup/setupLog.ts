@@ -28,7 +28,9 @@ export const create = (rc: IRequestContext | undefined, file?: string) => {
       `HLD to Manifest Pipeline Created: ${getBooleanVal(
         rc.createdHLDtoManifestPipeline
       )}`,
-      `Service Principal Created: ${getBooleanVal(rc.createServicePrincipal)}`
+      `Service Principal Created: ${getBooleanVal(rc.createServicePrincipal)}`,
+      `Resource Group Created: ${getBooleanVal(rc.createdResourceGroup)}`,
+      `ACR Created: ${getBooleanVal(rc.createdACR)}`
     ];
     if (rc.error) {
       buff.push(`Error: ${rc.error}`);

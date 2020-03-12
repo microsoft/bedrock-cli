@@ -15,8 +15,10 @@ const positiveTest = (logExist?: boolean, withAppCreation = false) => {
 
   const rc: IRequestContext = {
     accessToken: "accessToken",
+    createdACR: false,
     createdHLDtoManifestPipeline: true,
     createdProject: true,
+    createdResourceGroup: false,
     orgName: "orgName",
     projectName: "projectName",
     scaffoldHLD: true,
@@ -31,6 +33,8 @@ const positiveTest = (logExist?: boolean, withAppCreation = false) => {
       (rc.servicePrincipalId = "b510c1ff-358c-4ed4-96c8-eb23f42bb65b");
     rc.servicePrincipalPassword = "a510c1ff-358c-4ed4-96c8-eb23f42bbc5b";
     rc.servicePrincipalTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";
+    rc.createdResourceGroup = true;
+    rc.createdACR = true;
   }
   create(rc, file);
 
@@ -53,6 +57,8 @@ const positiveTest = (logExist?: boolean, withAppCreation = false) => {
       "Manifest Repo Scaffolded: yes",
       "HLD to Manifest Pipeline Created: yes",
       "Service Principal Created: no",
+      "Resource Group Created: yes",
+      "ACR Created: yes",
       "Status: Completed"
     ]);
   } else {
@@ -72,6 +78,8 @@ const positiveTest = (logExist?: boolean, withAppCreation = false) => {
       "Manifest Repo Scaffolded: yes",
       "HLD to Manifest Pipeline Created: yes",
       "Service Principal Created: no",
+      "Resource Group Created: no",
+      "ACR Created: no",
       "Status: Completed"
     ]);
   }
@@ -129,6 +137,8 @@ describe("test create function", () => {
       "Manifest Repo Scaffolded: yes",
       "HLD to Manifest Pipeline Created: yes",
       "Service Principal Created: no",
+      "Resource Group Created: no",
+      "ACR Created: no",
       "Error: things broke",
       "Status: Incomplete"
     ]);

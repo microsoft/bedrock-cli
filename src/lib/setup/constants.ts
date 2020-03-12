@@ -14,6 +14,8 @@ export interface IRequestContext {
   servicePrincipalPassword?: string;
   servicePrincipalTenantId?: string;
   subscriptionId?: string;
+  createdResourceGroup?: boolean;
+  createdACR?: boolean;
   error?: string;
 }
 
@@ -24,6 +26,9 @@ export const DEFAULT_PROJECT_NAME = "BedrockRocks";
 export const APP_REPO_LIFECYCLE = "quick-start-lifecycle";
 export const WORKSPACE = "quick-start-env";
 export const SP_USER_NAME = "service_account";
+export const RESOURCE_GROUP = "quick-start-rg";
+export const RESOURCE_GROUP_LOCATION = "westus2";
+export const ACR = "quickStartACR";
 export const SETUP_LOG = "setup.log";
 
 export const HLD_DEFAULT_GIT_URL =
