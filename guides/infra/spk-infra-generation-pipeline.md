@@ -30,8 +30,10 @@ two flavors:
 
 ### 2. Add Azure Pipeline Build YAML
 
-The SPK repository has a [template](../../azure-pipelines/templates/infra-generation-pipeline.yml) Azure DevOps pipeline that you may use as reference.
-Add the `infra-generation-pipeline.yml` file to the root of the Infra HLD repo.
+The SPK repository has a
+[template](../../azure-pipelines/templates/infra-generation-pipeline.yml) Azure
+DevOps pipeline that you may use as reference. Add the
+`infra-generation-pipeline.yml` file to the root of the Infra HLD repo.
 
 ### 3. Create Pipeline
 
@@ -42,7 +44,7 @@ yaml files (e.g. definition.yaml).
 
 In Azure DevOps:
 
-1. Create a Variable Group.
+#### 3.1a. Create a Variable Group.
 
 Variable Groups may vary based on the `azure-pipelines.yml` used, but for the
 spk `infra-generation-pipeline.yml` template, the following variables will need
@@ -69,13 +71,12 @@ AZDO_PROJECT_NAME: The name of the project in your Azure DevOps organization whe
 
 You can use `spk` to create the Azure DevOps Variable Groups by executing
 `spk variable-group create` described in this
-[doc](../../guides/variable-group.md).
-This will require you to create a variable group manifest similar to the
-following:
+[doc](../../guides/variable-group.md). This will require you to create a
+variable group manifest similar to the following:
 
-```
+```yml
 name: "spk-infra-hld-vg"
-description: "variable groupd for infra hld"
+description: "variable group for infra hld"
 type: "Vsts"
 variables:
   ACCESS_TOKEN_SECRET:
@@ -87,7 +88,7 @@ variables:
   ARM_SUBSCRIPTION_ID:
     value: "<SUBSCRIPTION-ID>"
   ARM_TENANT_ID:
-    value: "<SP-TENANT-ID>
+    value: "<SP-TENANT-ID>"
   CLUSTER:
     value: "<CLUSTER-NAME>"
   GENERATED_REPO:
@@ -100,12 +101,86 @@ variables:
     value: "<AZURE-DEVOPS-PROJECT-NAME>"
 ```
 
-By using the `spk variable-group create` you are also able to link variables to
-secrets in Azure Keyvault.
-
 ![](../images/spk-infra-vg.png)
 
-2. Create a new pipeline.
+#### 3.1b. Create a Variable Group using Azure Key Vault
+
+By using the `spk variable-group create` you are also able to link variables to
+secrets in Azure Keyvault. Create a variable group in the portal or throught the
+`az` cli.
+
+> Please note that Key Vault Secret names can only contain alphanumeric
+> characters and dashes.
+
+Once the Keyvault has been created, You can now create a variable group manifest
+similar to the following:
+
+```yml
+name: "spk-infra-hld-vg-kv"
+description: "key vault variable group for infra hld"
+type: "AzureKeyVault"
+variables:
+  ACCESS-TOKEN-SECRET:
+    enabled: true
+  ARM-CLIENT-ID:
+    enabled: true
+  ARM-CLIENT-SECRET:
+    enabled: true
+  ARM-SUBSCRIPTION-ID:
+    enabled: true
+  ARM-TENANT-ID:
+    enabled: true
+  CLUSTER:
+    enabled: true
+  GENERATED-REPO:
+    enabled: true
+  PROJECT-DIRECTORY:
+    enabled: true
+  AZDO-ORG-NAME: (optional)
+    enabled: true
+  AZDO-PROJECT-NAME: (optional)
+    enabled: true
+key_vault_provider:
+  name: "myvault"                                                # name of the Azure Key Vaukt with Secrets
+  service_endpoint:                                                   # service endpoint is required to authorize with Azure Key Vault
+    name: "my-KeyVault"
+    # If the service endpoint with this name does not exist, the following values are required to create a new service connection with this name
+    subscription_id: "<SUBSCRIPTION-ID>"
+    # Azure Subscription id where Key Vault exist
+    subscription_name: "<SUBSCRIPTION-NAME>"
+    # Azure Subscription name where Key Vault exist
+    service_principal_id: "<SP-ID>"
+    # Service Principal Id that has 'Get' and 'List' in Key Vault Access Policy
+    service_principal_secret: "<SP-PASSWORD>"
+    # Service Principal secret for the above Service Principal Id
+    tenant_id: "<SP-TENANT-ID>"
+    # AAD Tenant Id for the above Service Principal
+```
+
+> Be sure not to commit your variable group manifest to a remote repository
+> unless environment variables were used.
+
+Alternatively you can create a variable group through the Azure DevOps UI and
+connect it to the pre-existing Key Vault you created. Navigate to your pipeline
+library and create a new variable group. Identify the key vault that was
+previously provisioned.
+
+![](../images/kvsetupvg.png)
+
+Additionally, be sure to select the respective Key secrets you wish to map to
+your variable group.
+
+![](../images/secrets-kv-vg.png)
+
+> When using a variable group, you may be prompted to grant access permission to
+> all pipelines in order for your newly created pipeline to have access to an
+> agent pool and specific service connections. Be sure to navigate to the
+> Pipeline UI to permit permission to use the agent pool and the service
+> connection to authenticate against your key vault.
+
+![](../images/permit_access.jpg)
+
+#### 3.2. Create a new pipeline.
 
 You can use the Azure CLI to create the Generation pipeline. To do that, you
 will need to do the following:
