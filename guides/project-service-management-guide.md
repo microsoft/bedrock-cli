@@ -316,6 +316,20 @@ parameters to `spk service create --helm-config-git`:
 
 `https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts`
 
+When you invoke `spk service create` with `--helm-config` argments, there is a
+4th optional argument that can be provided
+`--helm-config-access-token-variable`. This configuration option is the name of
+the environment variable containing a Personal Access Token to access the git
+repository in `helm config git`. In this scenario, however, both git
+repositories are in the same Azure DevOps project, `fabrikam-project`, so it is
+un-necessary to provide `--helm-config-access-token-variable`, as the Personal
+Access Token utilized by the pipelines, `ACCESS_TOKEN_SECRET`, will be the same
+for both application repository and helm chart repository. When
+`--helm-config-access-token-variable` is not provided, the repository defined by
+`--helm-config-git` will automatically use `ACCESS_TOKEN_SECRET`. The following
+scenario covers a situation in which you will want to configure the
+`--helm-config-access-token-variable` to something custom.
+
 ##### Helm Charts in a distinct Git Repository from Application Sources in a different Azure DevOps Project
 
 If your Helm Charts are in their own distinct Git Repository in a different
@@ -337,12 +351,12 @@ The `helm-config-git` parameter _must not_ contain the username portion of a
 url. If you retrieve the URL from Azure DevOps's "Clone Repository" UI, it will
 automatically have the username filled for an HTTPs clone ie:
 
-`https://fabrikam@dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts`
+`https://fabrikam@dev.azure.com/fabrikam/fabrikam-helm-charts-project/_git/fabrikam-helm-charts`
 
 Ensure that the you _remove_ the `fabrikam@` portion of the URL when passing
 parameters to `spk service create --helm-config-git`:
 
-`https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts`
+`https://dev.azure.com/fabrikam/fabrikam-helm-charts-project/_git/fabrikam-helm-charts`
 
 Note the different Azure DevOps URL for the helm charts project in Azure DevOps
 and the addition of the `--helm-config-access-token-variable` parameter.
