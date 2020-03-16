@@ -7,7 +7,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  - group: 'spk-infra-hld-vg'
+  - group: 'spk-infra-hld-vg-kv'
 
 steps:
 - checkout: self
@@ -41,33 +41,33 @@ steps:
     echo 'SPK Version: '
     spk --version
     set -e
-    echo "GENERATING $PROJECT_DIRECTORY"
-    cd $PROJECT_DIRECTORY
-    spk infra generate -p $CLUSTER
+    echo "GENERATING $(PROJECTDIRECTORY)"
+    cd $(PROJECTDIRECTORY)
+    spk infra generate -p $(CLUSTER)
   env:
-    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-    ARM_TENANT_ID: $(ARM_TENANT_ID)
-    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+    ARM_CLIENT_ID: $(ARMCLIENTID)
+    ARM_CLIENT_SECRET: $(ARMCLIENTSECRET)
+    ARM_TENANT_ID: $(ARMTENANTID)
+    ARM_SUBSCRIPTION_ID: $(ARMSUBSCRIPTIONID)
   displayName: 'SPK'
 
 - script: |
     . build.sh --source-only
     init
-    cd $PROJECT_DIRECTORY-generated/$CLUSTER
+    cd $(PROJECTDIRECTORY)-generated/$(CLUSTER)
     terraform init -backend-config=./backend.tfvars
   displayName: 'Terraform init'
 
 - script: |
     . build.sh --source-only
     init
-    cd $PROJECT_DIRECTORY-generated/$CLUSTER
+    cd $(PROJECTDIRECTORY)-generated/$(CLUSTER)
     terraform plan -var-file=./spk.tfvars
   env:
-    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-    ARM_TENANT_ID: $(ARM_TENANT_ID)
-    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+    ARM_CLIENT_ID: $(ARMCLIENTID)
+    ARM_CLIENT_SECRET: $(ARMCLIENTSECRET)
+    ARM_TENANT_ID: $(ARMTENANTID)
+    ARM_SUBSCRIPTION_ID: $(ARMSUBSCRIPTIONID)
   displayName: 'Terraform plan'
 
 - script: |
@@ -79,16 +79,16 @@ steps:
     echo "Commit Hash: $commit_hash"
 
     # Clone Generated Repo and copy generated components over
-    echo "Cloning Generated Repo: $GENERATED_REPO"
-    git clone $GENERATED_REPO
+    echo "Cloning Generated Repo: $(GENERATEDREPO)"
+    git clone $(GENERATEDREPO)
 
     # Extract repo name from url
-    repo_url=$GENERATED_REPO
+    repo_url=$(GENERATEDREPO)
     repo=${repo_url##*/}
     repo_name=${repo%.*}
 
     cd "$repo_name"
-    rsync -rv --exclude=.terraform $HOME/$PROJECT_DIRECTORY-generated .
+    rsync -rv --exclude=.terraform $HOME/$(PROJECTDIRECTORY)-generated .
 
     # Set git identity
     git config user.email "admin@azuredevops.com"
@@ -105,14 +105,14 @@ steps:
     # Add generated files to repository
     git status
     git add .
-    git commit -m "Adding generated components for $PROJECT_DIRECTORY/$CLUSTER"
+    git commit -m "Adding generated components for $(PROJECTDIRECTORY)/$(CLUSTER)"
 
     # Create a new branch
     PR_BRANCH_NAME=pr_$commit_hash
     git checkout -b $PR_BRANCH_NAME
 
     # Git Push
-    repo_url=$GENERATED_REPO
+    repo_url=$(GENERATEDREPO)
     repo_url="${repo_url#http://}"
     repo_url="${repo_url#https://}"
     echo "$repo_url"
@@ -122,18 +122,18 @@ steps:
     # Create PR
     # If using GitHub repos:
     echo "CREATE PULL REQUEST"
-    if [[ $GENERATED_REPO == *"github"* ]]; then
+    if [[ $(GENERATEDREPO) == *"github"* ]]; then
       echo "Installing Hub"
       sudo add-apt-repository ppa:cpick/hub
       sudo apt-get update
       sudo apt-get install hub
       export GITHUB_TOKEN=$ACCESS_TOKEN_SECRET
       hub pull-request -m "Adding Generated Components for $PROJECT_DIRECTORY/$CLUSTER"
-    elif [[ $GENERATED_REPO == *"azure"* ]] || [[ $GENERATED_REPO == *"visualstudio"* ]]; then
+    elif [[ $(GENERATEDREPO) == *"azure"* ]] || [[ $(GENERATEDREPO) == *"visualstudio"* ]]; then
     # If using AzDo repos:
-    # You will need to specify variables $AZDO_ORG_NAME and $AZDO_PROJECT_NAME
+    # You will need to specify variables $AZDO-ORG-NAME and $AZDO-PROJECT-NAME
       export AZURE_DEVOPS_EXT_PAT=$ACCESS_TOKEN_SECRET
-      az devops configure --defaults organization=$AZDO_ORG_NAME project=$AZDO_PROJECT_NAME
+      az devops configure --defaults organization=$(AZDOORGNAME) project=$(AZDOPROJECTNAME)
       echo "Making pull request for $PR_BRANCH_NAME against master"
       az repos pr create --description "Automated PR for $PR_BRANCH_NAME against master"
     else
@@ -141,5 +141,5 @@ steps:
       exit 1
     fi
   env:
-    ACCESS_TOKEN_SECRET: $(ACCESS_TOKEN_SECRET)
-  displayName: 'Commit and Push to Generated Repository'
+    ACCESS_TOKEN_SECRET: $(ACCESSTOKENSECRET)
+  displayName: 'Commit and Push to Generated Repository' 

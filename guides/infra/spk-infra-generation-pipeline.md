@@ -120,25 +120,25 @@ name: "spk-infra-hld-vg-kv"
 description: "key vault variable group for infra hld"
 type: "AzureKeyVault"
 variables:
-  ACCESS-TOKEN-SECRET:
+  ACCESSTOKENSECRET:
     enabled: true
-  ARM-CLIENT-ID:
+  ARMCLIENTID:
     enabled: true
-  ARM-CLIENT-SECRET:
+  ARMCLIENTSECRET:
     enabled: true
-  ARM-SUBSCRIPTION-ID:
+  ARMSUBSCRIPTIONID:
     enabled: true
-  ARM-TENANT-ID:
+  ARMTENANTID:
     enabled: true
   CLUSTER:
     enabled: true
-  GENERATED-REPO:
+  GENERATEDREPO:
     enabled: true
-  PROJECT-DIRECTORY:
+  PROJECTDIRECTORY:
     enabled: true
-  AZDO-ORG-NAME: (optional)
+  AZDOORGNAME: (optional)
     enabled: true
-  AZDO-PROJECT-NAME: (optional)
+  AZDOPROJECTNAME: (optional)
     enabled: true
 key_vault_provider:
   name: "myvault"                                                # name of the Azure Key Vaukt with Secrets
@@ -167,16 +167,23 @@ previously provisioned.
 
 ![](../images/kvsetupvg.png)
 
-Additionally, be sure to select the respective Key secrets you wish to map to
-your variable group.
+Additionally, be sure to select the respective key secrets you wish to map to
+your variable group. Only the secret _names_ are mapped to the variable group,
+not the secret values. The latest version of the value of each secret is fetched
+from the vault and used in the pipeline linked to the variable group during the
+run.
 
 ![](../images/secrets-kv-vg.png)
 
-> When using a variable group, you may be prompted to grant access permission to
-> all pipelines in order for your newly created pipeline to have access to an
-> agent pool and specific service connections. Be sure to navigate to the
-> Pipeline UI to permit permission to use the agent pool and the service
-> connection to authenticate against your key vault.
+A template generation pipeline that uses a variable group backed by key vault is
+provided in the
+[infra-generation-pipeline.yml](../../azure-pipelines/templates/infra-generation-kv-pipeline.yml)
+
+> When using a variable group with key vault, you may be prompted to grant
+> access permission to all pipelines in order for your newly created pipeline to
+> have access to an agent pool and specific service connections in AzDO. Be sure
+> to navigate to the Pipeline UI to permit permissions to use the agent pool and
+> the service connection to authenticate against your key vault.
 
 ![](../images/permit_access.jpg)
 
