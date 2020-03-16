@@ -96,7 +96,7 @@ export const execute = async (
       opts.repoName,
       accessOpts
     );
-    await installBuildUpdatePipeline(serviceName, pipelinesYamlPath, opts);
+    await installBuildUpdatePipeline(pipelinesYamlPath, opts);
     await exitFn(0);
   } catch (err) {
     logger.error(err);
@@ -124,7 +124,6 @@ export const commandDecorator = (command: commander.Command): void => {
  * @param values Values from commander
  */
 export const installBuildUpdatePipeline = async (
-  serviceName: string,
   pipelinesYamlPath: string,
   values: CommandOptions
 ): Promise<void> => {
