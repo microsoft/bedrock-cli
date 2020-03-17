@@ -162,6 +162,18 @@ export const generateServiceBuildAndUpdatePipelineYaml = (
 };
 
 /**
+ * Sanitize the given path to format Azure DevOps can properly utilize
+ *
+ * Transforms:
+ * - If present, removes leading dot-slash (`./`) prefix from the path
+ *
+ * @param pathLike a path-like string to sanitize
+ */
+export const sanitizeTriggerPath = (pathLike: string): string => {
+  return pathLike.replace(/^\.\//, "");
+};
+
+/**
  * Returns a build-update-hld-pipeline.yaml string
  * based on: https://github.com/andrebriggs/monorepo-example/blob/master/service-A/azure-pipelines.yml
  *
@@ -176,15 +188,12 @@ export const serviceBuildAndUpdatePipeline = (
   ringBranches: string[],
   variableGroups?: string[]
 ): AzurePipelinesYaml => {
-  const relativeServicePathFormatted = relServicePath.startsWith("./")
-    ? relServicePath
-    : "./" + relServicePath;
+  const relativeServicePathFormatted = sanitizeTriggerPath(relServicePath);
 
-  // tslint:disable: object-literal-sort-keys
   const pipelineYaml: AzurePipelinesYaml = {
     trigger: {
-      branches: { include: ringBranches },
-      ...(relativeServicePathFormatted === "./"
+      branches: { include: [...new Set(ringBranches)] },
+      ...(relativeServicePathFormatted === ""
         ? {}
         : { paths: { include: [relativeServicePathFormatted] } })
     },
@@ -358,7 +367,6 @@ export const serviceBuildAndUpdatePipeline = (
       }
     ]
   };
-  // tslint:enable: object-literal-sort-keys
 
   const requiredPipelineVariables = [
     `'ACR_NAME' (name of your ACR)`,
@@ -513,7 +521,6 @@ const defaultComponentYaml = (
     subcomponents: [
       {
         name: componentName,
-        // tslint:disable-next-line:object-literal-sort-keys
         method: "git",
         source: componentGit,
         path: componentPath
@@ -529,8 +536,6 @@ const defaultComponentYaml = (
  */
 const manifestGenerationPipelineYaml = (): string => {
   // based on https://github.com/microsoft/bedrock/blob/master/gitops/azure-devops/ManifestGeneration.md#add-azure-pipelines-build-yaml
-  // tslint:disable: object-literal-sort-keys
-  // tslint:disable: no-empty
   const pipelineYaml: AzurePipelinesYaml = {
     trigger: {
       branches: {
@@ -618,8 +623,6 @@ const manifestGenerationPipelineYaml = (): string => {
       }
     ]
   };
-  // tslint:enable: object-literal-sort-keys
-  // tslint:enable: no-empty
 
   return yaml.safeDump(pipelineYaml, { lineWidth: Number.MAX_SAFE_INTEGER });
 };
@@ -667,8 +670,6 @@ export const generateHldLifecyclePipelineYaml = async (
 };
 
 const hldLifecyclePipelineYaml = (): string => {
-  // tslint:disable: object-literal-sort-keys
-  // tslint:disable: no-empty
   const pipelineyaml: AzurePipelinesYaml = {
     trigger: {
       branches: {
@@ -750,8 +751,6 @@ const hldLifecyclePipelineYaml = (): string => {
       }
     ]
   };
-  // tslint:enable: object-literal-sort-keys
-  // tslint:enable: no-empty
 
   return yaml.safeDump(pipelineyaml, { lineWidth: Number.MAX_SAFE_INTEGER });
 };

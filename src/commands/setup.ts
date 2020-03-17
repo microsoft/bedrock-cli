@@ -94,7 +94,6 @@ export const execute = async (
   opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
-  // tslint:disable-next-line: no-unnecessary-initializer
   let requestContext: RequestContext | undefined = undefined;
 
   try {

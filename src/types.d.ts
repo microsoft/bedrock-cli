@@ -71,20 +71,22 @@ export interface BedrockServiceConfig {
   k8sBackend?: string; // k8s service backend name for ingress routing
 }
 
+/**@see https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#triggers */
+type Triggerable = {
+  include?: string[];
+  exclude?: string[];
+};
+
 /**
  * Basic AzurePipelines Interface
  * @see https://github.com/andrebriggs/monorepo-example/blob/master/service-A/azure-pipelines.yml
  */
 export interface AzurePipelinesYaml {
   trigger?: {
-    branches?: {
-      include?: string[];
-      exclude?: string[];
-    };
-    paths?: {
-      include?: string[];
-      exclude?: string[];
-    };
+    batch?: boolean;
+    branches?: Triggerable;
+    tags?: Triggerable;
+    paths?: Triggerable;
   };
   variables?: Array<{ group: string } | { name: string; value: string }>;
   pool?: {

@@ -63,7 +63,6 @@ describe("It builds an azure repo pipeline definition", () => {
     expect(process.yamlFilename).toBe(sampleAzureConfig.yamlFilePath);
 
     const variables = definition.variables!;
-    // tslint:disable-next-line
     expect(variables["foo"].value).toBe("bar");
   });
 });
@@ -114,7 +113,6 @@ describe("It builds a github repo pipeline definition", () => {
     expect(process.yamlFilename).toBe(sampleGithubConfig.yamlFilePath);
 
     const variables = definition.variables!;
-    // tslint:disable-next-line
     expect(variables["foo"].value).toBe("bar");
   });
 });

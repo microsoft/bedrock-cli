@@ -3,6 +3,7 @@ import { VM_IMAGE } from "../lib/constants";
 import {
   BUILD_REPO_NAME,
   generateYamlScript,
+  sanitizeTriggerPath,
   IMAGE_REPO,
   IMAGE_TAG,
   SAFE_SOURCE_BRANCH
@@ -22,11 +23,10 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
   ringBranches: string[] = ["master", "qa", "test"],
   variableGroups: string[] = []
 ): AzurePipelinesYaml | string => {
-  // tslint:disable: object-literal-sort-keys
   const data: AzurePipelinesYaml = {
     trigger: {
       branches: { include: ringBranches },
-      paths: { include: [relativeServicePathFormatted] } // Only building for a single service's path.
+      paths: { include: [sanitizeTriggerPath(relativeServicePathFormatted)] } // Only building for a single service's path.
     },
     variables: [...(variableGroups ?? []).map(group => ({ group }))],
     stages: [
@@ -76,7 +76,7 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
                   `export IMAGE_TAG=${IMAGE_TAG}`,
                   `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
                   `echo "Image Name: $IMAGE_NAME"`,
-                  `cd ${relativeServicePathFormatted}`,
+                  `cd ${sanitizeTriggerPath(relativeServicePathFormatted)}`,
                   `echo "az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
                   `az acr build -r $(ACR_NAME) --image $IMAGE_NAME .`
                 ]),
@@ -198,7 +198,6 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
       }
     ]
   };
-  // tslint:enable: object-literal-sort-keys
 
   return asString
     ? yaml.safeDump(data, { lineWidth: Number.MAX_SAFE_INTEGER })
@@ -290,7 +289,6 @@ export const createTestBedrockYaml = (
 export const createTestHldLifecyclePipelineYaml = (
   asString = true
 ): AzurePipelinesYaml | string => {
-  // tslint:disable: object-literal-sort-keys
   const data: AzurePipelinesYaml = {
     trigger: {
       branches: {
@@ -373,7 +371,6 @@ export const createTestHldLifecyclePipelineYaml = (
       }
     ]
   };
-  // tslint:enable: object-literal-sort-keys
 
   return asString
     ? yaml.safeDump(data, { lineWidth: Number.MAX_SAFE_INTEGER })
@@ -383,7 +380,6 @@ export const createTestHldLifecyclePipelineYaml = (
 export const createTestHldAzurePipelinesYaml = (
   asString = true
 ): AzurePipelinesYaml | string => {
-  // tslint:disable: object-literal-sort-keys
   const data: AzurePipelinesYaml = {
     trigger: {
       branches: {
@@ -471,7 +467,6 @@ export const createTestHldAzurePipelinesYaml = (
       }
     ]
   };
-  // tslint:enable: object-literal-sort-keys
 
   return asString
     ? yaml.safeDump(data, { lineWidth: Number.MAX_SAFE_INTEGER })
@@ -486,7 +481,6 @@ export const createTestComponentYaml = (
     subcomponents: [
       {
         name: "traefik2",
-        // tslint:disable-next-line:object-literal-sort-keys
         method: "git",
         source: "https://github.com/microsoft/fabrikate-definitions.git",
         path: "definitions/traefik2"

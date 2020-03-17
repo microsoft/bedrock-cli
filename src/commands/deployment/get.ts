@@ -188,7 +188,6 @@ export const getDeployments = (
         const deployments: IDeployment[] | undefined = tuple[0];
         const syncStatuses: ITag[] | undefined = tuple[1];
         if (values.outputFormat === OUTPUT_FORMAT.JSON) {
-          // tslint:disable-next-line: no-console
           console.log(JSON.stringify(deployments, null, 2));
           resolve(deployments);
         } else {
@@ -378,7 +377,6 @@ export const printDeployments = (
       header = header.concat(["Cluster Sync"]);
     }
 
-    // tslint:disable: object-literal-sort-keys
     const table = new Table({
       head: header,
       chars: {
@@ -481,7 +479,6 @@ export const printDeployments = (
       table.push(row);
     });
 
-    // tslint:disable-next-line: no-console
     console.log(table.toString());
     return table;
   } else {

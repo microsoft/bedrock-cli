@@ -194,7 +194,6 @@ export const validateGitUrl = async (
   let isHelmConfigHttp = true;
 
   try {
-    // tslint:disable-next-line: no-unused-expression
     new URL(gitUrl);
   } catch (err) {
     logger.warn(

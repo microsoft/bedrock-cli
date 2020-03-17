@@ -286,7 +286,6 @@ describe("addChartToRing", () => {
       k8sBackendPort: 1337
     };
 
-    /* tslint:disable-next-line: no-string-literal */
     const addHelmChartCommand = `fab add chart --source ${git} --path ${chartPath} --branch ${branch} --type helm`;
 
     const expectedInvocation = `cd ${ringPath} && ${addHelmChartCommand}`;
@@ -315,7 +314,6 @@ describe("addChartToRing", () => {
       k8sBackendPort: 1337
     };
 
-    /* tslint:disable-next-line: no-string-literal */
     const addHelmChartCommand = `fab add chart --source ${git} --path ${chartPath} --version ${sha} --type helm`;
 
     const expectedInvocation = `cd ${ringPath} && ${addHelmChartCommand}`;
@@ -342,7 +340,6 @@ describe("addChartToRing", () => {
       k8sBackendPort: 1337
     };
 
-    /* tslint:disable-next-line: no-string-literal */
     const addHelmChartCommand = `fab add chart --source ${repository} --path ${chart} --type helm`;
     const expectedInvocation = `cd ${ringPath} && ${addHelmChartCommand}`;
 
