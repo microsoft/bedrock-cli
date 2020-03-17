@@ -75,20 +75,39 @@ steps:
     set -e
 
     # Retrieve most recent commit hash from HLD repo
-    commit_hash=$(git rev-parse HEAD)
+    commit_hash=$(git rev-parse HEAD | cut -c1-7)
     echo "Commit Hash: $commit_hash"
 
     # Clone Generated Repo and copy generated components over
     echo "Cloning Generated Repo: $GENERATED_REPO"
     git clone $GENERATED_REPO
+    repo_url=$GENERATED_REPO
 
     # Extract repo name from url
-    repo_url=$GENERATED_REPO
     repo=${repo_url##*/}
     repo_name=${repo%.*}
 
     cd "$repo_name"
+
+    git pull
+
     rsync -rv --exclude=.terraform $HOME/$PROJECT_DIRECTORY-generated .
+
+    # Check if PR branch already exists:
+    pr_list=$(git ls-remote origin)
+    if [[ $pr_list == *"pr-$commit_hash"* ]]; then
+      echo "PR Branch already exist. Iterating..."
+      count=$(git ls-remote origin | grep "pr-$commit_hash" | wc -l | tr -d " ")
+      count=$((count + 1))
+      PR_BRANCH_NAME=pr-$commit_hash-$count
+      echo "PR BRANCH NAME: $PR_BRANCH_NAME"
+      git checkout -b $PR_BRANCH_NAME
+    else
+      echo "PR Branch does not exist. Creating a new PR Branch"
+      PR_BRANCH_NAME=pr-$commit_hash-1
+      echo "PR BRANCH NAME: $PR_BRANCH_NAME"
+      git checkout -b $PR_BRANCH_NAME
+    fi
 
     # Set git identity
     git config user.email "admin@azuredevops.com"
@@ -101,7 +120,7 @@ steps:
 
     # Format Terraform files
     terraform fmt
-    
+
     # Add generated files to repository
     git status
     git add .

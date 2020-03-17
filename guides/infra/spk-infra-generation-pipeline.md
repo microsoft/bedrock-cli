@@ -6,7 +6,8 @@ orchestrator for your Infrastructure Generation workflow using `spk infra`.
 ## Prerequisites
 
 1. _Permissions_: The ability to create Projects in your Azure DevOps
-   Organization.
+   Organization and set security permissions to "Contribute" and "Contribute to
+   Pull Requests" for git repositories.
 2. _High Level Definitions_: Your own infrastructure high level definitions for
    your deployment. You can refer to a sample repo
    [here](https://github.com/yradsmikham/spk-infra-hld). You should be able to
@@ -27,6 +28,10 @@ two flavors:
 
 - [Azure DevOps](https://github.com/microsoft/bedrock/blob/master/gitops/azure-devops/ADORepos.md)
 - [GitHub](https://github.com/microsoft/bedrock/blob/master/gitops/azure-devops/GitHubRepos.md)
+
+**Note**: If your git repos are in different Azure DevOps organizations and/or
+pojects, be sure that the generated git repo has "Contribute" and "Contribute to
+Pull Requests" permissions configured in the security settings.
 
 ### 2. Add Azure Pipeline Build YAML
 
@@ -65,8 +70,8 @@ If using Azure DevOps repos, be sure to include the additional environment
 variables:
 
 ```
-AZDO_ORG_NAME: Azure DevOps organization url (i.e. https://dev.azure.com/org_name/)
-AZDO_PROJECT_NAME: The name of the project in your Azure DevOps organization where the repository is hosted
+AZDO_ORG_NAME: Azure DevOps organization url where the generated repo is hosted (i.e. https://dev.azure.com/org_name/)
+AZDO_PROJECT_NAME: The name of the project in your Azure DevOps organization where the generated repo is hosted
 ```
 
 You can use `spk` to create the Azure DevOps Variable Groups by executing
