@@ -130,7 +130,8 @@ export interface AzurePipelinesYaml {
       VERIFY_ONLY?: number;
     };
     inputs?: {
-      scriptPath: string;
+      scriptPath?: string;
+      helmVersionToInstall?: string;
     };
     persistCredentials?: boolean;
     script?: string;

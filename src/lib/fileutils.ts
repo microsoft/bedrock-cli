@@ -547,6 +547,12 @@ const manifestGenerationPipelineYaml = (): string => {
         clean: true
       },
       {
+        task: "HelmInstaller@1",
+        inputs: {
+          helmVersionToInstall: "2.16.3"
+        }
+      },
+      {
         script: generateYamlScript([
           `# Download build.sh`,
           `curl $BEDROCK_BUILD_SCRIPT > build.sh`,
