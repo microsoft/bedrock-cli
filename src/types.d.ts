@@ -112,6 +112,10 @@ export interface AzurePipelinesYaml {
           REPO?: string;
         };
         condition?: string;
+        inputs?: {
+          helmVersionToInstall?: string;
+        };
+        task?: string;
       }>;
     }>;
   }>;
