@@ -1,4 +1,7 @@
-import { RegistriesCreateResponse } from "@azure/arm-containerregistry/src/models";
+import {
+  RegistriesCreateResponse,
+  RegistriesListResponse
+} from "@azure/arm-containerregistry/src/models";
 
 import * as restAuth from "@azure/ms-rest-nodeauth";
 import {
@@ -17,15 +20,15 @@ jest.mock("@azure/arm-containerregistry", () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return {} as any;
           },
-          // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-          list: () => {
+          list: (): Promise<RegistriesListResponse> => {
             return [
               {
                 id:
                   "/subscriptions/dd831253-787f-4dc8-8eb0-ac9d052177d9/resourceGroups/bedrockSPK/providers/Microsoft.ContainerRegistry/registries/acrWest",
                 name: "acrWest"
               }
-            ];
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ] as any;
           }
         }
       };

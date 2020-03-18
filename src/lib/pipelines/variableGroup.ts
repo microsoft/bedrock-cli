@@ -238,3 +238,26 @@ export const addVariableGroupWithKeyVaultMap = async (
     throw err;
   }
 };
+
+/**
+ * Deletes variable group
+ *
+ * @param opts optionally override spk config with Azure DevOps access options
+ * @param name Name of group to be deleted.
+ * @returns true if group exists and deleted.
+ */
+export const deleteVariableGroup = async (
+  opts: AzureDevOpsOpts,
+  name: string
+): Promise<boolean> => {
+  const taskClient = await getTaskAgentApi(opts);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const project = opts.project!;
+
+  const groups = await taskClient.getVariableGroups(project, name);
+  if (groups && groups.length > 0 && groups[0].id) {
+    await taskClient.deleteVariableGroup(project, groups[0].id);
+    return true;
+  }
+  return false;
+};

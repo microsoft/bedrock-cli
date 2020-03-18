@@ -80,8 +80,10 @@ const testExecuteFunc = async (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .mockReturnValueOnce(Promise.resolve({} as any));
   jest.spyOn(fsUtil, "createDirectory").mockReturnValueOnce();
-  jest.spyOn(scaffold, "hldRepo").mockReturnValueOnce(Promise.resolve());
-  jest.spyOn(scaffold, "manifestRepo").mockReturnValueOnce(Promise.resolve());
+  jest.spyOn(scaffold, "hldRepo").mockResolvedValueOnce();
+  jest.spyOn(scaffold, "manifestRepo").mockResolvedValueOnce();
+  jest.spyOn(scaffold, "helmRepo").mockResolvedValueOnce();
+  jest.spyOn(scaffold, "appRepo").mockResolvedValueOnce();
   jest
     .spyOn(pipelineService, "createHLDtoManifestPipeline")
     .mockReturnValueOnce(Promise.resolve());

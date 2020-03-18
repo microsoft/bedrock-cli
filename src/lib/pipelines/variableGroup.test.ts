@@ -3,9 +3,9 @@ import {
   VariableGroupParameters
 } from "azure-devops-node-api/interfaces/TaskAgentInterfaces";
 import uuid from "uuid/v4";
+import * as azdoClient from "../azdoClient";
 import { readYaml } from "../../config";
 import * as config from "../../config";
-import * as azdoClient from "../azdoClient";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
@@ -17,6 +17,7 @@ import {
   addVariableGroupWithKeyVaultMap,
   authorizeAccessToAllPipelines,
   buildVariablesMap,
+  deleteVariableGroup,
   doAddVariableGroup
 } from "./variableGroup";
 
@@ -401,5 +402,34 @@ describe("buildVariablesMap", () => {
     const variables: VariableGroupDataVariable = {};
     const secretsMap = await buildVariablesMap(variables);
     expect(Object.keys(secretsMap).length).toBe(0);
+  });
+});
+
+describe("test deleteVariableGroup function", () => {
+  it("positive test: group found", async () => {
+    const delFn = jest.fn();
+    jest.spyOn(azdoClient, "getTaskAgentApi").mockResolvedValue({
+      deleteVariableGroup: delFn,
+      getVariableGroups: () => [
+        {
+          id: "test"
+        }
+      ]
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    const deleted = await deleteVariableGroup({}, "test");
+    expect(delFn).toBeCalledTimes(1);
+    expect(deleted).toBeTruthy();
+  });
+  it("positive test: no matching groups found", async () => {
+    const delFn = jest.fn();
+    jest.spyOn(azdoClient, "getTaskAgentApi").mockResolvedValue({
+      deleteVariableGroup: delFn,
+      getVariableGroups: () => []
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    const deleted = await deleteVariableGroup({}, "test");
+    expect(delFn).toBeCalledTimes(0);
+    expect(deleted).toBeFalsy();
   });
 });

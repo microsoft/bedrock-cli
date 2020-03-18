@@ -21,9 +21,6 @@ for a few questions
    2. Subscription Id is automatically retrieved with the Service Principal
       credential. In case, there are two or more subscriptions, you will be
       prompt to select one of them.
-   3. Create a resource group, `quick-start-rg` if it does not exist.
-   4. Create a Azure Container Registry, `quickStartACR` in resource group,
-      `quick-start-rg` if it does not exist.
 
 It can also run in a non interactive mode by providing a file that contains
 answers to the above questions.
@@ -58,7 +55,15 @@ The followings shall be created
    already exists.
    1. And initial commit shall be made to this repo
 5. A High Level Definition (HLD) to Manifest pipeline.
-6. A Service Principal (if requested)
+6. If user chose to create sample app repo
+   1. A Service Principal (if requested)
+   2. A resource group, `quick-start-rg` if it does not exist.
+   3. A Azure Container Registry, `quickStartACR` in resource group,
+      `quick-start-rg` if it does not exist.
+   4. A Git Repo, `quick-start-helm`, it shall be deleted and recreated if is
+      already exists.
+   5. A Git Repo, `quick-start-app`, it shall be deleted and recreated if is
+      already exists.
 
 ## Setup log
 

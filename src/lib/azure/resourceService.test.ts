@@ -1,4 +1,7 @@
-import { ResourceGroupsCreateOrUpdateResponse } from "@azure/arm-resources/src/models";
+import {
+  ResourceGroupsCreateOrUpdateResponse,
+  ResourceGroupsListResponse
+} from "@azure/arm-resources/src/models";
 import * as restAuth from "@azure/ms-rest-nodeauth";
 import { create, getResourceGroups, isExist } from "./resourceService";
 import * as resourceService from "./resourceService";
@@ -16,15 +19,15 @@ jest.mock("@azure/arm-resources", () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return {} as any;
           },
-          // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-          list: () => {
+          list: (): Promise<ResourceGroupsListResponse> => {
             return [
               {
                 id: "1234567890-abcdef",
                 location: RESOURCE_GROUP_LOCATION,
                 name: "test"
               }
-            ];
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ] as any;
           }
         }
       };

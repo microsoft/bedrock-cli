@@ -7,7 +7,6 @@ import { create as createACR } from "../lib/azure/containerRegistryService";
 import { create as createResourceGroup } from "../lib/azure/resourceService";
 import { build as buildCmd, exit as exitCmd } from "../lib/commandBuilder";
 import {
-  ACR,
   RequestContext,
   RESOURCE_GROUP,
   RESOURCE_GROUP_LOCATION,
@@ -18,10 +17,16 @@ import { getGitApi } from "../lib/setup/gitService";
 import { createHLDtoManifestPipeline } from "../lib/setup/pipelineService";
 import { createProjectIfNotExist } from "../lib/setup/projectService";
 import { getAnswerFromFile, prompt } from "../lib/setup/prompt";
-import { hldRepo, manifestRepo } from "../lib/setup/scaffold";
+import {
+  appRepo,
+  helmRepo,
+  hldRepo,
+  manifestRepo
+} from "../lib/setup/scaffold";
 import { create as createSetupLog } from "../lib/setup/setupLog";
 import { logger } from "../logger";
 import decorator from "./setup.decorator.json";
+import { IGitApi } from "azure-devops-node-api/GitApi";
 
 interface CommandOptions {
   file: string | undefined;
@@ -79,6 +84,40 @@ export const getErrorMessage = (
   return err.toString();
 };
 
+export const createAppRepoTasks = async (
+  gitAPI: IGitApi,
+  rc: RequestContext
+): Promise<void> => {
+  if (
+    rc.toCreateAppRepo &&
+    rc.servicePrincipalId &&
+    rc.servicePrincipalPassword &&
+    rc.servicePrincipalTenantId &&
+    rc.subscriptionId &&
+    rc.acrName
+  ) {
+    rc.createdResourceGroup = await createResourceGroup(
+      rc.servicePrincipalId,
+      rc.servicePrincipalPassword,
+      rc.servicePrincipalTenantId,
+      rc.subscriptionId,
+      RESOURCE_GROUP,
+      RESOURCE_GROUP_LOCATION
+    );
+    rc.createdACR = await createACR(
+      rc.servicePrincipalId,
+      rc.servicePrincipalPassword,
+      rc.servicePrincipalTenantId,
+      rc.subscriptionId,
+      RESOURCE_GROUP,
+      rc.acrName,
+      RESOURCE_GROUP_LOCATION
+    );
+    await helmRepo(gitAPI, rc);
+    await appRepo(gitAPI, rc);
+  }
+};
+
 /**
  * Executes the command, can all exit function with 0 or 1
  * when command completed successfully or failed respectively.
@@ -106,32 +145,7 @@ export const execute = async (
     await hldRepo(gitAPI, requestContext);
     await manifestRepo(gitAPI, requestContext);
     await createHLDtoManifestPipeline(buildAPI, requestContext);
-
-    if (
-      requestContext.toCreateAppRepo &&
-      requestContext.servicePrincipalId &&
-      requestContext.servicePrincipalPassword &&
-      requestContext.servicePrincipalTenantId &&
-      requestContext.subscriptionId
-    ) {
-      requestContext.createdResourceGroup = await createResourceGroup(
-        requestContext.servicePrincipalId,
-        requestContext.servicePrincipalPassword,
-        requestContext.servicePrincipalTenantId,
-        requestContext.subscriptionId,
-        RESOURCE_GROUP,
-        RESOURCE_GROUP_LOCATION
-      );
-      requestContext.createdACR = await createACR(
-        requestContext.servicePrincipalId,
-        requestContext.servicePrincipalPassword,
-        requestContext.servicePrincipalTenantId,
-        requestContext.subscriptionId,
-        RESOURCE_GROUP,
-        ACR,
-        RESOURCE_GROUP_LOCATION
-      );
-    }
+    await createAppRepoTasks(gitAPI, requestContext);
 
     createSetupLog(requestContext);
     await exitFn(0);

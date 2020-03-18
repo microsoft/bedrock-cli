@@ -233,7 +233,7 @@ export const setVariableGroupInBedrockFile = (
   const bedrockFile = Bedrock(rootProjectPath);
 
   if (typeof bedrockFile === "undefined") {
-    throw new Error(`Bedrock file does not exist.`);
+    throw Error(`Bedrock file does not exist.`);
   }
 
   logger.verbose(
@@ -259,10 +259,10 @@ export const setVariableGroupInBedrockFile = (
  */
 export const updateLifeCyclePipeline = (rootProjectPath: string): void => {
   if (!hasValue(rootProjectPath)) {
-    throw new Error("Project root path is not valid");
+    throw Error("Project root path is not valid");
   }
 
-  const fileName: string = PROJECT_PIPELINE_FILENAME;
+  const fileName = PROJECT_PIPELINE_FILENAME;
   const absProjectRoot = path.resolve(rootProjectPath);
 
   // Get bedrock.yaml
