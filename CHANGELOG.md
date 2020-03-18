@@ -1,5 +1,15 @@
 # RELEASE NOTES
 
+## [0.5.8] - 2020-03-17
+
+### Added
+
+- `spk setup` improvements
+
+### Changed
+
+- Fixed bug where Azure Pipelines would fail due to Helm 3 installation
+
 ## [0.5.7] - 2020-03-10
 
 ### Added
