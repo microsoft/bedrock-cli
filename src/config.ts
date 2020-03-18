@@ -159,8 +159,8 @@ export const Config = (): ConfigYaml => {
     } catch (err) {
       logger.verbose(err);
       if (!hasWarnedAboutUninitializedConfig) {
-        logger.warn(
-          `Error loading SPK configuration file; run \`spk init\` to initialize your global configuration or ensure you have passed all required parameters to the called function.`
+        logger.info(
+          `Unable to load SPK configuration file; run \`spk init\` to initialize your global configuration or ensure you have passed all required parameters to the called function.`
         );
         hasWarnedAboutUninitializedConfig = true;
       }

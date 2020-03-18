@@ -42,8 +42,8 @@ export const validateValues = (
     !config.azure_devops.access_token ||
     !config.azure_devops.infra_repository
   ) {
-    logger.warn(`The infrastructure repository containing the remote terraform \
-template repo and access token was not specified. Checking passed arguments.`);
+    logger.info(`The infrastructure repository containing the remote terraform \
+template repo and access token was not specified in spk-config.yml. Checking passed arguments.`);
 
     if (!opts.source) {
       // since access_token and infra_repository are missing, we cannot construct source for them
