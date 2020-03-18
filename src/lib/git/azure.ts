@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import * as azdo from "azure-devops-node-api";
 import { IGitApi } from "azure-devops-node-api/GitApi";
 import AZGitInterfaces, {
@@ -24,31 +22,6 @@ let gitApi: IGitApi | undefined; // keep track of the gitApi so it can be reused
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Helper function to generate a web-link for an AZDO Pull Request
- *
- * @param pr Target PR to generate a link for
- */
-export const generatePRUrl = async (
-  pr: AZGitInterfaces.GitPullRequest
-): Promise<string> => {
-  if (
-    typeof pr.repository !== "undefined" &&
-    typeof pr.repository.id !== "undefined"
-  ) {
-    const gitAPI = await GitAPI();
-    const parentRepo = await gitAPI.getRepository(pr.repository.id);
-    return `${parentRepo.webUrl!}/pullrequest/${pr.pullRequestId}`;
-  }
-  throw Error(
-    `Failed to generate PR URL; PR did not contain a valid repository ID`
-  );
-};
-
-////////////////////////////////////////////////////////////////////////////////
-// Exported
-////////////////////////////////////////////////////////////////////////////////
-
-/**
  * Authenticates using config and credentials from global config and returns
  * an Azure DevOps Git API
  */
@@ -56,10 +29,11 @@ export const GitAPI = async (opts: AzureDevOpsOpts = {}): Promise<IGitApi> => {
   // Load the gitApi if it has not been initialized
   if (typeof gitApi === "undefined") {
     // Load config from opts and fallback to spk config
-    const { azure_devops } = Config();
+    const config = Config();
+    const azureDevops = config["azure_devops"];
     const {
-      personalAccessToken = azure_devops && azure_devops.access_token,
-      orgName = azure_devops && azure_devops.org
+      personalAccessToken = azureDevops && azureDevops.access_token,
+      orgName = azureDevops && azureDevops.org
     } = opts;
 
     // PAT and devops URL are required
@@ -98,6 +72,31 @@ export const GitAPI = async (opts: AzureDevOpsOpts = {}): Promise<IGitApi> => {
 
   return gitApi;
 };
+
+/**
+ * Helper function to generate a web-link for an AZDO Pull Request
+ *
+ * @param pr Target PR to generate a link for
+ */
+export const generatePRUrl = async (
+  pr: AZGitInterfaces.GitPullRequest
+): Promise<string> => {
+  if (
+    typeof pr.repository !== "undefined" &&
+    typeof pr.repository.id !== "undefined"
+  ) {
+    const gitAPI = await GitAPI();
+    const parentRepo = await gitAPI.getRepository(pr.repository.id);
+    return `${parentRepo.webUrl!}/pullrequest/${pr.pullRequestId}`;
+  }
+  throw Error(
+    `Failed to generate PR URL; PR did not contain a valid repository ID`
+  );
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Exported
+////////////////////////////////////////////////////////////////////////////////
 
 /**
  * Get the git origin from args or fallback to parsing from git client

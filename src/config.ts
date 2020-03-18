@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import dotenv from "dotenv";
 import fs from "fs";
 import yaml from "js-yaml";
@@ -38,6 +36,30 @@ export const readYaml = <T>(filepath: string): T => {
 };
 
 /**
+ * Updates env variable(s) from process.env
+ * Supports multiple per value
+ * @param value Value from config file to be replaced with env vars
+ */
+export const updateVariableWithLocalEnv = (value: string): string => {
+  const regexp = /\${env:([a-zA-Z_$][a-zA-Z_$0-9]+)}/;
+  let matches = regexp.exec(value);
+  while (matches) {
+    if (matches.length > 1) {
+      if (process.env[matches[1]]) {
+        value = value.replace(matches[0], process.env[matches[1]] as string);
+      } else {
+        logger.error(`Env variable needs to be defined for ${matches[1]}`);
+        throw Error(
+          `Environment variable needs to be defined for ${matches[1]} since it's referenced in the config file.`
+        );
+      }
+      matches = regexp.exec(value);
+    }
+  }
+  return value;
+};
+
+/**
  * Reads yaml file and loads any references to env vars from process.env
  * Throws an exception if any env variable references are not defined in
  * current shell.
@@ -63,30 +85,6 @@ export const loadConfigurationFromLocalEnv = <T>(configObj: T): T => {
   return configObj;
 };
 
-/**
- * Updates env variable(s) from process.env
- * Supports multiple per value
- * @param value Value from config file to be replaced with env vars
- */
-export const updateVariableWithLocalEnv = (value: string): string => {
-  const regexp = /\${env:([a-zA-Z_$][a-zA-Z_$0-9]+)}/;
-  let matches = regexp.exec(value);
-  while (matches) {
-    if (matches.length > 1) {
-      if (process.env[matches[1]]) {
-        value = value.replace(matches[0], process.env[matches[1]] as string);
-      } else {
-        logger.error(`Env variable needs to be defined for ${matches[1]}`);
-        throw Error(
-          `Environment variable needs to be defined for ${matches[1]} since it's referenced in the config file.`
-        );
-      }
-      matches = regexp.exec(value);
-    }
-  }
-  return value;
-};
-
 const getKeyVaultSecret = async (
   keyVaultName: string | undefined,
   storageAccountName: string | undefined
@@ -108,6 +106,43 @@ const getKeyVaultSecret = async (
   }
 
   return keyVaultKey;
+};
+
+/**
+ * Fetches the absolute default directory of the spk global config
+ */
+export const defaultConfigDir = (): string => {
+  const dir = path.join(os.homedir(), ".spk");
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+  }
+  return dir;
+};
+
+/**
+ * Fetches the absolute default path of the spk global config
+ */
+export const defaultConfigFile = (): string =>
+  path.join(defaultConfigDir(), "config.yaml");
+
+/**
+ * Loads configuration from a given filename, if provided, otherwise
+ * uses the default file location ~/.spk-config.yaml
+ *
+ * @param filepath file to load configuration from
+ */
+export const loadConfiguration = (
+  filepath: string = defaultConfigFile()
+): void => {
+  try {
+    fs.statSync(filepath);
+    dotenv.config();
+    const data = readYaml<ConfigYaml>(filepath);
+    spkConfig = loadConfigurationFromLocalEnv(data || {});
+  } catch (err) {
+    logger.verbose(`An error occurred while loading configuration\n ${err}`);
+    throw err;
+  }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -135,8 +170,8 @@ export const Config = (): ConfigYaml => {
   const introspectionAzure = {
     ...spkConfig.introspection?.azure,
     get key(): Promise<string | undefined> {
-      const account_name = spkConfig.introspection?.azure?.account_name;
-      return getKeyVaultSecret(spkConfig.key_vault_name, account_name);
+      const accountName = spkConfig.introspection?.azure?.account_name;
+      return getKeyVaultSecret(spkConfig.key_vault_name, accountName);
     }
   };
 
@@ -253,43 +288,6 @@ export const write = (
     }
 
     return fs.writeFileSync(path.join(targetDirectory, fileName), asYaml);
-  }
-};
-
-/**
- * Fetches the absolute default directory of the spk global config
- */
-export const defaultConfigDir = (): string => {
-  const dir = path.join(os.homedir(), ".spk");
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir);
-  }
-  return dir;
-};
-
-/**
- * Fetches the absolute default path of the spk global config
- */
-export const defaultConfigFile = (): string =>
-  path.join(defaultConfigDir(), "config.yaml");
-
-/**
- * Loads configuration from a given filename, if provided, otherwise
- * uses the default file location ~/.spk-config.yaml
- *
- * @param filepath file to load configuration from
- */
-export const loadConfiguration = (
-  filepath: string = defaultConfigFile()
-): void => {
-  try {
-    fs.statSync(filepath);
-    dotenv.config();
-    const data = readYaml<ConfigYaml>(filepath);
-    spkConfig = loadConfigurationFromLocalEnv(data || {});
-  } catch (err) {
-    logger.verbose(`An error occurred while loading configuration\n ${err}`);
-    throw err;
   }
 };
 

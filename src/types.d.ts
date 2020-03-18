@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { AzureKeyVaultVariableValue } from "azure-devops-node-api/interfaces/TaskAgentInterfaces";
 
 /**
@@ -223,9 +222,11 @@ export interface InfraConfigYaml {
   template: string;
   version: string;
   backend?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   };
   variables?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   };
 }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import fs from "fs";
 import yaml from "js-yaml";
 import path from "path";
@@ -107,59 +106,6 @@ export const BUILD_REPO_NAME = (serviceName: string): string =>
  */
 export const generateYamlScript = (lines: string[]): string =>
   ["set -e", ...lines].join("\n");
-
-/**
- * Creates the service multistage build and update image tag pipeline.
- * One pipeline should exist for each service.
- *
- * @param projectRoot Full path to the root of the project (where the bedrock.yaml file exists)
- * @param ringBranches Branches to trigger builds off of. Should be all the defined rings for this service.
- * @param serviceName
- * @param servicePath Full path to service directory
- * @param variableGroups Azure DevOps variable group names
- */
-export const generateServiceBuildAndUpdatePipelineYaml = (
-  projectRoot: string,
-  ringBranches: string[],
-  serviceName: string,
-  servicePath: string,
-  variableGroups: string[]
-): void => {
-  const absProjectRoot = path.resolve(projectRoot);
-  const absServicePath = path.resolve(servicePath);
-
-  logger.info(`Generating ${SERVICE_PIPELINE_FILENAME} in ${absServicePath}`);
-
-  logger.debug(`variableGroups length: ${variableGroups?.length}`);
-
-  // Check if build-update-hld-pipeline.yaml already exists; if it does, skip generation
-  const pipelineYamlFullPath = path.join(
-    absServicePath,
-    SERVICE_PIPELINE_FILENAME
-  );
-  logger.debug(
-    `Writing ${SERVICE_PIPELINE_FILENAME} file to ${pipelineYamlFullPath}`
-  );
-
-  if (fs.existsSync(pipelineYamlFullPath)) {
-    logger.warn(
-      `Existing ${SERVICE_PIPELINE_FILENAME} found at ${pipelineYamlFullPath}, skipping generation.`
-    );
-    return;
-  }
-
-  const buildYaml = serviceBuildAndUpdatePipeline(
-    serviceName,
-    path.relative(absProjectRoot, absServicePath),
-    ringBranches,
-    variableGroups
-  );
-  fs.writeFileSync(
-    pipelineYamlFullPath,
-    yaml.safeDump(buildYaml, { lineWidth: Number.MAX_SAFE_INTEGER }),
-    "utf8"
-  );
-};
 
 /**
  * Sanitize the given path to format Azure DevOps can properly utilize
@@ -402,6 +348,59 @@ export const serviceBuildAndUpdatePipeline = (
 };
 
 /**
+ * Creates the service multistage build and update image tag pipeline.
+ * One pipeline should exist for each service.
+ *
+ * @param projectRoot Full path to the root of the project (where the bedrock.yaml file exists)
+ * @param ringBranches Branches to trigger builds off of. Should be all the defined rings for this service.
+ * @param serviceName
+ * @param servicePath Full path to service directory
+ * @param variableGroups Azure DevOps variable group names
+ */
+export const generateServiceBuildAndUpdatePipelineYaml = (
+  projectRoot: string,
+  ringBranches: string[],
+  serviceName: string,
+  servicePath: string,
+  variableGroups: string[]
+): void => {
+  const absProjectRoot = path.resolve(projectRoot);
+  const absServicePath = path.resolve(servicePath);
+
+  logger.info(`Generating ${SERVICE_PIPELINE_FILENAME} in ${absServicePath}`);
+
+  logger.debug(`variableGroups length: ${variableGroups?.length}`);
+
+  // Check if build-update-hld-pipeline.yaml already exists; if it does, skip generation
+  const pipelineYamlFullPath = path.join(
+    absServicePath,
+    SERVICE_PIPELINE_FILENAME
+  );
+  logger.debug(
+    `Writing ${SERVICE_PIPELINE_FILENAME} file to ${pipelineYamlFullPath}`
+  );
+
+  if (fs.existsSync(pipelineYamlFullPath)) {
+    logger.warn(
+      `Existing ${SERVICE_PIPELINE_FILENAME} found at ${pipelineYamlFullPath}, skipping generation.`
+    );
+    return;
+  }
+
+  const buildYaml = serviceBuildAndUpdatePipeline(
+    serviceName,
+    path.relative(absProjectRoot, absServicePath),
+    ringBranches,
+    variableGroups
+  );
+  fs.writeFileSync(
+    pipelineYamlFullPath,
+    yaml.safeDump(buildYaml, { lineWidth: Number.MAX_SAFE_INTEGER }),
+    "utf8"
+  );
+};
+
+/**
  * Updates the service build and update pipeline with the given rings list
  *
  * @param ringBranches Branches to trigger builds off of. Should be all the defined rings for this project.
@@ -434,116 +433,15 @@ export const updateTriggerBranchesForServiceBuildAndUpdatePipeline = (
     SERVICE_PIPELINE_FILENAME
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  buildPipelineYaml.trigger!.branches!.include = ringBranches;
+  if (buildPipelineYaml.trigger && buildPipelineYaml.trigger.branches) {
+    buildPipelineYaml.trigger.branches.include = ringBranches;
+  }
 
   fs.writeFileSync(
     pipelineYamlFullPath,
     yaml.safeDump(buildPipelineYaml, { lineWidth: Number.MAX_SAFE_INTEGER }),
     "utf8"
   );
-};
-
-/**
- * Writes out the hld manifest-generation.yaml file to `targetPath`
- *
- * @param hldRepoDirectory Path to write the manifest-generation.yaml file to
- */
-export const generateHldAzurePipelinesYaml = (
-  targetDirectory: string
-): void => {
-  const absTargetPath = path.resolve(targetDirectory);
-  logger.info(`Generating hld manifest-generation in ${absTargetPath}`);
-
-  const azurePipelinesYamlPath = path.join(
-    absTargetPath,
-    RENDER_HLD_PIPELINE_FILENAME
-  );
-
-  if (fs.existsSync(azurePipelinesYamlPath)) {
-    logger.warn(
-      `Existing ${RENDER_HLD_PIPELINE_FILENAME} found at ${azurePipelinesYamlPath}, skipping generation.`
-    );
-
-    return;
-  }
-  const hldYaml = manifestGenerationPipelineYaml();
-  logger.info(
-    `Writing ${RENDER_HLD_PIPELINE_FILENAME} file to ${azurePipelinesYamlPath}`
-  );
-
-  const requiredPipelineVariables = [
-    `'MANIFEST_REPO' (Repository for your kubernetes manifests in AzDo. eg. 'dev.azure.com/bhnook/fabrikam/_git/materialized')`,
-    `'PAT' (AzDo Personal Access Token with permissions to the HLD repository.)`
-  ].join(", ");
-
-  logger.info(
-    `Generated ${RENDER_HLD_PIPELINE_FILENAME}. Commit and push this file to master before attempting to deploy via the command 'spk hld install-manifest-pipeline'; before running the pipeline ensure the following environment variables are available to your pipeline: ${requiredPipelineVariables}`
-  );
-
-  fs.writeFileSync(azurePipelinesYamlPath, hldYaml, "utf8");
-};
-
-/**
- * Add a default component.yaml when running `hld init`.
- */
-export const generateDefaultHldComponentYaml = (
-  targetDirectory: string,
-  componentGit: string,
-  componentName: string,
-  componentPath: string
-): void => {
-  const absTargetPath = path.resolve(targetDirectory);
-  logger.info(`Generating component.yaml in ${absTargetPath}`);
-
-  const fabrikateComponentPath = path.join(absTargetPath, "component.yaml");
-
-  if (fs.existsSync(fabrikateComponentPath)) {
-    logger.warn(
-      `Existing component.yaml found at ${fabrikateComponentPath}, skipping generation.`
-    );
-
-    return;
-  }
-
-  const componentYaml = defaultComponentYaml(
-    componentGit,
-    componentName,
-    componentPath
-  );
-
-  logger.info(
-    `Writing ${HLD_COMPONENT_FILENAME} file to ${fabrikateComponentPath}`
-  );
-
-  fs.writeFileSync(
-    fabrikateComponentPath,
-    yaml.safeDump(componentYaml, { lineWidth: Number.MAX_SAFE_INTEGER }),
-    "utf8"
-  );
-};
-
-/**
- * Populate the hld's default component.yaml
- */
-const defaultComponentYaml = (
-  componentGit: string,
-  componentName: string,
-  componentPath: string
-): ComponentYaml => {
-  const componentYaml: ComponentYaml = {
-    name: "default-component",
-    subcomponents: [
-      {
-        name: componentName,
-        method: "git",
-        source: componentGit,
-        path: componentPath
-      }
-    ]
-  };
-
-  return componentYaml;
 };
 
 /**
@@ -652,44 +550,104 @@ const manifestGenerationPipelineYaml = (): string => {
 };
 
 /**
- * Writes out the service to hld lifecycle pipeline.
- * This pipeline utilizes spk hld reconcile to add/remove services from the hld repository.
+ * Writes out the hld manifest-generation.yaml file to `targetPath`
  *
- * @param projectRoot
+ * @param hldRepoDirectory Path to write the manifest-generation.yaml file to
  */
-export const generateHldLifecyclePipelineYaml = async (
-  projectRoot: string
-): Promise<void> => {
-  logger.info(
-    `Generating hld lifecycle pipeline ${PROJECT_PIPELINE_FILENAME} in ${projectRoot}`
-  );
+export const generateHldAzurePipelinesYaml = (
+  targetDirectory: string
+): void => {
+  const absTargetPath = path.resolve(targetDirectory);
+  logger.info(`Generating hld manifest-generation in ${absTargetPath}`);
 
   const azurePipelinesYamlPath = path.join(
-    projectRoot,
-    PROJECT_PIPELINE_FILENAME
+    absTargetPath,
+    RENDER_HLD_PIPELINE_FILENAME
   );
 
   if (fs.existsSync(azurePipelinesYamlPath)) {
     logger.warn(
-      `Existing ${PROJECT_PIPELINE_FILENAME} found at ${azurePipelinesYamlPath}, skipping generation.`
+      `Existing ${RENDER_HLD_PIPELINE_FILENAME} found at ${azurePipelinesYamlPath}, skipping generation.`
+    );
+
+    return;
+  }
+  const hldYaml = manifestGenerationPipelineYaml();
+  logger.info(
+    `Writing ${RENDER_HLD_PIPELINE_FILENAME} file to ${azurePipelinesYamlPath}`
+  );
+
+  const requiredPipelineVariables = [
+    `'MANIFEST_REPO' (Repository for your kubernetes manifests in AzDo. eg. 'dev.azure.com/bhnook/fabrikam/_git/materialized')`,
+    `'PAT' (AzDo Personal Access Token with permissions to the HLD repository.)`
+  ].join(", ");
+
+  logger.info(
+    `Generated ${RENDER_HLD_PIPELINE_FILENAME}. Commit and push this file to master before attempting to deploy via the command 'spk hld install-manifest-pipeline'; before running the pipeline ensure the following environment variables are available to your pipeline: ${requiredPipelineVariables}`
+  );
+
+  fs.writeFileSync(azurePipelinesYamlPath, hldYaml, "utf8");
+};
+
+/**
+ * Populate the hld's default component.yaml
+ */
+const defaultComponentYaml = (
+  componentGit: string,
+  componentName: string,
+  componentPath: string
+): ComponentYaml => {
+  const componentYaml: ComponentYaml = {
+    name: "default-component",
+    subcomponents: [
+      {
+        name: componentName,
+        method: "git",
+        source: componentGit,
+        path: componentPath
+      }
+    ]
+  };
+
+  return componentYaml;
+};
+
+/**
+ * Add a default component.yaml when running `hld init`.
+ */
+export const generateDefaultHldComponentYaml = (
+  targetDirectory: string,
+  componentGit: string,
+  componentName: string,
+  componentPath: string
+): void => {
+  const absTargetPath = path.resolve(targetDirectory);
+  logger.info(`Generating component.yaml in ${absTargetPath}`);
+
+  const fabrikateComponentPath = path.join(absTargetPath, "component.yaml");
+
+  if (fs.existsSync(fabrikateComponentPath)) {
+    logger.warn(
+      `Existing component.yaml found at ${fabrikateComponentPath}, skipping generation.`
     );
 
     return;
   }
 
-  const lifecycleYaml = hldLifecyclePipelineYaml();
-  logger.info(
-    `Writing ${PROJECT_PIPELINE_FILENAME} file to ${azurePipelinesYamlPath}`
+  const componentYaml = defaultComponentYaml(
+    componentGit,
+    componentName,
+    componentPath
   );
-  fs.writeFileSync(azurePipelinesYamlPath, lifecycleYaml, "utf8");
-
-  const requiredPipelineVariables = [
-    `'HLD_REPO' (Repository for your HLD in AzDo. eg. 'dev.azure.com/bhnook/fabrikam/_git/hld')`,
-    `'PAT' (AzDo Personal Access Token with permissions to the HLD repository.)`
-  ].join(", ");
 
   logger.info(
-    `Generated ${PROJECT_PIPELINE_FILENAME}. Commit and push this file to master before attempting to deploy via the command 'spk project install-lifecycle-pipeline'; before running the pipeline ensure the following environment variables are available to your pipeline: ${requiredPipelineVariables}`
+    `Writing ${HLD_COMPONENT_FILENAME} file to ${fabrikateComponentPath}`
+  );
+
+  fs.writeFileSync(
+    fabrikateComponentPath,
+    yaml.safeDump(componentYaml, { lineWidth: Number.MAX_SAFE_INTEGER }),
+    "utf8"
   );
 };
 
@@ -783,6 +741,48 @@ const hldLifecyclePipelineYaml = (): string => {
   };
 
   return yaml.safeDump(pipelineyaml, { lineWidth: Number.MAX_SAFE_INTEGER });
+};
+
+/**
+ * Writes out the service to hld lifecycle pipeline.
+ * This pipeline utilizes spk hld reconcile to add/remove services from the hld repository.
+ *
+ * @param projectRoot
+ */
+export const generateHldLifecyclePipelineYaml = async (
+  projectRoot: string
+): Promise<void> => {
+  logger.info(
+    `Generating hld lifecycle pipeline ${PROJECT_PIPELINE_FILENAME} in ${projectRoot}`
+  );
+
+  const azurePipelinesYamlPath = path.join(
+    projectRoot,
+    PROJECT_PIPELINE_FILENAME
+  );
+
+  if (fs.existsSync(azurePipelinesYamlPath)) {
+    logger.warn(
+      `Existing ${PROJECT_PIPELINE_FILENAME} found at ${azurePipelinesYamlPath}, skipping generation.`
+    );
+
+    return;
+  }
+
+  const lifecycleYaml = hldLifecyclePipelineYaml();
+  logger.info(
+    `Writing ${PROJECT_PIPELINE_FILENAME} file to ${azurePipelinesYamlPath}`
+  );
+  fs.writeFileSync(azurePipelinesYamlPath, lifecycleYaml, "utf8");
+
+  const requiredPipelineVariables = [
+    `'HLD_REPO' (Repository for your HLD in AzDo. eg. 'dev.azure.com/bhnook/fabrikam/_git/hld')`,
+    `'PAT' (AzDo Personal Access Token with permissions to the HLD repository.)`
+  ].join(", ");
+
+  logger.info(
+    `Generated ${PROJECT_PIPELINE_FILENAME}. Commit and push this file to master before attempting to deploy via the command 'spk project install-lifecycle-pipeline'; before running the pipeline ensure the following environment variables are available to your pipeline: ${requiredPipelineVariables}`
+  );
 };
 
 /**

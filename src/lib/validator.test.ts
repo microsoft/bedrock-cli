@@ -150,11 +150,6 @@ describe("test validateProjectName function", () => {
     expect(validateProjectName("")).toBe("Must enter a project name");
     expect(validateProjectName(" ")).toBe("Must enter a project name");
   });
-  it("space in value", () => {
-    expect(validateProjectName("a b")).toBe(
-      "Project name cannot contains spaces"
-    );
-  });
   it("value over 64 chars long", () => {
     expect(validateProjectName("a".repeat(65))).toBe(
       "Project name cannot be longer than 64 characters"

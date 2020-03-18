@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/camelcase */
 import path from "path";
 import { duration, IDeployment, status } from "spektate/lib/IDeployment";
 import * as Deployment from "spektate/lib/IDeployment";
@@ -104,8 +103,8 @@ beforeAll(async () => {
 
   const mockFileName = "src/commands/mocks/spk-config.yaml";
   const filename = path.resolve(mockFileName);
-  process.env.test_name = "my_storage_account";
-  process.env.test_key = "my_storage_key";
+  process.env["test_name"] = "my_storage_account";
+  process.env["test_key"] = "my_storage_key";
   loadConfiguration(filename);
   initObject = await initialize();
 });

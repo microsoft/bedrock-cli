@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // imports
 import uuid from "uuid/v4";
 import * as deploymenttable from "../../lib/azure/deploymenttable";
@@ -23,6 +21,7 @@ import {
 import * as validate from "./validate";
 
 jest.spyOn(storage, "getStorageManagementClient").mockImplementation(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async (): Promise<any> => {
     return undefined;
   }
@@ -78,6 +77,7 @@ jest
         | RowACRToHLDPipeline
         | RowHLDToManifestPipeline
     ) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return new Promise<any>(resolve => {
         mockedDB.push(entry);
         resolve(entry);
@@ -86,6 +86,7 @@ jest
   );
 
 jest.spyOn(deploymenttable, "deleteFromTable").mockImplementation(async () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return new Promise<any>(resolve => {
     if (mockedDB.length === 1 && mockedDB[0].p1 === "500") {
       mockedDB = [];
@@ -105,6 +106,7 @@ jest
         | RowHLDToManifestPipeline
         | RowManifest
     ) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return new Promise<any>(resolve => {
         mockedDB.forEach((row, index: number) => {
           if (row.RowKey === entry.RowKey) {
@@ -132,16 +134,16 @@ afterAll(() => {
 describe("Validate deployment configuration", () => {
   test("valid deployment configuration", async () => {
     const config: ConfigYaml = {
-      azure_devops: {
+      "azure_devops": {
         org: uuid(),
         project: uuid()
       },
       introspection: {
         azure: {
-          account_name: uuid(),
+          "account_name": uuid(),
           key: Promise.resolve(uuid()),
-          partition_key: uuid(),
-          table_name: uuid()
+          "partition_key": uuid(),
+          "table_name": uuid()
         }
       }
     };
@@ -208,7 +210,7 @@ describe("test runSelfTest function", () => {
       introspection: {
         azure: {
           key: Promise.resolve(uuid()),
-          table_name: undefined
+          "table_name": undefined
         }
       }
     };
@@ -227,7 +229,7 @@ describe("test runSelfTest function", () => {
       introspection: {
         azure: {
           key: Promise.resolve(uuid()),
-          table_name: undefined
+          "table_name": undefined
         }
       }
     };
@@ -242,7 +244,7 @@ describe("test runSelfTest function", () => {
       introspection: {
         azure: {
           key: Promise.resolve(uuid()),
-          table_name: undefined
+          "table_name": undefined
         }
       }
     };
@@ -275,7 +277,7 @@ describe("Validate missing deployment.storage configuration", () => {
     const config: ConfigYaml = {
       introspection: {
         azure: {
-          account_name: undefined,
+          "account_name": undefined,
           key: Promise.resolve(uuid())
         }
       }
@@ -290,7 +292,7 @@ describe("Validate missing deployment.storage configuration", () => {
       introspection: {
         azure: {
           key: Promise.resolve(uuid()),
-          table_name: undefined
+          "table_name": undefined
         }
       }
     };
@@ -304,7 +306,7 @@ describe("Validate missing deployment.storage configuration", () => {
       introspection: {
         azure: {
           key: Promise.resolve(uuid()),
-          partition_key: undefined
+          "partition_key": undefined
         }
       }
     };
@@ -341,7 +343,7 @@ describe("Validate missing deployment.pipeline configuration", () => {
 describe("Validate missing deployment.pipeline configuration", () => {
   test("missing deployment.pipeline.org configuration", async () => {
     const config: ConfigYaml = {
-      azure_devops: {
+      "azure_devops": {
         org: undefined
       },
       introspection: {
@@ -357,7 +359,7 @@ describe("Validate missing deployment.pipeline configuration", () => {
 describe("Validate missing deployment.pipeline configuration", () => {
   test("missing deployment.pipeline.project configuration", async () => {
     const config: ConfigYaml = {
-      azure_devops: {
+      "azure_devops": {
         org: "org",
         project: undefined
       },

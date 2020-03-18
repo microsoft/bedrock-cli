@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/camelcase */
 import commander from "commander";
@@ -43,67 +42,6 @@ export const getRemoteUrl = async (
     logger.info(`Parsed remote-url for origin: ${safeLoggingUrl}`);
   }
   return remoteUrl;
-};
-
-export const execute = async (
-  opts: CommandOptions,
-  exitFn: (status: number) => Promise<void>
-): Promise<void> => {
-  try {
-    const { azure_devops } = Config();
-    opts.orgName = opts.orgName || azure_devops?.org;
-    opts.personalAccessToken =
-      opts.personalAccessToken || azure_devops?.access_token!;
-    opts.description =
-      opts.description || "This is automated PR generated via SPK";
-
-    ////////////////////////////////////////////////////////////////////////
-    // Give defaults
-    ////////////////////////////////////////////////////////////////////////
-    // default pull request against initial ring
-    const bedrockConfig = Bedrock();
-    // Default to the --target-branch for creating a revision; if not specified, fallback to default rings in bedrock.yaml
-    const defaultRings = getDefaultRings(opts.targetBranch, bedrockConfig);
-
-    // default pull request source branch to the current branch
-    opts.sourceBranch = await getSourceBranch(opts.sourceBranch);
-
-    // Make sure the user isn't trying to make a PR for a branch against itself
-    if (defaultRings.includes(opts.sourceBranch)) {
-      throw Error(
-        `A pull request for a branch cannot be made against itself. Ensure your target branch(es) '${JSON.stringify(
-          defaultRings
-        )}' do not include your source branch '${opts.sourceBranch}'`
-      );
-    }
-
-    // Default the remote to the git origin
-    opts.remoteUrl = await getRemoteUrl(opts.remoteUrl);
-    const errors = validateForRequiredValues(decorator, {
-      orgName: opts.orgName,
-      personalAccessToken: opts.personalAccessToken,
-      remoteUrl: opts.remoteUrl,
-      sourceBranch: opts.sourceBranch
-    });
-
-    if (errors.length > 0) {
-      await exitFn(1);
-    } else {
-      await makePullRequest(defaultRings, opts);
-      await exitFn(0);
-    }
-  } catch (err) {
-    logger.error(err);
-    await exitFn(1);
-  }
-};
-
-export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
-    await execute(opts, async (status: number) => {
-      await exitCmd(logger, process.exit, status);
-    });
-  });
 };
 
 /**
@@ -176,4 +114,65 @@ export const makePullRequest = async (
       personalAccessToken: opts.personalAccessToken!
     });
   }
+};
+
+export const execute = async (
+  opts: CommandOptions,
+  exitFn: (status: number) => Promise<void>
+): Promise<void> => {
+  try {
+    const { azure_devops } = Config();
+    opts.orgName = opts.orgName || azure_devops?.org;
+    opts.personalAccessToken =
+      opts.personalAccessToken || azure_devops?.access_token!;
+    opts.description =
+      opts.description || "This is automated PR generated via SPK";
+
+    ////////////////////////////////////////////////////////////////////////
+    // Give defaults
+    ////////////////////////////////////////////////////////////////////////
+    // default pull request against initial ring
+    const bedrockConfig = Bedrock();
+    // Default to the --target-branch for creating a revision; if not specified, fallback to default rings in bedrock.yaml
+    const defaultRings = getDefaultRings(opts.targetBranch, bedrockConfig);
+
+    // default pull request source branch to the current branch
+    opts.sourceBranch = await getSourceBranch(opts.sourceBranch);
+
+    // Make sure the user isn't trying to make a PR for a branch against itself
+    if (defaultRings.includes(opts.sourceBranch)) {
+      throw Error(
+        `A pull request for a branch cannot be made against itself. Ensure your target branch(es) '${JSON.stringify(
+          defaultRings
+        )}' do not include your source branch '${opts.sourceBranch}'`
+      );
+    }
+
+    // Default the remote to the git origin
+    opts.remoteUrl = await getRemoteUrl(opts.remoteUrl);
+    const errors = validateForRequiredValues(decorator, {
+      orgName: opts.orgName,
+      personalAccessToken: opts.personalAccessToken,
+      remoteUrl: opts.remoteUrl,
+      sourceBranch: opts.sourceBranch
+    });
+
+    if (errors.length > 0) {
+      await exitFn(1);
+    } else {
+      await makePullRequest(defaultRings, opts);
+      await exitFn(0);
+    }
+  } catch (err) {
+    logger.error(err);
+    await exitFn(1);
+  }
+};
+
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
+    await execute(opts, async (status: number) => {
+      await exitCmd(logger, process.exit, status);
+    });
+  });
 };

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { ResourceManagementClient } from "@azure/arm-resources";
 import { loginWithServicePrincipalSecret } from "@azure/ms-rest-nodeauth";
 import { logger } from "../../logger";
@@ -29,11 +28,11 @@ const getClient = async (
     return client;
   }
   const creds = await loginWithServicePrincipalSecret(
-    servicePrincipalId!,
-    servicePrincipalPassword!,
-    servicePrincipalTenantId!
+    servicePrincipalId,
+    servicePrincipalPassword,
+    servicePrincipalTenantId
   );
-  client = new ResourceManagementClient(creds, subscriptionId!, {});
+  client = new ResourceManagementClient(creds, subscriptionId, {});
   return client;
 };
 
@@ -62,9 +61,9 @@ export const getResourceGroups = async (
   logger.info("Successfully acquired resource groups");
   return groups.map(g => {
     return {
-      id: g.id!,
-      location: g.location!,
-      name: g.name!
+      id: g.id as string,
+      location: g.location as string,
+      name: g.name as string
     };
   });
 };

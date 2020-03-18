@@ -125,9 +125,6 @@ export const validateProjectName = (value: string): string | boolean => {
   if (!hasValue(value)) {
     return "Must enter a project name";
   }
-  if (value.indexOf(" ") !== -1) {
-    return "Project name cannot contains spaces";
-  }
   if (value.length > 64) {
     return "Project name cannot be longer than 64 characters";
   }

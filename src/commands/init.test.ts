@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import axios from "axios";
 import fs from "fs";
 import inquirer from "inquirer";
@@ -70,8 +69,8 @@ describe("Test execute function", () => {
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("positive test: with file value", async () => {
-    process.env.test_name = "my_storage_account";
-    process.env.test_key = "my_storage_key";
+    process.env["test_name"] = "my_storage_account";
+    process.env["test_key"] = "my_storage_key";
     const randomTmpDir = createTempDir();
     const filename = path.resolve(mockFileName);
     saveConfiguration(filename, randomTmpDir);
@@ -107,8 +106,8 @@ describe("Test execute function", () => {
 describe("test getConfig function", () => {
   it("with configuration file", () => {
     const mockedValues = {
-      azure_devops: {
-        access_token: "access_token",
+      "azure_devops": {
+        "access_token": "access_token",
         org: "org",
         project: "project"
       }
@@ -125,8 +124,8 @@ describe("test getConfig function", () => {
     });
     const cfg = getConfig();
     expect(cfg).toStrictEqual({
-      azure_devops: {
-        access_token: "",
+      "azure_devops": {
+        "access_token": "",
         org: "",
         project: ""
       }
@@ -142,7 +141,7 @@ describe("test validatePersonalAccessToken function", () => {
       })
     );
     const result = await validatePersonalAccessToken({
-      access_token: "token",
+      "access_token": "token",
       org: "org",
       project: "project"
     });
@@ -154,7 +153,7 @@ describe("test validatePersonalAccessToken function", () => {
       .spyOn(axios, "get")
       .mockReturnValueOnce(Promise.reject(new Error("fake")));
     const result = await validatePersonalAccessToken({
-      access_token: "token",
+      "access_token": "token",
       org: "org",
       project: "project"
     });
@@ -167,24 +166,24 @@ const testHandleInteractiveModeFunc = async (
   verified: boolean
 ): Promise<void> => {
   jest.spyOn(init, "getConfig").mockReturnValueOnce({
-    azure_devops: {
-      access_token: "",
+    "azure_devops": {
+      "access_token": "",
       org: "",
       project: ""
     }
   });
-  jest.spyOn(init, "prompt").mockReturnValueOnce(
-    Promise.resolve({
-      azdo_org_name: "org_name",
-      azdo_pat: "pat",
-      azdo_project_name: "project"
-    })
-  );
+  jest.spyOn(init, "prompt").mockResolvedValueOnce({
+    "azdo_org_name": "org_name",
+    "azdo_pat": "pat",
+    "azdo_project_name": "project"
+  });
   jest
     .spyOn(init, "validatePersonalAccessToken")
     .mockReturnValueOnce(Promise.resolve(verified));
   const tmpFile = path.join(createTempDir(), "config.yaml");
+
   jest.spyOn(config, "defaultConfigFile").mockReturnValueOnce(tmpFile);
+
   await handleInteractiveMode();
   const content = fs.readFileSync(tmpFile, "utf8");
   const data = yaml.safeLoad(content) as ConfigYaml;
@@ -207,9 +206,9 @@ describe("test handleInteractiveMode function", () => {
 describe("test prompt function", () => {
   it("positive test", async done => {
     const answers = {
-      azdo_org_name: "org",
-      azdo_pat: "pat",
-      azdo_project_name: "project"
+      "azdo_org_name": "org",
+      "azdo_pat": "pat",
+      "azdo_project_name": "project"
     };
     jest.spyOn(inquirer, "prompt").mockResolvedValueOnce(answers);
     const ans = await prompt({});

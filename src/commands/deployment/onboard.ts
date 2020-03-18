@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/camelcase */
-/* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { StorageAccount } from "@azure/arm-storage/esm/models";
 import commander from "commander";
@@ -111,42 +110,29 @@ export const validateValues = (opts: CommandOptions): void => {
 };
 
 /**
- * Executes the command, can all exit function with 0 or 1
- * when command completed successfully or failed respectively.
+ * Set storage account and table names in the configuration file at default location
  *
- * @param opts validated option values
- * @param exitFn exit function
+ * @param storageAccountName The Azure storage account name
+ * @param storageTableName The Azure storage table name
  */
-export const execute = async (
-  opts: CommandOptions,
-  exitFn: (status: number) => Promise<void>
-): Promise<void> => {
+export const setConfiguration = (
+  storageAccountName: string,
+  storageTableName: string
+): boolean => {
   try {
-    populateValues(opts);
-    validateValues(opts);
-    const storageAccount = await onboard(opts);
-    logger.debug(
-      `Service introspection deployment onboarding is complete. \n ${JSON.stringify(
-        storageAccount
-      )}`
-    );
-    await exitFn(0);
+    const data = readYaml<ConfigYaml>(defaultConfigFile());
+    data.introspection!.azure!.account_name = storageAccountName;
+    data.introspection!.azure!.table_name = storageTableName;
+    const jsonData = yaml.safeDump(data);
+    logger.verbose(jsonData);
+    fs.writeFileSync(defaultConfigFile(), jsonData);
+    return true;
   } catch (err) {
-    logger.error(err);
-    await exitFn(1);
+    logger.error(
+      `Unable to set storage account and table names in configuration file. \n ${err}`
+    );
+    return false;
   }
-};
-
-/**
- * Adds the onboard command to the commander command object
- * @param command Commander command object to decorate
- */
-export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
-    await execute(opts, async (status: number) => {
-      await exitCmd(logger, process.exit, status);
-    });
-  });
 };
 
 /**
@@ -298,27 +284,40 @@ export const onboard = async (
 };
 
 /**
- * Set storage account and table names in the configuration file at default location
+ * Executes the command, can all exit function with 0 or 1
+ * when command completed successfully or failed respectively.
  *
- * @param storageAccountName The Azure storage account name
- * @param storageTableName The Azure storage table name
+ * @param opts validated option values
+ * @param exitFn exit function
  */
-export const setConfiguration = (
-  storageAccountName: string,
-  storageTableName: string
-): boolean => {
+export const execute = async (
+  opts: CommandOptions,
+  exitFn: (status: number) => Promise<void>
+): Promise<void> => {
   try {
-    const data = readYaml<ConfigYaml>(defaultConfigFile());
-    data.introspection!.azure!.account_name = storageAccountName;
-    data.introspection!.azure!.table_name = storageTableName;
-    const jsonData = yaml.safeDump(data);
-    logger.verbose(jsonData);
-    fs.writeFileSync(defaultConfigFile(), jsonData);
-    return true;
-  } catch (err) {
-    logger.error(
-      `Unable to set storage account and table names in configuration file. \n ${err}`
+    populateValues(opts);
+    validateValues(opts);
+    const storageAccount = await onboard(opts);
+    logger.debug(
+      `Service introspection deployment onboarding is complete. \n ${JSON.stringify(
+        storageAccount
+      )}`
     );
-    return false;
+    await exitFn(0);
+  } catch (err) {
+    logger.error(err);
+    await exitFn(1);
   }
+};
+
+/**
+ * Adds the onboard command to the commander command object
+ * @param command Commander command object to decorate
+ */
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
+    await execute(opts, async (status: number) => {
+      await exitCmd(logger, process.exit, status);
+    });
+  });
 };

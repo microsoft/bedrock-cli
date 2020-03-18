@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
@@ -19,6 +18,34 @@ interface CommandOptions {
   defaultComponentPath: string;
   gitPush: boolean;
 }
+
+export const initialize = async (
+  hldRepoPath: string,
+  gitPush: boolean,
+  componentGit: string,
+  componentName: string,
+  componentPath: string
+): Promise<void> => {
+  // Create manifest-generation.yaml for hld repository, if required.
+  logger.info("Initializing bedrock HLD repository.");
+
+  generateHldAzurePipelinesYaml(hldRepoPath);
+  generateDefaultHldComponentYaml(
+    hldRepoPath,
+    componentGit,
+    componentName,
+    componentPath
+  );
+  // Create .gitignore file in directory ignoring spk.log, if one doesn't already exist.
+  generateGitIgnoreFile(hldRepoPath, "spk.log");
+
+  // If requested, create new git branch, commit, and push
+  if (gitPush) {
+    const newBranchName = "spk-hld-init";
+    const directory = ".";
+    await checkoutCommitPushCreatePRLink(newBranchName, directory);
+  }
+};
 
 export const execute = async (
   hldRepoPath: string,
@@ -66,32 +93,4 @@ export const commandDecorator = (command: commander.Command): void => {
       }
     );
   });
-};
-
-export const initialize = async (
-  hldRepoPath: string,
-  gitPush: boolean,
-  componentGit: string,
-  componentName: string,
-  componentPath: string
-): Promise<void> => {
-  // Create manifest-generation.yaml for hld repository, if required.
-  logger.info("Initializing bedrock HLD repository.");
-
-  generateHldAzurePipelinesYaml(hldRepoPath);
-  generateDefaultHldComponentYaml(
-    hldRepoPath,
-    componentGit,
-    componentName,
-    componentPath
-  );
-  // Create .gitignore file in directory ignoring spk.log, if one doesn't already exist.
-  generateGitIgnoreFile(hldRepoPath, "spk.log");
-
-  // If requested, create new git branch, commit, and push
-  if (gitPush) {
-    const newBranchName = "spk-hld-init";
-    const directory = ".";
-    await checkoutCommitPushCreatePRLink(newBranchName, directory);
-  }
 };

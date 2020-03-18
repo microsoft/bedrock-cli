@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import fs from "fs";
 import * as fsExtra from "fs-extra";
 import path from "path";
@@ -73,6 +72,37 @@ afterEach(() => {
 // --- start git tests
 //
 //////////////////////////////////////////////////////////////////////////////
+const getMockedDataForGitTests = async (
+  positive: boolean
+): Promise<GitTestData> => {
+  const mockParentPath = "src/commands/infra/mocks/discovery-service";
+  const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
+  const sourceConfiguration = validateDefinition(
+    mockParentPath,
+    mockProjectPath
+  );
+  const sourceConfig = validateTemplateSources(
+    sourceConfiguration,
+    mockParentPath,
+    mockProjectPath
+  );
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  let source = sourceConfig.source!;
+  if (!positive) {
+    source += "dummy";
+  }
+
+  // Converting source name to storable folder name
+  const sourceFolder = getSourceFolderNameFromURL(source);
+  const sourcePath = path.join(spkTemplatesPath, sourceFolder);
+  const safeLoggingUrl = safeGitUrlForLogging(source);
+
+  return {
+    safeLoggingUrl,
+    source,
+    sourcePath
+  };
+};
 
 const testCheckRemoteGitExist = async (positive: boolean): Promise<void> => {
   const { safeLoggingUrl, source, sourcePath } = await getMockedDataForGitTests(
@@ -691,38 +721,6 @@ describe("Validate sources in definition.yaml files", () => {
     }
   });
 });
-
-const getMockedDataForGitTests = async (
-  positive: boolean
-): Promise<GitTestData> => {
-  const mockParentPath = "src/commands/infra/mocks/discovery-service";
-  const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
-  const sourceConfiguration = validateDefinition(
-    mockParentPath,
-    mockProjectPath
-  );
-  const sourceConfig = validateTemplateSources(
-    sourceConfiguration,
-    mockParentPath,
-    mockProjectPath
-  );
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  let source = sourceConfig.source!;
-  if (!positive) {
-    source += "dummy";
-  }
-
-  // Converting source name to storable folder name
-  const sourceFolder = getSourceFolderNameFromURL(source);
-  const sourcePath = path.join(spkTemplatesPath, sourceFolder);
-  const safeLoggingUrl = safeGitUrlForLogging(source);
-
-  return {
-    safeLoggingUrl,
-    source,
-    sourcePath
-  };
-};
 
 describe("Validate replacement of variables between parent and leaf definitions", () => {
   test("Validating that leaf definitions take precedence when generating multi-cluster definitions", () => {

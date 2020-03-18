@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 import fs from "fs";
 import path from "path";
@@ -18,62 +17,39 @@ interface CommandOptions {
   defaultRing: string;
 }
 
-export const execute = async (
-  opts: CommandOptions,
-  projectPath: string,
-  exitFn: (status: number) => Promise<void>
-): Promise<void> => {
-  // defaultRing shall always have value (not undefined nor null)
-  // because it has default value as "master"
-  const defaultRing = opts.defaultRing;
-
-  try {
-    Bedrock(); // TOFIX: Is this to check if Bedrock config exist?
-  } catch (err) {
-    logger.info(err);
-  }
-
-  try {
-    await initialize(projectPath, { defaultRing });
-    await exitFn(0);
-  } catch (err) {
-    logger.error(`Error occurred while initializing project ${projectPath}`);
-    logger.error(err);
-    await exitFn(1);
-  }
-};
-
-export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
-    await execute(opts, process.cwd(), async (status: number) => {
-      await exitCmd(logger, process.exit, status);
-    });
-  });
-};
-
 /**
- * Initializes the `rootProject` with a bedrock.yaml, maintainers.yaml, and
- * .gitignore
- * If opts.monoRepo == true, the root directly will be initialized as a mono-repo
- * If opts.monoRepo == true, all direct subdirectories under opts.packagesDir will be initialized as individual projects
+ * Writes out a default bedrock.yaml
  *
- * @param rootProjectPath Project root directory which will get initialized
- * @param opts Extra options to pass to initialize
+ * @param targetPath Path to generate the the bedrock.yaml file in
  */
-export const initialize = async (
-  rootProjectPath: string,
-  opts?: CommandOptions
-): Promise<void> => {
-  const absProjectRoot = path.resolve(rootProjectPath);
-  logger.info(`Initializing project Bedrock project ${absProjectRoot}`);
+const generateBedrockFile = (
+  projectPath: string,
+  defaultRings: string[] = []
+): void => {
+  const absProjectPath = path.resolve(projectPath);
+  logger.info(`Generating bedrock.yaml file in ${absProjectPath}`);
 
-  const defaultRing = opts ? [opts.defaultRing] : [];
-  generateBedrockFile(absProjectRoot, defaultRing);
-  await generateMaintainersFile(absProjectRoot, []);
-  await generateHldLifecyclePipelineYaml(absProjectRoot);
-  generateGitIgnoreFile(absProjectRoot, "spk.log");
+  const baseBedrockFile: BedrockFile = {
+    rings: defaultRings.reduce<{ [ring: string]: { isDefault: boolean } }>(
+      (defaults, ring) => {
+        defaults[ring] = { isDefault: true };
+        return defaults;
+      },
+      {}
+    ),
+    services: {}
+  };
 
-  logger.info(`Project initialization complete!`);
+  // Check if a bedrock.yaml already exists; skip write if present
+  const bedrockFilePath = path.join(absProjectPath, "bedrock.yaml");
+  if (fs.existsSync(bedrockFilePath)) {
+    logger.warn(
+      `Existing bedrock.yaml found at ${bedrockFilePath}, skipping generation`
+    );
+  } else {
+    // Write out
+    write(baseBedrockFile, absProjectPath);
+  }
 };
 
 /**
@@ -151,36 +127,59 @@ const generateMaintainersFile = async (
 };
 
 /**
- * Writes out a default bedrock.yaml
+ * Initializes the `rootProject` with a bedrock.yaml, maintainers.yaml, and
+ * .gitignore
+ * If opts.monoRepo == true, the root directly will be initialized as a mono-repo
+ * If opts.monoRepo == true, all direct subdirectories under opts.packagesDir will be initialized as individual projects
  *
- * @param targetPath Path to generate the the bedrock.yaml file in
+ * @param rootProjectPath Project root directory which will get initialized
+ * @param opts Extra options to pass to initialize
  */
-const generateBedrockFile = (
+export const initialize = async (
+  rootProjectPath: string,
+  opts?: CommandOptions
+): Promise<void> => {
+  const absProjectRoot = path.resolve(rootProjectPath);
+  logger.info(`Initializing project Bedrock project ${absProjectRoot}`);
+
+  const defaultRing = opts ? [opts.defaultRing] : [];
+  generateBedrockFile(absProjectRoot, defaultRing);
+  await generateMaintainersFile(absProjectRoot, []);
+  await generateHldLifecyclePipelineYaml(absProjectRoot);
+  generateGitIgnoreFile(absProjectRoot, "spk.log");
+
+  logger.info(`Project initialization complete!`);
+};
+
+export const execute = async (
+  opts: CommandOptions,
   projectPath: string,
-  defaultRings: string[] = []
-): void => {
-  const absProjectPath = path.resolve(projectPath);
-  logger.info(`Generating bedrock.yaml file in ${absProjectPath}`);
+  exitFn: (status: number) => Promise<void>
+): Promise<void> => {
+  // defaultRing shall always have value (not undefined nor null)
+  // because it has default value as "master"
+  const defaultRing = opts.defaultRing;
 
-  const baseBedrockFile: BedrockFile = {
-    rings: defaultRings.reduce<{ [ring: string]: { isDefault: boolean } }>(
-      (defaults, ring) => {
-        defaults[ring] = { isDefault: true };
-        return defaults;
-      },
-      {}
-    ),
-    services: {}
-  };
-
-  // Check if a bedrock.yaml already exists; skip write if present
-  const bedrockFilePath = path.join(absProjectPath, "bedrock.yaml");
-  if (fs.existsSync(bedrockFilePath)) {
-    logger.warn(
-      `Existing bedrock.yaml found at ${bedrockFilePath}, skipping generation`
-    );
-  } else {
-    // Write out
-    write(baseBedrockFile, absProjectPath);
+  try {
+    Bedrock(); // TOFIX: Is this to check if Bedrock config exist?
+  } catch (err) {
+    logger.info(err);
   }
+
+  try {
+    await initialize(projectPath, { defaultRing });
+    await exitFn(0);
+  } catch (err) {
+    logger.error(`Error occurred while initializing project ${projectPath}`);
+    logger.error(err);
+    await exitFn(1);
+  }
+};
+
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
+    await execute(opts, process.cwd(), async (status: number) => {
+      await exitCmd(logger, process.exit, status);
+    });
+  });
 };

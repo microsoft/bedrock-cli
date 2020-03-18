@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 import {
   addNewRing,
@@ -16,6 +15,30 @@ import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import { BedrockFile, BedrockFileInfo } from "../../types";
 import decorator from "./create.decorator.json";
+
+/**
+ * Check for bedrock.yaml
+ *
+ * @param projectPath project path
+ * @param ringName name of ring
+ */
+export const checkDependencies = (
+  projectPath: string,
+  ringName: string
+): void => {
+  const fileInfo: BedrockFileInfo = bedrockFileInfo(projectPath);
+  if (fileInfo.exist === false) {
+    throw new Error(PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE);
+  }
+
+  // Check if ring already exists, if it does, warn and exit
+  const bedrockFile: BedrockFile = loadBedrockFile(projectPath);
+  if (ringName in bedrockFile.rings) {
+    throw new Error(
+      `ring: ${ringName} already exists in project ${BEDROCK_FILENAME}.`
+    );
+  }
+};
 
 /**
  * Executes the command.
@@ -71,26 +94,4 @@ export const commandDecorator = (command: commander.Command): void => {
       await exitCmd(logger, process.exit, status);
     });
   });
-};
-
-/**
- * Check for bedrock.yaml
- * @param projectPath
- */
-export const checkDependencies = (
-  projectPath: string,
-  ringName: string
-): void => {
-  const fileInfo: BedrockFileInfo = bedrockFileInfo(projectPath);
-  if (fileInfo.exist === false) {
-    throw new Error(PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE);
-  }
-
-  // Check if ring already exists, if it does, warn and exit
-  const bedrockFile: BedrockFile = loadBedrockFile(projectPath);
-  if (ringName in bedrockFile.rings) {
-    throw new Error(
-      `ring: ${ringName} already exists in project ${BEDROCK_FILENAME}.`
-    );
-  }
 };

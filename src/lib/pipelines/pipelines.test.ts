@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 jest.mock("./pipelines");
 
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
@@ -62,8 +61,11 @@ describe("It builds an azure repo pipeline definition", () => {
     const process = definition.process as YamlProcess;
     expect(process.yamlFilename).toBe(sampleAzureConfig.yamlFilePath);
 
-    const variables = definition.variables!;
-    expect(variables["foo"].value).toBe("bar");
+    const variables = definition.variables;
+    expect(variables).toBeDefined();
+    if (variables) {
+      expect(variables["foo"].value).toBe("bar");
+    }
   });
 });
 
@@ -104,15 +106,19 @@ describe("It builds a github repo pipeline definition", () => {
     expect(repository.url).toBe(sampleGithubConfig.repositoryUrl);
 
     expect(repository.properties).toBeDefined();
-
-    expect(repository.properties!.connectedServiceId).toBe(
-      sampleGithubConfig.serviceConnectionId
-    );
+    if (repository.properties) {
+      expect(repository.properties.connectedServiceId).toBe(
+        sampleGithubConfig.serviceConnectionId
+      );
+    }
 
     const process = definition.process as YamlProcess;
     expect(process.yamlFilename).toBe(sampleGithubConfig.yamlFilePath);
 
-    const variables = definition.variables!;
-    expect(variables["foo"].value).toBe("bar");
+    const variables = definition.variables;
+    expect(variables).toBeDefined();
+    if (variables) {
+      expect(variables["foo"].value).toBe("bar");
+    }
   });
 });

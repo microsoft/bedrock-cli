@@ -79,28 +79,26 @@ export const validateForRequiredValues = (
 
   // opt name to variable name mapping
   // example --org-name is orgName
-  const mapVariableName2Opt: CommandVariableName2Opt[] = required
-    .filter(opt => !!opt.arg.match(/\s?--([-\w]+)\s?/))
-    .map(opt => {
-      const match = opt.arg.match(/\s?--([-\w]+)\s?/);
+  const mapVariableName2Opt: CommandVariableName2Opt[] = [];
+  required.forEach(opt => {
+    const match = opt.arg.match(/\s?--([-\w]+)\s?/);
 
-      // match! cannot be null because it is prefilter
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const variableName = match![1]
+    if (match) {
+      const variableName = match[1]
         .replace(/\.?(-[a-z])/g, (_, y) => {
           return y.toUpperCase();
         })
         .replace(/-/g, "");
-      return {
+      mapVariableName2Opt.push({
         opt,
         variableName
-      };
-    });
+      });
+    }
+  });
 
   // figure out which variables have missing values
   const missingItems = mapVariableName2Opt.filter(
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    item => !hasValue(values[item.variableName!])
+    item => !hasValue(values[item.variableName])
   );
 
   // gather the option flags (args) for the missing one

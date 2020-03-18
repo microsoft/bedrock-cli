@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable @typescript-eslint/camelcase */
 import { VariableGroup } from "azure-devops-node-api/interfaces/ReleaseInterfaces";
@@ -117,7 +116,10 @@ export const execute = async (
     );
 
     // set the variable group name
-    setVariableGroupInBedrockFile(projectPath, variableGroup.name!);
+    // variableGroup.name is set at this point that's it should have value
+    // and not empty string or undefined. having || "" is just to avoid
+    // eslint error
+    setVariableGroupInBedrockFile(projectPath, variableGroup.name || "");
 
     // update hld-lifecycle.yaml with variable groups in bedrock.yaml
     updateLifeCyclePipeline(projectPath);

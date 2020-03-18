@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { BuildStatus } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import * as hldPipeline from "../../commands/hld/pipeline";
 import { deepClone } from "../util";
@@ -57,7 +56,7 @@ describe("test getPipelineByName function", () => {
   it("sanity test: pipeline is not found", async () => {
     const p = await getPipelineByName(
       {
-        getDefinitions: (projectName: string) => {
+        getDefinitions: () => {
           return [];
         }
       } as any,
@@ -69,7 +68,7 @@ describe("test getPipelineByName function", () => {
   it("sanity test: pipeline exists", async () => {
     const p = await getPipelineByName(
       {
-        getDefinitions: (projectName: string) => {
+        getDefinitions: () => {
           return [
             {
               name: "pipeline"
@@ -85,7 +84,7 @@ describe("test getPipelineByName function", () => {
   it("sanity test: multiple pipelines and none matches", async () => {
     const p = await getPipelineByName(
       {
-        getDefinitions: (projectName: string) => {
+        getDefinitions: () => {
           return [
             {
               name: "pipeline1"
@@ -107,7 +106,7 @@ describe("test getPipelineByName function", () => {
   it("sanity test: multiple pipelines and one matches", async () => {
     const p = await getPipelineByName(
       {
-        getDefinitions: (projectName: string) => {
+        getDefinitions: () => {
           return [
             {
               name: "pipeline"
@@ -130,7 +129,7 @@ describe("test getPipelineByName function", () => {
     await expect(
       getPipelineByName(
         {
-          getDefinitions: (projectName: string) => {
+          getDefinitions: () => {
             throw Error("fake");
           }
         } as any,
@@ -182,7 +181,7 @@ describe("test getPipelineBuild function", () => {
     expect(res).toBeDefined();
   });
   it("negative test: exception thrown", async () => {
-    await await expect(
+    await expect(
       getPipelineBuild(
         {
           getLatestBuild: () => {
@@ -244,9 +243,9 @@ describe("test createHLDtoManifestPipeline function", () => {
     expect(rc.createdHLDtoManifestPipeline).toBeTruthy();
   });
   it("positive test: pipeline already exists previously", async () => {
-    jest
-      .spyOn(pipelineService, "getPipelineByName")
-      .mockReturnValueOnce(Promise.resolve({}));
+    jest.spyOn(pipelineService, "getPipelineByName").mockResolvedValueOnce({
+      id: 1
+    });
     const fnDeletePipeline = jest
       .spyOn(pipelineService, "deletePipeline")
       .mockReturnValueOnce(Promise.resolve());

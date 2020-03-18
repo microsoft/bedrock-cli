@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
 import {
   Build,
@@ -174,14 +173,9 @@ export const createHLDtoManifestPipeline = async (
       rc.projectName,
       pipelineName
     );
-    if (pipeline) {
+    if (pipeline && pipeline.id !== undefined) {
       logger.info(`${pipelineName} is found, deleting it`);
-      await deletePipeline(
-        buildApi,
-        rc.projectName,
-        pipelineName,
-        pipeline.id!
-      );
+      await deletePipeline(buildApi, rc.projectName, pipelineName, pipeline.id);
     }
     await installHldToManifestPipeline({
       buildScriptUrl: BUILD_SCRIPT_URL,

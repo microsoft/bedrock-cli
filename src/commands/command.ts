@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 import { enableVerboseLogging, logger } from "../logger";
 
@@ -16,6 +15,33 @@ interface Command {
   command: commander.Command;
   subCommands: Command[];
 }
+
+/**
+ * Links the command and sub-commands in the passed IComponent together.
+ * Adding the necessary command/actions for each sub-command to the parent.
+ *
+ * Note: this linking isn't what actually enables nested sub-command calling,
+ * this is only used for displaying what sub-commands are available for any
+ * given parent. For information on how sub-commands are executed refer to
+ * `executeCommand`
+ *
+ * @param c ICommand object to prepare
+ */
+const linkSubCommands = (c: Command): Command => {
+  const { command, subCommands } = c;
+  // Add all sub-commands
+  for (const subCommand of subCommands) {
+    // Recur; link all sub-sub-commands to the sub-command before adding to current
+    linkSubCommands(subCommand);
+
+    // Add the subCommand to command
+    command
+      .command(subCommand.command.name())
+      .description(subCommand.command.description());
+  }
+
+  return c;
+};
 
 /**
  * Generates an concrete implementation of ICommand.
@@ -117,31 +143,4 @@ export const executeCommand = (cmd: Command, argv: string[]): void => {
       process.exit(1);
     }
   }
-};
-
-/**
- * Links the command and sub-commands in the passed IComponent together.
- * Adding the necessary command/actions for each sub-command to the parent.
- *
- * Note: this linking isn't what actually enables nested sub-command calling,
- * this is only used for displaying what sub-commands are available for any
- * given parent. For information on how sub-commands are executed refer to
- * `executeCommand`
- *
- * @param c ICommand object to prepare
- */
-const linkSubCommands = (c: Command): Command => {
-  const { command, subCommands } = c;
-  // Add all sub-commands
-  for (const subCommand of subCommands) {
-    // Recur; link all sub-sub-commands to the sub-command before adding to current
-    linkSubCommands(subCommand);
-
-    // Add the subCommand to command
-    command
-      .command(subCommand.command.name())
-      .description(subCommand.command.description());
-  }
-
-  return c;
 };

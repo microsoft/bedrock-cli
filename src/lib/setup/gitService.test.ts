@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as GitInterfaces from "azure-devops-node-api/interfaces/GitInterfaces";
 import { WORKSPACE } from "./constants";
 import * as gitService from "./gitService";
 import {
@@ -66,10 +64,7 @@ describe("test createRepo function", () => {
     };
     const res = await createRepo(
       {
-        createRepository: async (
-          createOptions: GitInterfaces.GitRepositoryCreateOptions,
-          projectName: string
-        ) => {
+        createRepository: async () => {
           return mockResult;
         }
       } as any,
@@ -79,16 +74,10 @@ describe("test createRepo function", () => {
     expect(res).toStrictEqual(mockResult);
   });
   it("negative test: permission issue", async () => {
-    const mockResult = {
-      id: "testRepo"
-    };
     await expect(
       createRepo(
         {
-          createRepository: (
-            createOptions: GitInterfaces.GitRepositoryCreateOptions,
-            projectName: string
-          ) => {
+          createRepository: () => {
             throw {
               message: "Authentication failure",
               statusCode: 401
@@ -101,16 +90,10 @@ describe("test createRepo function", () => {
     ).rejects.toThrow();
   });
   it("negative test: other issue", async () => {
-    const mockResult = {
-      id: "testRepo"
-    };
     await expect(
       createRepo(
         {
-          createRepository: (
-            createOptions: GitInterfaces.GitRepositoryCreateOptions,
-            projectName: string
-          ) => {
+          createRepository: () => {
             throw new Error("fake");
           }
         } as any,

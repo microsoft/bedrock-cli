@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import commander from "commander";
 import {
   addSrcToACRPipeline,
@@ -66,6 +65,7 @@ export const handlePipeline1 = async (
   }
   await addSrcToACRPipeline(
     tableInfo,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     opts.p1!,
     opts.imageTag,
     opts.service,
@@ -89,6 +89,7 @@ export const handlePipeline2 = async (
   }
   await updateACRToHLDPipeline(
     tableInfo,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     opts.p2!,
     opts.imageTag,
     opts.hldCommitId,
@@ -113,9 +114,13 @@ export const execute = async (
     validateValues(opts);
 
     const tableInfo: DeploymentTable = {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       accountKey: opts.accessKey!,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       accountName: opts.name!,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       partitionKey: opts.partitionKey!,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       tableName: opts.tableName!
     };
 
@@ -126,7 +131,9 @@ export const execute = async (
     } else if (hasValue(opts.p3) && hasValue(opts.hldCommitId)) {
       await updateHLDToManifestPipeline(
         tableInfo,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         opts.hldCommitId!,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         opts.p3!,
         opts.manifestCommitId,
         opts.pr,

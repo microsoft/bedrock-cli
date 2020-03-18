@@ -15,8 +15,7 @@ export const getGitApi = async (webAPI: WebApi): Promise<IGitApi> => {
     return gitAPI;
   }
   gitAPI = await webAPI.getGitApi();
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return gitAPI!;
+  return gitAPI;
 };
 
 /**
@@ -145,8 +144,7 @@ export const createRepoInAzureOrg = async (
  * @param orgName organization name
  */
 export const getRepoURL = (repo: GitRepository, orgName: string): string => {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return repo.remoteUrl!.replace(`${orgName}@`, "");
+  return repo.remoteUrl ? repo.remoteUrl.replace(`${orgName}@`, "") : "";
 };
 
 /**

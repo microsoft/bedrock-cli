@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/camelcase */
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
 import {
   BuildDefinition,
@@ -75,15 +73,15 @@ export const fetchValidateValues = (
   if (!spkConfig) {
     throw new Error("SPK Config is missing");
   }
-  const azure_devops = spkConfig?.azure_devops;
+  const azureDevops = spkConfig?.azure_devops;
   if (!opts.repoUrl) {
     throw Error(`Repo url not defined`);
   }
   const values: CommandOptions = {
     buildScriptUrl: opts.buildScriptUrl || BUILD_SCRIPT_URL,
-    devopsProject: opts.devopsProject || azure_devops?.project,
-    orgName: opts.orgName || azure_devops?.org,
-    personalAccessToken: opts.personalAccessToken || azure_devops?.access_token,
+    devopsProject: opts.devopsProject || azureDevops?.project,
+    orgName: opts.orgName || azureDevops?.org,
+    personalAccessToken: opts.personalAccessToken || azureDevops?.access_token,
     pipelineName:
       opts.pipelineName || getRepositoryName(gitOriginUrl) + "-lifecycle",
     repoName: getRepositoryName(gitOriginUrl),
@@ -104,6 +102,89 @@ export const fetchValidateValues = (
 
   const error = validateForRequiredValues(decorator, map);
   return error.length > 0 ? null : values;
+};
+
+/**
+ * Builds and returns variables required for the lifecycle pipeline.
+ * @param buildScriptUrl Build Script URL
+ * @returns Object containing the necessary run-time variables for the lifecycle pipeline.
+ */
+export const requiredPipelineVariables = (
+  buildScriptUrl: string
+): { [key: string]: BuildDefinitionVariable } => {
+  return {
+    BUILD_SCRIPT_URL: {
+      allowOverride: true,
+      isSecret: false,
+      value: buildScriptUrl
+    }
+  };
+};
+
+const createPipeline = async (
+  values: CommandOptions,
+  devopsClient: IBuildApi,
+  definitionBranch: string
+): Promise<BuildDefinition> => {
+  const definition = definitionForAzureRepoPipeline({
+    branchFilters: ["master"], // hld reconcile pipeline is triggered only by merges into the master branch.
+    maximumConcurrentBuilds: 1,
+    pipelineName: values.pipelineName!,
+    repositoryName: values.repoName!,
+    repositoryUrl: values.repoUrl!,
+    variables: requiredPipelineVariables(values.buildScriptUrl!),
+    yamlFileBranch: definitionBranch, // Pipeline is defined in master
+    yamlFilePath: PROJECT_PIPELINE_FILENAME // Pipeline definition lives in root directory.
+  });
+
+  logger.info(
+    `Attempting to create new pipeline: ${values.pipelineName} defined in repository:${values.repoUrl}, branch: ${values.yamlFileBranch}, filePath: ${PROJECT_PIPELINE_FILENAME}`
+  );
+
+  try {
+    return await createPipelineForDefinition(
+      devopsClient,
+      values.devopsProject!,
+      definition
+    );
+  } catch (err) {
+    logger.error(
+      `Error occurred during pipeline creation for ${values.pipelineName}`
+    );
+    throw err; // catch by other catch block
+  }
+};
+
+/**
+ * Install the project hld lifecycle pipeline in an azure devops org.
+ *
+ * @param values Values from command line. These values are pre-checked
+ * @param exitFn Exit function
+ */
+export const installLifecyclePipeline = async (
+  values: CommandOptions
+): Promise<void> => {
+  const devopsClient = await getBuildApiClient(
+    values.orgName!,
+    values.personalAccessToken!
+  );
+  logger.info("Fetched DevOps Client");
+
+  const pipeline = await createPipeline(
+    values,
+    devopsClient,
+    values.yamlFileBranch
+  );
+  if (typeof pipeline.id === "undefined") {
+    const builtDefnString = JSON.stringify(pipeline);
+    throw Error(
+      `Invalid BuildDefinition created, parameter 'id' is missing from ${builtDefnString}`
+    );
+  }
+  logger.info(`Created pipeline for ${values.pipelineName}`);
+  logger.info(`Pipeline ID: ${pipeline.id}`);
+
+  await queueBuild(devopsClient, values.devopsProject!, pipeline.id);
 };
 
 /**
@@ -176,87 +257,4 @@ export const commandDecorator = (command: commander.Command): void => {
       await exitCmd(logger, process.exit, status);
     });
   });
-};
-
-const createPipeline = async (
-  values: CommandOptions,
-  devopsClient: IBuildApi,
-  definitionBranch: string
-): Promise<BuildDefinition> => {
-  const definition = definitionForAzureRepoPipeline({
-    branchFilters: ["master"], // hld reconcile pipeline is triggered only by merges into the master branch.
-    maximumConcurrentBuilds: 1,
-    pipelineName: values.pipelineName!,
-    repositoryName: values.repoName!,
-    repositoryUrl: values.repoUrl!,
-    variables: requiredPipelineVariables(values.buildScriptUrl!),
-    yamlFileBranch: definitionBranch, // Pipeline is defined in master
-    yamlFilePath: PROJECT_PIPELINE_FILENAME // Pipeline definition lives in root directory.
-  });
-
-  logger.info(
-    `Attempting to create new pipeline: ${values.pipelineName} defined in repository:${values.repoUrl}, branch: ${values.yamlFileBranch}, filePath: ${PROJECT_PIPELINE_FILENAME}`
-  );
-
-  try {
-    return await createPipelineForDefinition(
-      devopsClient,
-      values.devopsProject!,
-      definition
-    );
-  } catch (err) {
-    logger.error(
-      `Error occurred during pipeline creation for ${values.pipelineName}`
-    );
-    throw err; // catch by other catch block
-  }
-};
-
-/**
- * Install the project hld lifecycle pipeline in an azure devops org.
- *
- * @param values Values from command line. These values are pre-checked
- * @param exitFn Exit function
- */
-export const installLifecyclePipeline = async (
-  values: CommandOptions
-): Promise<void> => {
-  const devopsClient = await getBuildApiClient(
-    values.orgName!,
-    values.personalAccessToken!
-  );
-  logger.info("Fetched DevOps Client");
-
-  const pipeline = await createPipeline(
-    values,
-    devopsClient,
-    values.yamlFileBranch
-  );
-  if (typeof pipeline.id === "undefined") {
-    const builtDefnString = JSON.stringify(pipeline);
-    throw Error(
-      `Invalid BuildDefinition created, parameter 'id' is missing from ${builtDefnString}`
-    );
-  }
-  logger.info(`Created pipeline for ${values.pipelineName}`);
-  logger.info(`Pipeline ID: ${pipeline.id}`);
-
-  await queueBuild(devopsClient, values.devopsProject!, pipeline.id);
-};
-
-/**
- * Builds and returns variables required for the lifecycle pipeline.
- * @param buildScriptUrl Build Script URL
- * @returns Object containing the necessary run-time variables for the lifecycle pipeline.
- */
-export const requiredPipelineVariables = (
-  buildScriptUrl: string
-): { [key: string]: BuildDefinitionVariable } => {
-  return {
-    BUILD_SCRIPT_URL: {
-      allowOverride: true,
-      isSecret: false,
-      value: buildScriptUrl
-    }
-  };
 };

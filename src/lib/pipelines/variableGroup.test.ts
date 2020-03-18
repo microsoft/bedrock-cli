@@ -1,11 +1,11 @@
-/* eslint-disable @typescript-eslint/camelcase */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   VariableGroup,
   VariableGroupParameters
 } from "azure-devops-node-api/interfaces/TaskAgentInterfaces";
 import uuid from "uuid/v4";
 import { readYaml } from "../../config";
+import * as config from "../../config";
+import * as azdoClient from "../azdoClient";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
@@ -39,16 +39,16 @@ describe("addVariableGroup", () => {
     (readYaml as jest.Mock).mockReturnValue({});
 
     const data = readYaml<VariableGroupData>("");
-    let invalidGroupError: Error | undefined;
-    try {
-      logger.info("calling add variable group");
-      await addVariableGroup(data);
-    } catch (err) {
-      invalidGroupError = err;
-    }
-    expect(invalidGroupError).toBeDefined();
+    await expect(addVariableGroup(data)).rejects.toThrow();
   });
+  test("should fail when variable group config variables are not set", async () => {
+    (readYaml as jest.Mock).mockReturnValue({
+      variables: undefined
+    });
 
+    const data = readYaml<VariableGroupData>("");
+    await expect(addVariableGroup(data)).rejects.toThrow();
+  });
   test("should pass when variable group data is set", async () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
@@ -83,7 +83,7 @@ describe("addVariableGroupWithKeyVaultMap", () => {
     let invalidGroupError: Error | undefined;
     try {
       logger.info("calling add variable group with Key Vault map");
-      await addVariableGroupWithKeyVaultMap(data!);
+      await addVariableGroupWithKeyVaultMap(data);
     } catch (err) {
       invalidGroupError = err;
     }
@@ -118,14 +118,14 @@ describe("addVariableGroupWithKeyVaultMap", () => {
   test("should fail when key vault name is not set for variable group", async () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
-      key_vault_provider: {
-        service_endpoint: {
+      "key_vault_provider": {
+        "service_endpoint": {
           name: "sename",
-          service_principal_id: "id",
-          service_principal_secret: "secret",
-          subscription_id: "id",
-          subscription_name: "subname",
-          tenant_id: "tid"
+          "service_principal_id": "id",
+          "service_principal_secret": "secret",
+          "subscription_id": "id",
+          "subscription_name": "subname",
+          "tenant_id": "tid"
         }
       },
       name: "myvg",
@@ -152,9 +152,9 @@ describe("addVariableGroupWithKeyVaultMap", () => {
   test("should fail when service endpoint data is not set for variable group", async () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "myvg desc",
-      key_vault_provider: {
+      "key_vault_provider": {
         name: "mykv",
-        service_endpoint: {}
+        "service_endpoint": {}
       },
       name: "myvg",
       variables: [
@@ -179,15 +179,15 @@ describe("addVariableGroupWithKeyVaultMap", () => {
   test("should pass when variable group data is valid", async () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "myvg desc",
-      key_vault_provider: {
+      "key_vault_provider": {
         name: "mykv",
-        service_endpoint: {
+        "service_endpoint": {
           name: "epname",
-          service_principal_id: "pricid",
-          service_principal_secret: "princsecret",
-          subscription_id: "subid",
-          subscription_name: "subname",
-          tenant_id: "tenid"
+          "service_principal_id": "pricid",
+          "service_principal_secret": "princsecret",
+          "subscription_id": "subid",
+          "subscription_name": "subname",
+          "tenant_id": "tenid"
         }
       },
       name: "myvg",
@@ -254,15 +254,15 @@ describe("doAddVariableGroup", () => {
   test("should pass when variable group with key vault data is set", async () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: uuid(),
-      key_vault_data: {
+      "key_vault_data": {
         name: "mykv",
-        service_endpoint: {
+        "service_endpoint": {
           name: "epname",
-          service_principal_id: "pricid",
-          service_principal_secret: "princsecret",
-          subscription_id: "subid",
-          subscription_name: "subname",
-          tenant_id: "tenid"
+          "service_principal_id": "pricid",
+          "service_principal_secret": "princsecret",
+          "subscription_id": "subid",
+          "subscription_name": "subname",
+          "tenant_id": "tenid"
         }
       },
       name: uuid(),
@@ -302,53 +302,37 @@ describe("doAddVariableGroup", () => {
 });
 
 describe("authorizeAccessToAllPipelines", () => {
+  test("negative test", async () => {
+    await expect(
+      authorizeAccessToAllPipelines({
+        id: undefined
+      })
+    ).rejects.toThrow();
+  });
   test("should pass when valid variable group is passed", async () => {
-    (readYaml as jest.Mock).mockReturnValue({
-      description: uuid(),
-      name: uuid(),
-      variables: {
-        var1: {
-          isSecret: false,
-          value: "val1"
-        },
-        var2: {
-          isSecret: true,
-          value: "val2"
-        }
+    jest.spyOn(config, "Config").mockReturnValueOnce({
+      "azure_devops": {
+        project: "test"
       }
     });
-
-    const data = readYaml<VariableGroupData>("");
-    const variablesMap = await buildVariablesMap(data.variables);
-
-    // create variable group parameterts
-    const variableGroup: VariableGroup = {
-      description: data.description,
-      name: data.name,
-      type: data.type,
-      variables: variablesMap
-    };
-
-    let authorized: boolean | undefined;
-    try {
-      authorized = await authorizeAccessToAllPipelines(variableGroup);
-    } catch (err) {
-      logger.error(err);
-    }
-    expect(authorized).toBeUndefined();
+    jest.spyOn(azdoClient, "getBuildApi").mockResolvedValueOnce({
+      authorizeProjectResources: () => {
+        return [
+          {
+            authorized: true
+          }
+        ];
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    const authorized = await authorizeAccessToAllPipelines({
+      id: 1,
+      name: "group"
+    });
+    expect(authorized).toBeTruthy();
   });
-
   test("should fail when passing null variable group", async () => {
-    // create variable group parameterts
-    const variableGroup: VariableGroup | undefined = {};
-
-    let error: Error | undefined;
-    try {
-      await authorizeAccessToAllPipelines(variableGroup);
-    } catch (err) {
-      error = err;
-    }
-    expect(error).toBeDefined();
+    await expect(authorizeAccessToAllPipelines({})).rejects.toThrow();
   });
 });
 

@@ -1,4 +1,5 @@
 import * as restAuth from "@azure/ms-rest-nodeauth";
+import { RequestContext } from "./constants";
 import { getSubscriptions } from "./subscriptionService";
 
 jest.mock("@azure/arm-subscriptions", () => {
@@ -32,12 +33,16 @@ describe("test getSubscriptions function", () => {
       .mockImplementationOnce(async () => {
         return {};
       });
-    const result = await getSubscriptions({
+    const rc: RequestContext = {
       accessToken: "pat",
       orgName: "org",
       projectName: "project",
-      workspace: "test"
-    });
+      workspace: "test",
+      servicePrincipalId: "fakeId",
+      servicePrincipalPassword: "fakePassword",
+      servicePrincipalTenantId: "fakeTenantId"
+    };
+    const result = await getSubscriptions(rc);
     expect(result).toStrictEqual([
       {
         id: "1234567890-abcdef",

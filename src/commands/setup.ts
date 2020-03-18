@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/camelcase */
 import commander from "commander";
 import fs from "fs";
 import yaml from "js-yaml";
@@ -42,23 +40,23 @@ interface APIError {
 export const createSPKConfig = (rc: RequestContext): void => {
   const data = rc.toCreateAppRepo
     ? {
-        azure_devops: {
-          access_token: rc.accessToken,
+        "azure_devops": {
+          "access_token": rc.accessToken,
           org: rc.orgName,
           project: rc.projectName
         },
         introspection: {
           azure: {
-            service_principal_id: rc.servicePrincipalId,
-            service_principal_secret: rc.servicePrincipalPassword,
-            subscription_id: rc.subscriptionId,
-            tenant_id: rc.servicePrincipalTenantId
+            "service_principal_id": rc.servicePrincipalId,
+            "service_principal_secret": rc.servicePrincipalPassword,
+            "subscription_id": rc.subscriptionId,
+            "tenant_id": rc.servicePrincipalTenantId
           }
         }
       }
     : {
-        azure_devops: {
-          access_token: rc.accessToken,
+        "azure_devops": {
+          "access_token": rc.accessToken,
           org: rc.orgName,
           project: rc.projectName
         }
@@ -72,9 +70,7 @@ export const getErrorMessage = (
 ): string => {
   if (rc) {
     if (err.message && err.message.indexOf("VS402392") !== -1) {
-      return `Project, ${
-        rc!.projectName
-      } might have been deleted less than 28 days ago. Choose a different project name.`;
+      return `Project, ${rc.projectName} might have been deleted less than 28 days ago. Choose a different project name.`;
     }
     if (!(err instanceof Error) && err.statusCode && err.statusCode === 401) {
       return `Authentication Failed. Make sure that the organization name and access token are correct; or your access token may have expired.`;
@@ -111,20 +107,26 @@ export const execute = async (
     await manifestRepo(gitAPI, requestContext);
     await createHLDtoManifestPipeline(buildAPI, requestContext);
 
-    if (requestContext.toCreateAppRepo) {
+    if (
+      requestContext.toCreateAppRepo &&
+      requestContext.servicePrincipalId &&
+      requestContext.servicePrincipalPassword &&
+      requestContext.servicePrincipalTenantId &&
+      requestContext.subscriptionId
+    ) {
       requestContext.createdResourceGroup = await createResourceGroup(
-        requestContext.servicePrincipalId!,
-        requestContext.servicePrincipalPassword!,
-        requestContext.servicePrincipalTenantId!,
-        requestContext.subscriptionId!,
+        requestContext.servicePrincipalId,
+        requestContext.servicePrincipalPassword,
+        requestContext.servicePrincipalTenantId,
+        requestContext.subscriptionId,
         RESOURCE_GROUP,
         RESOURCE_GROUP_LOCATION
       );
       requestContext.createdACR = await createACR(
-        requestContext.servicePrincipalId!,
-        requestContext.servicePrincipalPassword!,
-        requestContext.servicePrincipalTenantId!,
-        requestContext.subscriptionId!,
+        requestContext.servicePrincipalId,
+        requestContext.servicePrincipalPassword,
+        requestContext.servicePrincipalTenantId,
+        requestContext.subscriptionId,
         RESOURCE_GROUP,
         ACR,
         RESOURCE_GROUP_LOCATION
@@ -140,7 +142,7 @@ export const execute = async (
     if (requestContext) {
       requestContext.error = msg;
     }
-    createSetupLog(requestContext!);
+    createSetupLog(requestContext);
 
     logger.error(msg);
     await exitFn(1);
