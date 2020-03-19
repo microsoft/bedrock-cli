@@ -42,13 +42,18 @@ export const getManagementCredentials = async (
   opts: AzureAccessOpts = {}
 ): Promise<msRestNodeAuth.ApplicationTokenCredentials | undefined> => {
   // Load config from opts and fallback to spk config
-  const { azure } = Config().introspection!;
+  const conf = Config();
+  let servicePrincipalId = opts.servicePrincipalId;
+  let servicePrincipalPassword = opts.servicePrincipalPassword;
+  let tenantId = opts.tenantId;
 
-  const {
-    servicePrincipalId = azure && azure.service_principal_id,
-    servicePrincipalPassword = azure && azure.service_principal_secret,
-    tenantId = azure && azure.tenant_id
-  } = opts;
+  if (conf && conf.introspection && conf.introspection.azure) {
+    const azure = conf.introspection.azure;
+    servicePrincipalId = servicePrincipalId || azure.service_principal_id;
+    servicePrincipalPassword =
+      servicePrincipalPassword || azure.service_principal_secret;
+    tenantId = tenantId || azure.tenant_id;
+  }
 
   if (
     !verifyConfigDefined(servicePrincipalId, servicePrincipalPassword, tenantId)
