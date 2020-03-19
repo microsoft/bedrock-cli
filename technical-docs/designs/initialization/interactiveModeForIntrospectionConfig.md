@@ -12,10 +12,11 @@ Authors:
 
 ---
 
-| Revision | Date         | Author      | Remarks                           |
-| -------: | ------------ | ----------- | --------------------------------- |
-|      0.1 | Mar-16, 2020 | Dennis Seah | Initial Draft                     |
-|      0.2 | Mar-17, 2020 | Dennis Seah | Having key vault name as optional |
+| Revision | Date         | Author      | Remarks                                   |
+| -------: | ------------ | ----------- | ----------------------------------------- |
+|      0.1 | Mar-16, 2020 | Dennis Seah | Initial Draft                             |
+|      0.2 | Mar-17, 2020 | Dennis Seah | Having key vault name as optional         |
+|      1.0 | Mar-18, 2020 | Dennis Seah | Reviewed and this doc is committed to git |
 
 ## 1. Overview
 

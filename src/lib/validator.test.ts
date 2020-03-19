@@ -12,11 +12,17 @@ import {
   validateACRName,
   validateForNonEmptyValue,
   validateOrgName,
+  validatePassword,
   validatePrereqs,
   validateProjectName,
   validateServicePrincipalId,
   validateServicePrincipalPassword,
   validateServicePrincipalTenantId,
+  validateStorageAccountName,
+  validateStorageAccessKey,
+  validateStorageKeyVaultName,
+  validateStoragePartitionKey,
+  validateStorageTableName,
   validateSubscriptionId
 } from "./validator";
 
@@ -224,11 +230,77 @@ describe("test validateServicePrincipal functions", () => {
 
 describe("test validateSubscriptionId function", () => {
   it("sanity test", () => {
-    expect(validateSubscriptionId("")).toBe("Must enter a Subscription Id.");
+    expect(validateSubscriptionId("")).toBe(
+      "Must enter a subscription identifier."
+    );
     expect(validateSubscriptionId("xyz")).toBe(
-      "The value for Subscription Id is invalid."
+      "The value for subscription identifier is invalid."
     );
     expect(validateSubscriptionId("abc123-456")).toBeTruthy();
+  });
+});
+
+describe("test validateStorageAccountName test", () => {
+  it("sanity test", () => {
+    expect(validateStorageAccountName("")).toBe(
+      "Must enter a storage account name."
+    );
+    expect(validateStorageAccountName("XYZ123")).toBe(
+      "The value for storage account name is invalid. Lowercase letters and numbers are allowed."
+    );
+    expect(validateStorageAccountName("ab")).toBe(
+      "The value for storage account name is invalid. It has to be between 3 and 24 characters long"
+    );
+    expect(validateStorageAccountName("12345678a".repeat(3))).toBe(
+      "The value for storage account name is invalid. It has to be between 3 and 24 characters long"
+    );
+    expect(validateStorageAccountName("abc123456")).toBeTruthy();
+  });
+});
+
+describe("test validateStorageTableName test", () => {
+  it("sanity test", () => {
+    expect(validateStorageTableName("")).toBe(
+      "Must enter a storage table name."
+    );
+    expect(validateStorageTableName("XYZ123*")).toBe(
+      "The value for storage table name is invalid. It has to be alphanumeric and start with an alphabet."
+    );
+    expect(validateStorageTableName("1XYZ123")).toBe(
+      "The value for storage table name is invalid. It has to be alphanumeric and start with an alphabet."
+    );
+    expect(validateStorageTableName("ab")).toBe(
+      "The value for storage table name is invalid. It has to be between 3 and 63 characters long"
+    );
+    expect(validateStorageTableName("a123456789".repeat(7))).toBe(
+      "The value for storage table name is invalid. It has to be between 3 and 63 characters long"
+    );
+    expect(validateStorageTableName("abc123456")).toBeTruthy();
+  });
+});
+
+describe("test validatePassword test", () => {
+  it("sanity test", () => {
+    expect(validatePassword("")).toBe("Must enter a value.");
+    expect(validatePassword("1234567")).toBe(
+      "Must be more than 8 characters long."
+    );
+    expect(validatePassword("abcd1234")).toBeTruthy();
+    expect(validatePassword("abcdefg123456678")).toBeTruthy();
+  });
+});
+
+describe("test validateStoragePartitionKey test", () => {
+  it("sanity test", () => {
+    expect(validateStoragePartitionKey("")).toBe(
+      "Must enter a storage partition key."
+    );
+    ["abc\\", "abc/", "abc?", "abc#"].forEach(s => {
+      expect(validateStoragePartitionKey(s)).toBe(
+        "The value for storage partition key is invalid. /, \\, # and ? characters are not allowed."
+      );
+    });
+    expect(validateStoragePartitionKey("abcdefg123456678")).toBeTruthy();
   });
 });
 
@@ -248,5 +320,38 @@ describe("test validateACRName function", () => {
     );
 
     expect(validateACRName("abc12356")).toBeTruthy();
+  });
+});
+
+describe("test validateStorageKeyVaultName function", () => {
+  it("sanity test", () => {
+    expect(validateStorageKeyVaultName("ab*")).toBe(
+      "The value for Key Value  Name is invalid."
+    );
+    expect(validateStorageKeyVaultName("1abc0")).toBe(
+      "Key Value Name must start with a letter."
+    );
+    expect(validateStorageKeyVaultName("abc0-")).toBe(
+      "Key Value Name must end with letter or digit."
+    );
+    expect(validateStorageKeyVaultName("a--b")).toBe(
+      "Key Value Name cannot contain consecutive hyphens."
+    );
+    expect(validateStorageKeyVaultName("ab")).toBe(
+      "The value for Key Vault Name is invalid because it has to be between 3 and 24 characters long."
+    );
+    expect(validateStorageKeyVaultName("a12345678".repeat(3))).toBe(
+      "The value for Key Vault Name is invalid because it has to be between 3 and 24 characters long."
+    );
+    expect(validateStorageKeyVaultName("abc-12356")).toBeTruthy();
+  });
+});
+
+describe("test validateStorageAccessKey function", () => {
+  it("sanity test", () => {
+    expect(validateStorageAccessKey("")).toBe(
+      "Must enter an Storage Access Key."
+    );
+    expect(validateStorageAccessKey("abc-12356")).toBeTruthy();
   });
 });

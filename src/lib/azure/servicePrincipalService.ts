@@ -1,6 +1,11 @@
 import { logger } from "../../logger";
 import { exec } from "../shell";
-import { RequestContext } from "./constants";
+
+export interface ServicePrincipal {
+  id: string;
+  password: string;
+  tenantId: string;
+}
 
 /**
  * Login to az command line tool. This is done by
@@ -24,20 +29,19 @@ export const azCLILogin = async (): Promise<void> => {
  * this service principal should have contributor privileges.
  * Request context will have the service principal information
  * when service principal is successfully created.
- *
- * @param rc Request Context
  */
-export const createWithAzCLI = async (rc: RequestContext): Promise<void> => {
+export const createWithAzCLI = async (): Promise<ServicePrincipal> => {
   await azCLILogin();
   try {
     logger.info("attempting to create service principal with az command line");
     const result = await exec("az", ["ad", "sp", "create-for-rbac"]);
     const oResult = JSON.parse(result);
-    rc.createServicePrincipal = true;
-    rc.servicePrincipalId = oResult.appId;
-    rc.servicePrincipalPassword = oResult.password;
-    rc.servicePrincipalTenantId = oResult.tenant;
     logger.info("Successfully created service principal with az command line");
+    return {
+      id: oResult.appId,
+      password: oResult.password,
+      tenantId: oResult.tenant
+    };
   } catch (err) {
     logger.error("Unable to create service principal with az command line");
     logger.error(err);

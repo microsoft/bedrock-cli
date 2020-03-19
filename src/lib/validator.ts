@@ -120,6 +120,25 @@ export const isAlphaNumeric = (value: string): boolean => {
   return !!value.match(/^[a-zA-Z0-9]+$/);
 };
 
+export const isDashAlphaNumeric = (value: string): boolean => {
+  return !!value.match(/^[a-zA-Z0-9-]+$/);
+};
+
+/**
+ * Returns true if password is proper. Typical password validation
+ *
+ * @param value password
+ */
+export const validatePassword = (value: string): string | boolean => {
+  if (!hasValue(value)) {
+    return "Must enter a value.";
+  }
+  if (value.length < 8) {
+    return "Must be more than 8 characters long.";
+  }
+  return true;
+};
+
 /**
  * Returns true if project name is proper.
  *
@@ -235,10 +254,63 @@ export const validateServicePrincipalTenantId = (
  */
 export const validateSubscriptionId = (value: string): string | boolean => {
   if (!hasValue(value)) {
-    return "Must enter a Subscription Id.";
+    return "Must enter a subscription identifier.";
   }
   if (!isDashHex(value)) {
-    return "The value for Subscription Id is invalid.";
+    return "The value for subscription identifier is invalid.";
+  }
+  return true;
+};
+
+/**
+ * Returns true if storage account name is valid.
+ *
+ * @param value storage account name .
+ */
+export const validateStorageAccountName = (value: string): string | boolean => {
+  if (!hasValue(value)) {
+    return "Must enter a storage account name.";
+  }
+  if (!value.match(/^[a-z0-9]+$/)) {
+    return "The value for storage account name is invalid. Lowercase letters and numbers are allowed.";
+  }
+  if (value.length < 3 || value.length > 24) {
+    return "The value for storage account name is invalid. It has to be between 3 and 24 characters long";
+  }
+  return true;
+};
+
+/**
+ * Returns true if storage table name is valid.
+ *
+ * @param value storage table name.
+ */
+export const validateStorageTableName = (value: string): string | boolean => {
+  if (!hasValue(value)) {
+    return "Must enter a storage table name.";
+  }
+  if (!value.match(/^[A-Za-z][A-Za-z0-9]*$/)) {
+    return "The value for storage table name is invalid. It has to be alphanumeric and start with an alphabet.";
+  }
+  if (value.length < 3 || value.length > 63) {
+    return "The value for storage table name is invalid. It has to be between 3 and 63 characters long";
+  }
+  return true;
+};
+
+/**
+ * Returns true if storage partition key is valid.
+ *
+ * @param value storage partition key.
+ */
+export const validateStoragePartitionKey = (
+  value: string
+): string | boolean => {
+  if (!hasValue(value)) {
+    return "Must enter a storage partition key.";
+  }
+  if (value.match(/[/\\#?]/)) {
+    return "The value for storage partition key is invalid. /, \\, # and ? characters are not allowed.";
   }
   return true;
 };
@@ -257,6 +329,37 @@ export const validateACRName = (value: string): string | boolean => {
   }
   if (value.length < 5 || value.length > 50) {
     return "The value for Azure Container Registry Name is invalid because it has to be between 5 and 50 characters long.";
+  }
+  return true;
+};
+
+export const validateStorageKeyVaultName = (
+  value: string
+): string | boolean => {
+  if (!hasValue(value)) {
+    return true; // optional
+  }
+  if (!isDashAlphaNumeric(value)) {
+    return "The value for Key Value  Name is invalid.";
+  }
+  if (!value.match(/^[a-zA-Z]/)) {
+    return "Key Value Name must start with a letter.";
+  }
+  if (!value.match(/[a-zA-Z0-9]$/)) {
+    return "Key Value Name must end with letter or digit.";
+  }
+  if (value.indexOf("--") !== -1) {
+    return "Key Value Name cannot contain consecutive hyphens.";
+  }
+  if (value.length < 3 || value.length > 24) {
+    return "The value for Key Vault Name is invalid because it has to be between 3 and 24 characters long.";
+  }
+  return true;
+};
+
+export const validateStorageAccessKey = (value: string): string | boolean => {
+  if (!hasValue(value)) {
+    return "Must enter an Storage Access Key.";
   }
   return true;
 };

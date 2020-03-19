@@ -11,13 +11,9 @@ import {
   saveConfiguration
 } from "../config";
 import { build as buildCmd, exit as exitCmd } from "../lib/commandBuilder";
+import * as promptBuilder from "../lib/promptBuilder";
 import { deepClone } from "../lib/util";
-import {
-  hasValue,
-  validateAccessToken,
-  validateOrgName,
-  validateProjectName
-} from "../lib/validator";
+import { hasValue } from "../lib/validator";
 import { logger } from "../logger";
 import { ConfigYaml } from "../types";
 import decorator from "./init.decorator.json";
@@ -31,6 +27,7 @@ interface Answer {
   azdo_org_name: string;
   azdo_project_name: string;
   azdo_pat: string;
+  toSetupIntrospectionConfig: boolean;
 }
 
 /**
@@ -52,34 +49,17 @@ export const handleFileConfig = (file: string): void => {
  */
 export const prompt = async (curConfig: ConfigYaml): Promise<Answer> => {
   const questions = [
-    {
-      default: curConfig.azure_devops?.org || undefined,
-      message: "Enter organization name\n",
-      name: "azdo_org_name",
-      type: "input",
-      validate: validateOrgName
-    },
-    {
-      default: curConfig.azure_devops?.project || undefined,
-      message: "Enter project name\n",
-      name: "azdo_project_name",
-      type: "input",
-      validate: validateProjectName
-    },
-    {
-      default: curConfig.azure_devops?.access_token || undefined,
-      mask: "*",
-      message: "Enter your AzDO personal access token\n",
-      name: "azdo_pat",
-      type: "password",
-      validate: validateAccessToken
-    }
+    promptBuilder.azureOrgName(curConfig.azure_devops?.org),
+    promptBuilder.azureProjectName(curConfig.azure_devops?.project),
+    promptBuilder.azureAccessToken(curConfig.azure_devops?.access_token),
+    promptBuilder.askToSetupIntrospectionConfig(false)
   ];
   const answers = await inquirer.prompt(questions);
   return {
     azdo_org_name: answers.azdo_org_name as string,
     azdo_pat: answers.azdo_pat as string,
-    azdo_project_name: answers.azdo_project_name as string
+    azdo_project_name: answers.azdo_project_name as string,
+    toSetupIntrospectionConfig: answers.toSetupIntrospectionConfig
   };
 };
 
@@ -92,7 +72,7 @@ export const getConfig = (): ConfigYaml => {
     loadConfiguration();
     return Config();
   } catch (_) {
-    // current config is not found.
+    logger.info("current config is not found.");
     return {
       azure_devops: {
         access_token: "",
@@ -134,20 +114,68 @@ export const validatePersonalAccessToken = async (
   }
 };
 
+export const isIntrospectionAzureDefined = (curConfig: ConfigYaml): boolean => {
+  if (!curConfig.introspection) {
+    return false;
+  }
+  const intro = curConfig.introspection;
+  return intro.azure !== undefined;
+};
+
+export const handleIntrospectionInteractive = async (
+  curConfig: ConfigYaml
+): Promise<void> => {
+  if (!isIntrospectionAzureDefined(curConfig)) {
+    curConfig.introspection = {
+      azure: {}
+    };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const azure = curConfig.introspection!.azure!;
+
+  const ans = await inquirer.prompt([
+    promptBuilder.azureStorageAccountName(azure.account_name),
+    promptBuilder.azureStorageTableName(azure.table_name),
+    promptBuilder.azureStoragePartitionKey(azure.partition_key),
+    promptBuilder.azureStorageAccessKey(azure.key),
+    promptBuilder.azureKeyVaultName(curConfig.key_vault_name)
+  ]);
+  azure["account_name"] = ans.azdo_storage_account_name;
+  azure["table_name"] = ans.azdo_storage_table_name;
+  azure["partition_key"] = ans.azdo_storage_partition_key;
+  azure.key = ans.azdo_storage_access_key;
+
+  const keyVaultName = ans.azdo_storage_key_vault_name.trim();
+  if (keyVaultName) {
+    curConfig["key_vault_name"] = keyVaultName;
+  } else {
+    delete curConfig["key_vault_name"];
+  }
+};
+
 /**
  * Handles the interactive mode of the command.
  */
 export const handleInteractiveMode = async (): Promise<void> => {
-  const curConfig = deepClone(getConfig());
+  const conf = getConfig();
+  if (conf.introspection && conf.introspection.azure) {
+    delete conf.introspection.azure.key;
+  }
+  const curConfig = deepClone(conf);
   const answer = await prompt(curConfig);
-
   curConfig["azure_devops"] = curConfig.azure_devops || {};
 
   curConfig.azure_devops.org = answer.azdo_org_name;
   curConfig.azure_devops.project = answer.azdo_project_name;
   curConfig.azure_devops["access_token"] = answer.azdo_pat;
 
+  if (answer.toSetupIntrospectionConfig) {
+    await handleIntrospectionInteractive(curConfig);
+  }
+
   const data = yaml.safeDump(curConfig);
+
   fs.writeFileSync(defaultConfigFile(), data);
   logger.info("Successfully constructed SPK configuration file.");
   const ok = await validatePersonalAccessToken(curConfig.azure_devops);

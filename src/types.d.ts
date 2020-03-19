@@ -197,7 +197,7 @@ export interface ConfigYaml {
       account_name?: string;
       table_name?: string;
       partition_key?: string;
-      key: Promise<string | undefined>;
+      key?: string;
       source_repo_access_token?: string;
       service_principal_id?: string;
       service_principal_secret?: string;

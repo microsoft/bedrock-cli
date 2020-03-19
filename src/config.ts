@@ -4,7 +4,6 @@ import yaml from "js-yaml";
 import * as os from "os";
 import path from "path";
 import { writeVersion } from "./lib/fileutils";
-import { getSecret } from "./lib/azure/keyvault";
 import { logger } from "./logger";
 import {
   AzurePipelinesYaml,
@@ -86,29 +85,6 @@ export const loadConfigurationFromLocalEnv = <T>(configObj: T): T => {
   return configObj;
 };
 
-const getKeyVaultSecret = async (
-  keyVaultName: string | undefined,
-  storageAccountName: string | undefined
-): Promise<string | undefined> => {
-  logger.debug(`Fetching key from key vault`);
-  let keyVaultKey: string | undefined;
-
-  // fetch storage access key from key vault when it is configured
-  if (
-    keyVaultName !== undefined &&
-    keyVaultName !== null &&
-    storageAccountName !== undefined
-  ) {
-    keyVaultKey = await getSecret(keyVaultName, `${storageAccountName}Key`);
-  }
-
-  if (keyVaultKey === undefined) {
-    keyVaultKey = await spkConfig.introspection?.azure?.key;
-  }
-
-  return keyVaultKey;
-};
-
 /**
  * Fetches the absolute default directory of the spk global config
  */
@@ -168,21 +144,7 @@ export const Config = (): ConfigYaml => {
     }
   }
 
-  const introspectionAzure = {
-    ...spkConfig.introspection?.azure,
-    get key(): Promise<string | undefined> {
-      const accountName = spkConfig.introspection?.azure?.account_name;
-      return getKeyVaultSecret(spkConfig.key_vault_name, accountName);
-    }
-  };
-
-  return {
-    ...spkConfig,
-    introspection: {
-      ...spkConfig.introspection,
-      azure: introspectionAzure
-    }
-  };
+  return spkConfig;
 };
 
 /**

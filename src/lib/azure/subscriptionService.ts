@@ -4,7 +4,6 @@ import {
   loginWithServicePrincipalSecret
 } from "@azure/ms-rest-nodeauth";
 import { logger } from "../../logger";
-import { RequestContext } from "./constants";
 
 export interface SubscriptionItem {
   id: string;
@@ -14,29 +13,34 @@ export interface SubscriptionItem {
 /**
  * Returns a list of subscriptions based on the service principal credentials.
  *
- * @param rc Request Context
+ * @param servicePrincipalId Service Principal Id
+ * @param servicePrincipalPassword Service Principal Password
+ * @param servicePrincipalTenantId  Service Principal TenantId
  */
 export const getSubscriptions = (
-  rc: RequestContext
+  servicePrincipalId: string,
+  servicePrincipalPassword: string,
+  servicePrincipalTenantId: string
 ): Promise<SubscriptionItem[]> => {
   logger.info("attempting to get subscription list");
   return new Promise((resolve, reject) => {
     if (
-      !rc.servicePrincipalId ||
-      !rc.servicePrincipalPassword ||
-      !rc.servicePrincipalTenantId
+      !servicePrincipalId ||
+      !servicePrincipalPassword ||
+      !servicePrincipalTenantId
     ) {
       reject(Error("Service Principal information was missing."));
     } else {
       loginWithServicePrincipalSecret(
-        rc.servicePrincipalId,
-        rc.servicePrincipalPassword,
-        rc.servicePrincipalTenantId
+        servicePrincipalId,
+        servicePrincipalPassword,
+        servicePrincipalTenantId
       )
         .then(async (creds: ApplicationTokenCredentials) => {
           const client = new SubscriptionClient(creds);
           const subsciptions = await client.subscriptions.list();
           const result: SubscriptionItem[] = [];
+
           (subsciptions || []).forEach(s => {
             if (s.subscriptionId && s.displayName) {
               result.push({

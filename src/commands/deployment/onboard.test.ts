@@ -78,7 +78,7 @@ const testPopulatedVal = (
   const configYaml: ConfigYaml = {
     introspection: {
       azure: {
-        key: Promise.resolve("key")
+        key: "key"
       }
     }
   };

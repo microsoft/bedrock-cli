@@ -12,8 +12,8 @@ import {
   promptForACRName,
   promptForSubscriptionId
 } from "./prompt";
-import * as servicePrincipalService from "./servicePrincipalService";
-import * as subscriptionService from "./subscriptionService";
+import * as servicePrincipalService from "../azure/servicePrincipalService";
+import * as subscriptionService from "../azure/subscriptionService";
 
 describe("test prompt function", () => {
   it("positive test: No App Creation", async () => {
@@ -50,7 +50,11 @@ describe("test prompt function", () => {
 
     jest
       .spyOn(servicePrincipalService, "createWithAzCLI")
-      .mockReturnValueOnce(Promise.resolve());
+      .mockResolvedValueOnce({
+        id: "b510c1ff-358c-4ed4-96c8-eb23f42bb65b",
+        password: "a510c1ff-358c-4ed4-96c8-eb23f42bbc5b",
+        tenantId: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+      });
     jest.spyOn(subscriptionService, "getSubscriptions").mockResolvedValueOnce([
       {
         id: "72f988bf-86f1-41af-91ab-2d7cd011db48",
@@ -61,9 +65,13 @@ describe("test prompt function", () => {
     const ans = await prompt();
     expect(ans).toStrictEqual({
       accessToken: "pat",
+      createServicePrincipal: true,
       acrName: "testACR",
       orgName: "org",
       projectName: "project",
+      servicePrincipalId: "b510c1ff-358c-4ed4-96c8-eb23f42bb65b",
+      servicePrincipalPassword: "a510c1ff-358c-4ed4-96c8-eb23f42bbc5b",
+      servicePrincipalTenantId: "72f988bf-86f1-41af-91ab-2d7cd011db47",
       subscriptionId: "72f988bf-86f1-41af-91ab-2d7cd011db48",
       toCreateAppRepo: true,
       toCreateSP: true,

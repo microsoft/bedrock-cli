@@ -142,7 +142,7 @@ describe("Validate deployment configuration", () => {
       introspection: {
         azure: {
           account_name: uuid(),
-          key: Promise.resolve(uuid()),
+          key: uuid(),
           partition_key: uuid(),
           table_name: uuid()
         }
@@ -210,7 +210,7 @@ describe("test runSelfTest function", () => {
     const config: ConfigYaml = {
       introspection: {
         azure: {
-          key: Promise.resolve(uuid()),
+          key: uuid(),
           table_name: undefined
         }
       }
@@ -229,7 +229,7 @@ describe("test runSelfTest function", () => {
     const config: ConfigYaml = {
       introspection: {
         azure: {
-          key: Promise.resolve(uuid()),
+          key: uuid(),
           table_name: undefined
         }
       }
@@ -244,7 +244,7 @@ describe("test runSelfTest function", () => {
     const config: ConfigYaml = {
       introspection: {
         azure: {
-          key: Promise.resolve(uuid()),
+          key: uuid(),
           table_name: undefined
         }
       }
@@ -279,7 +279,7 @@ describe("Validate missing deployment.storage configuration", () => {
       introspection: {
         azure: {
           account_name: undefined,
-          key: Promise.resolve(uuid())
+          key: uuid()
         }
       }
     };
@@ -292,7 +292,7 @@ describe("Validate missing deployment.storage configuration", () => {
     const config: ConfigYaml = {
       introspection: {
         azure: {
-          key: Promise.resolve(uuid()),
+          key: uuid(),
           table_name: undefined
         }
       }
@@ -306,7 +306,7 @@ describe("Validate missing deployment.storage configuration", () => {
     const config: ConfigYaml = {
       introspection: {
         azure: {
-          key: Promise.resolve(uuid()),
+          key: uuid(),
           partition_key: undefined
         }
       }
@@ -319,9 +319,7 @@ describe("Validate missing deployment.storage configuration", () => {
   test("missing deployment.storage.key configuration", async () => {
     const config: ConfigYaml = {
       introspection: {
-        azure: {
-          key: Promise.resolve(undefined)
-        }
+        azure: {}
       }
     };
     await expect(isValidConfig(config)).rejects.toThrow();
@@ -332,9 +330,7 @@ describe("Validate missing deployment.pipeline configuration", () => {
   test("missing deployment.pipeline configuration", async () => {
     const config: ConfigYaml = {
       introspection: {
-        azure: {
-          key: Promise.resolve(undefined)
-        }
+        azure: {}
       }
     };
     await expect(isValidConfig(config)).rejects.toThrow();
@@ -348,9 +344,7 @@ describe("Validate missing deployment.pipeline configuration", () => {
         org: undefined
       },
       introspection: {
-        azure: {
-          key: Promise.resolve(undefined)
-        }
+        azure: {}
       }
     };
     await expect(isValidConfig(config)).rejects.toThrow();
@@ -365,9 +359,7 @@ describe("Validate missing deployment.pipeline configuration", () => {
         project: undefined
       },
       introspection: {
-        azure: {
-          key: Promise.resolve(undefined)
-        }
+        azure: {}
       }
     };
     await expect(isValidConfig(config)).rejects.toThrow();

@@ -1,5 +1,6 @@
 import fs from "fs";
 import inquirer from "inquirer";
+import * as promptBuilder from "../promptBuilder";
 import {
   validateAccessToken,
   validateACRName,
@@ -11,33 +12,31 @@ import {
   validateSubscriptionId
 } from "../validator";
 import {
+  ACR_NAME,
   DEFAULT_PROJECT_NAME,
   RequestContext,
-  WORKSPACE,
-  ACR_NAME
+  WORKSPACE
 } from "./constants";
-import { createWithAzCLI } from "./servicePrincipalService";
-import { getSubscriptions } from "./subscriptionService";
+import { createWithAzCLI } from "../azure/servicePrincipalService";
+import { getSubscriptions } from "../azure/subscriptionService";
 
 export const promptForSubscriptionId = async (
   rc: RequestContext
 ): Promise<void> => {
-  const subscriptions = await getSubscriptions(rc);
+  const subscriptions = await getSubscriptions(
+    rc.servicePrincipalId as string,
+    rc.servicePrincipalPassword as string,
+    rc.servicePrincipalTenantId as string
+  );
   if (subscriptions.length === 0) {
     throw Error("no subscriptions found");
   }
   if (subscriptions.length === 1) {
     rc.subscriptionId = subscriptions[0].id;
   } else {
-    const questions = [
-      {
-        choices: subscriptions.map(s => s.name),
-        message: "Select one of the subscription\n",
-        name: "az_subscription",
-        type: "list"
-      }
-    ];
-    const ans = await inquirer.prompt(questions);
+    const ans = await inquirer.prompt([
+      promptBuilder.chooseSubscriptionId(subscriptions.map(s => s.name))
+    ]);
     const found = subscriptions.find(
       s => s.name === (ans.az_subscription as string)
     );
@@ -55,31 +54,10 @@ export const promptForSubscriptionId = async (
 export const promptForServicePrincipal = async (
   rc: RequestContext
 ): Promise<void> => {
-  const questions = [
-    {
-      message: "Enter Service Principal Id\n",
-      name: "az_sp_id",
-      type: "input",
-      validate: validateServicePrincipalId
-    },
-    {
-      mask: "*",
-      message: "Enter Service Principal Password\n",
-      name: "az_sp_password",
-      type: "password",
-      validate: validateServicePrincipalPassword
-    },
-    {
-      message: "Enter Service Principal Tenant Id\n",
-      name: "az_sp_tenant",
-      type: "input",
-      validate: validateServicePrincipalTenantId
-    }
-  ];
-  const answers = await inquirer.prompt(questions);
-  rc.servicePrincipalId = answers.az_sp_id as string;
-  rc.servicePrincipalPassword = answers.az_sp_password as string;
-  rc.servicePrincipalTenantId = answers.az_sp_tenant as string;
+  const answers = await inquirer.prompt(promptBuilder.servicePrincipal());
+  rc.servicePrincipalId = answers.az_sp_id;
+  rc.servicePrincipalPassword = answers.az_sp_password;
+  rc.servicePrincipalTenantId = answers.az_sp_tenant;
 };
 
 /**
@@ -111,18 +89,15 @@ export const promptForACRName = async (rc: RequestContext): Promise<void> => {
 export const promptForServicePrincipalCreation = async (
   rc: RequestContext
 ): Promise<void> => {
-  const questions = [
-    {
-      default: true,
-      message: `Do you want to create a service principal?`,
-      name: "create_service_principal",
-      type: "confirm"
-    }
-  ];
+  const questions = [promptBuilder.askToCreateServicePrincipal(true)];
   const answers = await inquirer.prompt(questions);
   if (answers.create_service_principal) {
     rc.toCreateSP = true;
-    await createWithAzCLI(rc);
+    const sp = await createWithAzCLI();
+    rc.createServicePrincipal = true;
+    rc.servicePrincipalId = sp.id;
+    rc.servicePrincipalPassword = sp.password;
+    rc.servicePrincipalTenantId = sp.tenantId;
   } else {
     rc.toCreateSP = false;
     await promptForServicePrincipal(rc);
@@ -137,26 +112,9 @@ export const promptForServicePrincipalCreation = async (
  */
 export const prompt = async (): Promise<RequestContext> => {
   const questions = [
-    {
-      message: "Enter organization name\n",
-      name: "azdo_org_name",
-      type: "input",
-      validate: validateOrgName
-    },
-    {
-      default: DEFAULT_PROJECT_NAME,
-      message: "Enter name of project to be created\n",
-      name: "azdo_project_name",
-      type: "input",
-      validate: validateProjectName
-    },
-    {
-      mask: "*",
-      message: "Enter your Azure DevOps personal access token\n",
-      name: "azdo_pat",
-      type: "password",
-      validate: validateAccessToken
-    },
+    promptBuilder.azureOrgName(),
+    promptBuilder.azureProjectName(),
+    promptBuilder.azureAccessToken(),
     {
       default: true,
       message: `Do you like create a sample application repository?`,

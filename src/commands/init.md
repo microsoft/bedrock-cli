@@ -15,6 +15,12 @@ shall be no default values. These are the questions
 1. Organization Name of Azure dev-op account
 2. Project Name of Azure dev-op account
 3. Personal Access Token (guides)
+4. Would like to have introspection configuration setup? If yes
+   1. Storage Account Name
+   1. Storage Table Name
+   1. Storage Partition Key
+   1. Storage Access Key
+   1. Key Vault Name (optional)
 
 This tool shall verify these values by making an API call to Azure dev-op. They
 shall be written to `config.yaml` regardless the verification is successful or
