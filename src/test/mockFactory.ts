@@ -23,6 +23,12 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
   ringBranches: string[] = ["master", "qa", "test"],
   variableGroups: string[] = []
 ): AzurePipelinesYaml | string => {
+  const relativeServiceForDockerfile = relativeServicePathFormatted.startsWith(
+    "./"
+  )
+    ? relativeServicePathFormatted
+    : "./" + relativeServicePathFormatted;
+
   const data: AzurePipelinesYaml = {
     trigger: {
       branches: { include: ringBranches },
@@ -90,7 +96,7 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
                   `export IMAGE_TAG=${IMAGE_TAG}`,
                   `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
                   `echo "Image Name: $IMAGE_NAME"`,
-                  `cd ${sanitizeTriggerPath(relativeServicePathFormatted)}`,
+                  `cd ${relativeServiceForDockerfile}`,
                   `echo "az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
                   `az acr build -r $(ACR_NAME) --image $IMAGE_NAME .`
                 ]),

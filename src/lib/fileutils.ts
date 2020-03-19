@@ -136,6 +136,9 @@ export const serviceBuildAndUpdatePipeline = (
   variableGroups?: string[]
 ): AzurePipelinesYaml => {
   const relativeServicePathFormatted = sanitizeTriggerPath(relServicePath);
+  const relativeServiceForDockerfile = relServicePath.startsWith("./")
+    ? relServicePath
+    : "./" + relServicePath;
 
   const pipelineYaml: AzurePipelinesYaml = {
     trigger: {
@@ -206,7 +209,7 @@ export const serviceBuildAndUpdatePipeline = (
                   `export IMAGE_TAG=${IMAGE_TAG}`,
                   `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
                   `echo "Image Name: $IMAGE_NAME"`,
-                  `cd ${relativeServicePathFormatted}`,
+                  `cd ${relativeServiceForDockerfile}`,
                   `echo "az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
                   `az acr build -r $(ACR_NAME) --image $IMAGE_NAME .`
                 ]),
