@@ -3,6 +3,7 @@ import fs from "fs";
 import yaml from "js-yaml";
 import * as os from "os";
 import path from "path";
+import { writeVersion } from "./lib/fileutils";
 import { getSecret } from "./lib/azure/keyvault";
 import { logger } from "./logger";
 import {
@@ -287,7 +288,8 @@ export const write = (
       throw new Error(`Pipeline yaml file name is undefined`);
     }
 
-    return fs.writeFileSync(path.join(targetDirectory, fileName), asYaml);
+    writeVersion(path.join(targetDirectory, fileName));
+    return fs.appendFileSync(path.join(targetDirectory, fileName), asYaml);
   }
 };
 

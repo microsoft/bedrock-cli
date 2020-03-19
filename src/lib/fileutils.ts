@@ -7,6 +7,7 @@ import {
   PROJECT_PIPELINE_FILENAME,
   RENDER_HLD_PIPELINE_FILENAME,
   SERVICE_PIPELINE_FILENAME,
+  VERSION_MESSAGE,
   VM_IMAGE
 } from "../lib/constants";
 import { logger } from "../logger";
@@ -348,6 +349,21 @@ export const serviceBuildAndUpdatePipeline = (
 };
 
 /**
+ * Gets the spk version message
+ */
+export const getVersionMessage = (): string => {
+  return VERSION_MESSAGE + require("../../package.json").version;
+};
+
+/**
+ * Writes the spk version to the given file
+ * @param filePath The path to the file
+ */
+export const writeVersion = (filePath: string): void => {
+  fs.writeFileSync(filePath, `${getVersionMessage()}\n`, "utf8");
+};
+
+/**
  * Creates the service multistage build and update image tag pipeline.
  * One pipeline should exist for each service.
  *
@@ -393,7 +409,9 @@ export const generateServiceBuildAndUpdatePipelineYaml = (
     ringBranches,
     variableGroups
   );
-  fs.writeFileSync(
+
+  writeVersion(pipelineYamlFullPath);
+  fs.appendFileSync(
     pipelineYamlFullPath,
     yaml.safeDump(buildYaml, { lineWidth: Number.MAX_SAFE_INTEGER }),
     "utf8"
@@ -437,7 +455,8 @@ export const updateTriggerBranchesForServiceBuildAndUpdatePipeline = (
     buildPipelineYaml.trigger.branches.include = ringBranches;
   }
 
-  fs.writeFileSync(
+  writeVersion(pipelineYamlFullPath);
+  fs.appendFileSync(
     pipelineYamlFullPath,
     yaml.safeDump(buildPipelineYaml, { lineWidth: Number.MAX_SAFE_INTEGER }),
     "utf8"
@@ -586,7 +605,8 @@ export const generateHldAzurePipelinesYaml = (
     `Generated ${RENDER_HLD_PIPELINE_FILENAME}. Commit and push this file to master before attempting to deploy via the command 'spk hld install-manifest-pipeline'; before running the pipeline ensure the following environment variables are available to your pipeline: ${requiredPipelineVariables}`
   );
 
-  fs.writeFileSync(azurePipelinesYamlPath, hldYaml, "utf8");
+  writeVersion(azurePipelinesYamlPath);
+  fs.appendFileSync(azurePipelinesYamlPath, hldYaml, "utf8");
 };
 
 /**
@@ -773,7 +793,9 @@ export const generateHldLifecyclePipelineYaml = async (
   logger.info(
     `Writing ${PROJECT_PIPELINE_FILENAME} file to ${azurePipelinesYamlPath}`
   );
-  fs.writeFileSync(azurePipelinesYamlPath, lifecycleYaml, "utf8");
+
+  writeVersion(azurePipelinesYamlPath);
+  fs.appendFileSync(azurePipelinesYamlPath, lifecycleYaml, "utf8");
 
   const requiredPipelineVariables = [
     `'HLD_REPO' (Repository for your HLD in AzDo. eg. 'dev.azure.com/bhnook/fabrikam/_git/hld')`,

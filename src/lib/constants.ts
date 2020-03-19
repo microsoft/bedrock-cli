@@ -23,3 +23,5 @@ export const RENDER_HLD_PIPELINE_FILENAME = "manifest-generation.yaml";
 export const SERVICE_PIPELINE_FILENAME = "build-update-hld.yaml";
 
 export const VM_IMAGE = "ubuntu-latest";
+
+export const VERSION_MESSAGE = "# GENERATED WITH SPK VERSION ";

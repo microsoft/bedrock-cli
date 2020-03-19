@@ -10,7 +10,10 @@ import {
   isExists as isBedrockFileExists,
   read as readBedrockFile
 } from "../../lib/bedrockYaml";
-import { PROJECT_PIPELINE_FILENAME } from "../../lib/constants";
+import {
+  PROJECT_PIPELINE_FILENAME,
+  VERSION_MESSAGE
+} from "../../lib/constants";
 import { AzureDevOpsOpts } from "../../lib/git";
 import { createTempDir } from "../../lib/ioUtil";
 import * as pipelineVariableGroup from "../../lib/pipelines/variableGroup";
@@ -30,6 +33,7 @@ import {
   setVariableGroupInBedrockFile,
   updateLifeCyclePipeline
 } from "./create-variable-group";
+import * as fileutils from "../../lib/fileutils";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -42,6 +46,10 @@ afterAll(() => {
 beforeEach(() => {
   jest.clearAllMocks();
 });
+
+jest
+  .spyOn(fileutils, "getVersionMessage")
+  .mockReturnValue(VERSION_MESSAGE + "0.5");
 
 const registryName = uuid();
 const variableGroupName = uuid();
