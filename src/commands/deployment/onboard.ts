@@ -121,8 +121,16 @@ export const setConfiguration = (
 ): boolean => {
   try {
     const data = readYaml<ConfigYaml>(defaultConfigFile());
-    data.introspection!.azure!.account_name = storageAccountName;
-    data.introspection!.azure!.table_name = storageTableName;
+    if (!data.introspection) {
+      data.introspection = {
+        azure: {}
+      };
+    } else if (!data.introspection.azure) {
+      data.introspection.azure = {};
+    }
+
+    data.introspection.azure!.account_name = storageAccountName;
+    data.introspection.azure!.table_name = storageTableName;
     const jsonData = yaml.safeDump(data);
     logger.verbose(jsonData);
     fs.writeFileSync(defaultConfigFile(), jsonData);
