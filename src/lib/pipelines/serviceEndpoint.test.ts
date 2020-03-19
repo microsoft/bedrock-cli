@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import { IRestResponse } from "typed-rest-client";
 import uuid from "uuid/v4";
 import { Config, readYaml } from "../../config";
@@ -26,22 +27,22 @@ const servicePrincipalSecret: string = uuid();
 const tenantId: string = uuid();
 
 const mockedConfig = {
-  "azure_devops": {
+  azure_devops: {
     orrg: uuid()
   }
 };
 
 const mockedYaml = {
   description: "mydesc",
-  "key_vault_provider": {
+  key_vault_provider: {
     name: "vault",
-    "service_endpoint": {
+    service_endpoint: {
       name: serviceEndpointName,
-      "service_principal_id": servicePrincipalId,
-      "service_principal_secret": servicePrincipalSecret,
-      "subscription_id": subscriptionId,
-      "subscription_name": subscriptionName,
-      "tenant_id": tenantId
+      service_principal_id: servicePrincipalId,
+      service_principal_secret: servicePrincipalSecret,
+      subscription_id: subscriptionId,
+      subscription_name: subscriptionName,
+      tenant_id: tenantId
     }
   },
   name: "myvg"
@@ -112,11 +113,11 @@ const mockedInvalidServiceEndpointResponse = {
 
 const createServiceEndpointInput: ServiceEndpointData = {
   name: serviceEndpointName,
-  "service_principal_id": servicePrincipalId,
-  "service_principal_secret": servicePrincipalSecret,
-  "subscription_id": subscriptionId,
-  "subscription_name": subscriptionName,
-  "tenant_id": tenantId
+  service_principal_id: servicePrincipalId,
+  service_principal_secret: servicePrincipalSecret,
+  subscription_id: subscriptionId,
+  subscription_name: subscriptionName,
+  tenant_id: tenantId
 };
 
 beforeAll(() => {
@@ -131,14 +132,14 @@ describe("Validate service endpoint parameters creation", () => {
   test("valid service endpoint params", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
-      "key_vault_provider": {
-        "service_endpoint": {
+      key_vault_provider: {
+        service_endpoint: {
           name: serviceEndpointName,
-          "service_principal_id": servicePrincipalId,
-          "service_principal_secret": servicePrincipalSecret,
-          "subscription_id": subscriptionId,
-          "subscription_name": subscriptionName,
-          "tenant_id": tenantId
+          service_principal_id: servicePrincipalId,
+          service_principal_secret: servicePrincipalSecret,
+          subscription_id: subscriptionId,
+          subscription_name: subscriptionName,
+          tenant_id: tenantId
         }
       }
     });
@@ -167,13 +168,13 @@ describe("Validate service endpoint parameters creation", () => {
   test("should fail creating service endpoint params without the name", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
-      "key_vault_provider": {
-        "service_endpoint": {
-          "service_principal_id": servicePrincipalId,
-          "service_principal_secret": servicePrincipalSecret,
-          "subscription_id": subscriptionId,
-          "subscription_name": subscriptionName,
-          "tenant_id": tenantId
+      key_vault_provider: {
+        service_endpoint: {
+          service_principal_id: servicePrincipalId,
+          service_principal_secret: servicePrincipalSecret,
+          subscription_id: subscriptionId,
+          subscription_name: subscriptionName,
+          tenant_id: tenantId
         }
       }
     });
@@ -192,13 +193,13 @@ describe("Validate service endpoint parameters creation", () => {
   test("should fail creating service endpoint params without service principal id", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
-      "key_vault_provider": {
-        "service_endpoint": {
+      key_vault_provider: {
+        service_endpoint: {
           name: serviceEndpointName,
-          "service_principal_secret": servicePrincipalSecret,
-          "subscription_id": subscriptionId,
-          "subscription_name": subscriptionName,
-          "tenant_id": tenantId
+          service_principal_secret: servicePrincipalSecret,
+          subscription_id: subscriptionId,
+          subscription_name: subscriptionName,
+          tenant_id: tenantId
         }
       }
     });
@@ -217,13 +218,13 @@ describe("Validate service endpoint parameters creation", () => {
   test("should fail creating service endpoint params without service principal secret", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
-      "key_vault_provider": {
-        "service_endpoint": {
+      key_vault_provider: {
+        service_endpoint: {
           name: serviceEndpointName,
-          "service_principal_id": servicePrincipalId,
-          "subscription_id": subscriptionId,
-          "subscription_name": subscriptionName,
-          "tenant_id": tenantId
+          service_principal_id: servicePrincipalId,
+          subscription_id: subscriptionId,
+          subscription_name: subscriptionName,
+          tenant_id: tenantId
         }
       }
     });
@@ -242,13 +243,13 @@ describe("Validate service endpoint parameters creation", () => {
   test("should fail creating service endpoint params without subscription id", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
-      "key_vault_provider": {
-        "service_endpoint": {
+      key_vault_provider: {
+        service_endpoint: {
           name: serviceEndpointName,
-          "service_principal_id": servicePrincipalId,
-          "service_principal_secret": servicePrincipalSecret,
-          "subscription_name": subscriptionName,
-          "tenant_id": tenantId
+          service_principal_id: servicePrincipalId,
+          service_principal_secret: servicePrincipalSecret,
+          subscription_name: subscriptionName,
+          tenant_id: tenantId
         }
       }
     });
@@ -267,13 +268,13 @@ describe("Validate service endpoint parameters creation", () => {
   test("should fail creating service endpoint params without subscription name", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
-      "key_vault_provider": {
-        "service_endpoint": {
+      key_vault_provider: {
+        service_endpoint: {
           name: serviceEndpointName,
-          "service_principal_id": servicePrincipalId,
-          "service_principal_secret": servicePrincipalSecret,
-          "subscription_id": subscriptionId,
-          "tenant_id": tenantId
+          service_principal_id: servicePrincipalId,
+          service_principal_secret: servicePrincipalSecret,
+          subscription_id: subscriptionId,
+          tenant_id: tenantId
         }
       }
     });
@@ -292,8 +293,8 @@ describe("Validate service endpoint parameters creation", () => {
   test("should fail creating service endpoint params without entire section", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
-      "key_vault_provider": {
-        "service_endpoint": {}
+      key_vault_provider: {
+        service_endpoint: {}
       }
     });
     const input = readYaml<VariableGroupData>("");
