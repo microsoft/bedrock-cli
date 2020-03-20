@@ -7,11 +7,7 @@ import uuid from "uuid/v4";
 import * as azdoClient from "../azdoClient";
 import { readYaml } from "../../config";
 import * as config from "../../config";
-import {
-  disableVerboseLogging,
-  enableVerboseLogging,
-  logger
-} from "../../logger";
+import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { VariableGroupData, VariableGroupDataVariable } from "../../types";
 import {
   addVariableGroup,
@@ -21,6 +17,8 @@ import {
   deleteVariableGroup,
   doAddVariableGroup
 } from "./variableGroup";
+import * as variableGroup from "./variableGroup";
+import * as serviceEndpoint from "./serviceEndpoint";
 
 // Mocks
 jest.mock("azure-devops-node-api");
@@ -38,21 +36,21 @@ afterAll(() => {
 
 describe("addVariableGroup", () => {
   test("should fail when variable group config is not set", async () => {
-    (readYaml as jest.Mock).mockReturnValue({});
+    (readYaml as jest.Mock).mockReturnValueOnce({});
 
     const data = readYaml<VariableGroupData>("");
     await expect(addVariableGroup(data)).rejects.toThrow();
   });
   test("should fail when variable group config variables are not set", async () => {
-    (readYaml as jest.Mock).mockReturnValue({
+    (readYaml as jest.Mock).mockReturnValueOnce({
       variables: undefined
     });
 
     const data = readYaml<VariableGroupData>("");
     await expect(addVariableGroup(data)).rejects.toThrow();
   });
-  test("should pass when variable group data is set", async () => {
-    (readYaml as jest.Mock).mockReturnValue({
+  it("should pass when variable group data is set", async () => {
+    (readYaml as jest.Mock).mockReturnValueOnce({
       description: "mydesc",
       name: "myvg",
       type: "Vsts",
@@ -65,35 +63,21 @@ describe("addVariableGroup", () => {
         }
       ]
     });
-
     const data = readYaml<VariableGroupData>("");
-    let group: VariableGroup | undefined;
-    try {
-      logger.info("calling add variable group with mock config");
-      group = await addVariableGroup(data);
-    } catch (err) {
-      logger.error(err);
-    }
-    expect(group).toBeUndefined();
+    jest.spyOn(variableGroup, "doAddVariableGroup").mockResolvedValueOnce({});
+    const group = await addVariableGroup(data);
+    expect(group).toBeDefined();
   });
 });
 
 describe("addVariableGroupWithKeyVaultMap", () => {
   test("should fail when variable group data is not set", async () => {
-    (readYaml as jest.Mock).mockReturnValue({});
+    (readYaml as jest.Mock).mockReturnValueOnce({});
     const data = readYaml<VariableGroupData>("");
-    let invalidGroupError: Error | undefined;
-    try {
-      logger.info("calling add variable group with Key Vault map");
-      await addVariableGroupWithKeyVaultMap(data);
-    } catch (err) {
-      invalidGroupError = err;
-    }
-    expect(invalidGroupError).toBeDefined();
+    await expect(addVariableGroupWithKeyVaultMap(data)).rejects.toThrow();
   });
-
   test("should fail when key vault data is not set for variable group", async () => {
-    (readYaml as jest.Mock).mockReturnValue({
+    (readYaml as jest.Mock).mockReturnValueOnce({
       description: "mydesc",
       name: "myvg",
       type: "AzureKeyVault",
@@ -105,20 +89,11 @@ describe("addVariableGroupWithKeyVaultMap", () => {
         }
       ]
     });
-
     const data = readYaml<VariableGroupData>("");
-    let group: VariableGroup | undefined;
-    try {
-      logger.info("calling addVariableGroupWithKeyVaultMap with mock config");
-      group = await addVariableGroupWithKeyVaultMap(data);
-    } catch (err) {
-      logger.error(err);
-    }
-    expect(group).toBeUndefined();
+    await expect(addVariableGroupWithKeyVaultMap(data)).rejects.toThrow();
   });
-
   test("should fail when key vault name is not set for variable group", async () => {
-    (readYaml as jest.Mock).mockReturnValue({
+    (readYaml as jest.Mock).mockReturnValueOnce({
       description: "mydesc",
       key_vault_provider: {
         service_endpoint: {
@@ -142,17 +117,10 @@ describe("addVariableGroupWithKeyVaultMap", () => {
     });
 
     const data = readYaml<VariableGroupData>("");
-    let group: VariableGroup | undefined;
-    try {
-      group = await addVariableGroupWithKeyVaultMap(data);
-    } catch (err) {
-      logger.error(err);
-    }
-    expect(group).toBeUndefined();
+    await expect(addVariableGroupWithKeyVaultMap(data)).rejects.toThrow();
   });
-
   test("should fail when service endpoint data is not set for variable group", async () => {
-    (readYaml as jest.Mock).mockReturnValue({
+    (readYaml as jest.Mock).mockReturnValueOnce({
       description: "myvg desc",
       key_vault_provider: {
         name: "mykv",
@@ -167,19 +135,11 @@ describe("addVariableGroupWithKeyVaultMap", () => {
         }
       ]
     });
-
     const data = readYaml<VariableGroupData>("");
-    let group: VariableGroup | undefined;
-    try {
-      group = await addVariableGroupWithKeyVaultMap(data);
-    } catch (err) {
-      logger.error(err);
-    }
-    expect(group).toBeUndefined();
+    await expect(addVariableGroupWithKeyVaultMap(data)).rejects.toThrow();
   });
-
   test("should pass when variable group data is valid", async () => {
-    (readYaml as jest.Mock).mockReturnValue({
+    (readYaml as jest.Mock).mockReturnValueOnce({
       description: "myvg desc",
       key_vault_provider: {
         name: "mykv",
@@ -203,20 +163,49 @@ describe("addVariableGroupWithKeyVaultMap", () => {
     });
 
     const data = readYaml<VariableGroupData>("");
-    let group: VariableGroup | undefined;
-    try {
-      logger.info("calling add variable group with mock config");
-      group = await addVariableGroupWithKeyVaultMap(data);
-    } catch (err) {
-      logger.error(err);
-    }
-    expect(group).toBeUndefined();
+    jest
+      .spyOn(serviceEndpoint, "createServiceEndpointIfNotExists")
+      .mockResolvedValueOnce({
+        id: "test"
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+    jest.spyOn(variableGroup, "doAddVariableGroup").mockResolvedValueOnce({});
+    const group = await addVariableGroupWithKeyVaultMap(data);
+    expect(group).toBeDefined();
   });
 });
 
+const mockForDoAddVariableGroupTest = (): void => {
+  jest.spyOn(config, "Config").mockReturnValueOnce({
+    azure_devops: {
+      project: "project"
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any);
+  jest.spyOn(azdoClient, "getTaskAgentApi").mockResolvedValueOnce({
+    addVariableGroup: () => {
+      return {
+        id: "test"
+      };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any);
+  jest
+    .spyOn(variableGroup, "authorizeAccessToAllPipelines")
+    .mockResolvedValueOnce(true);
+};
+
 describe("doAddVariableGroup", () => {
+  test("negative test: project is not provided", async () => {
+    jest.spyOn(config, "Config").mockReturnValueOnce({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    // project is not in config.yaml
+    await expect(doAddVariableGroup({}, true)).rejects.toThrow();
+  });
   test("should pass when variable group with vsts data is set", async () => {
-    (readYaml as jest.Mock).mockReturnValue({
+    mockForDoAddVariableGroupTest();
+    (readYaml as jest.Mock).mockReturnValueOnce({
       description: uuid(),
       name: uuid(),
       type: "Vsts",
@@ -233,7 +222,7 @@ describe("doAddVariableGroup", () => {
     });
 
     const data = readYaml<VariableGroupData>("");
-    const variablesMap = await buildVariablesMap(data.variables);
+    const variablesMap = buildVariablesMap(data.variables);
 
     // create variable group parameterts
     const params: VariableGroupParameters = {
@@ -243,18 +232,12 @@ describe("doAddVariableGroup", () => {
       variables: variablesMap
     };
 
-    let variableGroup: VariableGroup | undefined;
-
-    try {
-      variableGroup = await doAddVariableGroup(params, true);
-    } catch (_) {
-      // ignored
-    }
-    expect(variableGroup).toBeUndefined();
+    const group = await doAddVariableGroup(params, true);
+    expect(group).toBeDefined();
   });
-
   test("should pass when variable group with key vault data is set", async () => {
-    (readYaml as jest.Mock).mockReturnValue({
+    mockForDoAddVariableGroupTest();
+    (readYaml as jest.Mock).mockReturnValueOnce({
       description: uuid(),
       key_vault_data: {
         name: "mykv",
@@ -282,24 +265,17 @@ describe("doAddVariableGroup", () => {
     });
 
     const data = readYaml<VariableGroupData>("");
-    const variablesMap = await buildVariablesMap(data.variables);
 
     // create variable group parameterts
     const params: VariableGroupParameters = {
       description: data.description,
       name: data.name,
       type: data.type,
-      variables: variablesMap
+      variables: buildVariablesMap(data.variables)
     };
 
-    let variableGroup: VariableGroup | undefined;
-
-    try {
-      variableGroup = await doAddVariableGroup(params, true);
-    } catch (_) {
-      // ignore
-    }
-    expect(variableGroup).toBeUndefined();
+    const group = await doAddVariableGroup(params, true);
+    expect(group).toBeDefined();
   });
 });
 
@@ -336,6 +312,14 @@ describe("authorizeAccessToAllPipelines", () => {
   test("should fail when passing null variable group", async () => {
     await expect(authorizeAccessToAllPipelines({})).rejects.toThrow();
   });
+  test("should fail when project is missing", async () => {
+    await expect(
+      authorizeAccessToAllPipelines({
+        id: 1,
+        name: "group"
+      })
+    ).rejects.toThrow();
+  });
 });
 
 describe("buildVariablesMap", () => {
@@ -351,9 +335,8 @@ describe("buildVariablesMap", () => {
       }
     };
 
-    const map = await buildVariablesMap(variables);
+    const map = buildVariablesMap(variables);
     expect(map).toEqual(variables);
-    logger.info(`map: ${JSON.stringify(map)}`);
   });
 
   test("should create variable map with one variable", async () => {
@@ -364,13 +347,13 @@ describe("buildVariablesMap", () => {
       }
     };
 
-    const map = await buildVariablesMap(variables);
+    const map = buildVariablesMap(variables);
     expect(map).toEqual(variables);
   });
 
   test("should create empty variable map with no variables", async () => {
     const variables: VariableGroupDataVariable = {};
-    const map = await buildVariablesMap(variables);
+    const map = buildVariablesMap(variables);
     expect(Object.keys(map).length).toBe(0);
   });
 
@@ -384,7 +367,7 @@ describe("buildVariablesMap", () => {
       }
     };
 
-    const secretsMap = await buildVariablesMap(variables);
+    const secretsMap = buildVariablesMap(variables);
     expect(secretsMap).toEqual(variables);
   });
 
@@ -395,13 +378,12 @@ describe("buildVariablesMap", () => {
       }
     };
 
-    const secretsMap = await buildVariablesMap(variables);
+    const secretsMap = buildVariablesMap(variables);
     expect(secretsMap).toEqual(variables);
   });
 
   test("should create empty variable map with no secrets", async () => {
-    const variables: VariableGroupDataVariable = {};
-    const secretsMap = await buildVariablesMap(variables);
+    const secretsMap = buildVariablesMap({});
     expect(Object.keys(secretsMap).length).toBe(0);
   });
 });
@@ -409,7 +391,7 @@ describe("buildVariablesMap", () => {
 describe("test deleteVariableGroup function", () => {
   it("positive test: group found", async () => {
     const delFn = jest.fn();
-    jest.spyOn(azdoClient, "getTaskAgentApi").mockResolvedValue({
+    jest.spyOn(azdoClient, "getTaskAgentApi").mockResolvedValueOnce({
       deleteVariableGroup: delFn,
       getVariableGroups: () => [
         {
@@ -424,7 +406,7 @@ describe("test deleteVariableGroup function", () => {
   });
   it("positive test: no matching groups found", async () => {
     const delFn = jest.fn();
-    jest.spyOn(azdoClient, "getTaskAgentApi").mockResolvedValue({
+    jest.spyOn(azdoClient, "getTaskAgentApi").mockResolvedValueOnce({
       deleteVariableGroup: delFn,
       getVariableGroups: () => []
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

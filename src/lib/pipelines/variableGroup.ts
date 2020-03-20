@@ -17,9 +17,9 @@ import { createServiceEndpointIfNotExists } from "./serviceEndpoint";
  * @param variableGroup The Variable group object
  * @returns `IVariablesMap[]` with Varibale Group variables
  */
-export const buildVariablesMap = async (
+export const buildVariablesMap = (
   variables: VariableGroupDataVariable
-): Promise<VariableGroupDataVariable> => {
+): VariableGroupDataVariable => {
   const variablesMap: VariableGroupDataVariable = {};
   logger.debug(`variables: ${JSON.stringify(variables)}`);
 
@@ -159,7 +159,7 @@ export const addVariableGroup = async (
     }
 
     // map variables from configuration
-    const variablesMap = await buildVariablesMap(variableGroupData.variables);
+    const variablesMap = buildVariablesMap(variableGroupData.variables);
 
     // create variable group parameters
     const params: VariableGroupParameters = {
@@ -221,7 +221,7 @@ export const addVariableGroupWithKeyVaultMap = async (
     };
 
     // map variables as secrets from input
-    const secretsMap = await buildVariablesMap(variableGroupData.variables);
+    const secretsMap = buildVariablesMap(variableGroupData.variables);
 
     // creating variable group parameters
     const params: VariableGroupParameters = {

@@ -1,18 +1,21 @@
-jest.mock("./pipelines");
-
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 
 import {
-  IAzureRepoPipelineConfig,
+  createPipelineForDefinition,
+  definitionForAzureRepoPipeline,
+  definitionForGithubRepoPipeline,
+  getBuildApiClient,
   GithubRepoPipelineConfig,
+  IAzureRepoPipelineConfig,
+  queueBuild,
   RepositoryTypes
 } from "./pipelines";
-
 import {
   BuildDefinition,
   BuildRepository,
   YamlProcess
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
+import * as azdoClient from "../azdoClient";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -22,9 +25,15 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
-describe("It builds an azure repo pipeline definition", () => {
-  const { definitionForAzureRepoPipeline } = jest.requireActual("./pipelines");
+describe("test getBuildApiClient function", () => {
+  it("positive test", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    jest.spyOn(azdoClient, "getBuildApi").mockResolvedValueOnce({} as any);
+    await expect(getBuildApiClient("org", "token")).toBeDefined();
+  });
+});
 
+describe("It builds an azure repo pipeline definition", () => {
   test("pipeline definition is well-formed", () => {
     const sampleAzureConfig = {
       branchFilters: ["master"],
@@ -70,8 +79,6 @@ describe("It builds an azure repo pipeline definition", () => {
 });
 
 describe("It builds a github repo pipeline definition", () => {
-  const { definitionForGithubRepoPipeline } = jest.requireActual("./pipelines");
-
   test("pipeline definition is well-formed", () => {
     const sampleGithubConfig = {
       branchFilters: ["master"],
@@ -120,5 +127,69 @@ describe("It builds a github repo pipeline definition", () => {
     if (variables) {
       expect(variables["foo"].value).toBe("bar");
     }
+  });
+});
+
+describe("test createPipelineForDefinition function", () => {
+  it("positive test", async () => {
+    const result = await createPipelineForDefinition(
+      {
+        createDefinition: () => {
+          return {};
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
+      "project",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      {} as any
+    );
+    expect(result).toBeDefined();
+  });
+  it("negative test", async () => {
+    await expect(
+      createPipelineForDefinition(
+        {
+          createDefinition: () => {
+            throw Error("fake");
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any,
+        "project",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        {} as any
+      )
+    ).rejects.toThrow();
+  });
+});
+
+describe("test queueBuild function", () => {
+  it("positive test", async () => {
+    const result = await queueBuild(
+      {
+        queueBuild: () => {
+          return {};
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
+      "project",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      {} as any
+    );
+    expect(result).toBeDefined();
+  });
+  it("negative test", async () => {
+    await expect(
+      queueBuild(
+        {
+          queueBuild: () => {
+            throw Error("fake");
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any,
+        "project",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        {} as any
+      )
+    ).rejects.toThrow();
   });
 });
