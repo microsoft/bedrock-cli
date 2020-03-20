@@ -3,6 +3,7 @@ import yaml from "js-yaml";
 import path from "path";
 import {
   ACCESS_FILENAME,
+  HELM_VERSION,
   HLD_COMPONENT_FILENAME,
   PROJECT_PIPELINE_FILENAME,
   RENDER_HLD_PIPELINE_FILENAME,
@@ -162,7 +163,7 @@ export const serviceBuildAndUpdatePipeline = (
               {
                 task: "HelmInstaller@1",
                 inputs: {
-                  helmVersionToInstall: "2.16.3"
+                  helmVersionToInstall: HELM_VERSION
                 }
               },
               {
@@ -234,7 +235,7 @@ export const serviceBuildAndUpdatePipeline = (
               {
                 task: "HelmInstaller@1",
                 inputs: {
-                  helmVersionToInstall: "2.16.3"
+                  helmVersionToInstall: HELM_VERSION
                 }
               },
               {
@@ -281,18 +282,14 @@ export const serviceBuildAndUpdatePipeline = (
                   `cd $(Build.Repository.Name)/$FAB_SAFE_SERVICE_NAME/${SAFE_SOURCE_BRANCH}`,
                   `echo "FAB SET"`,
                   `fab set --subcomponent chart image.tag=$IMAGE_TAG image.repository=$IMAGE_REPO/$BUILD_REPO_NAME`,
-                  `echo "GIT STATUS"`,
-                  `git status`,
-                  `echo "GIT ADD (git add -A)"`,
-                  `git add -A`,
                   ``,
                   `# Set git identity`,
                   `git config user.email "admin@azuredevops.com"`,
                   `git config user.name "Automated Account"`,
                   ``,
                   `# Commit changes`,
-                  `echo "GIT COMMIT"`,
-                  `git commit -m "Updating $SERVICE_NAME_LOWER image tag to ${IMAGE_TAG}."`,
+                  `echo "GIT ADD and COMMIT -- Will throw error if there is nothing to commit."`,
+                  `git_commit_if_changes "Updating $SERVICE_NAME_LOWER image tag to ${IMAGE_TAG}." 1 unusedVar`,
                   ``,
                   `# Git Push`,
                   `git_push`,
@@ -496,7 +493,7 @@ const manifestGenerationPipelineYaml = (): string => {
       {
         task: "HelmInstaller@1",
         inputs: {
-          helmVersionToInstall: "2.16.3"
+          helmVersionToInstall: HELM_VERSION
         }
       },
       {
@@ -696,7 +693,7 @@ const hldLifecyclePipelineYaml = (): string => {
       {
         task: "HelmInstaller@1",
         inputs: {
-          helmVersionToInstall: "2.16.3"
+          helmVersionToInstall: HELM_VERSION
         }
       },
       {
@@ -735,18 +732,21 @@ const hldLifecyclePipelineYaml = (): string => {
           `git checkout -b "RECONCILE/$(Build.Repository.Name)-$(Build.BuildNumber)"`,
           `echo "spk hld reconcile $(Build.Repository.Name) $PWD ./.."`,
           `spk hld reconcile $(Build.Repository.Name) $PWD ./..`,
-          `echo "GIT STATUS"`,
-          `git status`,
-          `echo "GIT ADD (git add -A)"`,
-          `git add -A`,
           ``,
           `# Set git identity`,
           `git config user.email "admin@azuredevops.com"`,
           `git config user.name "Automated Account"`,
           ``,
           `# Commit changes`,
-          `echo "GIT COMMIT"`,
-          `git commit -m "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)."`,
+          `echo "GIT ADD and COMMIT -- Will NOT throw error if there is nothing to commit."`,
+          `didCommit=0`,
+          `git_commit_if_changes "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)." 0 didCommit`,
+          ``,
+          `# Skip push and opening PR steps if there were no changes changes to commit.`,
+          `if [ $didCommit == 0 ]; then`,
+          `echo "DID NOT FIND CHANGES TO COMMIT. EXITING."`,
+          `exit 0`,
+          `fi`,
           ``,
           `# Git Push`,
           `git_push`,
