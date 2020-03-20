@@ -291,6 +291,7 @@ function verify_pipeline_with_poll () {
     local pipeline_name=$3
     poll_timeout=$4
     poll_interval=$5
+    expected_build_count=$6
     end=$((SECONDS+$poll_timeout))
     loop_result="unknown"
 
@@ -304,8 +305,8 @@ function verify_pipeline_with_poll () {
 
         # We expect only 1 build right now
         build_count=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq '. | length')
-        if [ "$build_count" != "1"  ]; then
-            echo "Expected 1 build for pipeline: $pipeline_name-$pipeline_id but found $build_count"
+        if [ "$build_count" != "$expected_build_count"  ]; then
+            echo "Expected $expected_build_count build for pipeline: $pipeline_name-$pipeline_id but found $build_count"
             exit 1
         fi
 
