@@ -65,7 +65,8 @@ describe("Default rings", () => {
           pathPrefix: "servicepath",
           pathPrefixMajorVersion: "v1"
         }
-      }
+      },
+      version: "1.0"
     };
 
     write(validBedrockYaml, randomTmpDir);
@@ -96,7 +97,8 @@ describe("Default rings", () => {
           pathPrefix: "servicepath",
           pathPrefixMajorVersion: "v1"
         }
-      }
+      },
+      version: "1.0"
     };
 
     write(validBedrockYaml, randomTmpDir);

@@ -431,7 +431,8 @@ describe("reconcile tests", () => {
           k8sBackend: "cool-service",
           k8sBackendPort: 1337
         }
-      }
+      },
+      version: "1.0"
     };
   });
 
@@ -498,7 +499,8 @@ describe("reconcile tests", () => {
           },
           k8sBackendPort: 1337
         }
-      }
+      },
+      version: "1.0"
     };
 
     await reconcileHld(

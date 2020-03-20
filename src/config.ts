@@ -237,13 +237,14 @@ export const write = (
   const asYaml = yaml.safeDump(file, { lineWidth: Number.MAX_SAFE_INTEGER });
   if ("rings" in file) {
     // Is bedrock.yaml
-    return fs.writeFileSync(path.join(targetDirectory, "bedrock.yaml"), asYaml);
+    fileName = "bedrock.yaml";
+    writeVersion(path.join(targetDirectory, fileName));
+    return fs.appendFileSync(path.join(targetDirectory, fileName), asYaml);
   } else if ("services" in file) {
     // Is maintainers file
-    return fs.writeFileSync(
-      path.join(targetDirectory, "maintainers.yaml"),
-      asYaml
-    );
+    fileName = "maintainers.yaml";
+    writeVersion(path.join(targetDirectory, fileName));
+    return fs.appendFileSync(path.join(targetDirectory, fileName), asYaml);
   } else {
     // Is azure pipelines yaml file
     if (typeof fileName === "undefined") {

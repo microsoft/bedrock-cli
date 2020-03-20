@@ -4,13 +4,15 @@ import path from "path";
 import { createTempDir } from "../lib/ioUtil";
 import { logger } from "../logger";
 import { BedrockFile, BedrockFileInfo, HelmConfig, Rings } from "../types";
+import { writeVersion, getVersion } from "./fileutils";
 
 export const YAML_NAME = "bedrock.yaml";
 
 export const DEFAULT_CONTENT: BedrockFile = {
   rings: {},
   services: {},
-  variableGroups: []
+  variableGroups: [],
+  version: getVersion()
 };
 
 /**
@@ -30,7 +32,8 @@ export const create = (dir?: string, data?: BedrockFile): string => {
   const asYaml = yaml.safeDump(data, {
     lineWidth: Number.MAX_SAFE_INTEGER
   });
-  fs.writeFileSync(path.join(absPath, YAML_NAME), asYaml);
+  writeVersion(path.join(absPath, YAML_NAME));
+  fs.appendFileSync(path.join(absPath, YAML_NAME), asYaml);
   return absPath;
 };
 

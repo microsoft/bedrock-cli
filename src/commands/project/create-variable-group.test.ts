@@ -224,7 +224,8 @@ describe("setVariableGroupInBedrockFile", () => {
     const bedrockFileData: BedrockFile = {
       rings: {}, // rings is optional but necessary to create a bedrock file in config.write method
       services: {}, // service property is not optional so set it to null
-      variableGroups: [prevariableGroupName]
+      variableGroups: [prevariableGroupName],
+      version: ""
     };
 
     const randomTmpDir = createBedrockYaml("", bedrockFileData);

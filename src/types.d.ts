@@ -57,6 +57,7 @@ export interface BedrockFile {
     [relativeDirectory: string]: BedrockServiceConfig;
   };
   variableGroups?: string[];
+  version: string;
 }
 
 export interface BedrockServiceConfig {

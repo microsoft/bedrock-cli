@@ -301,7 +301,8 @@ export const createTestBedrockYaml = (
         k8sBackendPort: 80
       }
     },
-    variableGroups: []
+    variableGroups: [],
+    version: "1.0"
   };
 
   return asString ? yaml.dump(data) : data;

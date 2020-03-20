@@ -30,7 +30,8 @@ describe("Creation and Existence test on bedrock.yaml", () => {
     const dir = createTempDir();
     const data = {
       rings: {},
-      services: {}
+      services: {},
+      version: "1.0"
     };
     create(dir, data);
     expect(isExists(dir)).toBe(true);
@@ -90,7 +91,8 @@ describe("Adding a new service to a Bedrock file", () => {
           pathPrefixMajorVersion
         }
       },
-      variableGroups: []
+      variableGroups: [],
+      version: defaultBedrockFileObject.version
     };
 
     expect(read(dir)).toEqual(expected);
@@ -118,7 +120,8 @@ describe("Adding a new ring to an existing bedrock.yaml", () => {
       services: {
         ...(defaultBedrockFileObject as BedrockFile).services
       },
-      variableGroups: []
+      variableGroups: [],
+      version: defaultBedrockFileObject.version
     };
 
     expect(read(dir)).toEqual(expected);
@@ -146,7 +149,8 @@ describe("Bedrock file info", () => {
     const data = {
       rings: {},
       services: {},
-      variableGroups: [uuid()]
+      variableGroups: [uuid()],
+      version: "1.0"
     };
     create(dir, data);
     const file = fileInfo(dir);
@@ -164,7 +168,8 @@ describe("Set default ring", () => {
         prod: {}
       },
       services: {},
-      variableGroups: [uuid()]
+      variableGroups: [uuid()],
+      version: "1.0"
     };
     create(dir, data);
     setDefaultRing(data, "master", dir);
@@ -180,7 +185,8 @@ describe("Set default ring", () => {
         prod: { isDefault: true }
       },
       services: {},
-      variableGroups: [uuid()]
+      variableGroups: [uuid()],
+      version: "1.0"
     };
     create(dir, data);
     setDefaultRing(data, "master", dir);

@@ -42,7 +42,8 @@ describe("test execute function and logic", () => {
         prod: {}
       },
       services: {},
-      variableGroups: ["testvg"]
+      variableGroups: ["testvg"],
+      version: "1.0"
     });
     await execute("prod", tmpDir, exitFn);
 

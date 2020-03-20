@@ -1,5 +1,6 @@
 import os from "os";
 import path from "path";
+import fs from "fs";
 import shell from "shelljs";
 import uuid from "uuid/v4";
 import {
@@ -14,6 +15,7 @@ import {
 import { createTempDir } from "./lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "./logger";
 import { BedrockFile } from "./types";
+import { getVersionMessage } from "./lib/fileutils";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -51,6 +53,7 @@ describe("Test updateVariableWithLocalEnv function", () => {
 });
 
 describe("Bedrock", () => {
+  const writeSpy = jest.spyOn(fs, "writeFileSync");
   test("valid helm configuration passes", () => {
     const randomTmpDir = path.join(os.tmpdir(), uuid());
     shell.mkdir("-p", randomTmpDir);
@@ -82,9 +85,16 @@ describe("Bedrock", () => {
           pathPrefix: "servicepath",
           pathPrefixMajorVersion: "v1"
         }
-      }
+      },
+      version: "1.0"
     };
     write(validBedrockYaml, randomTmpDir);
+    const expectedFilePath = path.join(randomTmpDir, "bedrock.yaml");
+    expect(writeSpy).toBeCalledWith(
+      expectedFilePath,
+      `${getVersionMessage()}\n`,
+      "utf8"
+    );
 
     const bedrockConfig = Bedrock(randomTmpDir);
     expect(bedrockConfig).toBeTruthy();
@@ -113,10 +123,18 @@ describe("Bedrock", () => {
             }
           }
         }
-      }
+      },
+      version: "1.0"
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
     write(validBedrockYaml, randomTmpDir);
+    const expectedFilePath = path.join(randomTmpDir, "bedrock.yaml");
+    expect(writeSpy).toBeCalledWith(
+      expectedFilePath,
+      `${getVersionMessage()}\n`,
+      "utf8"
+    );
+
     expect(() => {
       Bedrock(randomTmpDir);
     }).toThrow();

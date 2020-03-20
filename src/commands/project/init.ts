@@ -5,7 +5,8 @@ import { Bedrock, write } from "../../config";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
   generateGitIgnoreFile,
-  generateHldLifecyclePipelineYaml
+  generateHldLifecyclePipelineYaml,
+  getVersion
 } from "../../lib/fileutils";
 import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
@@ -37,7 +38,8 @@ const generateBedrockFile = (
       },
       {}
     ),
-    services: {}
+    services: {},
+    version: getVersion()
   };
 
   // Check if a bedrock.yaml already exists; skip write if present

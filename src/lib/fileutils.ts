@@ -352,10 +352,17 @@ export const serviceBuildAndUpdatePipeline = (
 };
 
 /**
+ * Gets the spk version
+ */
+export const getVersion = (): string => {
+  return require("../../package.json").version;
+};
+
+/**
  * Gets the spk version message
  */
 export const getVersionMessage = (): string => {
-  return VERSION_MESSAGE + require("../../package.json").version;
+  return VERSION_MESSAGE + getVersion();
 };
 
 /**

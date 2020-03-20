@@ -115,7 +115,8 @@ describe("installLifecyclePipeline and execute tests", () => {
     createBedrockYaml(tmpDir, {
       rings: {},
       services: {},
-      variableGroups: ["test"]
+      variableGroups: ["test"],
+      version: "1.0"
     });
     await execute(mockValues, tmpDir, exitFn);
 

@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import uuid from "uuid/v4";
 import { Bedrock, Maintainers, write } from "../../config";
 import {
@@ -8,6 +10,7 @@ import { createTempDir, getMissingFilenames } from "../../lib/ioUtil";
 import { BedrockFile, MaintainersFile } from "../../types";
 import { execute, initialize } from "./init";
 import * as init from "./init";
+import { getVersionMessage } from "../../lib/fileutils";
 
 const CREATED_FILES = [
   ".gitignore",
@@ -17,9 +20,17 @@ const CREATED_FILES = [
 ];
 
 describe("Initializing a blank/new bedrock repository", () => {
+  const writeSpy = jest.spyOn(fs, "writeFileSync");
   test("all standard files get generated in the project root on init", async () => {
     const randomTmpDir = createTempDir();
     await initialize(randomTmpDir);
+
+    const expectedFilePath = path.join(randomTmpDir, "bedrock.yaml");
+    expect(writeSpy).toBeCalledWith(
+      expectedFilePath,
+      `${getVersionMessage()}\n`,
+      "utf8"
+    );
 
     // bedrock.yaml, maintainers.yaml should be in a the root for a 'standard' project
     const missing = getMissingFilenames(randomTmpDir, CREATED_FILES);
@@ -58,7 +69,8 @@ describe("initializing an existing file does not modify it", () => {
           },
           k8sBackendPort: 1337
         }
-      }
+      },
+      version: "1.0"
     };
     write(bedrockFile, randomDir);
     await initialize(randomDir);

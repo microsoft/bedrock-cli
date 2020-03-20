@@ -33,7 +33,8 @@ describe("checkDependencies", () => {
         }
       },
       services: {},
-      variableGroups: ["testvg"]
+      variableGroups: ["testvg"],
+      version: "1.0"
     });
     checkDependencies(tmpDir, "not-master");
     // No errors thrown, this is a pass for the function.
@@ -46,7 +47,8 @@ describe("checkDependencies", () => {
         }
       },
       services: {},
-      variableGroups: ["testvg"]
+      variableGroups: ["testvg"],
+      version: "1.0"
     });
     expect(() => {
       checkDependencies(tmpDir, "master");
@@ -104,7 +106,8 @@ describe("test execute function and logic", () => {
           k8sBackendPort: 80
         }
       },
-      variableGroups: ["testvg"]
+      variableGroups: ["testvg"],
+      version: "1.0"
     });
 
     const newRingName = "my-new-ring";
