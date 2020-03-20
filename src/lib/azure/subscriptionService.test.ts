@@ -51,6 +51,9 @@ describe("test getSubscriptions function", () => {
       }
     ]);
   });
+  it("negative test: missing values", async () => {
+    await expect(getSubscriptions("", "", "")).rejects.toThrow();
+  });
   it("negative test", async () => {
     jest
       .spyOn(restAuth, "loginWithServicePrincipalSecret")

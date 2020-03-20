@@ -52,8 +52,7 @@
     "webpack-cli": "^3.3.9"
   },
   "prettier": {
-    "proseWrap": "always",
-    "quote-props": "preserve"
+    "proseWrap": "always"
   },
   "husky": {
     "hooks": {

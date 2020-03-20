@@ -167,7 +167,7 @@ describe("test appRepo function", () => {
   });
   it("sanity test, initService", async () => {
     jest.spyOn(createService, "createService").mockResolvedValueOnce();
-    await initService("test");
+    await initService(createRequestContext("test"), "test");
   });
   it("sanity test on setupVariableGroup", async () => {
     jest

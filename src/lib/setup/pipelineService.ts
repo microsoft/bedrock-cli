@@ -4,11 +4,24 @@ import {
   BuildDefinitionReference,
   BuildStatus
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
+import path from "path";
 import { installHldToManifestPipeline } from "../../commands/hld/pipeline";
-import { BUILD_SCRIPT_URL } from "../../lib/constants";
+import { installLifecyclePipeline } from "../../commands/project/pipeline";
+import { installBuildUpdatePipeline } from "../../commands/service/pipeline";
+import {
+  BUILD_SCRIPT_URL,
+  SERVICE_PIPELINE_FILENAME
+} from "../../lib/constants";
 import { sleep } from "../../lib/util";
 import { logger } from "../../logger";
-import { HLD_REPO, RequestContext, MANIFEST_REPO } from "./constants";
+import {
+  APP_REPO,
+  APP_REPO_BUILD,
+  APP_REPO_LIFECYCLE,
+  HLD_REPO,
+  RequestContext,
+  MANIFEST_REPO
+} from "./constants";
 import { getAzureRepoUrl } from "./gitService";
 
 /**
@@ -149,6 +162,22 @@ export const pollForPipelineStatus = async (
   } while (!build || build.result === 0);
 };
 
+const deletePipelineIfExist = async (
+  buildApi: IBuildApi,
+  rc: RequestContext,
+  pipelineName: string
+): Promise<void> => {
+  const pipeline = await getPipelineByName(
+    buildApi,
+    rc.projectName,
+    pipelineName
+  );
+  if (pipeline && pipeline.id) {
+    logger.info(`Pipeline ${pipelineName} was found - deleting pipeline`);
+    await deletePipeline(buildApi, rc.projectName, pipelineName, pipeline.id);
+  }
+};
+
 /**
  * Creates HLD to Manifest pipeline
  *
@@ -168,15 +197,7 @@ export const createHLDtoManifestPipeline = async (
   const pipelineName = `${HLD_REPO}-to-${MANIFEST_REPO}`;
 
   try {
-    const pipeline = await getPipelineByName(
-      buildApi,
-      rc.projectName,
-      pipelineName
-    );
-    if (pipeline && pipeline.id !== undefined) {
-      logger.info(`${pipelineName} is found, deleting it`);
-      await deletePipeline(buildApi, rc.projectName, pipelineName, pipeline.id);
-    }
+    await deletePipelineIfExist(buildApi, rc, pipelineName);
     await installHldToManifestPipeline({
       buildScriptUrl: BUILD_SCRIPT_URL,
       devopsProject: rc.projectName,
@@ -192,6 +213,76 @@ export const createHLDtoManifestPipeline = async (
     rc.createdHLDtoManifestPipeline = true;
   } catch (err) {
     logger.error(`An error occurred in create HLD to Manifest Pipeline`);
+    throw err;
+  }
+};
+
+/**
+ * Creates Lifecycle pipeline
+ *
+ * @param buildApi Build API client
+ * @param rc Request context
+ */
+export const createLifecyclePipeline = async (
+  buildApi: IBuildApi,
+  rc: RequestContext
+): Promise<void> => {
+  const pipelineName = APP_REPO_LIFECYCLE;
+
+  try {
+    await deletePipelineIfExist(buildApi, rc, pipelineName);
+
+    await installLifecyclePipeline({
+      buildScriptUrl: BUILD_SCRIPT_URL,
+      devopsProject: rc.projectName,
+      orgName: rc.orgName,
+      personalAccessToken: rc.accessToken,
+      pipelineName,
+      repoName: APP_REPO,
+      repoUrl: getAzureRepoUrl(rc.orgName, rc.projectName, APP_REPO),
+      yamlFileBranch: "master"
+    });
+    await pollForPipelineStatus(buildApi, rc.projectName, pipelineName);
+    rc.createdLifecyclePipeline = true;
+  } catch (err) {
+    logger.error(`An error occured in create Lifecycle Pipeline`);
+    throw err;
+  }
+};
+
+/**
+ * Creates Build pipeline
+ *
+ * @param buildApi Build API client
+ * @param rc Request context
+ */
+export const createBuildPipeline = async (
+  buildApi: IBuildApi,
+  rc: RequestContext
+): Promise<void> => {
+  const pipelineName = APP_REPO_BUILD;
+
+  try {
+    await deletePipelineIfExist(buildApi, rc, pipelineName);
+
+    await installBuildUpdatePipeline(
+      path.join(".", SERVICE_PIPELINE_FILENAME),
+      {
+        buildScriptUrl: BUILD_SCRIPT_URL,
+        devopsProject: rc.projectName,
+        orgName: rc.orgName,
+        packagesDir: undefined,
+        personalAccessToken: rc.accessToken,
+        pipelineName,
+        repoName: APP_REPO,
+        repoUrl: getAzureRepoUrl(rc.orgName, rc.projectName, APP_REPO),
+        yamlFileBranch: "master"
+      }
+    );
+    await pollForPipelineStatus(buildApi, rc.projectName, pipelineName);
+    rc.createdBuildPipeline = true;
+  } catch (err) {
+    logger.error(`An error occured in create Build Pipeline`);
     throw err;
   }
 };

@@ -16,7 +16,12 @@ import * as scaffold from "../lib/setup/scaffold";
 import * as setupLog from "../lib/setup/setupLog";
 import { deepClone } from "../lib/util";
 import { ConfigYaml } from "../types";
-import { createSPKConfig, execute, getErrorMessage } from "./setup";
+import {
+  createAppRepoTasks,
+  createSPKConfig,
+  execute,
+  getErrorMessage
+} from "./setup";
 import * as setup from "./setup";
 
 const mockRequestContext: RequestContext = {
@@ -83,11 +88,9 @@ const testExecuteFunc = async (
   jest.spyOn(fsUtil, "createDirectory").mockReturnValueOnce();
   jest.spyOn(scaffold, "hldRepo").mockResolvedValueOnce();
   jest.spyOn(scaffold, "manifestRepo").mockResolvedValueOnce();
-  jest.spyOn(scaffold, "helmRepo").mockResolvedValueOnce();
-  jest.spyOn(scaffold, "appRepo").mockResolvedValueOnce();
   jest
     .spyOn(pipelineService, "createHLDtoManifestPipeline")
-    .mockReturnValueOnce(Promise.resolve());
+    .mockResolvedValueOnce();
   jest.spyOn(resourceService, "create").mockResolvedValue(true);
   jest.spyOn(azureContainerRegistryService, "create").mockResolvedValue(true);
   jest.spyOn(setupLog, "create").mockReturnValueOnce();
@@ -307,5 +310,52 @@ describe("test getErrorMessage function", () => {
     expect(res).toBe(
       "Project, projectName might have been deleted less than 28 days ago. Choose a different project name."
     );
+  });
+});
+
+const testCreateAppRepoTasks = async (prApproved = true): Promise<void> => {
+  const mockRc: RequestContext = {
+    orgName: "org",
+    projectName: "project",
+    accessToken: "pat",
+    toCreateAppRepo: true,
+    servicePrincipalId: "fakeId",
+    servicePrincipalPassword: "fakePassword",
+    servicePrincipalTenantId: "tenant",
+    subscriptionId: "12344",
+    acrName: "acr",
+    workspace: "dummy"
+  };
+
+  jest.spyOn(resourceService, "create").mockResolvedValueOnce(true);
+  jest
+    .spyOn(azureContainerRegistryService, "create")
+    .mockResolvedValueOnce(true);
+  jest.spyOn(scaffold, "helmRepo").mockResolvedValueOnce();
+  jest.spyOn(scaffold, "appRepo").mockResolvedValueOnce();
+  jest
+    .spyOn(pipelineService, "createLifecyclePipeline")
+    .mockResolvedValueOnce();
+  jest
+    .spyOn(promptInstance, "promptForApprovingHLDPullRequest")
+    .mockResolvedValueOnce(prApproved);
+  if (prApproved) {
+    jest.spyOn(pipelineService, "createBuildPipeline").mockResolvedValueOnce();
+  }
+
+  const res = await createAppRepoTasks(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    {} as any, // gitAPI
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    {} as any, // buildAPI
+    mockRc
+  );
+  expect(res).toBe(prApproved);
+};
+
+describe("test createAppRepoTasks function", () => {
+  it("positive test", async () => {
+    await testCreateAppRepoTasks();
+    await testCreateAppRepoTasks(false);
   });
 });

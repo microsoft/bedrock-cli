@@ -11,6 +11,8 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+serviceName: "service"
+
 service:
   type: ClusterIP
   port: 80
@@ -21,14 +23,13 @@ export const mainTemplate = `---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: { { .Chart.Name } }
+  name: {{ .Chart.Name }}
 spec:
-  replicas: { { .Values.replicaCount } }
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: { { .Chart.Name } }
-      app.kubernetes.io/instance: { { .Release.Name } }
-  minReadySeconds: { { .Values.minReadySeconds } }
+      app: {{ .Values.serviceName }}
+  minReadySeconds: {{ .Values.minReadySeconds }}
   strategy:
     type: RollingUpdate # describe how we do rolling updates
     rollingUpdate:
@@ -37,31 +38,23 @@ spec:
   template:
     metadata:
       labels:
-        app: { { .Chart.Name } }
-        app.kubernetes.io/name: { { .Chart.Name } }
-        app.kubernetes.io/instance: { { .Release.Name } }
-      annotations:
-        prometheus.io/port: "{{ .Values.service.containerPort}}"
-        prometheus.io/scrape: "true"
+        app: {{ .Values.serviceName }}
     spec:
       containers:
-        - name: { { .Chart.Name } }
+        - name: {{ .Values.serviceName }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: { { .Values.image.pullPolicy } }
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: { { .Values.service.containerPort } }
+            - containerPort: {{ .Values.service.containerPort }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: { { .Chart.Name } }
-  labels:
-    app: { { .Chart.Name } }
+  name: {{ .Values.serviceName }}
 spec:
-  type: LoadBalancer
   ports:
-    - port: 8080
-      name: http
+    - port: {{ .Values.service.port }}
+      protocol: TCP
   selector:
-    app: { { .Chart.Name } }
+    app: {{ .Values.serviceName }}
 `;

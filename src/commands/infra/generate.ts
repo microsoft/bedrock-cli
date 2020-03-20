@@ -336,14 +336,14 @@ export const generateConfigWithParentEqProjectPath = async (
     writeTfvarsFile(spkTfvarsObject, parentDirectory, SPK_TFVARS);
     await copyTfTemplate(templatePath, parentDirectory, true);
   } else {
-    logger.warning(`Variables are not defined in the definition.yaml`);
+    logger.warn(`Variables are not defined in the definition.yaml`);
   }
   if (parentInfraConfig.backend) {
     const backendTfvarsObject = generateTfvars(parentInfraConfig.backend);
     checkTfvars(parentDirectory, BACKEND_TFVARS);
     writeTfvarsFile(backendTfvarsObject, parentDirectory, BACKEND_TFVARS);
   } else {
-    logger.warning(
+    logger.warn(
       `A remote backend configuration is not defined in the definition.yaml`
     );
   }

@@ -38,6 +38,8 @@ const positiveTest = (logExist?: boolean, withAppCreation = false): void => {
     rc.servicePrincipalTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";
     rc.createdResourceGroup = true;
     rc.createdACR = true;
+    rc.createdLifecyclePipeline = true;
+    rc.createdBuildPipeline = true;
   }
   create(rc, file);
 
@@ -64,6 +66,8 @@ const positiveTest = (logExist?: boolean, withAppCreation = false): void => {
       "HLD to Manifest Pipeline Created: yes",
       "Service Principal Created: no",
       "Resource Group Created: yes",
+      "Lifecycle Pipeline Created: yes",
+      "Build Pipeline Created: yes",
       "ACR Created: yes",
       "Status: Completed"
     ]);
@@ -88,6 +92,8 @@ const positiveTest = (logExist?: boolean, withAppCreation = false): void => {
       "HLD to Manifest Pipeline Created: yes",
       "Service Principal Created: no",
       "Resource Group Created: no",
+      "Lifecycle Pipeline Created: no",
+      "Build Pipeline Created: no",
       "ACR Created: no",
       "Status: Completed"
     ]);
@@ -152,6 +158,8 @@ describe("test create function", () => {
       "HLD to Manifest Pipeline Created: yes",
       "Service Principal Created: no",
       "Resource Group Created: no",
+      "Lifecycle Pipeline Created: no",
+      "Build Pipeline Created: no",
       "ACR Created: no",
       "Error: things broke",
       "Status: Incomplete"

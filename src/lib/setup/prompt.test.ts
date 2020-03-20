@@ -8,10 +8,14 @@ import { createTempDir } from "../../lib/ioUtil";
 import { DEFAULT_PROJECT_NAME, RequestContext, WORKSPACE } from "./constants";
 import {
   getAnswerFromFile,
+  getSubscriptionId,
   prompt,
   promptForACRName,
-  promptForSubscriptionId
+  promptForApprovingHLDPullRequest,
+  promptForServicePrincipalCreation
 } from "./prompt";
+import * as promptInstance from "./prompt";
+import * as gitService from "./gitService";
 import * as servicePrincipalService from "../azure/servicePrincipalService";
 import * as subscriptionService from "../azure/subscriptionService";
 
@@ -44,6 +48,17 @@ describe("test prompt function", () => {
     jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
       create_service_principal: true
     });
+
+    jest.spyOn(servicePrincipalService, "azCLILogin").mockResolvedValueOnce([
+      {
+        id: "72f988bf-86f1-41af-91ab-2d7cd011db48",
+        name: "subname"
+      }
+    ]);
+    jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
+      az_subscription: "subname"
+    });
+
     jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
       acr_name: "testACR"
     });
@@ -55,12 +70,6 @@ describe("test prompt function", () => {
         password: "a510c1ff-358c-4ed4-96c8-eb23f42bbc5b",
         tenantId: "72f988bf-86f1-41af-91ab-2d7cd011db47"
       });
-    jest.spyOn(subscriptionService, "getSubscriptions").mockResolvedValueOnce([
-      {
-        id: "72f988bf-86f1-41af-91ab-2d7cd011db48",
-        name: "test"
-      }
-    ]);
 
     const ans = await prompt();
     expect(ans).toStrictEqual({
@@ -263,7 +272,7 @@ describe("test getAnswerFromFile function", () => {
   });
 });
 
-describe("test promptForSubscriptionId function", () => {
+describe("test getSubscriptions function", () => {
   it("no subscriptions", async () => {
     jest
       .spyOn(subscriptionService, "getSubscriptions")
@@ -274,7 +283,7 @@ describe("test promptForSubscriptionId function", () => {
       projectName: "project",
       workspace: WORKSPACE
     };
-    await expect(promptForSubscriptionId(mockRc)).rejects.toThrow();
+    await expect(getSubscriptionId(mockRc)).rejects.toThrow();
   });
   it("2 subscriptions", async () => {
     jest.spyOn(subscriptionService, "getSubscriptions").mockResolvedValueOnce([
@@ -296,8 +305,30 @@ describe("test promptForSubscriptionId function", () => {
       projectName: "project",
       workspace: WORKSPACE
     };
-    await promptForSubscriptionId(mockRc);
+    await getSubscriptionId(mockRc);
     expect(mockRc.subscriptionId).toBe("12334567890");
+  });
+  it("no subscriptions selected", async () => {
+    jest.spyOn(subscriptionService, "getSubscriptions").mockResolvedValueOnce([
+      {
+        id: "123345",
+        name: "subscription1"
+      },
+      {
+        id: "12334567890",
+        name: "subscription2"
+      }
+    ]);
+    jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
+      az_subscription: "subscription3"
+    });
+    const mockRc: RequestContext = {
+      accessToken: "pat",
+      orgName: "org",
+      projectName: "project",
+      workspace: WORKSPACE
+    };
+    await expect(getSubscriptionId(mockRc)).rejects.toThrow();
   });
 });
 
@@ -314,5 +345,48 @@ describe("test promptForACRName function", () => {
     });
     await promptForACRName(mockRc);
     expect(mockRc.acrName).toBe("testACR");
+  });
+});
+
+describe("test promptForServicePrincipalCreation function", () => {
+  it("covering the test gap: negative test", async () => {
+    jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
+      create_service_principal: true
+    });
+    jest.spyOn(servicePrincipalService, "azCLILogin").mockResolvedValueOnce([
+      {
+        id: "72f988bf-86f1-41af-91ab-2d7cd011db48",
+        name: "subname"
+      }
+    ]);
+    jest
+      .spyOn(promptInstance, "promptForSubscriptionId")
+      .mockResolvedValueOnce(undefined);
+    const mockRc: RequestContext = {
+      accessToken: "pat",
+      orgName: "org",
+      projectName: "project",
+      workspace: WORKSPACE
+    };
+    await expect(promptForServicePrincipalCreation(mockRc)).rejects.toThrow();
+  });
+});
+
+describe("test promptForApprovingHLDPullRequest function", () => {
+  it("positive test", async () => {
+    jest
+      .spyOn(gitService, "getAzureRepoUrl")
+      .mockReturnValueOnce("https://sample/example");
+    jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
+      approve_hld_pr: true
+    });
+    const mockRc: RequestContext = {
+      accessToken: "pat",
+      orgName: "org",
+      projectName: "project",
+      workspace: WORKSPACE
+    };
+    const ans = await promptForApprovingHLDPullRequest(mockRc);
+    expect(ans).toBeTruthy();
   });
 });

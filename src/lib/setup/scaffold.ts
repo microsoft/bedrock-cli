@@ -18,14 +18,17 @@ import {
   HELM_REPO,
   HLD_DEFAULT_COMPONENT_NAME,
   HLD_DEFAULT_DEF_PATH,
-  HLD_DEFAULT_GIT_URL,
   HLD_REPO,
   MANIFEST_REPO,
   RequestContext,
   VARIABLE_GROUP
 } from "./constants";
 import { createDirectory, moveToAbsPath, moveToRelativePath } from "./fsUtil";
-import { commitAndPushToRemote, createRepoInAzureOrg } from "./gitService";
+import {
+  commitAndPushToRemote,
+  createRepoInAzureOrg,
+  getAzureRepoUrl
+} from "./gitService";
 import { chartTemplate, mainTemplate, valuesTemplate } from "./helmTemplates";
 
 export const createRepo = async (
@@ -105,7 +108,7 @@ export const hldRepo = async (
     await hldInitialize(
       process.cwd(),
       false,
-      HLD_DEFAULT_GIT_URL,
+      "https://github.com/microsoft/fabrikate-definitions.git",
       HLD_DEFAULT_COMPONENT_NAME,
       HLD_DEFAULT_DEF_PATH
     );
@@ -189,7 +192,7 @@ export const setupVariableGroup = async (rc: RequestContext): Promise<void> => {
     VARIABLE_GROUP,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     rc.acrName!,
-    HLD_DEFAULT_GIT_URL,
+    getAzureRepoUrl(rc.orgName, rc.projectName, HLD_REPO),
     rc.servicePrincipalId,
     rc.servicePrincipalPassword,
     rc.servicePrincipalTenantId,
@@ -201,19 +204,22 @@ export const setupVariableGroup = async (rc: RequestContext): Promise<void> => {
   updateLifeCyclePipeline(".");
 };
 
-export const initService = async (repoName: string): Promise<void> => {
-  await createService(".", repoName, {
+export const initService = async (
+  rc: RequestContext,
+  repoName: string
+): Promise<void> => {
+  await createService(".", ".", {
     displayName: repoName,
     gitPush: false,
     helmChartChart: "",
     helmChartRepository: "",
     helmConfigAccessTokenVariable: "ACCESS_TOKEN_SECRET",
     helmConfigBranch: "master",
-    helmConfigGit: HLD_DEFAULT_GIT_URL,
+    helmConfigGit: getAzureRepoUrl(rc.orgName, rc.projectName, HELM_REPO),
     helmConfigPath: `${repoName}/chart`,
-    k8sBackend: "",
+    k8sBackend: `${repoName}-svc`,
     k8sBackendPort: "80",
-    k8sPort: 0,
+    k8sPort: 80,
     maintainerEmail: "",
     maintainerName: "",
     middlewares: "",
@@ -243,12 +249,12 @@ export const appRepo = async (
       rc.workspace
     );
 
-    await projectInitialize(".");
-    await git.add("./*");
-    await commitAndPushToRemote(git, rc, repoName);
-
+    await projectInitialize(".", { defaultRing: "master" }); //How is master set normally?
     await setupVariableGroup(rc);
-    await initService(repoName);
+    await initService(rc, repoName);
+    await git.add("./*");
+
+    await commitAndPushToRemote(git, rc, repoName);
 
     rc.scaffoldAppService = true;
     logger.info("Completed scaffold app Repo");

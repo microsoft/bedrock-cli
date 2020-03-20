@@ -16,11 +16,9 @@ for a few questions
 4. To create a sample application Repo
    1. If Yes, a Azure Service Principal is needed. You have 2 options
       1. have the command line tool to create it. Azure command line tool shall
-         be used
-      2. provide the Service Principal Id, Password and Tenant Id.
-   2. Subscription Id is automatically retrieved with the Service Principal
-      credential. In case, there are two or more subscriptions, you will be
-      prompt to select one of them.
+         be used. You will be prompted to select a subscription identifier.
+      2. Provide the Service Principal Id, Password, and Tenant Id. From this
+         information, the tool will retrieve the subscription identifier.
 
 It can also run in a non interactive mode by providing a file that contains
 answers to the above questions.
@@ -40,6 +38,8 @@ az_create_sp=<true to have command line to create service principal>
 az_sp_id=<sevice principal Id need if az_create_app=true and az_create_sp=false>
 az_sp_password=<sevice principal password need if az_create_app=true and az_create_sp=false>
 az_sp_tenant=<sevice principal tenant Id need if az_create_app=true and az_create_sp=false>
+az_subscription_id=<subscription id>
+az_acr_name=<name of azure container registry>
 ```
 
 `azdo_project_name` is optional and default value is `BedrockRocks`.
@@ -64,6 +64,8 @@ The followings shall be created
       already exists.
    5. A Git Repo, `quick-start-app`, it shall be deleted and recreated if is
       already exists.
+   6. A Lifecycle pipeline.
+   7. A Build pipeline.
 
 ## Setup log
 

@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { BuildStatus } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import * as hldPipeline from "../../commands/hld/pipeline";
+import * as projectPipeline from "../../commands/project/pipeline";
+import * as servicePipeline from "../../commands/service/pipeline";
 import { deepClone } from "../util";
 import { RequestContext, WORKSPACE } from "./constants";
 import {
+  createBuildPipeline,
   createHLDtoManifestPipeline,
+  createLifecyclePipeline,
   deletePipeline,
   getBuildStatusString,
   getPipelineBuild,
@@ -268,5 +272,99 @@ describe("test createHLDtoManifestPipeline function", () => {
       .mockReturnValueOnce(Promise.reject(Error("fake")));
     const rc = getMockRequestContext();
     await expect(createHLDtoManifestPipeline({} as any, rc)).rejects.toThrow();
+  });
+});
+
+describe("test createLifecyclePipeline function", () => {
+  it("positive test: pipeline does not exist previously", async () => {
+    jest
+      .spyOn(pipelineService, "getPipelineByName")
+      .mockResolvedValueOnce(undefined);
+    jest
+      .spyOn(projectPipeline, "installLifecyclePipeline")
+      .mockResolvedValueOnce();
+    jest
+      .spyOn(pipelineService, "pollForPipelineStatus")
+      .mockReturnValueOnce(Promise.resolve());
+
+    const rc = getMockRequestContext();
+    await createLifecyclePipeline({} as any, rc);
+    expect(rc.createdLifecyclePipeline).toBeTruthy();
+  });
+  it("positive test: pipeline already exists", async () => {
+    jest.spyOn(pipelineService, "getPipelineByName").mockReturnValueOnce(
+      Promise.resolve({
+        id: 1
+      })
+    );
+    const fnDeletePipeline = jest
+      .spyOn(pipelineService, "deletePipeline")
+      .mockReturnValueOnce(Promise.resolve());
+    jest
+      .spyOn(projectPipeline, "installLifecyclePipeline")
+      .mockResolvedValueOnce();
+    jest
+      .spyOn(pipelineService, "pollForPipelineStatus")
+      .mockReturnValueOnce(Promise.resolve());
+
+    const rc = getMockRequestContext();
+    await createLifecyclePipeline({} as any, rc);
+    expect(rc.createdLifecyclePipeline).toBeTruthy();
+    expect(fnDeletePipeline).toBeCalledTimes(1);
+    fnDeletePipeline.mockReset();
+  });
+  it("negative test", async () => {
+    jest
+      .spyOn(pipelineService, "getPipelineByName")
+      .mockReturnValueOnce(Promise.reject(Error("fake")));
+    const rc = getMockRequestContext();
+    await expect(createLifecyclePipeline({} as any, rc)).rejects.toThrow();
+  });
+});
+
+describe("test createBuildPipeline function", () => {
+  it("positive test: pipeline does not exist previously", async () => {
+    jest
+      .spyOn(pipelineService, "getPipelineByName")
+      .mockResolvedValueOnce(undefined);
+    jest
+      .spyOn(servicePipeline, "installBuildUpdatePipeline")
+      .mockResolvedValueOnce();
+    jest
+      .spyOn(pipelineService, "pollForPipelineStatus")
+      .mockReturnValueOnce(Promise.resolve());
+
+    const rc = getMockRequestContext();
+    await createBuildPipeline({} as any, rc);
+    expect(rc.createdBuildPipeline).toBeTruthy();
+  });
+  it("positive test: pipeline already exists", async () => {
+    jest.spyOn(pipelineService, "getPipelineByName").mockReturnValueOnce(
+      Promise.resolve({
+        id: 1
+      })
+    );
+    const fnDeletePipeline = jest
+      .spyOn(pipelineService, "deletePipeline")
+      .mockReturnValueOnce(Promise.resolve());
+    jest
+      .spyOn(servicePipeline, "installBuildUpdatePipeline")
+      .mockResolvedValueOnce();
+    jest
+      .spyOn(pipelineService, "pollForPipelineStatus")
+      .mockReturnValueOnce(Promise.resolve());
+
+    const rc = getMockRequestContext();
+    await createBuildPipeline({} as any, rc);
+    expect(rc.createdBuildPipeline).toBeTruthy();
+    expect(fnDeletePipeline).toBeCalledTimes(1);
+    fnDeletePipeline.mockReset();
+  });
+  it("negative test", async () => {
+    jest
+      .spyOn(pipelineService, "getPipelineByName")
+      .mockReturnValueOnce(Promise.reject(Error("fake")));
+    const rc = getMockRequestContext();
+    await expect(createBuildPipeline({} as any, rc)).rejects.toThrow();
   });
 });

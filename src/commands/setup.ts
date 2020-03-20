@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/camelcase */
+import { IBuildApi } from "azure-devops-node-api/BuildApi";
+import { IGitApi } from "azure-devops-node-api/GitApi";
 import commander from "commander";
 import fs from "fs";
 import yaml from "js-yaml";
@@ -15,9 +17,17 @@ import {
 } from "../lib/setup/constants";
 import { createDirectory } from "../lib/setup/fsUtil";
 import { getGitApi } from "../lib/setup/gitService";
-import { createHLDtoManifestPipeline } from "../lib/setup/pipelineService";
+import {
+  createBuildPipeline,
+  createHLDtoManifestPipeline,
+  createLifecyclePipeline
+} from "../lib/setup/pipelineService";
 import { createProjectIfNotExist } from "../lib/setup/projectService";
-import { getAnswerFromFile, prompt } from "../lib/setup/prompt";
+import {
+  getAnswerFromFile,
+  prompt,
+  promptForApprovingHLDPullRequest
+} from "../lib/setup/prompt";
 import {
   appRepo,
   helmRepo,
@@ -27,7 +37,6 @@ import {
 import { create as createSetupLog } from "../lib/setup/setupLog";
 import { logger } from "../logger";
 import decorator from "./setup.decorator.json";
-import { IGitApi } from "azure-devops-node-api/GitApi";
 
 interface CommandOptions {
   file: string | undefined;
@@ -87,8 +96,9 @@ export const getErrorMessage = (
 
 export const createAppRepoTasks = async (
   gitAPI: IGitApi,
+  buildAPI: IBuildApi,
   rc: RequestContext
-): Promise<void> => {
+): Promise<boolean> => {
   if (
     rc.toCreateAppRepo &&
     rc.servicePrincipalId &&
@@ -116,6 +126,18 @@ export const createAppRepoTasks = async (
     );
     await helmRepo(gitAPI, rc);
     await appRepo(gitAPI, rc);
+    await createLifecyclePipeline(buildAPI, rc);
+    const approved = await promptForApprovingHLDPullRequest(rc);
+
+    if (approved) {
+      await createBuildPipeline(buildAPI, rc);
+      return true;
+    }
+
+    logger.warn("HLD Pull Request is not approved.");
+    return false;
+  } else {
+    return false;
   }
 };
 
@@ -134,21 +156,23 @@ export const execute = async (
 
   try {
     requestContext = opts.file ? getAnswerFromFile(opts.file) : await prompt();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const rc = requestContext!;
     createDirectory(WORKSPACE, true);
-    createSPKConfig(requestContext);
+    createSPKConfig(rc);
 
     const webAPI = await getWebApi();
     const coreAPI = await webAPI.getCoreApi();
     const gitAPI = await getGitApi(webAPI);
     const buildAPI = await getBuildApi();
 
-    await createProjectIfNotExist(coreAPI, requestContext);
-    await hldRepo(gitAPI, requestContext);
-    await manifestRepo(gitAPI, requestContext);
-    await createHLDtoManifestPipeline(buildAPI, requestContext);
-    await createAppRepoTasks(gitAPI, requestContext);
+    await createProjectIfNotExist(coreAPI, rc);
+    await hldRepo(gitAPI, rc);
+    await manifestRepo(gitAPI, rc);
+    await createHLDtoManifestPipeline(buildAPI, rc);
+    await createAppRepoTasks(gitAPI, buildAPI, rc);
 
-    createSetupLog(requestContext);
+    createSetupLog(rc);
     await exitFn(0);
   } catch (err) {
     const msg = getErrorMessage(requestContext, err);

@@ -12,6 +12,8 @@ export interface RequestContext {
   scaffoldHelm?: boolean;
   scaffoldAppService?: boolean;
   createdHLDtoManifestPipeline?: boolean;
+  createdLifecyclePipeline?: boolean;
+  createdBuildPipeline?: boolean;
   createServicePrincipal?: boolean;
   servicePrincipalId?: string;
   servicePrincipalPassword?: string;
@@ -34,9 +36,8 @@ export const RESOURCE_GROUP = "quick-start-rg";
 export const RESOURCE_GROUP_LOCATION = "westus2";
 export const ACR_NAME = "quickStartACR";
 export const VARIABLE_GROUP = "quick-start-vg";
+export const APP_REPO_BUILD = "quick-start-app-build";
 export const SETUP_LOG = "setup.log";
 
-export const HLD_DEFAULT_GIT_URL =
-  "https://github.com/microsoft/fabrikate-definitions.git";
 export const HLD_DEFAULT_COMPONENT_NAME = "traefik2";
 export const HLD_DEFAULT_DEF_PATH = "definitions/traefik2";

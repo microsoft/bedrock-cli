@@ -1,16 +1,20 @@
 import * as shell from "../shell";
 import { azCLILogin, createWithAzCLI } from "./servicePrincipalService";
-import * as servicePrincipalService from "./servicePrincipalService";
 
 describe("test azCLILogin function", () => {
   it("positive test", async () => {
-    jest.spyOn(shell, "exec").mockReturnValueOnce(Promise.resolve(""));
+    jest.spyOn(shell, "exec").mockResolvedValueOnce(
+      JSON.stringify([
+        {
+          id: "subid",
+          name: "subname"
+        }
+      ])
+    );
     await azCLILogin();
   });
   it("negative test", async () => {
-    jest
-      .spyOn(shell, "exec")
-      .mockReturnValueOnce(Promise.reject(new Error("fake")));
+    jest.spyOn(shell, "exec").mockRejectedValueOnce(Error("fake"));
     await expect(azCLILogin()).rejects.toThrow();
   });
 });
@@ -22,20 +26,14 @@ describe("test createWithAzCLI function", () => {
       password: "a510c1ff-358c-4ed4-96c8-eb23f42bbc5b",
       tenant: "72f988bf-86f1-41af-91ab-2d7cd011db47"
     };
-    jest
-      .spyOn(servicePrincipalService, "azCLILogin")
-      .mockReturnValueOnce(Promise.resolve());
-    jest
-      .spyOn(shell, "exec")
-      .mockReturnValueOnce(Promise.resolve(JSON.stringify(result)));
-    const sp = await createWithAzCLI();
-    expect(sp.id).toBe(result.appId);
-    expect(sp.password).toBe(result.password);
-    expect(sp.tenantId).toBe(result.tenant);
+    jest.spyOn(shell, "exec").mockResolvedValueOnce(JSON.stringify(result));
+    const sub = await createWithAzCLI("subscriptionId");
+    expect(sub.id).toBe(result.appId);
+    expect(sub.password).toBe(result.password);
+    expect(sub.tenantId).toBe(result.tenant);
   });
   it("negative test", async () => {
-    jest.spyOn(servicePrincipalService, "azCLILogin").mockResolvedValueOnce();
     jest.spyOn(shell, "exec").mockRejectedValueOnce(Error("fake"));
-    await expect(createWithAzCLI()).rejects.toThrow();
+    await expect(createWithAzCLI("subscriptionId")).rejects.toThrow();
   });
 });
