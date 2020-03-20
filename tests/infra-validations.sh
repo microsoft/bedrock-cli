@@ -227,7 +227,7 @@ pipeline_created=$(az pipelines show --name $hld_generate_pipeline --org $AZDO_O
 
 # Verify lifecycle pipeline run was successful
 echo "Polling for pipeline success"
-verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_generate_pipeline 360 15
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_generate_pipeline 360 15 1
 
 # Verify Generate Validation Pipeline PR files------------------
 git fetch --all
