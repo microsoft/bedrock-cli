@@ -13,14 +13,21 @@ import { AzureAccessOpts } from "../../types";
 export const getCredentials = async (
   opts: AzureAccessOpts = {}
 ): Promise<ClientSecretCredential | undefined> => {
-  // Load config from opts and fallback to spk config
-  const { azure } = Config().introspection!;
+  let servicePrincipalId = opts.servicePrincipalId;
+  let servicePrincipalPassword = opts.servicePrincipalPassword;
+  let tenantId = opts.tenantId;
 
-  const {
-    servicePrincipalId = azure && azure.service_principal_id,
-    servicePrincipalPassword = azure && azure.service_principal_secret,
-    tenantId = azure && azure.tenant_id
-  } = opts;
+  // Load config from opts and fallback to spk config
+  const config = Config();
+  const azure =
+    config && config.introspection ? config.introspection.azure : undefined;
+
+  if (azure) {
+    servicePrincipalId = servicePrincipalId || azure.service_principal_id;
+    servicePrincipalPassword =
+      servicePrincipalPassword || azure.service_principal_secret;
+    tenantId = tenantId || azure.tenant_id;
+  }
 
   if (
     !verifyConfigDefined(servicePrincipalId, servicePrincipalPassword, tenantId)
