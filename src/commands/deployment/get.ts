@@ -429,11 +429,12 @@ export const printDeployments = (
       if (deployment.dockerToHldRelease) {
         dockerToHldId = deployment.dockerToHldRelease.id;
         dockerToHldStatus = getStatus(deployment.dockerToHldRelease.status);
-      } else if (deployment.dockerToHldReleaseStage) {
+      } else if (
+        deployment.dockerToHldReleaseStage &&
+        deployment.srcToDockerBuild
+      ) {
         dockerToHldId = deployment.dockerToHldReleaseStage.id;
-        dockerToHldStatus = getStatus(
-          deployment.dockerToHldReleaseStage.status
-        );
+        dockerToHldStatus = getStatus(deployment.srcToDockerBuild.result);
       }
       row.push(dockerToHldId);
 
