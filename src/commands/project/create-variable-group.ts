@@ -9,11 +9,11 @@ import { fileInfo as bedrockFileInfo } from "../../lib/bedrockYaml";
 import {
   build as buildCmd,
   exit as exitCmd,
-  validateForRequiredValues
+  validateForRequiredValues,
 } from "../../lib/commandBuilder";
 import {
   PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE,
-  PROJECT_PIPELINE_FILENAME
+  PROJECT_PIPELINE_FILENAME,
 } from "../../lib/constants";
 import { AzureDevOpsOpts } from "../../lib/git";
 import { addVariableGroup } from "../../lib/pipelines/variableGroup";
@@ -23,7 +23,7 @@ import {
   AzurePipelinesYaml,
   BedrockFileInfo,
   VariableGroupData,
-  VariableGroupDataVariable
+  VariableGroupDataVariable,
 } from "../../types";
 import decorator from "./create-variable-group.decorator.json";
 
@@ -78,13 +78,13 @@ export const execute = async (
       hldRepoUrl = azure_devops?.hld_repository,
       orgName = azure_devops?.org,
       personalAccessToken = azure_devops?.access_token,
-      devopsProject = azure_devops?.project
+      devopsProject = azure_devops?.project,
     } = opts;
 
     const accessOpts: AzureDevOpsOpts = {
       orgName,
       personalAccessToken,
-      project: devopsProject
+      project: devopsProject,
     };
 
     logger.debug(`access options: ${JSON.stringify(accessOpts)}`);
@@ -97,7 +97,7 @@ export const execute = async (
       registryName,
       servicePrincipalId,
       servicePrincipalPassword,
-      tenant
+      tenant,
     });
 
     if (errors.length !== 0) {
@@ -178,33 +178,33 @@ export const create = (
   );
   const vars: VariableGroupDataVariable = {
     ACR_NAME: {
-      value: registryName
+      value: registryName,
     },
     HLD_REPO: {
-      value: hldRepoUrl
+      value: hldRepoUrl,
     },
     PAT: {
       isSecret: true,
-      value: accessOpts.personalAccessToken
+      value: accessOpts.personalAccessToken,
     },
     SP_APP_ID: {
       isSecret: true,
-      value: servicePrincipalId
+      value: servicePrincipalId,
     },
     SP_PASS: {
       isSecret: true,
-      value: servicePrincipalPassword
+      value: servicePrincipalPassword,
     },
     SP_TENANT: {
       isSecret: true,
-      value: tenantId
-    }
+      value: tenantId,
+    },
   };
   const variableGroupData: VariableGroupData = {
     description: "Created from spk CLI",
     name: variableGroupName,
     type: "Vsts",
-    variables: vars
+    variables: vars,
   };
   return addVariableGroup(variableGroupData, accessOpts);
 };
@@ -245,7 +245,7 @@ export const setVariableGroupInBedrockFile = (
   // add new variable group
   bedrockFile.variableGroups = [
     ...(bedrockFile.variableGroups ?? []),
-    variableGroupName
+    variableGroupName,
   ];
 
   // Write out
@@ -284,11 +284,11 @@ export const updateLifeCyclePipeline = (rootProjectPath: string): void => {
   );
 
   pipelineFile.variables = [
-    ...(bedrockFile.variableGroups ?? []).map(groupName => {
+    ...(bedrockFile.variableGroups ?? []).map((groupName) => {
       return {
-        group: groupName
+        group: groupName,
       };
-    })
+    }),
   ];
 
   // Write out

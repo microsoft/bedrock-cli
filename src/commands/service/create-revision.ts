@@ -6,13 +6,13 @@ import { Bedrock, Config } from "../../config";
 import {
   build as buildCmd,
   exit as exitCmd,
-  validateForRequiredValues
+  validateForRequiredValues,
 } from "../../lib/commandBuilder";
 import { createPullRequest } from "../../lib/git/azure";
 import {
   getCurrentBranch,
   getOriginUrl,
-  safeGitUrlForLogging
+  safeGitUrlForLogging,
 } from "../../lib/gitutils";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
@@ -57,8 +57,8 @@ export const getDefaultRings = (
     ? [targetBranch]
     : Object.entries(bedrockConfig.rings || {})
         .map(([branch, config]) => ({ branch, ...config }))
-        .filter(ring => !!ring.isDefault)
-        .map(ring => ring.branch);
+        .filter((ring) => !!ring.isDefault)
+        .map((ring) => ring.branch);
   if (defaultRings.length === 0) {
     throw Error(
       `Default branches/rings must either be specified in ${join(
@@ -111,7 +111,7 @@ export const makePullRequest = async (
       description: opts.description!,
       orgName: opts.orgName!,
       originPushUrl: opts.remoteUrl!,
-      personalAccessToken: opts.personalAccessToken!
+      personalAccessToken: opts.personalAccessToken!,
     });
   }
 };
@@ -154,7 +154,7 @@ export const execute = async (
       orgName: opts.orgName,
       personalAccessToken: opts.personalAccessToken,
       remoteUrl: opts.remoteUrl,
-      sourceBranch: opts.sourceBranch
+      sourceBranch: opts.sourceBranch,
     });
 
     if (errors.length > 0) {

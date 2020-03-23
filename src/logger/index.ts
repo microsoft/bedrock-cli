@@ -8,12 +8,12 @@ export const logger = createLogger({
   transports: [
     new transports.File({
       filename: "spk.log",
-      format: format.simple()
+      format: format.simple(),
     }),
     new transports.Console({
-      format: format.cli()
-    })
-  ]
+      format: format.cli(),
+    }),
+  ],
 });
 
 export const enableVerboseLogging = (): void => {

@@ -69,7 +69,7 @@ export const cleanDashboardContainers = async (
     "-q",
     "--filter",
     "ancestor=" + config.introspection!.dashboard!.image!,
-    '--format="{{.ID}}"'
+    '--format="{{.ID}}"',
   ]);
   if (dockerOutput.length > 0) {
     dockerOutput = dockerOutput.replace(/\n/g, " ");
@@ -99,11 +99,11 @@ export const extractManifestRepositoryInformation = (
     if (gitComponents.resource === "github.com") {
       return {
         githubUsername: gitComponents.organization,
-        manifestRepoName
+        manifestRepoName,
       };
     } else {
       return {
-        manifestRepoName
+        manifestRepoName,
       };
     }
   }
@@ -218,7 +218,7 @@ export const launchDashboard = async (
       ...(await getEnvVars(config)),
       "-p",
       port + ":5000",
-      dockerRepository
+      dockerRepository,
     ]);
     return containerId;
   } catch (err) {

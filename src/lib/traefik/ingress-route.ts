@@ -73,7 +73,7 @@ export const TraefikIngressRoute = (
   const routeMatchPathPrefix = `PathPrefix(\`${versionAndPath}\`)`;
   const routeMatchHeaders = ringName && `Headers(\`Ring\`, \`${ringName}\`)`; // no 'X-' prefix for header: https://tools.ietf.org/html/rfc6648
   const routeMatch = [routeMatchPathPrefix, routeMatchHeaders]
-    .filter(matchRule => !!matchRule)
+    .filter((matchRule) => !!matchRule)
     .join(" && ");
 
   const backendService =
@@ -88,7 +88,7 @@ export const TraefikIngressRoute = (
     kind: "IngressRoute",
     metadata: {
       name,
-      ...(namespace ? { namespace } : {})
+      ...(namespace ? { namespace } : {}),
     },
     spec: {
       ...((entryPoints ?? []).length > 0 ? { entryPoints } : {}),
@@ -96,17 +96,17 @@ export const TraefikIngressRoute = (
         {
           kind: "Rule",
           match: routeMatch,
-          middlewares: middlewares.map(middlewareName => ({
-            name: middlewareName
+          middlewares: middlewares.map((middlewareName) => ({
+            name: middlewareName,
           })),
           services: [
             {
               name: backendService,
-              port: servicePort
-            }
-          ]
-        }
-      ]
-    }
+              port: servicePort,
+            },
+          ],
+        },
+      ],
+    },
   };
 };

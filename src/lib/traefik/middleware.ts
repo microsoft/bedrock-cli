@@ -35,13 +35,13 @@ export const TraefikMiddleware = (
     kind: "Middleware",
     metadata: {
       name,
-      ...(namespace ? { namespace } : {})
+      ...(namespace ? { namespace } : {}),
     },
     spec: {
       stripPrefix: {
         forceSlash,
-        prefixes
-      }
-    }
+        prefixes,
+      },
+    },
   };
 };

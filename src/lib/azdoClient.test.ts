@@ -11,7 +11,7 @@ import {
   getTaskAgentApi,
   getWebApi,
   invalidateWebApi,
-  repositoryHasFile
+  repositoryHasFile,
 } from "./azdoClient";
 import * as azdoClient from "./azdoClient";
 import { AzureDevOpsOpts } from "./git";
@@ -35,8 +35,8 @@ const mockConfig = (token?: string, org?: string): void => {
   (Config as jest.Mock).mockReturnValueOnce({
     azure_devops: {
       access_token: token,
-      org
-    }
+      org,
+    },
   });
 };
 
@@ -74,7 +74,7 @@ describe("test getTaskAgentApi function", () => {
     const mockFn = jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce({
       getTaskAgentApi: () => {
         return {};
-      }
+      },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
@@ -101,7 +101,7 @@ describe("test getRestClient function", () => {
     mockConfig(TOKEN, ORG);
     const mockFn = jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce(
       Promise.resolve({
-        rest: {}
+        rest: {},
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
     );
@@ -130,7 +130,7 @@ describe("test getBuildApi function", () => {
     const mockFn = jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce({
       getBuildApi: () => {
         return {};
-      }
+      },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
@@ -154,7 +154,7 @@ describe("repositoryHasFile", () => {
     const accessOpts: AzureDevOpsOpts = {
       orgName: "testOrg",
       personalAccessToken: "mytoken",
-      project: "testProject"
+      project: "testProject",
     };
     let hasError = false;
 
@@ -179,7 +179,7 @@ describe("repositoryHasFile", () => {
     const accessOpts: AzureDevOpsOpts = {
       orgName: "testOrg",
       personalAccessToken: "mytoken",
-      project: "testProject"
+      project: "testProject",
     };
     let hasError = false;
 

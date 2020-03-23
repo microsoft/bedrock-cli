@@ -8,7 +8,7 @@ import {
   Config,
   defaultConfigFile,
   loadConfiguration,
-  saveConfiguration
+  saveConfiguration,
 } from "../config";
 import { build as buildCmd, exit as exitCmd } from "../lib/commandBuilder";
 import * as promptBuilder from "../lib/promptBuilder";
@@ -52,14 +52,14 @@ export const prompt = async (curConfig: ConfigYaml): Promise<Answer> => {
     promptBuilder.azureOrgName(curConfig.azure_devops?.org),
     promptBuilder.azureProjectName(curConfig.azure_devops?.project),
     promptBuilder.azureAccessToken(curConfig.azure_devops?.access_token),
-    promptBuilder.askToSetupIntrospectionConfig(false)
+    promptBuilder.askToSetupIntrospectionConfig(false),
   ];
   const answers = await inquirer.prompt(questions);
   return {
     azdo_org_name: answers.azdo_org_name as string,
     azdo_pat: answers.azdo_pat as string,
     azdo_project_name: answers.azdo_project_name as string,
-    toSetupIntrospectionConfig: answers.toSetupIntrospectionConfig
+    toSetupIntrospectionConfig: answers.toSetupIntrospectionConfig,
   };
 };
 
@@ -77,8 +77,8 @@ export const getConfig = (): ConfigYaml => {
       azure_devops: {
         access_token: "",
         org: "",
-        project: ""
-      }
+        project: "",
+      },
     };
   }
 };
@@ -104,8 +104,8 @@ export const validatePersonalAccessToken = async (
       {
         auth: {
           password: azure.access_token as string,
-          username: ""
-        }
+          username: "",
+        },
       }
     );
     return res.status === 200;
@@ -127,7 +127,7 @@ export const handleIntrospectionInteractive = async (
 ): Promise<void> => {
   if (!isIntrospectionAzureDefined(curConfig)) {
     curConfig.introspection = {
-      azure: {}
+      azure: {},
     };
   }
 
@@ -139,7 +139,7 @@ export const handleIntrospectionInteractive = async (
     promptBuilder.azureStorageTableName(azure.table_name),
     promptBuilder.azureStoragePartitionKey(azure.partition_key),
     promptBuilder.azureStorageAccessKey(azure.key),
-    promptBuilder.azureKeyVaultName(curConfig.key_vault_name)
+    promptBuilder.azureKeyVaultName(curConfig.key_vault_name),
   ]);
   azure["account_name"] = ans.azdo_storage_account_name;
   azure["table_name"] = ans.azdo_storage_table_name;

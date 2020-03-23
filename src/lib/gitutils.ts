@@ -32,7 +32,7 @@ export const getCurrentBranch = async (
 ): Promise<string> => {
   try {
     const branch = await exec("git", ["branch", "--show-current"], {
-      cwd: path.resolve(repoDir)
+      cwd: path.resolve(repoDir),
     });
     return branch;
   } catch (err) {
@@ -282,24 +282,24 @@ export const checkoutCommitPushCreatePRLink = async (
   ...pathspecs: string[]
 ): Promise<void> => {
   try {
-    const currentBranch = await getCurrentBranch().catch(e => {
+    const currentBranch = await getCurrentBranch().catch((e) => {
       throw Error(
         `Cannot fetch current branch. Changes will have to be manually committed. ${e}`
       );
     });
-    await checkoutBranch(newBranchName, true).catch(e => {
+    await checkoutBranch(newBranchName, true).catch((e) => {
       throw Error(
         `Cannot create and checkout new branch ${newBranchName}. Changes will have to be manually committed. ${e}`
       );
     });
-    await commitPath(newBranchName, ...pathspecs).catch(e => {
+    await commitPath(newBranchName, ...pathspecs).catch((e) => {
       throw Error(
         `Cannot commit changes in ${pathspecs.join(
           ", "
         )} to branch ${newBranchName}. Changes will have to be manually committed. ${e}`
       );
     });
-    await pushBranch(newBranchName).catch(e => {
+    await pushBranch(newBranchName).catch((e) => {
       throw Error(
         `Cannot push branch ${newBranchName}. Changes will have to be manually committed. ${e}`
       );
@@ -310,7 +310,7 @@ export const checkoutCommitPushCreatePRLink = async (
       currentBranch,
       newBranchName,
       originUrl
-    ).catch(e => {
+    ).catch((e) => {
       throw Error(
         `Could not create link for Pull Request. It will need to be done manually. ${e}`
       );
@@ -318,12 +318,12 @@ export const checkoutCommitPushCreatePRLink = async (
     logger.info(`Link to create PR: ${pullRequestLink}`);
 
     // cleanup
-    await checkoutBranch(currentBranch, false).catch(e => {
+    await checkoutBranch(currentBranch, false).catch((e) => {
       throw Error(
         `Cannot checkout original branch ${currentBranch}. Clean up will need to be done manually. ${e}`
       );
     });
-    await deleteBranch(newBranchName).catch(e => {
+    await deleteBranch(newBranchName).catch((e) => {
       throw Error(
         `Cannot delete new branch ${newBranchName}. Cleanup will need to be done manually. ${e}`
       );

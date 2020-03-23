@@ -20,7 +20,7 @@ import {
   createAppRepoTasks,
   createSPKConfig,
   execute,
-  getErrorMessage
+  getErrorMessage,
 } from "./setup";
 import * as setup from "./setup";
 
@@ -33,7 +33,7 @@ const mockRequestContext: RequestContext = {
   servicePrincipalTenantId: "72f988bf-86f1-41af-91ab-2d7cd011db47",
   subscriptionId: "72f988bf-86f1-41af-91ab-2d7cd011db48",
   toCreateAppRepo: true,
-  workspace: WORKSPACE
+  workspace: WORKSPACE,
 };
 
 describe("test createSPKConfig function", () => {
@@ -45,7 +45,7 @@ describe("test createSPKConfig function", () => {
     expect(data.azure_devops).toStrictEqual({
       access_token: "pat",
       org: "orgname",
-      project: "project"
+      project: "project",
     });
   });
   it("positive test: with service principal", () => {
@@ -64,15 +64,15 @@ describe("test createSPKConfig function", () => {
     expect(data.azure_devops).toStrictEqual({
       access_token: "pat",
       org: "orgname",
-      project: "project"
+      project: "project",
     });
     expect(data.introspection).toStrictEqual({
       azure: {
         service_principal_id: rc.servicePrincipalId,
         service_principal_secret: rc.servicePrincipalPassword,
         subscription_id: rc.subscriptionId,
-        tenant_id: rc.servicePrincipalTenantId
-      }
+        tenant_id: rc.servicePrincipalTenantId,
+      },
     });
   });
 });
@@ -111,7 +111,7 @@ const testExecuteFunc = async (
     Promise.resolve({
       getCoreApi: async () => {
         return {};
-      }
+      },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)
   );
@@ -137,14 +137,14 @@ const testExecuteFunc = async (
   if (usePrompt) {
     await execute(
       {
-        file: undefined
+        file: undefined,
       },
       exitFn
     );
   } else {
     await execute(
       {
-        file: "dummy"
+        file: "dummy",
       },
       exitFn
     );
@@ -184,9 +184,9 @@ describe("test execute function", () => {
         getCoreApi: () => {
           throw {
             message: "Authentication failure",
-            statusCode: 401
+            statusCode: 401,
           };
-        }
+        },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
     );
@@ -194,7 +194,7 @@ describe("test execute function", () => {
 
     await execute(
       {
-        file: undefined
+        file: undefined,
       },
       exitFn
     );
@@ -213,9 +213,9 @@ describe("test execute function", () => {
       Promise.resolve({
         getCoreApi: () => {
           throw {
-            message: "VS402392: "
+            message: "VS402392: ",
           };
-        }
+        },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
     );
@@ -223,7 +223,7 @@ describe("test execute function", () => {
 
     await execute(
       {
-        file: undefined
+        file: undefined,
       },
       exitFn
     );
@@ -242,9 +242,9 @@ describe("test execute function", () => {
       Promise.resolve({
         getCoreApi: () => {
           throw {
-            message: "other error"
+            message: "other error",
           };
-        }
+        },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
     );
@@ -252,7 +252,7 @@ describe("test execute function", () => {
 
     await execute(
       {
-        file: undefined
+        file: undefined,
       },
       exitFn
     );
@@ -271,15 +271,15 @@ describe("test execute function", () => {
       Promise.resolve({
         getCoreApi: () => {
           throw {
-            message: "other error"
+            message: "other error",
           };
-        }
+        },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
     );
     await execute(
       {
-        file: undefined
+        file: undefined,
       },
       exitFn
     );
@@ -300,11 +300,11 @@ describe("test getErrorMessage function", () => {
         accessToken: "pat",
         orgName: "orgName",
         projectName: "projectName",
-        workspace: WORKSPACE
+        workspace: WORKSPACE,
       },
       {
         message: "VS402392: ",
-        statusCode: 400
+        statusCode: 400,
       }
     );
     expect(res).toBe(
@@ -324,7 +324,7 @@ const testCreateAppRepoTasks = async (prApproved = true): Promise<void> => {
     servicePrincipalTenantId: "tenant",
     subscriptionId: "12344",
     acrName: "acr",
-    workspace: "dummy"
+    workspace: "dummy",
   };
 
   jest.spyOn(resourceService, "create").mockResolvedValueOnce(true);

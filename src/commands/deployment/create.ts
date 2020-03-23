@@ -4,7 +4,7 @@ import {
   DeploymentTable,
   updateACRToHLDPipeline,
   updateHLDToManifestPipeline,
-  updateManifestCommitId
+  updateManifestCommitId,
 } from "../../lib/azure/deploymenttable";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { hasValue } from "../../lib/validator";
@@ -121,7 +121,7 @@ export const execute = async (
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       partitionKey: opts.partitionKey!,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      tableName: opts.tableName!
+      tableName: opts.tableName!,
     };
 
     if (hasValue(opts.p1)) {

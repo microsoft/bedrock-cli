@@ -4,7 +4,7 @@ import {
   SkuName,
   StorageAccount,
   StorageAccountsCreateResponse,
-  StorageAccountsListKeysResponse
+  StorageAccountsListKeysResponse,
 } from "@azure/arm-storage/esm/models";
 import * as storage from "azure-storage";
 import { exec } from "child_process";
@@ -141,7 +141,7 @@ export const validateStorageAccount = async (
       resourceGroup
     );
 
-    const found = (storageAccountKeys || []).find(k => k === key);
+    const found = (storageAccountKeys || []).find((k) => k === key);
     if (found) {
       logger.info(`Storage account validation for ${accountName} succeeded.`);
       return true;
@@ -203,7 +203,7 @@ export const getStorageAccount = async (
       `${accounts.length} storage accounts found in ${resourceGroup}`
     );
 
-    const found = accounts.find(acc => acc.name === accountName);
+    const found = accounts.find((acc) => acc.name === accountName);
     if (found) {
       logger.debug(`Found ${message}`);
     }
@@ -324,8 +324,8 @@ export const createStorageAccount = async (
       kind: "Storage" as Kind,
       location,
       sku: {
-        name: "Standard_LRS" as SkuName
-      }
+        name: "Standard_LRS" as SkuName,
+      },
     };
 
     logger.info(`Creating ${message}`);

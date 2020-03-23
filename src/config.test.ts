@@ -10,7 +10,7 @@ import {
   loadConfiguration,
   saveConfiguration,
   updateVariableWithLocalEnv,
-  write
+  write,
 } from "./config";
 import { createTempDir } from "./lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "./logger";
@@ -64,29 +64,29 @@ describe("Bedrock", () => {
           helm: {
             chart: {
               chart: "elastic",
-              repository: "some-repo"
-            }
+              repository: "some-repo",
+            },
           },
           k8sBackend: "backendservice",
           k8sBackendPort: 1337,
           pathPrefix: "servicepath",
-          pathPrefixMajorVersion: "v1"
+          pathPrefixMajorVersion: "v1",
         },
         "foo/b": {
           helm: {
             chart: {
               git: "foo",
               path: "some/path",
-              sha: "cef8361c62e7a91887625336eb13a8f90dbcf8df"
-            }
+              sha: "cef8361c62e7a91887625336eb13a8f90dbcf8df",
+            },
           },
           k8sBackend: "backendservice",
           k8sBackendPort: 1337,
           pathPrefix: "servicepath",
-          pathPrefixMajorVersion: "v1"
-        }
+          pathPrefixMajorVersion: "v1",
+        },
       },
-      version: "1.0"
+      version: "1.0",
     };
     write(validBedrockYaml, randomTmpDir);
     const expectedFilePath = path.join(randomTmpDir, "bedrock.yaml");
@@ -110,21 +110,21 @@ describe("Bedrock", () => {
           helm: {
             // Missing 'chart'
             chart: {
-              repository: "some-repo"
-            }
-          }
+              repository: "some-repo",
+            },
+          },
         },
         "foo/b": {
           helm: {
             // missing 'path'
             chart: {
               git: "foo",
-              sha: "cef8361c62e7a91887625336eb13a8f90dbcf8df"
-            }
-          }
-        }
+              sha: "cef8361c62e7a91887625336eb13a8f90dbcf8df",
+            },
+          },
+        },
       },
-      version: "1.0"
+      version: "1.0",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
     write(validBedrockYaml, randomTmpDir);

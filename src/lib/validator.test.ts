@@ -23,7 +23,7 @@ import {
   validateStorageKeyVaultName,
   validateStoragePartitionKey,
   validateStorageTableName,
-  validateSubscriptionId
+  validateSubscriptionId,
 } from "./validator";
 
 describe("Tests on validator helper functions", () => {
@@ -64,37 +64,37 @@ describe("Tests on validator helper functions", () => {
   });
   it("Test validateForNonEmptyValue function", () => {
     // expect "error" to be returned
-    ["", undefined, null].forEach(val => {
+    ["", undefined, null].forEach((val) => {
       expect(
         validateForNonEmptyValue({
           error: "error",
-          value: val
+          value: val,
         })
       ).toBe("error");
     });
     // expect "" to be returned
-    ["", undefined, null].forEach(val => {
+    ["", undefined, null].forEach((val) => {
       expect(
         validateForNonEmptyValue({
           error: "",
-          value: val
+          value: val,
         })
       ).toBe("");
     });
     // positive tests
-    [" c ", " b ", "a"].forEach(val => {
+    [" c ", " b ", "a"].forEach((val) => {
       expect(
         validateForNonEmptyValue({
           error: "",
-          value: val
+          value: val,
         })
       ).toBe("");
     });
-    [" b ", "a"].forEach(val => {
+    [" b ", "a"].forEach((val) => {
       expect(
         validateForNonEmptyValue({
           error: "",
-          value: val
+          value: val,
         })
       ).toBe("");
     });
@@ -208,17 +208,17 @@ describe("test validateServicePrincipal functions", () => {
     [
       {
         fn: validateServicePrincipalId,
-        prop: "Service Principal Id"
+        prop: "Service Principal Id",
       },
       {
         fn: validateServicePrincipalPassword,
-        prop: "Service Principal Password"
+        prop: "Service Principal Password",
       },
       {
         fn: validateServicePrincipalTenantId,
-        prop: "Service Principal Tenant Id"
-      }
-    ].forEach(item => {
+        prop: "Service Principal Tenant Id",
+      },
+    ].forEach((item) => {
       expect(item.fn("")).toBe(`Must enter a ${item.prop}.`);
       expect(item.fn("b510c1ff-358c-4ed4-96c8-eb23f42bb65b")).toBe(true);
       expect(item.fn(".eb23f42bb65b")).toBe(
@@ -295,7 +295,7 @@ describe("test validateStoragePartitionKey test", () => {
     expect(validateStoragePartitionKey("")).toBe(
       "Must enter a storage partition key."
     );
-    ["abc\\", "abc/", "abc?", "abc#"].forEach(s => {
+    ["abc\\", "abc/", "abc?", "abc#"].forEach((s) => {
       expect(validateStoragePartitionKey(s)).toBe(
         "The value for storage partition key is invalid. /, \\, # and ? characters are not allowed."
       );

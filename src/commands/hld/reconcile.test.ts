@@ -18,7 +18,7 @@ import {
   normalizedName,
   reconcileHld,
   testAndGetAbsPath,
-  validateInputs
+  validateInputs,
 } from "./reconcile";
 import * as reconcile from "./reconcile";
 
@@ -254,10 +254,10 @@ describe("addChartToRing", () => {
         chart: {
           branch,
           git,
-          path: chartPath
-        }
+          path: chartPath,
+        },
       },
-      k8sBackendPort: 1337
+      k8sBackendPort: 1337,
     };
 
     const addHelmChartCommand = `fab add chart --source ${git} --path ${chartPath} --branch ${branch} --type helm`;
@@ -282,10 +282,10 @@ describe("addChartToRing", () => {
         chart: {
           git,
           path: chartPath,
-          sha
-        }
+          sha,
+        },
       },
-      k8sBackendPort: 1337
+      k8sBackendPort: 1337,
     };
 
     const addHelmChartCommand = `fab add chart --source ${git} --path ${chartPath} --version ${sha} --type helm`;
@@ -308,10 +308,10 @@ describe("addChartToRing", () => {
       helm: {
         chart: {
           chart,
-          repository
-        }
+          repository,
+        },
       },
-      k8sBackendPort: 1337
+      k8sBackendPort: 1337,
     };
 
     const addHelmChartCommand = `fab add chart --source ${repository} --path ${chart} --type helm`;
@@ -336,10 +336,10 @@ describe("addChartToRing", () => {
       helm: {
         chart: {
           chart,
-          repository
-        }
+          repository,
+        },
       },
-      k8sBackendPort: 1337
+      k8sBackendPort: 1337,
     };
 
     await expect(
@@ -358,11 +358,11 @@ describe("configureChartForRing", () => {
       chart: {
         git: "foo",
         path: "bar",
-        sha: "baz"
-      }
+        sha: "baz",
+      },
     },
     k8sBackend: "k8s-svc",
-    k8sBackendPort: 80
+    k8sBackendPort: 80,
   };
 
   const k8sSvcBackendAndName = [serviceConfig.k8sBackend, ringName].join("-");
@@ -407,15 +407,15 @@ describe("reconcile tests", () => {
       exec: jest.fn().mockReturnValue(Promise.resolve({})),
       generateAccessYaml: jest.fn(),
       getGitOrigin: jest.fn(),
-      writeFile: jest.fn()
+      writeFile: jest.fn(),
     };
 
     bedrockYaml = {
       rings: {
         dev: {
-          isDefault: true
+          isDefault: true,
         },
-        prod: {}
+        prod: {},
       },
       services: {
         "./path/to/a/svc/": {
@@ -425,14 +425,14 @@ describe("reconcile tests", () => {
               accessTokenVariable,
               git,
               path: pathToChart,
-              sha
-            }
+              sha,
+            },
           },
           k8sBackend: "cool-service",
-          k8sBackendPort: 1337
-        }
+          k8sBackendPort: 1337,
+        },
       },
-      version: "1.0"
+      version: "1.0",
     };
   });
 
@@ -484,8 +484,8 @@ describe("reconcile tests", () => {
     bedrockYaml = {
       rings: {
         dev: {
-          isDefault: true
-        }
+          isDefault: true,
+        },
       },
       services: {
         "./path/to/svc/": {
@@ -494,13 +494,13 @@ describe("reconcile tests", () => {
             chart: {
               git,
               path: pathToChart,
-              sha
-            }
+              sha,
+            },
           },
-          k8sBackendPort: 1337
-        }
+          k8sBackendPort: 1337,
+        },
       },
-      version: "1.0"
+      version: "1.0",
     };
 
     await reconcileHld(
@@ -526,8 +526,8 @@ describe("reconcile tests", () => {
   it("overwrites existing rings", async () => {
     bedrockYaml.rings = {
       dev: {
-        isDefault: true
-      }
+        isDefault: true,
+      },
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -574,11 +574,11 @@ describe("reconcile tests", () => {
           chart: {
             git,
             path: pathToChart,
-            sha
-          }
+            sha,
+          },
         },
-        k8sBackendPort: 80
-      }
+        k8sBackendPort: 80,
+      },
     };
 
     await reconcileHld(
@@ -603,11 +603,11 @@ describe("reconcile tests", () => {
           chart: {
             git,
             path: pathToChart,
-            sha
-          }
+            sha,
+          },
         },
-        k8sBackendPort: 80
-      }
+        k8sBackendPort: 80,
+      },
     };
 
     await reconcileHld(
@@ -636,11 +636,11 @@ describe("reconcile tests", () => {
           chart: {
             git,
             path: pathToChart,
-            sha
-          }
+            sha,
+          },
         },
-        k8sBackendPort: 80
-      }
+        k8sBackendPort: 80,
+      },
     };
 
     await reconcileHld(
@@ -668,10 +668,10 @@ describe("reconcile tests", () => {
           accessTokenVariable: anotherToken,
           git: anotherGit,
           path: "path/to/chart",
-          sha: "12345"
-        }
+          sha: "12345",
+        },
       },
-      k8sBackendPort: 8888
+      k8sBackendPort: 8888,
     };
     const pathToHLD = "./the/path/to/hld";
     const service = "service";

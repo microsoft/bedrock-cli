@@ -22,7 +22,7 @@ import {
   retryRemoteValidate,
   validateDefinition,
   validateRemoteSource,
-  validateTemplateSources
+  validateTemplateSources,
 } from "./generate";
 import * as generate from "./generate";
 import {
@@ -32,7 +32,7 @@ import {
   getSourceFolderNameFromURL,
   SPK_TFVARS,
   spkTemplatesPath,
-  VARIABLES_TF
+  VARIABLES_TF,
 } from "./infra_common";
 import * as infraCommon from "./infra_common";
 
@@ -100,7 +100,7 @@ const getMockedDataForGitTests = async (
   return {
     safeLoggingUrl,
     source,
-    sourcePath
+    sourcePath,
   };
 };
 
@@ -124,7 +124,7 @@ describe("test checkRemoteGitExist function", () => {
   });
   // cannot do negative test because it will take too long
   // and timeout
-  it("negative Test", async done => {
+  it("negative Test", async (done) => {
     await expect(testCheckRemoteGitExist(false)).rejects.toThrow();
     done();
   });
@@ -259,7 +259,7 @@ describe("fetch execute function", () => {
     await execute(
       {
         output: "",
-        project: "test"
+        project: "test",
       },
       exitFn
     );
@@ -284,7 +284,7 @@ describe("fetch execute function", () => {
     await execute(
       {
         output: "",
-        project: "test"
+        project: "test",
       },
       exitFn
     );
@@ -308,7 +308,7 @@ describe("fetch execute function", () => {
     await execute(
       {
         output: "",
-        project: "test"
+        project: "test",
       },
       exitFn
     );
@@ -332,7 +332,7 @@ describe("test validateRemoteSource function", () => {
 
     await validateRemoteSource({
       source: "source",
-      version: "0.1"
+      version: "0.1",
     });
   });
   it("positive test: with Error refusing to merge unrelated histories", async () => {
@@ -353,7 +353,7 @@ describe("test validateRemoteSource function", () => {
 
     await validateRemoteSource({
       source: "source",
-      version: "0.1"
+      version: "0.1",
     });
   });
   it("positive test: with Error Authentication failed", async () => {
@@ -372,7 +372,7 @@ describe("test validateRemoteSource function", () => {
 
     await validateRemoteSource({
       source: "source",
-      version: "0.1"
+      version: "0.1",
     });
   });
   it("negative test: with unknown Error", async () => {
@@ -392,7 +392,7 @@ describe("test validateRemoteSource function", () => {
     try {
       await validateRemoteSource({
         source: "source",
-        version: "0.1"
+        version: "0.1",
       });
       expect(true).toBe(false);
     } catch (err) {
@@ -438,14 +438,14 @@ describe("test generateTfvars function", () => {
   it("one value as data", () => {
     expect(
       generateTfvars({
-        hello: "world"
+        hello: "world",
       })
     ).toEqual(['hello = "world"']);
   });
   it("one key with quote as data", () => {
     expect(
       generateTfvars({
-        'h"ello': "world"
+        'h"ello': "world",
       })
     ).toEqual(['h"ello = "world"']);
   });
@@ -454,7 +454,7 @@ describe("test generateTfvars function", () => {
       generateTfvars({
         key1: "value1",
         key2: "value2",
-        key3: "value3"
+        key3: "value3",
       })
     ).toEqual(['key1 = "value1"', 'key2 = "value2"', 'key3 = "value3"']);
   });
@@ -467,24 +467,24 @@ describe("test dirIteration", () => {
   });
   it("parentObject is undefined", () => {
     const leafObject = {
-      custerName: "cluster1"
+      custerName: "cluster1",
     };
     const result = dirIteration(undefined, leafObject);
     expect(result).toEqual(leafObject);
   });
   it("leafObject is undefined", () => {
     const parentObject = {
-      custerName: "cluster1"
+      custerName: "cluster1",
     };
     const result = dirIteration(parentObject, undefined);
     expect(result).toEqual(parentObject);
   });
   it("one variable test", () => {
     const parentObject = {
-      custerName: "parent"
+      custerName: "parent",
     };
     const leafObject = {
-      custerName: "leaf"
+      custerName: "leaf",
     };
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual(leafObject);
@@ -492,14 +492,14 @@ describe("test dirIteration", () => {
   it("one variable test, parentObject without the variable", () => {
     const parentObject = {};
     const leafObject = {
-      custerName: "leaf"
+      custerName: "leaf",
     };
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual(leafObject);
   });
   it("one variable test, leafObject without the variable", () => {
     const parentObject = {
-      custerName: "leaf"
+      custerName: "leaf",
     };
     const leafObject = {};
     const result = dirIteration(parentObject, leafObject);
@@ -509,12 +509,12 @@ describe("test dirIteration", () => {
     const parentObject = {
       custerName: "parent",
       variable1: "parent1",
-      variable2: "parent2"
+      variable2: "parent2",
     };
     const leafObject = {
       custerName: "leaf",
       variable1: "leaf1",
-      variable2: "leaf2"
+      variable2: "leaf2",
     };
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual(leafObject);
@@ -523,7 +523,7 @@ describe("test dirIteration", () => {
     const parentObject = {
       custerName: "parent",
       variable1: "parent1",
-      variable2: "parent2"
+      variable2: "parent2",
     };
     const leafObject = {};
     const result = dirIteration(parentObject, leafObject);
@@ -534,7 +534,7 @@ describe("test dirIteration", () => {
     const leafObject = {
       custerName: "leaf",
       variable1: "leaf1",
-      variable2: "leaf2"
+      variable2: "leaf2",
     };
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual(leafObject);
@@ -544,32 +544,32 @@ describe("test dirIteration", () => {
       custerName: "parent",
       variable1: "parent1",
       variable2: "parent2",
-      xextra: "xextra"
+      xextra: "xextra",
     };
     const leafObject = {
       custerName: "leaf",
       variable1: "leaf1",
-      variable2: "leaf2"
+      variable2: "leaf2",
     };
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual({
       custerName: "leaf",
       variable1: "leaf1",
       variable2: "leaf2",
-      xextra: "xextra"
+      xextra: "xextra",
     });
   });
   it("multiple variables test, leafObject has more values", () => {
     const parentObject = {
       custerName: "parent",
       variable1: "parent1",
-      variable2: "parent2"
+      variable2: "parent2",
     };
     const leafObject = {
       custerName: "leaf",
       variable1: "leaf1",
       variable2: "leaf2",
-      xextra: "xextra"
+      xextra: "xextra",
     };
     const result = dirIteration(parentObject, leafObject);
     expect(result).toEqual(leafObject);
@@ -583,7 +583,7 @@ describe("Validate sources in definition.yaml files", () => {
     const expectedSourceWest = {
       source: "https://github.com/yradsmikham/spk-source",
       template: "cluster/environments/azure-single-keyvault",
-      version: "v0.0.2"
+      version: "v0.0.2",
     };
     const outputPath = "";
     const sourceConfiguration = validateDefinition(
@@ -611,7 +611,7 @@ describe("Validate sources in definition.yaml files", () => {
     const expectedSource = {
       source: "https://github.com/yradsmikham/spk-source",
       template: "cluster/environments/azure-single-keyvault",
-      version: "v0.0.1"
+      version: "v0.0.1",
     };
     const outputPath = "";
     const sourceConfiguration = validateDefinition(
@@ -638,8 +638,8 @@ describe("Validate sources in definition.yaml files", () => {
       "main.tf",
       "README.md",
       SPK_TFVARS,
-      VARIABLES_TF
-    ].forEach(f => {
+      VARIABLES_TF,
+    ].forEach((f) => {
       fs.unlinkSync(path.join(mockParentPath, f));
     });
   });
@@ -660,7 +660,7 @@ describe("Validate sources in definition.yaml files", () => {
     const expectedSourceEast = {
       source: "https://github.com/yradsmikham/spk-source",
       template: "cluster/environments/azure-single-keyvault",
-      version: "v0.0.1"
+      version: "v0.0.1",
     };
     const outputPath = "";
     const sourceConfiguration = validateDefinition(
@@ -689,7 +689,7 @@ describe("Validate sources in definition.yaml files", () => {
     const expectedSourceCentral = {
       source: "https://github.com/yradsmikham/spk-source",
       template: "cluster/environments/azure-single-keyvault",
-      version: "v0.0.1"
+      version: "v0.0.1",
     };
     const outputPath = "";
     const sourceConfiguration = validateDefinition(
@@ -754,7 +754,7 @@ describe("Validate replacement of variables between parent and leaf definitions"
       'network_policy = "azure"',
       'oms_agent_enabled = "false"',
       'enable_acr = "false"',
-      `acr_name = "${DEFAULT_VAR_VALUE}"`
+      `acr_name = "${DEFAULT_VAR_VALUE}"`,
     ];
     const parentData = readYaml<InfraConfigYaml>(
       path.join(mockParentPath, DEFINITION_YAML)

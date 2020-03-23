@@ -10,7 +10,7 @@ export const azureOrgName = (
     message: `${i18n.prompt.orgName}\n`,
     name: "azdo_org_name",
     type: "input",
-    validate: validator.validateOrgName
+    validate: validator.validateOrgName,
   };
 };
 
@@ -22,7 +22,7 @@ export const azureProjectName = (
     message: `${i18n.prompt.projectName}\n`,
     name: "azdo_project_name",
     type: "input",
-    validate: validator.validateProjectName
+    validate: validator.validateProjectName,
   };
 };
 
@@ -35,7 +35,7 @@ export const azureAccessToken = (
     message: `${i18n.prompt.personalAccessToken}\n`,
     name: "azdo_pat",
     type: "password",
-    validate: validator.validateAccessToken
+    validate: validator.validateAccessToken,
   };
 };
 
@@ -46,7 +46,7 @@ export const askToSetupIntrospectionConfig = (
     default: defaultValue,
     message: i18n.prompt.setupIntrospectionConfig,
     name: "toSetupIntrospectionConfig",
-    type: "confirm"
+    type: "confirm",
   };
 };
 
@@ -57,7 +57,7 @@ export const askToCreateServicePrincipal = (
     default: defaultValue,
     message: i18n.prompt.createServicePrincipal,
     name: "create_service_principal",
-    type: "confirm"
+    type: "confirm",
   };
 };
 
@@ -69,7 +69,7 @@ export const servicePrincipalId = (
     message: `${i18n.prompt.servicePrincipalId}\n`,
     name: "az_sp_id",
     type: "input",
-    validate: validator.validateServicePrincipalId
+    validate: validator.validateServicePrincipalId,
   };
 };
 
@@ -82,7 +82,7 @@ export const servicePrincipalPassword = (
     message: `${i18n.prompt.servicePrincipalPassword}\n`,
     name: "az_sp_password",
     type: "password",
-    validate: validator.validateServicePrincipalPassword
+    validate: validator.validateServicePrincipalPassword,
   };
 };
 
@@ -94,7 +94,7 @@ export const servicePrincipalTenantId = (
     message: `${i18n.prompt.servicePrincipalTenantId}\n`,
     name: "az_sp_tenant",
     type: "input",
-    validate: validator.validateServicePrincipalTenantId
+    validate: validator.validateServicePrincipalTenantId,
   };
 };
 
@@ -106,7 +106,7 @@ export const servicePrincipal = (
   return [
     servicePrincipalId(id),
     servicePrincipalPassword(pwd),
-    servicePrincipalTenantId(tenantId)
+    servicePrincipalTenantId(tenantId),
   ];
 };
 
@@ -115,7 +115,7 @@ export const chooseSubscriptionId = (names: string[]): QuestionCollection => {
     choices: names,
     message: `${i18n.prompt.selectSubscriptionId}\n`,
     name: "az_subscription",
-    type: "list"
+    type: "list",
   };
 };
 
@@ -127,7 +127,7 @@ export const azureStorageAccountName = (
     message: `${i18n.prompt.storageAccountName}\n`,
     name: "azdo_storage_account_name",
     type: "input",
-    validate: validator.validateStorageAccountName
+    validate: validator.validateStorageAccountName,
   };
 };
 
@@ -139,7 +139,7 @@ export const azureStorageTableName = (
     message: `${i18n.prompt.storageTableName}\n`,
     name: "azdo_storage_table_name",
     type: "input",
-    validate: validator.validateStorageTableName
+    validate: validator.validateStorageTableName,
   };
 };
 
@@ -151,7 +151,7 @@ export const azureStoragePartitionKey = (
     message: `${i18n.prompt.storagePartitionKey}\n`,
     name: "azdo_storage_partition_key",
     type: "input",
-    validate: validator.validateStoragePartitionKey
+    validate: validator.validateStoragePartitionKey,
   };
 };
 
@@ -163,7 +163,7 @@ export const azureKeyVaultName = (
     message: `${i18n.prompt.storageKeVaultName}\n`,
     name: "azdo_storage_key_vault_name",
     type: "input",
-    validate: validator.validateStorageKeyVaultName
+    validate: validator.validateStorageKeyVaultName,
   };
 };
 
@@ -176,6 +176,6 @@ export const azureStorageAccessKey = (
     message: `${i18n.prompt.storageAccessKey}\n`,
     name: "azdo_storage_access_key",
     type: "password",
-    validate: validator.validateStorageAccessKey
+    validate: validator.validateStorageAccessKey,
   };
 };

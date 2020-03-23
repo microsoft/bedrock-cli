@@ -10,7 +10,7 @@ import {
   createPipelineForDefinition,
   definitionForAzureRepoPipeline,
   getBuildApiClient,
-  queueBuild
+  queueBuild,
 } from "./pipelines";
 
 const token = process.env.PERSONAL_ACCESS_TOKEN || "some-super-secret-token";
@@ -46,7 +46,7 @@ const start = async (): Promise<void> => {
     repositoryName: azdoRepoName,
     repositoryUrl: azdoRepoUrl,
     yamlFileBranch: "master",
-    yamlFilePath: pipelineYamlPath
+    yamlFilePath: pipelineYamlPath,
   });
 
   try {

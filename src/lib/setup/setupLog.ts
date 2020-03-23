@@ -37,7 +37,7 @@ export const create = (rc: RequestContext | undefined, file?: string): void => {
         rc.createdLifecyclePipeline
       )}`,
       `Build Pipeline Created: ${getBooleanVal(rc.createdBuildPipeline)}`,
-      `ACR Created: ${getBooleanVal(rc.createdACR)}`
+      `ACR Created: ${getBooleanVal(rc.createdACR)}`,
     ];
     if (rc.error) {
       buff.push(`Error: ${rc.error}`);

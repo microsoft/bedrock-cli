@@ -5,36 +5,36 @@ import { ConfigYaml } from "../../types";
 import { getCredentials, getManagementCredentials } from "./azurecredentials";
 
 describe("test getCredentials function", () => {
-  it("missing values", async done => {
+  it("missing values", async (done) => {
     jest.spyOn(config, "Config").mockReturnValueOnce({
-      introspection: {}
+      introspection: {},
     });
     const cred = await getCredentials({});
     expect(cred).toBe(undefined);
     done();
   });
-  it("positive tests: taking values from config", async done => {
+  it("positive tests: taking values from config", async (done) => {
     jest.spyOn(config, "Config").mockReturnValueOnce({
       introspection: {
         azure: {
           service_principal_id: "servicePrincipalId",
           service_principal_secret: "servicePrincipalPassword",
-          tenant_id: "tenantId"
-        }
-      }
+          tenant_id: "tenantId",
+        },
+      },
     } as ConfigYaml);
     const cred = await getCredentials({});
     expect(cred).toBeDefined();
     done();
   });
-  it("positive tests", async done => {
+  it("positive tests", async (done) => {
     jest.spyOn(config, "Config").mockReturnValueOnce({
-      introspection: {}
+      introspection: {},
     });
     const cred = await getCredentials({
       servicePrincipalId: "servicePrincipalId",
       servicePrincipalPassword: "servicePrincipalPassword",
-      tenantId: "tenantId"
+      tenantId: "tenantId",
     });
     expect(cred).toBeDefined();
     done();
@@ -42,23 +42,23 @@ describe("test getCredentials function", () => {
 });
 
 describe("test getManagementCredentials function", () => {
-  it("missing values", async done => {
+  it("missing values", async (done) => {
     jest.spyOn(config, "Config").mockReturnValueOnce({
-      introspection: {}
+      introspection: {},
     });
     const cred = await getManagementCredentials({});
     expect(cred).toBe(undefined);
     done();
   });
-  it("positive tests: taking values from config", async done => {
+  it("positive tests: taking values from config", async (done) => {
     jest.spyOn(config, "Config").mockReturnValueOnce({
       introspection: {
         azure: {
           service_principal_id: "servicePrincipalId",
           service_principal_secret: "servicePrincipalPassword",
-          tenant_id: "tenantId"
-        }
-      }
+          tenant_id: "tenantId",
+        },
+      },
     } as ConfigYaml);
     jest
       .spyOn(msRestNodeAuth, "loginWithServicePrincipalSecret")
@@ -67,9 +67,9 @@ describe("test getManagementCredentials function", () => {
     expect(cred).toBeUndefined(); // not defined because loginWithServicePrincipalSecret mock is returing undefined
     done();
   });
-  it("positive tests", async done => {
+  it("positive tests", async (done) => {
     jest.spyOn(config, "Config").mockReturnValueOnce({
-      introspection: {}
+      introspection: {},
     });
     jest
       .spyOn(msRestNodeAuth, "loginWithServicePrincipalSecret")
@@ -77,7 +77,7 @@ describe("test getManagementCredentials function", () => {
     const cred = await getManagementCredentials({
       servicePrincipalId: "servicePrincipalId",
       servicePrincipalPassword: "servicePrincipalPassword",
-      tenantId: "tenantId"
+      tenantId: "tenantId",
     });
     expect(cred).toBeUndefined(); // not defined because loginWithServicePrincipalSecret mock is returing undefined
     done();

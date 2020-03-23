@@ -6,10 +6,10 @@ pr:
 
 strategy:
   matrix:
-    node_10_x:
-      node_version: 10.x
     node_12_x:
       node_version: 12.x
+    node_13_x:
+      node_version: 13.x
   maxParallel: 2
 
 pool:
@@ -55,7 +55,7 @@ steps:
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'JUnit'
-      testResultsFiles: '**/junit.xml' 
+      testResultsFiles: '**/junit.xml'
     condition: and(eq(variables['Agent.JobStatus'], 'Succeeded'), endsWith(variables['Agent.JobName'], 'node_12_x'))
 
   - task: PublishPipelineArtifact@1
@@ -67,7 +67,7 @@ steps:
   - bash: |
       [ -z "$COVERAGE_VARIANCE" ] && { echo "Missing COVERAGE_VARIANCE variable"; exit 1; }
       echo "Code coverage variance value is: $COVERAGE_VARIANCE"
-    displayName: 'Build quality pre-validation'  
+    displayName: 'Build quality pre-validation'
     failOnStderr: true
     env:
         COVERAGE_VARIANCE: $(COVERAGE_VARIANCE)

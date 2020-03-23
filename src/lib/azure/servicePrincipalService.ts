@@ -25,7 +25,7 @@ export const azCLILogin = async (): Promise<SubscriptionData[]> => {
     return JSON.parse(result).map((item: SubscriptionData) => {
       return {
         id: item.id,
-        name: item.name
+        name: item.name,
       };
     });
   } catch (err) {
@@ -51,14 +51,14 @@ export const createWithAzCLI = async (
       "sp",
       "create-for-rbac",
       "--scope",
-      `/subscriptions/${subscriptionId}`
+      `/subscriptions/${subscriptionId}`,
     ]);
     const oResult = JSON.parse(result);
     logger.info("Successfully created service principal with az command line");
     return {
       id: oResult.appId,
       password: oResult.password,
-      tenantId: oResult.tenant
+      tenantId: oResult.tenant,
     };
   } catch (err) {
     logger.error("Unable to create service principal with az command line");

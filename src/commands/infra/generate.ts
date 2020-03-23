@@ -19,7 +19,7 @@ import {
   DEFINITION_YAML,
   getSourceFolderNameFromURL,
   SPK_TFVARS,
-  spkTemplatesPath
+  spkTemplatesPath,
 } from "./infra_common";
 import { copyTfTemplate } from "./scaffold";
 
@@ -36,7 +36,7 @@ export interface SourceInformation {
 
 export enum DefinitionYAMLExistence {
   BOTH_EXIST,
-  PARENT_ONLY
+  PARENT_ONLY,
 }
 
 export const execute = async (
@@ -154,7 +154,7 @@ export const validateTemplateSources = (
   // setting values into source object for source, template and version
   // taking the values from leaf if it exists, otherwise take it
   // from parent if it exists
-  sourceKeys.forEach(k => {
+  sourceKeys.forEach((k) => {
     if (leafInfraConfig && leafInfraConfig[k]) {
       source[k] = leafInfraConfig[k];
     } else if (parentInfraConfig && parentInfraConfig[k]) {
@@ -485,7 +485,7 @@ export const dirIteration = (
   }
 
   // parent take leaf's value
-  Object.keys(leafObject).forEach(k => {
+  Object.keys(leafObject).forEach((k) => {
     if (leafObject[k]) {
       parentObject[k] = leafObject[k];
     }
@@ -563,7 +563,7 @@ export const generateTfvars = (
   if (!definition) {
     return [];
   }
-  return Object.keys(definition).map(k => `${k} = "${definition[k]}"`);
+  return Object.keys(definition).map((k) => `${k} = "${definition[k]}"`);
 };
 
 /**
@@ -578,7 +578,7 @@ export const writeTfvarsFile = (
   generatedPath: string,
   tfvarsFilename: string
 ): void => {
-  spkTfVars.forEach(tfvar => {
+  spkTfVars.forEach((tfvar) => {
     fs.appendFileSync(path.join(generatedPath, tfvarsFilename), tfvar + "\n");
   });
 };

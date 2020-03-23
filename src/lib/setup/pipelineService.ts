@@ -2,7 +2,7 @@ import { IBuildApi } from "azure-devops-node-api/BuildApi";
 import {
   Build,
   BuildDefinitionReference,
-  BuildStatus
+  BuildStatus,
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import path from "path";
 import { installHldToManifestPipeline } from "../../commands/hld/pipeline";
@@ -10,7 +10,7 @@ import { installLifecyclePipeline } from "../../commands/project/pipeline";
 import { installBuildUpdatePipeline } from "../../commands/service/pipeline";
 import {
   BUILD_SCRIPT_URL,
-  SERVICE_PIPELINE_FILENAME
+  SERVICE_PIPELINE_FILENAME,
 } from "../../lib/constants";
 import { sleep } from "../../lib/util";
 import { logger } from "../../logger";
@@ -20,7 +20,7 @@ import {
   APP_REPO_LIFECYCLE,
   HLD_REPO,
   RequestContext,
-  MANIFEST_REPO
+  MANIFEST_REPO,
 } from "./constants";
 import { getAzureRepoUrl } from "./gitService";
 
@@ -78,7 +78,7 @@ export const getPipelineByName = async (
   try {
     logger.info(`Finding pipeline ${pipelineName}`);
     const defs = await buildApi.getDefinitions(projectName);
-    return defs.find(d => d.name === pipelineName);
+    return defs.find((d) => d.name === pipelineName);
   } catch (e) {
     logger.error(`Error in getting pipelines.`);
     throw e;
@@ -207,7 +207,7 @@ export const createHLDtoManifestPipeline = async (
       orgName: rc.orgName,
       personalAccessToken: rc.accessToken,
       pipelineName,
-      yamlFileBranch: "master"
+      yamlFileBranch: "master",
     });
     await pollForPipelineStatus(buildApi, rc.projectName, pipelineName);
     rc.createdHLDtoManifestPipeline = true;
@@ -240,7 +240,7 @@ export const createLifecyclePipeline = async (
       pipelineName,
       repoName: APP_REPO,
       repoUrl: getAzureRepoUrl(rc.orgName, rc.projectName, APP_REPO),
-      yamlFileBranch: "master"
+      yamlFileBranch: "master",
     });
     await pollForPipelineStatus(buildApi, rc.projectName, pipelineName);
     rc.createdLifecyclePipeline = true;
@@ -276,7 +276,7 @@ export const createBuildPipeline = async (
         pipelineName,
         repoName: APP_REPO,
         repoUrl: getAzureRepoUrl(rc.orgName, rc.projectName, APP_REPO),
-        yamlFileBranch: "master"
+        yamlFileBranch: "master",
       }
     );
     await pollForPipelineStatus(buildApi, rc.projectName, pipelineName);

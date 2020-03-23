@@ -29,8 +29,5 @@ export const getSourceFolderNameFromURL = (source: string): string => {
     // do not have :
     return source.replace(punctuationReg, "_").toLowerCase();
   }
-  return source
-    .substring(idx)
-    .replace(punctuationReg, "_")
-    .toLowerCase();
+  return source.substring(idx).replace(punctuationReg, "_").toLowerCase();
 };

@@ -21,9 +21,9 @@ const location = uuid();
       service_principal_id: uuid(),
       service_principal_secret: uuid(),
       subscription_id: uuid,
-      tenant_id: uuid
-    }
-  }
+      tenant_id: uuid,
+    },
+  },
 });
 
 const mockGetStorageManagementClient = (
@@ -42,7 +42,7 @@ const mockGetStorageManagementClient = (
             if (hasResourceGroups) {
               return [
                 { name: "testAccountName" },
-                { name: "otherTestAccountName" }
+                { name: "otherTestAccountName" },
               ];
             }
             return undefined;
@@ -51,13 +51,13 @@ const mockGetStorageManagementClient = (
             return {};
           },
           create(): Promise<unknown> {
-            return new Promise(resolve => {
+            return new Promise((resolve) => {
               resolve({
-                status: "created"
+                status: "created",
               });
             });
-          }
-        }
+          },
+        },
       };
     }
   );
@@ -108,8 +108,8 @@ describe("get storage account key", () => {
           storageAccounts: {
             listKeys: (): never => {
               throw Error("fake");
-            }
-          }
+            },
+          },
         };
       }
     );
@@ -125,8 +125,8 @@ describe("get storage account key", () => {
           storageAccounts: {
             listKeys: (): unknown => {
               return {};
-            }
-          }
+            },
+          },
         };
       }
     );
@@ -144,8 +144,8 @@ describe("get storage account key", () => {
           storageAccounts: {
             listKeys: (): unknown => {
               return { keys: [{ value: "testkey" }] };
-            }
-          }
+            },
+          },
         };
       }
     );
@@ -200,8 +200,8 @@ describe("get storage account keys", () => {
           storageAccounts: {
             listKeys: (): unknown => {
               return { keys: [{ value: "testkey" }] };
-            }
-          }
+            },
+          },
         };
       }
     );
@@ -241,7 +241,7 @@ describe("storage account exists", () => {
       async (): Promise<StorageAccount | undefined> => {
         return {
           enableHttpsTrafficOnly: true,
-          location: "uswest"
+          location: "uswest",
         };
       }
     );

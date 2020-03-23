@@ -25,7 +25,7 @@ export const createTempDir = (parent?: string): string => {
 export const removeDir = (dir: string): void => {
   const folder = path.resolve(dir);
   if (fs.existsSync(folder)) {
-    fs.readdirSync(folder).forEach(item => {
+    fs.readdirSync(folder).forEach((item) => {
       const curPath = path.join(folder, item);
       if (fs.statSync(curPath).isDirectory()) {
         removeDir(curPath);
@@ -61,10 +61,10 @@ export const getMissingFilenames = (
 ): string[] => {
   return fileNames
     .map(
-      f => path.join(dir, f) // form full path
+      (f) => path.join(dir, f) // form full path
     )
     .filter(
-      f => !fs.existsSync(f) // keep those files that do not exist
+      (f) => !fs.existsSync(f) // keep those files that do not exist
     )
-    .map(f => path.basename(f));
+    .map((f) => path.basename(f));
 };

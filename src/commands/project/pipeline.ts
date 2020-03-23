@@ -2,7 +2,7 @@
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
 import {
   BuildDefinition,
-  BuildDefinitionVariable
+  BuildDefinitionVariable,
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
 import { Config } from "../../config";
@@ -11,26 +11,26 @@ import { fileInfo as bedrockFileInfo } from "../../lib/bedrockYaml";
 import {
   build as buildCmd,
   exit as exitCmd,
-  validateForRequiredValues
+  validateForRequiredValues,
 } from "../../lib/commandBuilder";
 import {
   BUILD_SCRIPT_URL,
   PROJECT_CVG_DEPENDENCY_ERROR_MESSAGE,
   PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE,
-  PROJECT_PIPELINE_FILENAME
+  PROJECT_PIPELINE_FILENAME,
 } from "../../lib/constants";
 import { AzureDevOpsOpts } from "../../lib/git";
 import {
   getOriginUrl,
   getRepositoryName,
   getRepositoryUrl,
-  isGitHubUrl
+  isGitHubUrl,
 } from "../../lib/gitutils";
 import {
   createPipelineForDefinition,
   definitionForAzureRepoPipeline,
   getBuildApiClient,
-  queueBuild
+  queueBuild,
 } from "../../lib/pipelines/pipelines";
 import { logger } from "../../logger";
 import { BedrockFileInfo, ConfigYaml } from "../../types";
@@ -86,11 +86,11 @@ export const fetchValidateValues = (
       opts.pipelineName || getRepositoryName(gitOriginUrl) + "-lifecycle",
     repoName: getRepositoryName(gitOriginUrl),
     repoUrl: opts.repoUrl || getRepositoryUrl(gitOriginUrl),
-    yamlFileBranch: opts.yamlFileBranch
+    yamlFileBranch: opts.yamlFileBranch,
   };
 
   const map: { [key: string]: string | undefined } = {};
-  (Object.keys(values) as Array<keyof CommandOptions>).forEach(key => {
+  (Object.keys(values) as Array<keyof CommandOptions>).forEach((key) => {
     const val = values[key];
     if (key === "personalAccessToken") {
       logger.debug(`${key}: XXXXXXXXXXXXXXXXX`);
@@ -116,8 +116,8 @@ export const requiredPipelineVariables = (
     BUILD_SCRIPT_URL: {
       allowOverride: true,
       isSecret: false,
-      value: buildScriptUrl
-    }
+      value: buildScriptUrl,
+    },
   };
 };
 
@@ -134,7 +134,7 @@ const createPipeline = async (
     repositoryUrl: values.repoUrl!,
     variables: requiredPipelineVariables(values.buildScriptUrl!),
     yamlFileBranch: definitionBranch, // Pipeline is defined in master
-    yamlFilePath: PROJECT_PIPELINE_FILENAME // Pipeline definition lives in root directory.
+    yamlFilePath: PROJECT_PIPELINE_FILENAME, // Pipeline definition lives in root directory.
   });
 
   logger.info(
@@ -231,7 +231,7 @@ export const execute = async (
       const accessOpts: AzureDevOpsOpts = {
         orgName: values.orgName,
         personalAccessToken: values.personalAccessToken,
-        project: values.devopsProject
+        project: values.devopsProject,
       };
       await repositoryHasFile(
         PROJECT_PIPELINE_FILENAME,

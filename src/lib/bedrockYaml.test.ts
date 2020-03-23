@@ -11,7 +11,7 @@ import {
   isExists,
   read,
   removeRing,
-  setDefaultRing
+  setDefaultRing,
 } from "./bedrockYaml";
 
 describe("Creation and Existence test on bedrock.yaml", () => {
@@ -31,7 +31,7 @@ describe("Creation and Existence test on bedrock.yaml", () => {
     const data = {
       rings: {},
       services: {},
-      version: "1.0"
+      version: "1.0",
     };
     create(dir, data);
     expect(isExists(dir)).toBe(true);
@@ -49,8 +49,8 @@ describe("Adding a new service to a Bedrock file", () => {
     const helmConfig: HelmConfig = {
       chart: {
         chart: "somehelmchart",
-        repository: "somehelmrepository"
-      }
+        repository: "somehelmrepository",
+      },
     };
     const traefikMiddlewares = ["foo", "bar"];
     const k8sBackendPort = 8080;
@@ -88,11 +88,11 @@ describe("Adding a new service to a Bedrock file", () => {
           k8sBackendPort,
           middlewares: traefikMiddlewares,
           pathPrefix,
-          pathPrefixMajorVersion
-        }
+          pathPrefixMajorVersion,
+        },
       },
       variableGroups: [],
-      version: defaultBedrockFileObject.version
+      version: defaultBedrockFileObject.version,
     };
 
     expect(read(dir)).toEqual(expected);
@@ -115,13 +115,13 @@ describe("Adding a new ring to an existing bedrock.yaml", () => {
     const expected: BedrockFile = {
       rings: {
         ...(defaultBedrockFileObject as BedrockFile).rings,
-        [ringName]: {}
+        [ringName]: {},
       },
       services: {
-        ...(defaultBedrockFileObject as BedrockFile).services
+        ...(defaultBedrockFileObject as BedrockFile).services,
       },
       variableGroups: [],
-      version: defaultBedrockFileObject.version
+      version: defaultBedrockFileObject.version,
     };
 
     expect(read(dir)).toEqual(expected);
@@ -150,7 +150,7 @@ describe("Bedrock file info", () => {
       rings: {},
       services: {},
       variableGroups: [uuid()],
-      version: "1.0"
+      version: "1.0",
     };
     create(dir, data);
     const file = fileInfo(dir);
@@ -165,11 +165,11 @@ describe("Set default ring", () => {
     const data = {
       rings: {
         master: { isDefault: false },
-        prod: {}
+        prod: {},
       },
       services: {},
       variableGroups: [uuid()],
-      version: "1.0"
+      version: "1.0",
     };
     create(dir, data);
     setDefaultRing(data, "master", dir);
@@ -182,11 +182,11 @@ describe("Set default ring", () => {
     const data = {
       rings: {
         master: { isDefault: false },
-        prod: { isDefault: true }
+        prod: { isDefault: true },
       },
       services: {},
       variableGroups: [uuid()],
-      version: "1.0"
+      version: "1.0",
     };
     create(dir, data);
     setDefaultRing(data, "master", dir);

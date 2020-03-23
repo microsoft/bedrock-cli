@@ -30,7 +30,7 @@ describe("TraefikIngressRoute", () => {
       80,
       "/version/and/path",
       {
-        k8sBackend: "my-k8s-svc"
+        k8sBackend: "my-k8s-svc",
       }
     );
 
@@ -48,7 +48,7 @@ describe("TraefikIngressRoute", () => {
         80,
         "/version/and/Path",
         {
-          namespace
+          namespace,
         }
       );
       expect(withoutNamespace.metadata.namespace).toBe(namespace);
@@ -84,7 +84,7 @@ describe("TraefikIngressRoute", () => {
       80,
       "/version/and/Path",
       {
-        entryPoints: ["web"]
+        entryPoints: ["web"],
       }
     );
     expect(withJustWeb.spec.entryPoints).toStrictEqual(["web"]);
@@ -94,7 +94,7 @@ describe("TraefikIngressRoute", () => {
       80,
       "/version/and/Path",
       {
-        entryPoints: ["web-secure"]
+        entryPoints: ["web-secure"],
       }
     );
     expect(withJustWebSecure.spec.entryPoints).toStrictEqual(["web-secure"]);
@@ -104,7 +104,7 @@ describe("TraefikIngressRoute", () => {
       80,
       "/version/and/Path",
       {
-        entryPoints: ["web", "web-secure"]
+        entryPoints: ["web", "web-secure"],
       }
     );
     expect(withBoth.spec.entryPoints).toStrictEqual(["web", "web-secure"]);
@@ -113,7 +113,7 @@ describe("TraefikIngressRoute", () => {
   test("middleware gets added properly", () => {
     const middlewares = Array.from({ length: 10 }, () => "/" + uuid());
     const middlewaresNameArray = [
-      ...middlewares.map(middlewareName => ({ name: middlewareName }))
+      ...middlewares.map((middlewareName) => ({ name: middlewareName })),
     ];
 
     const withMiddlewares = TraefikIngressRoute(
@@ -122,7 +122,7 @@ describe("TraefikIngressRoute", () => {
       80,
       "/version/and/Path",
       {
-        middlewares
+        middlewares,
       }
     );
 
@@ -166,7 +166,7 @@ describe("TraefikIngressRoute", () => {
     ).not.toThrow();
     expect(() =>
       TraefikIngressRoute("valid-service", "valid-ring", 80, "v1", {
-        k8sBackend: "my.valid.service"
+        k8sBackend: "my.valid.service",
       })
     ).not.toThrow();
   });
@@ -186,7 +186,7 @@ describe("TraefikIngressRoute", () => {
     ).toThrow();
     expect(() =>
       TraefikIngressRoute("valid-service", "valid-ring", 80, "v1", {
-        k8sBackend: "-invalid"
+        k8sBackend: "-invalid",
       })
     ).toThrow();
   });

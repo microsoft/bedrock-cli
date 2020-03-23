@@ -8,7 +8,7 @@ import {
   findMatchingDeployments,
   DeploymentTable,
   EntrySRCToACRPipeline,
-  updateACRToHLDPipeline
+  updateACRToHLDPipeline,
 } from "../../lib/azure/deploymenttable";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { logger } from "../../logger";
@@ -164,7 +164,7 @@ export const writeSelfTestData = async (
     accountKey,
     accountName,
     partitionKey,
-    tableName
+    tableName,
   };
 
   const buildId = Math.floor(Math.random() * 1000).toString();
@@ -210,14 +210,14 @@ export const deleteSelfTestData = async (
     accountKey,
     accountName,
     partitionKey,
-    tableName
+    tableName,
   };
 
   const isDeleted = await findMatchingDeployments(
     tableInfo,
     "service",
     service
-  ).then(async results => {
+  ).then(async (results) => {
     logger.info("Deleting test data...");
     let foundEntry = false;
     const entries = results as EntrySRCToACRPipeline[];

@@ -29,24 +29,24 @@ export const exec = async (
     let stderr = "";
 
     // Capture stdout/stderr as process runs
-    child.stdout?.on("data", data => {
+    child.stdout?.on("data", (data) => {
       logger.debug(`stdout -> '${cmdString}' -> ${data}`.trim());
       stdout = stdout + data;
     });
-    child.stderr?.on("data", data => {
+    child.stderr?.on("data", (data) => {
       logger.debug(`stderr -> '${cmdString}' -> ${data}`.trim());
       stderr = stderr + data;
     });
 
     // Reject on error
-    child.on("error", err => {
+    child.on("error", (err) => {
       logger.verbose(`'${cmdString}' encountered an error during execution`);
       logger.verbose(err);
       reject(err);
     });
 
     // Resolve promise on completion
-    child.on("exit", code => {
+    child.on("exit", (code) => {
       // Log completion of of command
       logger.verbose(`'${cmdString}' exited with code: ${code}`);
       if (stdout.length > 0) {

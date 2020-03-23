@@ -27,7 +27,7 @@ const MOCKED_VALS: CommandOptions = {
   pr: undefined,
   repository: undefined,
   service: undefined,
-  tableName: undefined
+  tableName: undefined,
 };
 
 const getMockedValues = (withKeyValue = false): CommandOptions => {
@@ -72,7 +72,7 @@ describe("test execute function", () => {
         commitId: uuid(),
         imageTag: uuid(),
         p1: uuid(),
-        service: uuid()
+        service: uuid(),
       })
     );
     const exitFn = jest.fn();
@@ -122,7 +122,7 @@ describe("test execute function", () => {
         imageTag: uuid(),
         p1: uuid(),
         p2: uuid(),
-        service: uuid()
+        service: uuid(),
       })
     );
     const exitFn = jest.fn();
@@ -165,7 +165,7 @@ describe("test execute function", () => {
         p1: uuid(),
         p2: uuid(),
         p3: uuid(),
-        service: uuid()
+        service: uuid(),
       })
     );
     const exitFn = jest.fn();
@@ -205,7 +205,7 @@ describe("test execute function", () => {
         p1: uuid(),
         p2: uuid(),
         p3: uuid(),
-        service: uuid()
+        service: uuid(),
       })
     );
     const exitFn = jest.fn();

@@ -67,18 +67,18 @@ export const createServiceEndPointParams = (
         authenticationType: "spnKey",
         serviceprincipalid: serviceEndpointData.service_principal_id,
         serviceprincipalkey: serviceEndpointData.service_principal_secret,
-        tenantid: serviceEndpointData.tenant_id
+        tenantid: serviceEndpointData.tenant_id,
       },
-      scheme: "ServicePrincipal"
+      scheme: "ServicePrincipal",
     },
     data: {
       subscriptionId: serviceEndpointData.subscription_id,
-      subscriptionName: serviceEndpointData.subscription_name
+      subscriptionName: serviceEndpointData.subscription_name,
     },
     id: generateUuid(),
     isReady: false,
     name: serviceEndpointData.name,
-    type: "azurerm"
+    type: "azurerm",
   };
 
   return endPointParams;
@@ -103,7 +103,7 @@ export const addServiceEndpoint = async (
   const config = Config();
   const {
     project = config.azure_devops && config.azure_devops.project,
-    orgName = config.azure_devops && config.azure_devops.org
+    orgName = config.azure_devops && config.azure_devops.org,
   } = opts;
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -162,7 +162,7 @@ export const getServiceEndpointByName = async (
   const config = Config();
   const {
     project = config.azure_devops && config.azure_devops.project,
-    orgName = config.azure_devops && config.azure_devops.org
+    orgName = config.azure_devops && config.azure_devops.org,
   } = opts;
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

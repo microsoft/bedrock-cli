@@ -16,7 +16,7 @@ import {
   getSourceFolderNameFromURL,
   spkTemplatesPath,
   TERRAFORM_TFVARS,
-  VARIABLES_TF
+  VARIABLES_TF,
 } from "./infra_common";
 import decorator from "./scaffold.decorator.json";
 
@@ -82,13 +82,13 @@ export const copyTfTemplate = async (
   try {
     if (generation === true) {
       await fsextra.copy(templatePath, envName, {
-        filter: file =>
+        filter: (file) =>
           file.indexOf(TERRAFORM_TFVARS) === -1 &&
-          file.indexOf(BACKEND_TFVARS) === -1
+          file.indexOf(BACKEND_TFVARS) === -1,
       });
     } else {
       await fsextra.copy(templatePath, envName, {
-        filter: file => file.indexOf(TERRAFORM_TFVARS) === -1
+        filter: (file) => file.indexOf(TERRAFORM_TFVARS) === -1,
       });
     }
     logger.info(`Terraform template files copied from ${templatePath}`);
@@ -165,7 +165,7 @@ export const parseVariablesTf = (data: string): { [key: string]: string } => {
   const fields: { [key: string]: string } = {};
   const fieldSplitRegex = /"\s{0,}\{/;
   const defaultRegex = /default\s{0,}=\s{0,}(.*)/;
-  blocks.forEach(b => {
+  blocks.forEach((b) => {
     b = b.trim();
     const elt = b.split(fieldSplitRegex);
     elt[0] = elt[0].trim().replace('"', "");
@@ -198,7 +198,7 @@ export const parseBackendTfvars = (
 ): { [key: string]: string } => {
   const backend: { [key: string]: string | "" } = {};
   const block = backendData.replace(/=/g, ":").split("\n");
-  block.forEach(b => {
+  block.forEach((b) => {
     const elt = b.split(":");
     if (elt[0].length > 0) {
       backend[elt[0]] = elt[1]
@@ -227,7 +227,7 @@ export const generateClusterDefinition = (
     name: values.name,
     source: values.source,
     template: values.template,
-    version: values.version
+    version: values.version,
   };
   if (backendData !== "") {
     const backend = parseBackendTfvars(backendData);
@@ -235,11 +235,11 @@ export const generateClusterDefinition = (
   }
   if (Object.keys(fields).length > 0) {
     const fieldDict: { [key: string]: string } = {};
-    Object.keys(fields).forEach(key => {
+    Object.keys(fields).forEach((key) => {
       fieldDict[key] = fields[key] || DEFAULT_VAR_VALUE;
     });
     // If the value contains a default value, exclude from fieldDict
-    Object.keys(fieldDict).forEach(key => {
+    Object.keys(fieldDict).forEach((key) => {
       if (fieldDict[key] !== DEFAULT_VAR_VALUE) {
         delete fieldDict[key];
       }
@@ -277,7 +277,7 @@ export const scaffold = (values: CommandOptions): void => {
           const confPath: string = path.format({
             base: DEFINITION_YAML,
             dir: values.name,
-            root: "/ignored"
+            root: "/ignored",
           });
           fs.writeFileSync(confPath, definitionYaml, "utf8");
         } else {
@@ -303,8 +303,8 @@ export const removeTemplateFiles = (envPath: string): void => {
   try {
     const files = fs.readdirSync(envPath);
     files
-      .filter(f => f !== DEFINITION_YAML)
-      .forEach(f => {
+      .filter((f) => f !== DEFINITION_YAML)
+      .forEach((f) => {
         fs.unlinkSync(path.join(envPath, f));
       });
   } catch (e) {
@@ -327,7 +327,7 @@ export const execute = async (
     const scaffoldDefinition: SourceInformation = {
       source: opts.source,
       template: opts.template,
-      version: opts.version
+      version: opts.version,
     };
     const sourceFolder = getSourceFolderNameFromURL(opts.source);
     const sourcePath = path.join(spkTemplatesPath, sourceFolder);

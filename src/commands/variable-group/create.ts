@@ -7,7 +7,7 @@ import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { AzureDevOpsOpts } from "../../lib/git";
 import {
   addVariableGroup,
-  addVariableGroupWithKeyVaultMap
+  addVariableGroupWithKeyVaultMap,
 } from "../../lib/pipelines/variableGroup";
 import { logger } from "../../logger";
 import { VariableGroupData } from "../../types";
@@ -19,7 +19,7 @@ import decorator from "./create.decorator.json";
  * @param command Commander command object to decorate
  */
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async opts => {
+  buildCmd(command, decorator).action(async (opts) => {
     try {
       if (!opts.file) {
         throw new Error(
@@ -61,7 +61,7 @@ export const commandDecorator = (command: commander.Command): void => {
       const accessOpts: AzureDevOpsOpts = {
         orgName,
         personalAccessToken,
-        project: devopsProject
+        project: devopsProject,
       };
       logger.debug(`access options: ${JSON.stringify(accessOpts)}`);
 

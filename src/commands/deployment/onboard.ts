@@ -10,12 +10,12 @@ import {
   createStorageAccount,
   createTableIfNotExists,
   getStorageAccountKey,
-  isStorageAccountExist
+  isStorageAccountExist,
 } from "../../lib/azure/storage";
 import {
   build as buildCmd,
   exit as exitCmd,
-  validateForRequiredValues
+  validateForRequiredValues,
 } from "../../lib/commandBuilder";
 import { logger } from "../../logger";
 import { AzureAccessOpts, ConfigYaml } from "../../types";
@@ -92,7 +92,7 @@ export const validateValues = (opts: CommandOptions): void => {
     storageResourceGroupName: opts.storageResourceGroupName,
     storageTableName: opts.storageTableName,
     subscriptionId: opts.subscriptionId,
-    tenantId: opts.tenantId
+    tenantId: opts.tenantId,
   });
   if (errors.length > 0) {
     throw new Error("Required values are missing");
@@ -123,7 +123,7 @@ export const setConfiguration = (
     const data = readYaml<ConfigYaml>(defaultConfigFile());
     if (!data.introspection) {
       data.introspection = {
-        azure: {}
+        azure: {},
       };
     } else if (!data.introspection.azure) {
       data.introspection.azure = {};
@@ -257,7 +257,7 @@ export const onboard = async (
     servicePrincipalId: values.servicePrincipalId,
     servicePrincipalPassword: values.servicePrincipalPassword,
     subscriptionId: values.subscriptionId,
-    tenantId: values.tenantId
+    tenantId: values.tenantId,
   };
 
   const storageAccount = await validateAndCreateStorageAccount(

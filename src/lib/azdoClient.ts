@@ -38,7 +38,7 @@ export const getWebApi = async (
   const config = Config();
   const {
     personalAccessToken = config.azure_devops?.access_token,
-    orgName = config.azure_devops?.org
+    orgName = config.azure_devops?.org,
   } = opts;
 
   // PAT and devops URL are required

@@ -6,7 +6,7 @@ import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
   generateGitIgnoreFile,
   generateHldLifecyclePipelineYaml,
-  getVersion
+  getVersion,
 } from "../../lib/fileutils";
 import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
@@ -39,7 +39,7 @@ const generateBedrockFile = (
       {}
     ),
     services: {},
-    version: getVersion()
+    version: getVersion(),
   };
 
   // Check if a bedrock.yaml already exists; skip write if present
@@ -64,12 +64,12 @@ const generateMaintainersFile = async (
   packagePaths: string[]
 ): Promise<void> => {
   const absProjectPath = path.resolve(projectPath);
-  const absPackagePaths = packagePaths.map(p => path.resolve(p));
+  const absPackagePaths = packagePaths.map((p) => path.resolve(p));
   logger.info(`Generating maintainers.yaml file in ${absProjectPath}`);
 
   // Get default name/email from git host
   const [gitName, gitEmail] = await Promise.all(
-    ["name", "email"].map(async field => {
+    ["name", "email"].map(async (field) => {
       try {
         const gitField = await exec("git", ["config", `user.${field}`]);
         return gitField;
@@ -94,7 +94,7 @@ const generateMaintainersFile = async (
       // Root should use the value from reduce init
       if (relPathToPackageFromRoot !== "") {
         file.services["./" + relPathToPackageFromRoot] = {
-          maintainers: [{ email: "", name: "" }]
+          maintainers: [{ email: "", name: "" }],
         };
       }
 
@@ -107,11 +107,11 @@ const generateMaintainersFile = async (
           maintainers: [
             {
               email: gitEmail,
-              name: gitName
-            }
-          ]
-        }
-      }
+              name: gitName,
+            },
+          ],
+        },
+      },
     }
   );
 

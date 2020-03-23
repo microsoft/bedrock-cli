@@ -13,7 +13,7 @@ import {
   getBuildStatusString,
   getPipelineBuild,
   getPipelineByName,
-  pollForPipelineStatus
+  pollForPipelineStatus,
 } from "./pipelineService";
 import * as pipelineService from "./pipelineService";
 
@@ -21,7 +21,7 @@ const mockRequestContext: RequestContext = {
   accessToken: "pat",
   orgName: "orgname",
   projectName: "project",
-  workspace: WORKSPACE
+  workspace: WORKSPACE,
 };
 
 const getMockRequestContext = (): RequestContext => {
@@ -36,7 +36,7 @@ describe("test getBuildStatusString function", () => {
       "Completed",
       "Cancelling",
       "Postponed",
-      "Not Started"
+      "Not Started",
     ];
 
     [
@@ -45,7 +45,7 @@ describe("test getBuildStatusString function", () => {
       BuildStatus.Completed,
       BuildStatus.Cancelling,
       BuildStatus.Postponed,
-      BuildStatus.NotStarted
+      BuildStatus.NotStarted,
     ].forEach((s, i) => {
       expect(getBuildStatusString(s)).toBe(results[i]);
     });
@@ -62,7 +62,7 @@ describe("test getPipelineByName function", () => {
       {
         getDefinitions: () => {
           return [];
-        }
+        },
       } as any,
       "project",
       "pipeline"
@@ -75,10 +75,10 @@ describe("test getPipelineByName function", () => {
         getDefinitions: () => {
           return [
             {
-              name: "pipeline"
-            }
+              name: "pipeline",
+            },
           ];
-        }
+        },
       } as any,
       "project",
       "pipeline"
@@ -91,16 +91,16 @@ describe("test getPipelineByName function", () => {
         getDefinitions: () => {
           return [
             {
-              name: "pipeline1"
+              name: "pipeline1",
             },
             {
-              name: "pipeline2"
+              name: "pipeline2",
             },
             {
-              name: "pipeline3"
-            }
+              name: "pipeline3",
+            },
           ];
-        }
+        },
       } as any,
       "project",
       "pipeline"
@@ -113,16 +113,16 @@ describe("test getPipelineByName function", () => {
         getDefinitions: () => {
           return [
             {
-              name: "pipeline"
+              name: "pipeline",
             },
             {
-              name: "pipeline2"
+              name: "pipeline2",
             },
             {
-              name: "pipeline3"
-            }
+              name: "pipeline3",
+            },
           ];
-        }
+        },
       } as any,
       "project",
       "pipeline"
@@ -135,7 +135,7 @@ describe("test getPipelineByName function", () => {
         {
           getDefinitions: () => {
             throw Error("fake");
-          }
+          },
         } as any,
         "project",
         "pipeline"
@@ -148,7 +148,7 @@ describe("test deletePipeline function", () => {
   it("sanity test", async () => {
     await deletePipeline(
       {
-        deleteDefinition: jest.fn
+        deleteDefinition: jest.fn,
       } as any,
       "project",
       "pipeline",
@@ -161,7 +161,7 @@ describe("test deletePipeline function", () => {
         {
           deleteDefinition: () => {
             throw Error("Fake");
-          }
+          },
         } as any,
         "project",
         "pipeline",
@@ -177,7 +177,7 @@ describe("test getPipelineBuild function", () => {
       {
         getLatestBuild: () => {
           return {};
-        }
+        },
       } as any,
       "project",
       "pipeline"
@@ -190,7 +190,7 @@ describe("test getPipelineBuild function", () => {
         {
           getLatestBuild: () => {
             throw Error("Fake");
-          }
+          },
         } as any,
         "project",
         "pipeline"
@@ -206,7 +206,7 @@ describe("test pollForPipelineStatus function", () => {
       .mockReturnValueOnce(Promise.resolve({}));
     jest.spyOn(pipelineService, "getPipelineBuild").mockReturnValueOnce(
       Promise.resolve({
-        status: 1
+        status: 1,
       })
     );
 
@@ -248,7 +248,7 @@ describe("test createHLDtoManifestPipeline function", () => {
   });
   it("positive test: pipeline already exists previously", async () => {
     jest.spyOn(pipelineService, "getPipelineByName").mockResolvedValueOnce({
-      id: 1
+      id: 1,
     });
     const fnDeletePipeline = jest
       .spyOn(pipelineService, "deletePipeline")
@@ -294,7 +294,7 @@ describe("test createLifecyclePipeline function", () => {
   it("positive test: pipeline already exists", async () => {
     jest.spyOn(pipelineService, "getPipelineByName").mockReturnValueOnce(
       Promise.resolve({
-        id: 1
+        id: 1,
       })
     );
     const fnDeletePipeline = jest
@@ -341,7 +341,7 @@ describe("test createBuildPipeline function", () => {
   it("positive test: pipeline already exists", async () => {
     jest.spyOn(pipelineService, "getPipelineByName").mockReturnValueOnce(
       Promise.resolve({
-        id: 1
+        id: 1,
       })
     );
     const fnDeletePipeline = jest

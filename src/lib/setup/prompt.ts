@@ -9,24 +9,24 @@ import {
   validateServicePrincipalId,
   validateServicePrincipalPassword,
   validateServicePrincipalTenantId,
-  validateSubscriptionId
+  validateSubscriptionId,
 } from "../validator";
 import {
   ACR_NAME,
   DEFAULT_PROJECT_NAME,
   HLD_REPO,
   RequestContext,
-  WORKSPACE
+  WORKSPACE,
 } from "./constants";
 import { getAzureRepoUrl } from "./gitService";
 import {
   azCLILogin,
   createWithAzCLI,
-  SubscriptionData
+  SubscriptionData,
 } from "../azure/servicePrincipalService";
 import {
   getSubscriptions,
-  SubscriptionItem
+  SubscriptionItem,
 } from "../azure/subscriptionService";
 
 export const promptForSubscriptionId = async (
@@ -34,15 +34,15 @@ export const promptForSubscriptionId = async (
 ): Promise<string | undefined> => {
   const questions = [
     {
-      choices: subscriptions.map(s => s.name),
+      choices: subscriptions.map((s) => s.name),
       message: "Select one of the subscriptions\n",
       name: "az_subscription",
-      type: "list"
-    }
+      type: "list",
+    },
   ];
   const ans = await inquirer.prompt(questions);
   const found = subscriptions.find(
-    s => s.name === (ans.az_subscription as string)
+    (s) => s.name === (ans.az_subscription as string)
   );
   return found ? found.id : undefined;
 };
@@ -99,8 +99,8 @@ export const promptForACRName = async (rc: RequestContext): Promise<void> => {
       message: `Enter Azure Container Register Name. The registry name must be unique within Azure\n`,
       name: "acr_name",
       type: "input",
-      validate: validateACRName
-    }
+      validate: validateACRName,
+    },
   ];
   const answers = await inquirer.prompt(questions);
   rc.acrName = answers.acr_name as string;
@@ -151,8 +151,8 @@ export const prompt = async (): Promise<RequestContext> => {
       default: true,
       message: "Would you like to create a sample application repository?",
       name: "create_app_repo",
-      type: "confirm"
-    }
+      type: "confirm",
+    },
   ];
   const answers = await inquirer.prompt(questions);
   const rc: RequestContext = {
@@ -160,7 +160,7 @@ export const prompt = async (): Promise<RequestContext> => {
     orgName: answers.azdo_org_name as string,
     projectName: answers.azdo_project_name as string,
     toCreateAppRepo: answers.create_app_repo as boolean,
-    workspace: WORKSPACE
+    workspace: WORKSPACE,
   };
 
   if (rc.toCreateAppRepo) {
@@ -212,9 +212,9 @@ const parseInformationFromFile = (file: string): { [key: string]: string } => {
     );
   }
 
-  const arr = content.split("\n").filter(s => s.trim().length > 0);
+  const arr = content.split("\n").filter((s) => s.trim().length > 0);
   const map: { [key: string]: string } = {};
-  arr.forEach(s => {
+  arr.forEach((s) => {
     const idx = s.indexOf("=");
     if (idx !== -1) {
       map[s.substring(0, idx).trim()] = s.substring(idx + 1).trim();
@@ -255,7 +255,7 @@ export const getAnswerFromFile = (file: string): RequestContext => {
     servicePrincipalPassword: map.az_sp_password,
     servicePrincipalTenantId: map.az_sp_tenant,
     acrName: map.az_acr_name || ACR_NAME,
-    workspace: WORKSPACE
+    workspace: WORKSPACE,
   };
 
   rc.toCreateAppRepo = map.az_create_app === "true";
@@ -277,8 +277,8 @@ export const promptForApprovingHLDPullRequest = async (
       default: true,
       message: `Please approve and merge the Pull Request at ${urlPR}? Refresh the page if you do not see an active Pull Request.`,
       name: "approve_hld_pr",
-      type: "confirm"
-    }
+      type: "confirm",
+    },
   ];
   const answers = await inquirer.prompt(questions);
   return !!answers.approve_hld_pr;

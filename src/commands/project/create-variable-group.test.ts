@@ -8,11 +8,11 @@ import { readYaml, write } from "../../config";
 import {
   create as createBedrockYaml,
   isExists as isBedrockFileExists,
-  read as readBedrockFile
+  read as readBedrockFile,
 } from "../../lib/bedrockYaml";
 import {
   PROJECT_PIPELINE_FILENAME,
-  VERSION_MESSAGE
+  VERSION_MESSAGE,
 } from "../../lib/constants";
 import { AzureDevOpsOpts } from "../../lib/git";
 import { createTempDir } from "../../lib/ioUtil";
@@ -20,18 +20,18 @@ import * as pipelineVariableGroup from "../../lib/pipelines/variableGroup";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
-  logger
+  logger,
 } from "../../logger";
 import {
   createTestBedrockYaml,
-  createTestHldLifecyclePipelineYaml
+  createTestHldLifecyclePipelineYaml,
 } from "../../test/mockFactory";
 import { AzurePipelinesYaml, BedrockFile } from "../../types";
 import {
   create,
   execute,
   setVariableGroupInBedrockFile,
-  updateLifeCyclePipeline
+  updateLifeCyclePipeline,
 } from "./create-variable-group";
 import * as fileutils from "../../lib/fileutils";
 
@@ -74,7 +74,7 @@ describe("test execute function", () => {
         registryName,
         servicePrincipalId,
         servicePrincipalPassword,
-        tenant
+        tenant,
       },
       exitFn
     );
@@ -92,7 +92,7 @@ describe("test execute function", () => {
         registryName: undefined,
         servicePrincipalId,
         servicePrincipalPassword,
-        tenant
+        tenant,
       },
       exitFn
     );
@@ -105,7 +105,7 @@ describe("create", () => {
     const accessOpts: AzureDevOpsOpts = {
       orgName,
       personalAccessToken,
-      project: devopsProject
+      project: devopsProject,
     };
 
     let invalidDataError: Error | undefined;
@@ -134,7 +134,7 @@ describe("create", () => {
     const accessOpts: AzureDevOpsOpts = {
       orgName,
       personalAccessToken,
-      project: devopsProject
+      project: devopsProject,
     };
 
     try {
@@ -225,7 +225,7 @@ describe("setVariableGroupInBedrockFile", () => {
       rings: {}, // rings is optional but necessary to create a bedrock file in config.write method
       services: {}, // service property is not optional so set it to null
       variableGroups: [prevariableGroupName],
-      version: ""
+      version: "",
     };
 
     const randomTmpDir = createBedrockYaml("", bedrockFileData);
@@ -243,7 +243,7 @@ describe("updateLifeCyclePipeline", () => {
   beforeAll(() => {
     mockFs({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      "bedrock.yaml": createTestBedrockYaml() as any
+      "bedrock.yaml": createTestBedrockYaml() as any,
     });
   });
 
@@ -295,7 +295,7 @@ describe("updateLifeCyclePipeline", () => {
     ) as AzurePipelinesYaml;
 
     const asYaml = yaml.safeDump(hldLifeCycleFile, {
-      lineWidth: Number.MAX_SAFE_INTEGER
+      lineWidth: Number.MAX_SAFE_INTEGER,
     });
 
     fs.writeFileSync(hldFilePath, asYaml);
@@ -319,7 +319,7 @@ describe("updateLifeCyclePipeline", () => {
     // add new variabe group
     defaultBedrockFileObject.variableGroups = [
       ...(defaultBedrockFileObject.variableGroups ?? []),
-      variableGroupName
+      variableGroupName,
     ];
 
     write(defaultBedrockFileObject, randomTmpDir);
@@ -331,7 +331,7 @@ describe("updateLifeCyclePipeline", () => {
     ) as AzurePipelinesYaml;
 
     const asYaml = yaml.safeDump(hldLifeCycleFile, {
-      lineWidth: Number.MAX_SAFE_INTEGER
+      lineWidth: Number.MAX_SAFE_INTEGER,
     });
 
     fs.writeFileSync(hldFilePath, asYaml);
@@ -341,7 +341,7 @@ describe("updateLifeCyclePipeline", () => {
     const hldLifeCycleYaml = readYaml<AzurePipelinesYaml>(hldFilePath);
     logger.info(`filejson: ${JSON.stringify(hldLifeCycleYaml)}`);
     expect(hldLifeCycleYaml.variables![0]).toEqual({
-      group: variableGroupName
+      group: variableGroupName,
     });
   });
 });

@@ -3,7 +3,7 @@ import * as azdo from "azure-devops-node-api";
 import { IGitApi } from "azure-devops-node-api/GitApi";
 import AZGitInterfaces, {
   GitPullRequestSearchCriteria,
-  GitRepository
+  GitRepository,
 } from "azure-devops-node-api/interfaces/GitInterfaces";
 import { AzureDevOpsOpts } from ".";
 import { Config } from "../../config";
@@ -33,7 +33,7 @@ export const GitAPI = async (opts: AzureDevOpsOpts = {}): Promise<IGitApi> => {
     const azureDevops = config["azure_devops"];
     const {
       personalAccessToken = azureDevops && azureDevops.access_token,
-      orgName = azureDevops && azureDevops.org
+      orgName = azureDevops && azureDevops.org,
     } = opts;
 
     // PAT and devops URL are required
@@ -156,7 +156,7 @@ export const getMatchingBranch = async (
   allRepos: GitRepository[],
   gitOriginUrlForLogging: string
 ): Promise<GitRepository> => {
-  const reposWithMatchingOrigin = allRepos.filter(repo =>
+  const reposWithMatchingOrigin = allRepos.filter((repo) =>
     [repo.url, repo.sshUrl, repo.webUrl, repo.remoteUrl].includes(gitOrigin)
   );
   logger.info(
@@ -168,23 +168,23 @@ export const getMatchingBranch = async (
   // Search for repos with branches matching those to make the PR against
   const reposWithMatchingBranches = (
     await Promise.all(
-      reposWithMatchingOrigin.map(async repo => {
+      reposWithMatchingOrigin.map(async (repo) => {
         logger.info(`Retrieving branches for repository '${repo.name}'`);
         const branches = await gitAPI.getBranches(repo.id!);
         return {
-          branches: branches.filter(branch => {
+          branches: branches.filter((branch) => {
             return [sourceRef, targetRef].includes(branch.name!);
           }),
-          repo
+          repo,
         };
       })
     )
   )
-    .filter(repo => {
+    .filter((repo) => {
       // Valid repos must contain both the source and target repo
       return repo.branches.length >= 2;
     })
-    .map(repo => repo.repo);
+    .map((repo) => repo.repo);
 
   // Only allow one matching repo to be found
   if (reposWithMatchingBranches.length === 0) {
@@ -216,7 +216,7 @@ const handleErrorForCreatePullRequest = async (
     );
     const searchCriteria: GitPullRequestSearchCriteria = {
       sourceRefName: `refs/heads/${sourceRef}`,
-      targetRefName: `refs/heads/${targetRef}`
+      targetRefName: `refs/heads/${targetRef}`,
     };
     const existingPRs = await gitAPI.getPullRequests(
       repoToPRAgainst.id!,
@@ -257,7 +257,7 @@ export const createPullRequest = async (
     description,
     sourceRefName: `refs/heads/${sourceRef}`,
     targetRefName: `refs/heads/${targetRef}`,
-    title
+    title,
   };
 
   // Get the git origin from args or fallback to parsing from git client

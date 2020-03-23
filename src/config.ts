@@ -9,7 +9,7 @@ import {
   AzurePipelinesYaml,
   BedrockFile,
   ConfigYaml,
-  MaintainersFile
+  MaintainersFile,
 } from "./types";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -182,7 +182,7 @@ export const Bedrock = (fileDirectory = process.cwd()): BedrockFile => {
         );
       }
     })
-    .filter(e => !!e) as Error[];
+    .filter((e) => !!e) as Error[];
   // log all the errors and throw an exception if their are any
   if (helmErrors.length > 0) {
     for (const error of helmErrors) {

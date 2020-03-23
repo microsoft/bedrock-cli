@@ -3,7 +3,7 @@ import {
   GetSecretOptions,
   KeyVaultSecret,
   SecretClient,
-  SetSecretOptions
+  SetSecretOptions,
 } from "@azure/keyvault-secrets";
 import uuid from "uuid/v4";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
@@ -24,9 +24,9 @@ jest.spyOn(keyvault, "getClient").mockReturnValue(
         name: "test",
         properties: {
           name: "test",
-          vaultUrl: "http://test.com"
+          vaultUrl: "http://test.com",
         },
-        value: "secretValue"
+        value: "secretValue",
       };
     },
     setSecret: async (
@@ -38,10 +38,10 @@ jest.spyOn(keyvault, "getClient").mockReturnValue(
         name: "test",
         properties: {
           name: "test",
-          vaultUrl: "http://test.com"
-        }
+          vaultUrl: "http://test.com",
+        },
       };
-    }
+    },
   } as SecretClient)
 );
 
@@ -73,7 +73,7 @@ describe("set secret", () => {
           options?: SetSecretOptions
         ): Promise<KeyVaultSecret> => {
           throw new Error("fake error");
-        }
+        },
       } as SecretClient)
     );
     try {
@@ -106,9 +106,9 @@ describe("get secret", () => {
         ): Promise<KeyVaultSecret> => {
           throw {
             code: "SecretNotFound",
-            statusCode: 404
+            statusCode: 404,
           };
-        }
+        },
       } as SecretClient)
     );
     try {
@@ -127,9 +127,9 @@ describe("get secret", () => {
         ): Promise<KeyVaultSecret> => {
           throw {
             code: "something else",
-            statusCode: 400
+            statusCode: 400,
           };
-        }
+        },
       } as SecretClient)
     );
     try {

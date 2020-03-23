@@ -1,6 +1,6 @@
 import {
   RegistriesCreateResponse,
-  RegistriesListResponse
+  RegistriesListResponse,
 } from "@azure/arm-containerregistry/src/models";
 
 import * as restAuth from "@azure/ms-rest-nodeauth";
@@ -8,7 +8,7 @@ import {
   create,
   getContainerRegistries,
   getContainerRegistry,
-  isExist
+  isExist,
 } from "./containerRegistryService";
 import * as containerRegistryService from "./containerRegistryService";
 
@@ -26,17 +26,17 @@ jest.mock("@azure/arm-containerregistry", () => {
               {
                 id:
                   "/subscriptions/dd831253-787f-4dc8-8eb0-ac9d052177d9/resourceGroups/bedrockSPK/providers/Microsoft.ContainerRegistry/registries/acrWest",
-                name: "acrWest"
-              }
+                name: "acrWest",
+              },
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ] as any;
-          }
-        }
+          },
+        },
       };
     }
   }
   return {
-    ContainerRegistryManagementClient: MockClient
+    ContainerRegistryManagementClient: MockClient,
   };
 });
 
@@ -80,8 +80,8 @@ describe("test container registries function", () => {
         id:
           "/subscriptions/dd831253-787f-4dc8-8eb0-ac9d052177d9/resourceGroups/bedrockSPK/providers/Microsoft.ContainerRegistry/registries/acrWest",
         name: "acrWest",
-        resourceGroup: "bedrockSPK"
-      }
+        resourceGroup: "bedrockSPK",
+      },
     ]);
   });
   it("cache test", async () => {
@@ -102,8 +102,8 @@ describe("test container registries function", () => {
         {
           id: "fakeId",
           name: "test",
-          resourceGroup: RESOURCE_GROUP
-        }
+          resourceGroup: RESOURCE_GROUP,
+        },
       ]);
     const res = await isExist(
       servicePrincipalId,
@@ -134,8 +134,8 @@ describe("test container registries function", () => {
         {
           id: "fakeId",
           name: "test1",
-          resourceGroup: RESOURCE_GROUP
-        }
+          resourceGroup: RESOURCE_GROUP,
+        },
       ]);
     const res = await isExist(
       servicePrincipalId,
@@ -182,7 +182,7 @@ describe("test getContainerRegistry function", () => {
       id:
         "/subscriptions/dd831253-787f-4dc8-8eb0-ac9d052177d9/resourceGroups/quick-start-rg/providers/Microsoft.ContainerRegistry/registries/quickStartACR",
       name: "quickStartACR",
-      resourceGroup: "quick-start-rg"
+      resourceGroup: "quick-start-rg",
     };
     jest
       .spyOn(containerRegistryService, "getContainerRegistries")

@@ -13,26 +13,26 @@ import {
   RequestContext,
   RESOURCE_GROUP,
   RESOURCE_GROUP_LOCATION,
-  WORKSPACE
+  WORKSPACE,
 } from "../lib/setup/constants";
 import { createDirectory } from "../lib/setup/fsUtil";
 import { getGitApi } from "../lib/setup/gitService";
 import {
   createBuildPipeline,
   createHLDtoManifestPipeline,
-  createLifecyclePipeline
+  createLifecyclePipeline,
 } from "../lib/setup/pipelineService";
 import { createProjectIfNotExist } from "../lib/setup/projectService";
 import {
   getAnswerFromFile,
   prompt,
-  promptForApprovingHLDPullRequest
+  promptForApprovingHLDPullRequest,
 } from "../lib/setup/prompt";
 import {
   appRepo,
   helmRepo,
   hldRepo,
-  manifestRepo
+  manifestRepo,
 } from "../lib/setup/scaffold";
 import { create as createSetupLog } from "../lib/setup/setupLog";
 import { logger } from "../logger";
@@ -58,23 +58,23 @@ export const createSPKConfig = (rc: RequestContext): void => {
         azure_devops: {
           access_token: rc.accessToken,
           org: rc.orgName,
-          project: rc.projectName
+          project: rc.projectName,
         },
         introspection: {
           azure: {
             service_principal_id: rc.servicePrincipalId,
             service_principal_secret: rc.servicePrincipalPassword,
             subscription_id: rc.subscriptionId,
-            tenant_id: rc.servicePrincipalTenantId
-          }
-        }
+            tenant_id: rc.servicePrincipalTenantId,
+          },
+        },
       }
     : {
         azure_devops: {
           access_token: rc.accessToken,
           org: rc.orgName,
-          project: rc.projectName
-        }
+          project: rc.projectName,
+        },
       };
   fs.writeFileSync(defaultConfigFile(), yaml.safeDump(data));
 };

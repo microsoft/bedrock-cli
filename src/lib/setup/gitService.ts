@@ -46,7 +46,7 @@ export const createRepo = async (
   projectName: string
 ): Promise<GitRepository> => {
   const createOptions = {
-    name: repoName
+    name: repoName,
   };
   try {
     return await gitApi.createRepository(createOptions, projectName);
@@ -95,7 +95,7 @@ export const getRepoInAzureOrg = async (
 ): Promise<GitRepository | undefined> => {
   try {
     const respositories = await gitApi.getRepositories();
-    return (respositories || []).find(repo => {
+    return (respositories || []).find((repo) => {
       return repo.project?.name === projectName && repo.name === repoName;
     });
   } catch (err) {
@@ -165,7 +165,9 @@ export const commitAndPushToRemote = async (
 
   const resultLog = await git.log();
   logger.info("Log Messages from Git:");
-  resultLog.all.forEach(f => logger.info("\t" + f.date + " --> " + f.message));
+  resultLog.all.forEach((f) =>
+    logger.info("\t" + f.date + " --> " + f.message)
+  );
 
   // TOFIX: We know AzDO url style so hack it for now instead of discovering via API
   const remoteURL = `dev.azure.com/${rc.orgName}/${rc.projectName}/_git/${repoName}`;

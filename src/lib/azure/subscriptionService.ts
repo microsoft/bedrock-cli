@@ -36,11 +36,11 @@ export const getSubscriptions = async (
   const subsciptions = await client.subscriptions.list();
   const result: SubscriptionItem[] = [];
 
-  (subsciptions || []).forEach(s => {
+  (subsciptions || []).forEach((s) => {
     if (s.subscriptionId && s.displayName) {
       result.push({
         id: s.subscriptionId,
-        name: s.displayName
+        name: s.displayName,
       });
     }
   });

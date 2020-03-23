@@ -6,7 +6,7 @@ import {
   RowACRToHLDPipeline,
   RowHLDToManifestPipeline,
   RowManifest,
-  RowSrcToACRPipeline
+  RowSrcToACRPipeline,
 } from "../../lib/azure/deploymenttable";
 import * as storage from "../../lib/azure/storage";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
@@ -16,7 +16,7 @@ import {
   execute,
   isValidConfig,
   runSelfTest,
-  writeSelfTestData
+  writeSelfTestData,
 } from "./validate";
 import * as validate from "./validate";
 
@@ -56,8 +56,8 @@ let mockedDB: Array<
 jest.spyOn(deploymenttable, "findMatchingDeployments").mockImplementation(
   (): Promise<RowSrcToACRPipeline[]> => {
     const array: RowSrcToACRPipeline[] = [];
-    return new Promise(resolve => {
-      mockedDB.forEach(row => {
+    return new Promise((resolve) => {
+      mockedDB.forEach((row) => {
         if (row.p1 === "500") {
           array.push(row);
         }
@@ -78,7 +78,7 @@ jest
         | RowHLDToManifestPipeline
     ) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return new Promise<any>(resolve => {
+      return new Promise<any>((resolve) => {
         mockedDB.push(entry);
         resolve(entry);
       });
@@ -87,7 +87,7 @@ jest
 
 jest.spyOn(deploymenttable, "deleteFromTable").mockImplementation(async () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new Promise<any>(resolve => {
+  return new Promise<any>((resolve) => {
     if (mockedDB.length === 1 && mockedDB[0].p1 === "500") {
       mockedDB = [];
     }
@@ -107,7 +107,7 @@ jest
         | RowManifest
     ) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return new Promise<any>(resolve => {
+      return new Promise<any>((resolve) => {
         mockedDB.forEach((row, index: number) => {
           if (row.RowKey === entry.RowKey) {
             mockedDB[index] = entry;
@@ -136,16 +136,16 @@ describe("Validate deployment configuration", () => {
     const config: ConfigYaml = {
       azure_devops: {
         org: uuid(),
-        project: uuid()
+        project: uuid(),
       },
       introspection: {
         azure: {
           account_name: uuid(),
           key: uuid(),
           partition_key: uuid(),
-          table_name: uuid()
-        }
-      }
+          table_name: uuid(),
+        },
+      },
     };
     await isValidConfig(config);
   });
@@ -159,7 +159,7 @@ describe("test execute function", () => {
     const exitFn = jest.fn();
     await execute(
       {
-        selfTest: false
+        selfTest: false,
       },
       exitFn
     );
@@ -174,7 +174,7 @@ describe("test execute function", () => {
     const exitFn = jest.fn();
     await execute(
       {
-        selfTest: true
+        selfTest: true,
       },
       exitFn
     );
@@ -188,7 +188,7 @@ describe("test execute function", () => {
     const exitFn = jest.fn();
     await execute(
       {
-        selfTest: true
+        selfTest: true,
       },
       exitFn
     );
@@ -210,9 +210,9 @@ describe("test runSelfTest function", () => {
       introspection: {
         azure: {
           key: uuid(),
-          table_name: undefined
-        }
-      }
+          table_name: undefined,
+        },
+      },
     };
 
     await runSelfTest(config);
@@ -229,9 +229,9 @@ describe("test runSelfTest function", () => {
       introspection: {
         azure: {
           key: uuid(),
-          table_name: undefined
-        }
-      }
+          table_name: undefined,
+        },
+      },
     };
     await runSelfTest(config);
   });
@@ -244,9 +244,9 @@ describe("test runSelfTest function", () => {
       introspection: {
         azure: {
           key: uuid(),
-          table_name: undefined
-        }
-      }
+          table_name: undefined,
+        },
+      },
     };
     await expect(runSelfTest(config)).rejects.toThrow();
   });
@@ -255,7 +255,7 @@ describe("test runSelfTest function", () => {
 describe("Validate missing deployment configuration", () => {
   test("no deployment configuration", async () => {
     const config: ConfigYaml = {
-      introspection: undefined
+      introspection: undefined,
     };
     await expect(isValidConfig(config)).rejects.toThrow();
   });
@@ -265,8 +265,8 @@ describe("Validate missing deployment.storage configuration", () => {
   test("missing deployment.storage", async () => {
     const config: ConfigYaml = {
       introspection: {
-        azure: undefined
-      }
+        azure: undefined,
+      },
     };
     await expect(isValidConfig(config)).rejects.toThrow();
   });
@@ -278,9 +278,9 @@ describe("Validate missing deployment.storage configuration", () => {
       introspection: {
         azure: {
           account_name: undefined,
-          key: uuid()
-        }
-      }
+          key: uuid(),
+        },
+      },
     };
     await expect(isValidConfig(config)).rejects.toThrow();
   });
@@ -292,9 +292,9 @@ describe("Validate missing deployment.storage configuration", () => {
       introspection: {
         azure: {
           key: uuid(),
-          table_name: undefined
-        }
-      }
+          table_name: undefined,
+        },
+      },
     };
     await expect(isValidConfig(config)).rejects.toThrow();
   });
@@ -306,9 +306,9 @@ describe("Validate missing deployment.storage configuration", () => {
       introspection: {
         azure: {
           key: uuid(),
-          partition_key: undefined
-        }
-      }
+          partition_key: undefined,
+        },
+      },
     };
     await expect(isValidConfig(config)).rejects.toThrow();
   });
@@ -318,8 +318,8 @@ describe("Validate missing deployment.storage configuration", () => {
   test("missing deployment.storage.key configuration", async () => {
     const config: ConfigYaml = {
       introspection: {
-        azure: {}
-      }
+        azure: {},
+      },
     };
     await expect(isValidConfig(config)).rejects.toThrow();
   });
@@ -329,8 +329,8 @@ describe("Validate missing deployment.pipeline configuration", () => {
   test("missing deployment.pipeline configuration", async () => {
     const config: ConfigYaml = {
       introspection: {
-        azure: {}
-      }
+        azure: {},
+      },
     };
     await expect(isValidConfig(config)).rejects.toThrow();
   });
@@ -340,11 +340,11 @@ describe("Validate missing deployment.pipeline configuration", () => {
   test("missing deployment.pipeline.org configuration", async () => {
     const config: ConfigYaml = {
       azure_devops: {
-        org: undefined
+        org: undefined,
       },
       introspection: {
-        azure: {}
-      }
+        azure: {},
+      },
     };
     await expect(isValidConfig(config)).rejects.toThrow();
   });
@@ -355,11 +355,11 @@ describe("Validate missing deployment.pipeline configuration", () => {
     const config: ConfigYaml = {
       azure_devops: {
         org: "org",
-        project: undefined
+        project: undefined,
       },
       introspection: {
-        azure: {}
-      }
+        azure: {},
+      },
     };
     await expect(isValidConfig(config)).rejects.toThrow();
   });

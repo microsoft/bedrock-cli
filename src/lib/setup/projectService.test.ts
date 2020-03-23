@@ -7,9 +7,9 @@ describe("test getProject function", () => {
       {
         getProject: async () => {
           return {
-            valid: true
+            valid: true,
           };
-        }
+        },
       } as any,
       "test"
     );
@@ -20,7 +20,7 @@ describe("test getProject function", () => {
       {
         getProject: async () => {
           return null;
-        }
+        },
       } as any,
       "test"
     );
@@ -33,9 +33,9 @@ describe("test getProject function", () => {
           getProject: () => {
             throw {
               message: "Authentication Failed",
-              statusCode: 401
+              statusCode: 401,
             };
-          }
+          },
         } as any,
         "test"
       )
@@ -47,7 +47,7 @@ describe("test getProject function", () => {
         {
           getProject: () => {
             throw new Error("fake");
-          }
+          },
         } as any,
         "test"
       )
@@ -61,12 +61,12 @@ describe("test createProject function", () => {
       {
         getProject: () => {
           return {
-            state: "wellFormed"
+            state: "wellFormed",
           };
         },
         queueCreateProject: async () => {
           return;
-        }
+        },
       } as any,
       "test"
     );
@@ -80,7 +80,7 @@ describe("test createProject function", () => {
           },
           queueCreateProject: async () => {
             return;
-          }
+          },
         } as any,
         "test",
         1,
@@ -95,9 +95,9 @@ describe("test createProject function", () => {
           queueCreateProject: () => {
             throw {
               message: "Authentication Failed",
-              statusCode: 401
+              statusCode: 401,
             };
-          }
+          },
         } as any,
         "test"
       )
@@ -109,7 +109,7 @@ describe("test createProject function", () => {
         {
           queueCreateProject: () => {
             throw new Error("fake");
-          }
+          },
         } as any,
         "test"
       )

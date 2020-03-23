@@ -3,14 +3,14 @@ import os from "os";
 import path from "path";
 import {
   HLD_COMPONENT_FILENAME,
-  RENDER_HLD_PIPELINE_FILENAME
+  RENDER_HLD_PIPELINE_FILENAME,
 } from "../../lib/constants";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import { createTempDir } from "../../lib/ioUtil";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
-  logger
+  logger,
 } from "../../logger";
 import { execute, initialize } from "./init";
 jest.mock("../../lib/gitutils");
@@ -97,8 +97,8 @@ const testRepoInitialization = async (
 
   // Verify new azure-pipelines created
   [RENDER_HLD_PIPELINE_FILENAME, HLD_COMPONENT_FILENAME]
-    .map(filename => path.join(randomTmpDir, filename))
-    .forEach(filePath => {
+    .map((filename) => path.join(randomTmpDir, filename))
+    .forEach((filePath) => {
       expect(fs.existsSync(filePath)).toBe(true);
     });
 };

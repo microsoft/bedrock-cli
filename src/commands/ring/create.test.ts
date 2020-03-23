@@ -1,6 +1,6 @@
 import {
   create as createBedrockYaml,
-  read as loadBedrockFile
+  read as loadBedrockFile,
 } from "../../lib/bedrockYaml";
 import * as fileUtils from "../../lib/fileutils";
 import { createTempDir } from "../../lib/ioUtil";
@@ -29,12 +29,12 @@ describe("checkDependencies", () => {
     createBedrockYaml(tmpDir, {
       rings: {
         master: {
-          isDefault: true
-        }
+          isDefault: true,
+        },
       },
       services: {},
       variableGroups: ["testvg"],
-      version: "1.0"
+      version: "1.0",
     });
     checkDependencies(tmpDir, "not-master");
     // No errors thrown, this is a pass for the function.
@@ -43,12 +43,12 @@ describe("checkDependencies", () => {
     const tmpDir = createBedrockYaml(undefined, {
       rings: {
         master: {
-          isDefault: true
-        }
+          isDefault: true,
+        },
       },
       services: {},
       variableGroups: ["testvg"],
-      version: "1.0"
+      version: "1.0",
     });
     expect(() => {
       checkDependencies(tmpDir, "master");
@@ -91,8 +91,8 @@ describe("test execute function and logic", () => {
     createBedrockYaml(tmpDir, {
       rings: {
         master: {
-          isDefault: true
-        }
+          isDefault: true,
+        },
       },
       services: {
         "./my-service": {
@@ -100,14 +100,14 @@ describe("test execute function and logic", () => {
             chart: {
               branch: "master",
               git: "https://github.com/catalystcode/spk-demo-repo.git",
-              path: "my-service"
-            }
+              path: "my-service",
+            },
           },
-          k8sBackendPort: 80
-        }
+          k8sBackendPort: 80,
+        },
       },
       variableGroups: ["testvg"],
-      version: "1.0"
+      version: "1.0",
     });
 
     const newRingName = "my-new-ring";

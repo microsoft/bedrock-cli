@@ -7,7 +7,7 @@ import uuid from "uuid";
 import {
   createTempDir,
   getMissingFilenames,
-  isDirEmpty
+  isDirEmpty,
 } from "../../lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { validateRemoteSource } from "./generate";
@@ -17,7 +17,7 @@ import {
   DEFAULT_VAR_VALUE,
   DEFINITION_YAML,
   TERRAFORM_TFVARS,
-  VARIABLES_TF
+  VARIABLES_TF,
 } from "./infra_common";
 import * as infraCommon from "./infra_common";
 import {
@@ -30,15 +30,15 @@ import {
   removeTemplateFiles,
   validateBackendTfvars,
   validateValues,
-  validateVariablesTf
+  validateVariablesTf,
 } from "./scaffold";
 import * as scaffold from "./scaffold";
 
 const mockYaml = {
   azure_devops: {
     access_token: "token123",
-    infra_repository: "repoABC"
-  }
+    infra_repository: "repoABC",
+  },
 };
 
 beforeAll(() => {
@@ -130,7 +130,7 @@ describe("test removeTemplateFiles function", () => {
     fs.writeFileSync(path.join(dir, DEFINITION_YAML), "test");
 
     const otherFiles = ["file1.txt", "file2.txt"];
-    otherFiles.forEach(f => {
+    otherFiles.forEach((f) => {
       fs.writeFileSync(path.join(dir, `${f}.txt`), f);
     });
     removeTemplateFiles(dir);
@@ -150,7 +150,7 @@ describe("test validate function", () => {
           name: uuid(),
           source: "http://example@host",
           template: uuid(),
-          version: uuid()
+          version: uuid(),
         }
       );
     } catch (err) {
@@ -166,7 +166,7 @@ describe("test validate function", () => {
           name: uuid(),
           source: "",
           template: uuid(),
-          version: uuid()
+          version: uuid(),
         }
       );
       expect(true).toBe(false);
@@ -175,7 +175,7 @@ describe("test validate function", () => {
     }
   });
   it("name, template, version is missing", () => {
-    ["name", "template", "version"].forEach(key => {
+    ["name", "template", "version"].forEach((key) => {
       try {
         validateValues(
           {},
@@ -183,7 +183,7 @@ describe("test validate function", () => {
             name: key === "name" ? "" : uuid(),
             source: "http://example@host",
             template: key === "template" ? "" : uuid(),
-            version: key === "version" ? "" : uuid()
+            version: key === "version" ? "" : uuid(),
           }
         );
         expect(true).toBe(false);
@@ -208,13 +208,13 @@ describe("test execute function", () => {
     name: "",
     source: "",
     template: "",
-    version: ""
+    version: "",
   };
   const MOCKED_VALS: CommandOptions = {
     name: "name",
     source: "source",
     template: "template",
-    version: "0.1"
+    version: "0.1",
   };
   it("missing config yaml", async () => {
     const exitFn = jest.fn();
@@ -309,7 +309,7 @@ describe("Validate generation of sample scaffold definition", () => {
         name: "test-scaffold",
         source: "https://github.com/microsoft/bedrock",
         template: "cluster/environments/azure-simple",
-        version: "v1.0.0"
+        version: "v1.0.0",
       },
       backendTfVars,
       sampleVarTf

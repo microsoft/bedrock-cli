@@ -16,11 +16,11 @@ import { deepClone } from "../../lib/util";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
-  logger
+  logger,
 } from "../../logger";
 import {
   createTestBedrockYaml,
-  createTestMaintainersYaml
+  createTestMaintainersYaml,
 } from "../../test/mockFactory";
 import {
   assertValidDnsInputs,
@@ -28,7 +28,7 @@ import {
   execute,
   fetchValues,
   CommandValues,
-  validateGitUrl
+  validateGitUrl,
 } from "./create";
 
 jest.mock("../../lib/gitutils");
@@ -65,7 +65,7 @@ const mockValues: CommandValues = {
   pathPrefix: "",
   pathPrefixMajorVersion: "",
   ringNames: [],
-  variableGroups: []
+  variableGroups: [],
 };
 
 const getMockValues = (): CommandValues => {
@@ -85,7 +85,7 @@ const validateDirNFiles = (
   expect(fs.existsSync(serviceDirPath)).toBe(true);
 
   // Verify new azure-pipelines created
-  const filepaths = [SERVICE_PIPELINE_FILENAME, "Dockerfile"].map(filename =>
+  const filepaths = [SERVICE_PIPELINE_FILENAME, "Dockerfile"].map((filename) =>
     path.join(serviceDirPath, filename)
   );
 
@@ -118,7 +118,7 @@ describe("Test fetchValues function", () => {
     const mockedBedrockFileConfig = { ...BedrockMockedContent };
     mockedBedrockFileConfig.rings = {
       master: {},
-      qa: {}
+      qa: {},
     };
     jest.spyOn(config, "Bedrock").mockReturnValueOnce(mockedBedrockFileConfig);
     const mocked = getMockValues();
@@ -142,7 +142,7 @@ describe("isValidDnsInputs", () => {
         displayName: "bar",
         k8sBackend: "my-service",
         pathPrefix: "service",
-        pathPrefixMajorVersion: "v1"
+        pathPrefixMajorVersion: "v1",
       })
     ).not.toThrow();
   });
@@ -153,7 +153,7 @@ describe("isValidDnsInputs", () => {
         displayName: "-not_dns_compliant",
         k8sBackend: "",
         pathPrefix: "",
-        pathPrefixMajorVersion: ""
+        pathPrefixMajorVersion: "",
       })
     ).toThrow();
 
@@ -162,7 +162,7 @@ describe("isValidDnsInputs", () => {
         displayName: "",
         k8sBackend: "-not_dns_compliant",
         pathPrefix: "",
-        pathPrefixMajorVersion: ""
+        pathPrefixMajorVersion: "",
       })
     ).toThrow();
 
@@ -171,7 +171,7 @@ describe("isValidDnsInputs", () => {
         displayName: "",
         k8sBackend: "",
         pathPrefix: "-not_dns_compliant",
-        pathPrefixMajorVersion: ""
+        pathPrefixMajorVersion: "",
       })
     ).toThrow();
 
@@ -180,7 +180,7 @@ describe("isValidDnsInputs", () => {
         displayName: "",
         k8sBackend: "",
         pathPrefix: "",
-        pathPrefixMajorVersion: "-not_dns_compliant"
+        pathPrefixMajorVersion: "-not_dns_compliant",
       })
     ).toThrow();
   });
@@ -218,7 +218,7 @@ describe("Test execute function", () => {
 
     jest.spyOn(bedrockYaml, "fileInfo").mockImplementation(() => ({
       exist: false,
-      hasVariableGroups: false
+      hasVariableGroups: false,
     }));
 
     try {
@@ -236,7 +236,7 @@ describe("Test execute function", () => {
 
     jest.spyOn(bedrockYaml, "fileInfo").mockImplementation(() => ({
       exist: true,
-      hasVariableGroups: false
+      hasVariableGroups: false,
     }));
 
     try {

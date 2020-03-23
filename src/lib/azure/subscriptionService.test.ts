@@ -16,17 +16,17 @@ jest.mock("@azure/arm-subscriptions", () => {
             return [
               {
                 displayName: "test",
-                subscriptionId: "1234567890-abcdef"
-              }
+                subscriptionId: "1234567890-abcdef",
+              },
             ];
-          }
-        }
+          },
+        },
       };
     }
   }
 
   return {
-    SubscriptionClient: MockClient
+    SubscriptionClient: MockClient,
   };
 });
 
@@ -47,8 +47,8 @@ describe("test getSubscriptions function", () => {
     expect(result).toStrictEqual([
       {
         id: "1234567890-abcdef",
-        name: "test"
-      }
+        name: "test",
+      },
     ]);
   });
   it("negative test: missing values", async () => {

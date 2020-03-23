@@ -8,18 +8,18 @@ import { Bedrock } from "../../config";
 import {
   addNewService as addNewServiceToBedrockFile,
   fileInfo as bedrockFileInfo,
-  YAML_NAME as BedrockFileName
+  YAML_NAME as BedrockFileName,
 } from "../../lib/bedrockYaml";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
   PROJECT_CVG_DEPENDENCY_ERROR_MESSAGE,
-  PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE
+  PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE,
 } from "../../lib/constants";
 import {
   addNewServiceToMaintainersFile,
   generateDockerfile,
   generateGitIgnoreFile,
-  generateServiceBuildAndUpdatePipelineYaml
+  generateServiceBuildAndUpdatePipelineYaml,
 } from "../../lib/fileutils";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import * as dns from "../../lib/net/dns";
@@ -65,7 +65,7 @@ export const fetchValues = (opts: CommandOptions): CommandValues => {
 
   let middlewaresArray: string[] = [];
   if (opts.middlewares && opts.middlewares.trim()) {
-    middlewaresArray = opts.middlewares.split(",").map(str => str.trim());
+    middlewaresArray = opts.middlewares.split(",").map((str) => str.trim());
   }
 
   const values: CommandValues = {
@@ -88,7 +88,7 @@ export const fetchValues = (opts: CommandOptions): CommandValues => {
     pathPrefix: opts.pathPrefix,
     pathPrefixMajorVersion: opts.pathPrefixMajorVersion,
     ringNames: rings,
-    variableGroups
+    variableGroups,
   };
 
   // Values do not need to be validated
@@ -299,7 +299,7 @@ export const createService = async (
   // add maintainers to file in parent repo file
   const newUser = {
     email: values.maintainerEmail,
-    name: values.maintainerName
+    name: values.maintainerName,
   } as User;
 
   const newServiceRelativeDir = path.relative(rootProjectPath, newServiceDir);
@@ -318,16 +318,16 @@ export const createService = async (
       ? {
           chart: {
             chart: values.helmChartChart,
-            repository: values.helmChartRepository
-          }
+            repository: values.helmChartRepository,
+          },
         }
       : {
           chart: {
             accessTokenVariable: values.helmConfigAccessTokenVariable,
             branch: values.helmConfigBranch,
             git: values.helmConfigGit,
-            path: values.helmConfigPath
-          }
+            path: values.helmConfigPath,
+          },
         };
 
   addNewServiceToBedrockFile(

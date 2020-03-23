@@ -10,7 +10,7 @@ import { deepClone } from "../../lib/util";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
-  logger
+  logger,
 } from "../../logger";
 import {
   execute,
@@ -25,7 +25,7 @@ import {
   printDeployments,
   processOutputFormat,
   validateValues,
-  watchGetDeployments
+  watchGetDeployments,
 } from "./get";
 import * as get from "./get";
 
@@ -38,7 +38,7 @@ const MOCKED_INPUT_VALUES: CommandOptions = {
   output: "",
   service: "",
   top: "",
-  watch: false
+  watch: false,
 };
 
 const MOCKED_VALUES: ValidatedOptions = {
@@ -52,7 +52,7 @@ const MOCKED_VALUES: ValidatedOptions = {
   outputFormat: OUTPUT_FORMAT.NORMAL,
   service: "",
   top: "",
-  watch: false
+  watch: false,
 };
 
 const getMockedInputValues = (): CommandOptions => {
@@ -81,7 +81,7 @@ const mockedDeps: IDeployment[] = fakeDeployments.data.map(
       manifestCommitId: dep.manifestCommitId,
       service: dep.service,
       srcToDockerBuild: dep.srcToDockerBuild,
-      timeStamp: dep.timeStamp
+      timeStamp: dep.timeStamp,
     };
   }
 );
@@ -325,10 +325,10 @@ describe("Print deployments", () => {
       "✓",
       6047,
       "✓",
-      "EUROPE"
+      "EUROPE",
     ];
 
-    const matchItems = table!.filter(field => field[2] === deployment[2]);
+    const matchItems = table!.filter((field) => field[2] === deployment[2]);
     expect(matchItems).toHaveLength(1); // one matching row
 
     (matchItems[0] as IDeployment[]).forEach((field, i) => {
@@ -379,7 +379,7 @@ describe("Output formats", () => {
       mockedClusterSyncs
     );
     expect(table).not.toBeUndefined();
-    table!.forEach(field => {
+    table!.forEach((field) => {
       expect(field).toHaveLength(18);
     });
   });

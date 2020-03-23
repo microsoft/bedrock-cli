@@ -27,7 +27,7 @@ const positiveTest = (logExist?: boolean, withAppCreation = false): void => {
     scaffoldHelm: true,
     scaffoldManifest: true,
     subscriptionId: "72f988bf-86f1-41af-91ab-2d7cd011db48",
-    workspace: "workspace"
+    workspace: "workspace",
   };
 
   if (withAppCreation) {
@@ -69,7 +69,7 @@ const positiveTest = (logExist?: boolean, withAppCreation = false): void => {
       "Lifecycle Pipeline Created: yes",
       "Build Pipeline Created: yes",
       "ACR Created: yes",
-      "Status: Completed"
+      "Status: Completed",
     ]);
   } else {
     expect(fs.readFileSync(file, "UTF-8").split("\n")).toStrictEqual([
@@ -95,7 +95,7 @@ const positiveTest = (logExist?: boolean, withAppCreation = false): void => {
       "Lifecycle Pipeline Created: no",
       "Build Pipeline Created: no",
       "ACR Created: no",
-      "Status: Completed"
+      "Status: Completed",
     ]);
   }
 };
@@ -132,7 +132,7 @@ describe("test create function", () => {
         scaffoldHLD: true,
         scaffoldHelm: true,
         scaffoldManifest: true,
-        workspace: "workspace"
+        workspace: "workspace",
       },
       file
     );
@@ -162,7 +162,7 @@ describe("test create function", () => {
       "Build Pipeline Created: no",
       "ACR Created: no",
       "Error: things broke",
-      "Status: Incomplete"
+      "Status: Incomplete",
     ]);
   });
 });

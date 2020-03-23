@@ -6,7 +6,7 @@ import { initialize as hldInitialize } from "../../commands/hld/init";
 import {
   create as createVariableGroup,
   setVariableGroupInBedrockFile,
-  updateLifeCyclePipeline
+  updateLifeCyclePipeline,
 } from "../../commands/project/create-variable-group";
 import { initialize as projectInitialize } from "../../commands/project/init";
 import { createService } from "../../commands/service/create";
@@ -21,13 +21,13 @@ import {
   HLD_REPO,
   MANIFEST_REPO,
   RequestContext,
-  VARIABLE_GROUP
+  VARIABLE_GROUP,
 } from "./constants";
 import { createDirectory, moveToAbsPath, moveToRelativePath } from "./fsUtil";
 import {
   commitAndPushToRemote,
   createRepoInAzureOrg,
-  getAzureRepoUrl
+  getAzureRepoUrl,
 } from "./gitService";
 import { chartTemplate, mainTemplate, valuesTemplate } from "./helmTemplates";
 
@@ -184,7 +184,7 @@ export const setupVariableGroup = async (rc: RequestContext): Promise<void> => {
   const accessOpts: AzureDevOpsOpts = {
     orgName: rc.orgName,
     personalAccessToken: rc.accessToken,
-    project: rc.projectName
+    project: rc.projectName,
   };
 
   await deleteVariableGroup(accessOpts, VARIABLE_GROUP);
@@ -228,7 +228,7 @@ export const initService = async (
     pathPrefix: "",
     pathPrefixMajorVersion: "",
     ringNames: ["master"],
-    variableGroups: [VARIABLE_GROUP]
+    variableGroups: [VARIABLE_GROUP],
   });
 };
 

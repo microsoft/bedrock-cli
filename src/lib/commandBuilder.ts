@@ -46,7 +46,7 @@ export const build = (
     .alias(decorator.alias)
     .description(decorator.description);
 
-  (decorator.options || []).forEach(opt => {
+  (decorator.options || []).forEach((opt) => {
     if (opt.defaultValue !== undefined) {
       cmd.option(opt.arg, opt.description, opt.defaultValue);
     } else {
@@ -70,7 +70,7 @@ export const validateForRequiredValues = (
   values: { [key: string]: string | undefined }
 ): string[] => {
   // gather the required options
-  const required = (decorator.options || []).filter(opt => opt.required);
+  const required = (decorator.options || []).filter((opt) => opt.required);
 
   // no required variables hence return empty error array
   if (required.length === 0) {
@@ -80,7 +80,7 @@ export const validateForRequiredValues = (
   // opt name to variable name mapping
   // example --org-name is orgName
   const mapVariableName2Opt: CommandVariableName2Opt[] = [];
-  required.forEach(opt => {
+  required.forEach((opt) => {
     const match = opt.arg.match(/\s?--([-\w]+)\s?/);
 
     if (match) {
@@ -91,18 +91,18 @@ export const validateForRequiredValues = (
         .replace(/-/g, "");
       mapVariableName2Opt.push({
         opt,
-        variableName
+        variableName,
       });
     }
   });
 
   // figure out which variables have missing values
   const missingItems = mapVariableName2Opt.filter(
-    item => !hasValue(values[item.variableName])
+    (item) => !hasValue(values[item.variableName])
   );
 
   // gather the option flags (args) for the missing one
-  const errors = missingItems.map(item => item.opt.arg);
+  const errors = missingItems.map((item) => item.opt.arg);
 
   if (errors.length !== 0) {
     logger.error(`the following arguments are required: ${errors.join("\n ")}`);
@@ -124,14 +124,14 @@ export const exit = (
   statusCode: number,
   timeout = 10000
 ): Promise<void> => {
-  return new Promise(resolve => {
-    const hasFileLogger = log.transports.some(t => {
+  return new Promise((resolve) => {
+    const hasFileLogger = log.transports.some((t) => {
       if (t instanceof transports.File) {
         // callback will be called once if spk.log
         // already exist.
         // it will be called twice if spk.log
         // do not exist. the one call has size === 0
-        fs.watchFile(t.filename, curr => {
+        fs.watchFile(t.filename, (curr) => {
           if (curr.size > 0) {
             exitFn(statusCode);
             resolve();

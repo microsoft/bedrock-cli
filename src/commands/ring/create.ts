@@ -2,12 +2,12 @@ import commander from "commander";
 import {
   addNewRing,
   fileInfo as bedrockFileInfo,
-  read as loadBedrockFile
+  read as loadBedrockFile,
 } from "../../lib/bedrockYaml";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
   BEDROCK_FILENAME,
-  PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE
+  PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE,
 } from "../../lib/constants";
 import { updateTriggerBranchesForServiceBuildAndUpdatePipeline } from "../../lib/fileutils";
 import * as dns from "../../lib/net/dns";
@@ -75,7 +75,7 @@ export const execute = async (
       ([serviceRelativeDir]) => serviceRelativeDir
     );
 
-    servicePathDirectories.forEach(s => {
+    servicePathDirectories.forEach((s) => {
       updateTriggerBranchesForServiceBuildAndUpdatePipeline(newRings, s);
     });
 

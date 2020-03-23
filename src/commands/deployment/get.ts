@@ -6,16 +6,16 @@ import {
   duration,
   getDeploymentsBasedOnFilters,
   IDeployment,
-  status as getDeploymentStatus
+  status as getDeploymentStatus,
 } from "spektate/lib/IDeployment";
 import AzureDevOpsPipeline from "spektate/lib/pipeline/AzureDevOpsPipeline";
 import {
   getManifestSyncState as getAzureManifestSyncState,
-  IAzureDevOpsRepo
+  IAzureDevOpsRepo,
 } from "spektate/lib/repository/IAzureDevOpsRepo";
 import {
   getManifestSyncState as getGithubManifestSyncState,
-  IGitHub
+  IGitHub,
 } from "spektate/lib/repository/IGitHub";
 import { ITag } from "spektate/lib/repository/Tag";
 import { Config } from "../../config";
@@ -31,7 +31,7 @@ import decorator from "./get.decorator.json";
 export enum OUTPUT_FORMAT {
   NORMAL = 0, // normal format
   WIDE = 1, // Wide table format
-  JSON = 2
+  JSON = 2,
 }
 
 /**
@@ -99,7 +99,7 @@ export const validateValues = (opts: CommandOptions): ValidatedOptions => {
     outputFormat: processOutputFormat(opts.output),
     service: opts.service,
     top: opts.top,
-    watch: opts.watch
+    watch: opts.watch,
   };
 };
 
@@ -200,7 +200,7 @@ export const getDeployments = (
           resolve(deployments);
         }
       })
-      .catch(e => {
+      .catch((e) => {
         reject(new Error(e));
       });
   });
@@ -226,7 +226,7 @@ export const getClusterSyncStatuses = (
         const manifestRepo: IAzureDevOpsRepo = {
           org: manifestUrlSplit[3],
           project: manifestUrlSplit[4],
-          repo: manifestUrlSplit[6]
+          repo: manifestUrlSplit[6],
         };
         getAzureManifestSyncState(
           manifestRepo,
@@ -235,7 +235,7 @@ export const getClusterSyncStatuses = (
           .then((syncCommits: ITag[]) => {
             resolve(syncCommits);
           })
-          .catch(e => {
+          .catch((e) => {
             reject(e);
           });
       } else if (
@@ -247,7 +247,7 @@ export const getClusterSyncStatuses = (
         );
         const manifestRepo: IGitHub = {
           reponame: manifestUrlSplit[4],
-          username: manifestUrlSplit[3]
+          username: manifestUrlSplit[3],
         };
 
         getGithubManifestSyncState(
@@ -257,7 +257,7 @@ export const getClusterSyncStatuses = (
           .then((syncCommits: ITag[]) => {
             resolve(syncCommits);
           })
-          .catch(e => {
+          .catch((e) => {
             reject(e);
           });
       } else {
@@ -314,7 +314,7 @@ export const initialize = async (): Promise<InitObject> => {
       config.azure_devops.project,
       false,
       config.azure_devops.access_token
-    )
+    ),
   };
 };
 
@@ -363,14 +363,14 @@ export const printDeployments = (
       "Hld Commit",
       "Result",
       "HLD to Manifest",
-      "Result"
+      "Result",
     ];
     if (outputFormat === OUTPUT_FORMAT.WIDE) {
       header = header.concat([
         "Duration",
         "Status",
         "Manifest Commit",
-        "End Time"
+        "End Time",
       ]);
     }
     if (syncStatuses && syncStatuses.length > 0) {
@@ -394,14 +394,14 @@ export const printDeployments = (
         "mid-mid": "",
         right: "",
         "right-mid": "",
-        middle: " "
+        middle: " ",
       },
-      style: { "padding-left": 0, "padding-right": 0 }
+      style: { "padding-left": 0, "padding-right": 0 },
     });
 
     const toDisplay = limit ? deployments.slice(0, limit) : deployments;
 
-    toDisplay.forEach(deployment => {
+    toDisplay.forEach((deployment) => {
       const row = [];
       row.push(
         deployment.srcToDockerBuild
@@ -496,7 +496,7 @@ export const getClusterSyncStatusForDeployment = (
   deployment: IDeployment,
   syncStatuses: ITag[]
 ): ITag | undefined => {
-  return syncStatuses.find(tag => tag.commit === deployment.manifestCommitId);
+  return syncStatuses.find((tag) => tag.commit === deployment.manifestCommitId);
 };
 
 /**

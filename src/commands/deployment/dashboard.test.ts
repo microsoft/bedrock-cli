@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/camelcase */
+
 jest.mock("open");
 import open from "open";
 jest.mock("../../config");
@@ -7,14 +9,14 @@ import { validatePrereqs } from "../../lib/validator";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
-  logger
+  logger,
 } from "../../logger";
 import {
   execute,
   extractManifestRepositoryInformation,
   getEnvVars,
   launchDashboard,
-  validateValues
+  validateValues,
 } from "./dashboard";
 import * as dashboard from "./dashboard";
 
@@ -30,20 +32,20 @@ afterAll(() => {
 
 const mockConfig = (): void => {
   (Config as jest.Mock).mockReturnValueOnce({
-    "azure_devops": {
-      "access_token": uuid(),
+    azure_devops: {
+      access_token: uuid(),
       org: uuid(),
-      project: uuid()
+      project: uuid(),
     },
     introspection: {
       azure: {
-        "account_name": uuid(),
+        account_name: uuid(),
         key: uuid(),
-        "partition_key": uuid(),
-        "source_repo_access_token": "test_token",
-        "table_name": uuid()
-      }
-    }
+        partition_key: uuid(),
+        source_repo_access_token: "test_token",
+        table_name: uuid(),
+      },
+    },
   });
 };
 
@@ -53,7 +55,7 @@ describe("Test validateValues function", () => {
     try {
       validateValues(config, {
         port: "abc",
-        removeAll: false
+        removeAll: false,
       });
       expect(true).toBe(false);
     } catch (e) {
@@ -68,7 +70,7 @@ describe("Test validateValues function", () => {
         {},
         {
           port: "4000",
-          removeAll: false
+          removeAll: false,
         }
       );
       expect(true).toBe(false);
@@ -83,7 +85,7 @@ describe("Test validateValues function", () => {
     const config = Config();
     validateValues(config, {
       port: "4000",
-      removeAll: false
+      removeAll: false,
     });
   });
 });
@@ -100,7 +102,7 @@ describe("Test execute function", () => {
     await execute(
       {
         port: "4000",
-        removeAll: false
+        removeAll: false,
       },
       exitFn
     );
@@ -112,7 +114,7 @@ describe("Test execute function", () => {
     await execute(
       {
         port: "4000",
-        removeAll: false
+        removeAll: false,
       },
       exitFn
     );
@@ -133,7 +135,7 @@ describe("Validate dashboard container pull", () => {
           "images",
           "-q",
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          config.introspection!.dashboard!.image!
+          config.introspection!.dashboard!.image!,
         ]);
         expect(dockerId).toBeDefined();
         expect(dashboardContainerId).not.toBe("");
@@ -160,7 +162,7 @@ describe("Validate dashboard clean up", () => {
           "images",
           "-q",
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          config.introspection!.dashboard!.image!
+          config.introspection!.dashboard!.image!,
         ]);
 
         expect(dockerId).toBeDefined();
@@ -208,10 +210,10 @@ describe("Fallback to azure devops access token", () => {
 describe("Extract manifest repository information", () => {
   test("Manifest repository information is successfully extracted", () => {
     (Config as jest.Mock).mockReturnValue({
-      "azure_devops": {
-        "manifest_repository":
-          "https://dev.azure.com/bhnook/fabrikam/_git/materialized"
-      }
+      azure_devops: {
+        manifest_repository:
+          "https://dev.azure.com/bhnook/fabrikam/_git/materialized",
+      },
     });
     const config = Config();
     let manifestInfo = extractManifestRepositoryInformation(config);

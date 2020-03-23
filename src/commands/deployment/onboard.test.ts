@@ -12,7 +12,7 @@ import { deepClone } from "../../lib/util";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
-  logger
+  logger,
 } from "../../logger";
 import { AzureAccessOpts, ConfigYaml } from "../../types";
 import {
@@ -26,7 +26,7 @@ import {
   validateAndCreateStorageAccount,
   validateStorageName,
   validateTableName,
-  validateValues
+  validateValues,
 } from "./onboard";
 import * as onboardImpl from "./onboard";
 
@@ -47,7 +47,7 @@ const MOCKED_VALUES: CommandOptions = {
   storageResourceGroupName: "testResourceGroup",
   storageTableName: "testtable",
   subscriptionId: "subscriptionId",
-  tenantId: "tenantId"
+  tenantId: "tenantId",
 };
 
 const randomTmpDir = createTempDir();
@@ -62,7 +62,7 @@ const getMockedAccessOpts = (values: CommandOptions): AzureAccessOpts => {
     servicePrincipalId: values.servicePrincipalId,
     servicePrincipalPassword: values.servicePrincipalPassword,
     subscriptionId: values.subscriptionId,
-    tenantId: values.tenantId
+    tenantId: values.tenantId,
   };
 };
 
@@ -78,9 +78,9 @@ const testPopulatedVal = (
   const configYaml: ConfigYaml = {
     introspection: {
       azure: {
-        key: "key"
-      }
-    }
+        key: "key",
+      },
+    },
   };
   configFn(configYaml);
   jest.spyOn(config, "Config").mockReturnValueOnce(configYaml);
@@ -116,7 +116,7 @@ describe("test populateValues", () => {
       (values: CommandOptions) => {
         values.storageAccountName = undefined;
       },
-      values => {
+      (values) => {
         expect(values.storageAccountName).toBe("AccountName");
       }
     );
@@ -129,7 +129,7 @@ describe("test populateValues", () => {
       (values: CommandOptions) => {
         values.storageTableName = undefined;
       },
-      values => {
+      (values) => {
         expect(values.storageTableName).toBe("TableName");
       }
     );
@@ -142,7 +142,7 @@ describe("test populateValues", () => {
       (values: CommandOptions) => {
         values.keyVaultName = undefined;
       },
-      values => {
+      (values) => {
         expect(values.keyVaultName).toBe("KeyVaulteName");
       }
     );
@@ -156,7 +156,7 @@ describe("test populateValues", () => {
       (values: CommandOptions) => {
         values.servicePrincipalId = undefined;
       },
-      values => {
+      (values) => {
         expect(values.servicePrincipalId).toBe("ServicePrincipalId");
       }
     );
@@ -170,7 +170,7 @@ describe("test populateValues", () => {
       (values: CommandOptions) => {
         values.servicePrincipalPassword = undefined;
       },
-      values => {
+      (values) => {
         expect(values.servicePrincipalPassword).toBe("ServicePrincipalSecret");
       }
     );
@@ -183,7 +183,7 @@ describe("test populateValues", () => {
       (values: CommandOptions) => {
         values.tenantId = undefined;
       },
-      values => {
+      (values) => {
         expect(values.tenantId).toBe("tenantId");
       }
     );
@@ -196,7 +196,7 @@ describe("test populateValues", () => {
       (values: CommandOptions) => {
         values.subscriptionId = undefined;
       },
-      values => {
+      (values) => {
         expect(values.subscriptionId).toBe("subscriptionId");
       }
     );
@@ -390,9 +390,9 @@ describe("onboard", () => {
       introspection: {
         azure: {
           account_name: "testAccount",
-          table_name: "testTable"
-        }
-      }
+          table_name: "testTable",
+        },
+      },
     };
 
     fs.writeFileSync(testConfigFile, yaml.safeDump(data));
@@ -406,9 +406,9 @@ describe("setConfiguration", () => {
       introspection: {
         azure: {
           account_name: "test-storage",
-          table_name: "test-table"
-        }
-      }
+          table_name: "test-table",
+        },
+      },
     };
 
     // create config file in test location
@@ -429,8 +429,8 @@ describe("setConfiguration", () => {
   test("Should pass updating previous undefined storage account and table names", () => {
     const data = {
       introspection: {
-        azure: {}
-      }
+        azure: {},
+      },
     };
 
     // create config file in test location

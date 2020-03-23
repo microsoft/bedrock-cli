@@ -59,11 +59,11 @@ export const getResourceGroups = async (
   );
   const groups = await client.resourceGroups.list();
   logger.info("Successfully acquired resource groups");
-  return groups.map(g => {
+  return groups.map((g) => {
     return {
       id: g.id as string,
       location: g.location as string,
-      name: g.name as string
+      name: g.name as string,
     };
   });
 };
@@ -90,7 +90,7 @@ export const isExist = async (
     servicePrincipalTenantId,
     subscriptionId
   );
-  return (groups || []).some(g => g.name === name);
+  return (groups || []).some((g) => g.name === name);
 };
 
 /**
@@ -131,7 +131,7 @@ export const create = async (
     subscriptionId
   );
   await client.resourceGroups.createOrUpdate(name, {
-    location
+    location,
   });
   logger.info(`Successfully create resource group ${name}.`);
   return true;

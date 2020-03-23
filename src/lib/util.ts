@@ -13,7 +13,7 @@ export function deepClone<T>(obj: T): T {
  * @param timeInSecond duration in millisecond
  */
 export const sleep = (timeInMs: number): Promise<unknown> => {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     setTimeout(() => {
       resolve();
     }, timeInMs);

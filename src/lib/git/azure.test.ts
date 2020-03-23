@@ -9,7 +9,7 @@ import {
   createPullRequest,
   generatePRUrl,
   getGitOrigin,
-  GitAPI
+  GitAPI,
 } from "./azure";
 
 jest.mock("azure-devops-node-api");
@@ -46,7 +46,7 @@ describe("test getGitOrigin function", () => {
 describe("GitAPI", () => {
   test("should fail when PAT not set", async () => {
     (Config as jest.Mock).mockReturnValueOnce({
-      azure_devops: {}
+      azure_devops: {},
     });
     await expect(GitAPI()).rejects.toThrow();
   });
@@ -54,8 +54,8 @@ describe("GitAPI", () => {
   test("should fail when DevOps org is invalid", async () => {
     (Config as jest.Mock).mockReturnValueOnce({
       azure_devops: {
-        access_token: uuid()
-      }
+        access_token: uuid(),
+      },
     });
     await expect(GitAPI()).rejects.toThrow();
   });
@@ -64,8 +64,8 @@ describe("GitAPI", () => {
     (Config as jest.Mock).mockReturnValueOnce({
       azure_devops: {
         access_token: uuid(),
-        org: uuid()
-      }
+        org: uuid(),
+      },
     });
 
     await GitAPI();
@@ -84,25 +84,25 @@ describe("createPullRequest", () => {
   (Config as jest.Mock).mockImplementation(() => ({
     azure_devops: {
       access_token: uuid(),
-      org: uuid()
-    }
+      org: uuid(),
+    },
   }));
   // Mutable copy of the gitApi
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const gitApi: { [name: string]: (...args: any) => Promise<any> } = {
     createPullRequest: async () => ({
       pullRequestId: 123,
-      repository: { id: 456 }
+      repository: { id: 456 },
     }),
     getBranches: async () => [{ name: "sourceRef" }, { name: "targetRef" }],
     getPullRequests: async () => [],
     getRepositories: async () => [{ url: "my-git-url" }],
-    getRepository: async () => ({ webUrl: "http://foobar.com" })
+    getRepository: async () => ({ webUrl: "http://foobar.com" }),
   };
   // Keep a reference to the original gitApi functions so they be reused to reset the mocks
   const originalGitApi = { ...gitApi };
   ((WebApi as unknown) as jest.Mock).mockImplementation(() => ({
-    getGitApi: async (): Promise<unknown> => gitApi
+    getGitApi: async (): Promise<unknown> => gitApi,
   }));
 
   beforeEach(() => {
@@ -120,7 +120,7 @@ describe("createPullRequest", () => {
     try {
       await createPullRequest(uuid(), uuid(), uuid(), {
         description: uuid(),
-        originPushUrl: uuid()
+        originPushUrl: uuid(),
       });
     } catch (e) {
       err = e;
@@ -140,7 +140,7 @@ describe("createPullRequest", () => {
     try {
       await createPullRequest("random title", "sourceRef", "targetRef", {
         description: uuid(),
-        originPushUrl: "my-git-url"
+        originPushUrl: "my-git-url",
       });
       expect(true).toBe(false);
     } catch (err) {
@@ -155,7 +155,7 @@ describe("createPullRequest", () => {
     try {
       await createPullRequest("random title", "sourceRef", "targetRef", {
         description: uuid(),
-        originPushUrl: "my-git-url"
+        originPushUrl: "my-git-url",
       });
     } catch (e) {
       expect(true).toBe(false);
@@ -169,7 +169,7 @@ describe("createPullRequest", () => {
     await expect(
       createPullRequest("random title", "sourceRef", "targetRef", {
         description: uuid(),
-        originPushUrl: "my-git-url"
+        originPushUrl: "my-git-url",
       })
     ).rejects.toThrow();
   });
@@ -181,7 +181,7 @@ describe("createPullRequest", () => {
     await expect(
       createPullRequest("random title", "sourceRef", "targetRef", {
         description: uuid(),
-        originPushUrl: "my-git-url"
+        originPushUrl: "my-git-url",
       })
     ).rejects.toThrow();
   });
@@ -192,15 +192,15 @@ describe("test generatePRUrl function", async () => {
     const res = await generatePRUrl({
       pullRequestId: 1,
       repository: {
-        id: "test"
-      }
+        id: "test",
+      },
     });
     expect(res).toBe("http://foobar.com/pullrequest/1");
   });
   test("negative test", async () => {
     await expect(
       generatePRUrl({
-        repository: {}
+        repository: {},
       })
     ).rejects.toThrow();
   });

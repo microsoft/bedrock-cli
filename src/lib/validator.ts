@@ -182,9 +182,9 @@ export const validateProjectName = (value: string): string | boolean => {
     "+",
     "=",
     "[",
-    "]"
+    "]",
   ];
-  if (invalidChars.some(x => value.indexOf(x) !== -1)) {
+  if (invalidChars.some((x) => value.indexOf(x) !== -1)) {
     return `Project name can't contain special characters, such as / : \\ ~ & % ; @ ' " ? < > | # $ * } { , + = [ ]`;
   }
 

@@ -1,6 +1,6 @@
 import {
   ResourceGroupsCreateOrUpdateResponse,
-  ResourceGroupsListResponse
+  ResourceGroupsListResponse,
 } from "@azure/arm-resources/src/models";
 import * as restAuth from "@azure/ms-rest-nodeauth";
 import { create, getResourceGroups, isExist } from "./resourceService";
@@ -24,17 +24,17 @@ jest.mock("@azure/arm-resources", () => {
               {
                 id: "1234567890-abcdef",
                 location: RESOURCE_GROUP_LOCATION,
-                name: "test"
-              }
+                name: "test",
+              },
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ] as any;
-          }
-        }
+          },
+        },
       };
     }
   }
   return {
-    ResourceManagementClient: MockClient
+    ResourceManagementClient: MockClient,
   };
 });
 
@@ -76,8 +76,8 @@ describe("Resource Group tests", () => {
       {
         id: "1234567890-abcdef",
         location: RESOURCE_GROUP_LOCATION,
-        name: "test"
-      }
+        name: "test",
+      },
     ]);
   });
   it("getResourceGroups: cache test", async () => {
@@ -96,8 +96,8 @@ describe("Resource Group tests", () => {
       {
         id: "fakeId",
         location: RESOURCE_GROUP_LOCATION,
-        name: "test"
-      }
+        name: "test",
+      },
     ]);
     const res = await isExist(
       servicePrincipalId,
@@ -124,8 +124,8 @@ describe("Resource Group tests", () => {
       {
         id: "fakeId",
         location: RESOURCE_GROUP_LOCATION,
-        name: "test1"
-      }
+        name: "test1",
+      },
     ]);
     const res = await isExist(
       servicePrincipalId,

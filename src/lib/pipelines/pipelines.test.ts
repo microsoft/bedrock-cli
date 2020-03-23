@@ -8,12 +8,12 @@ import {
   GithubRepoPipelineConfig,
   IAzureRepoPipelineConfig,
   queueBuild,
-  RepositoryTypes
+  RepositoryTypes,
 } from "./pipelines";
 import {
   BuildDefinition,
   BuildRepository,
-  YamlProcess
+  YamlProcess,
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import * as azdoClient from "../azdoClient";
 
@@ -45,11 +45,11 @@ describe("It builds an azure repo pipeline definition", () => {
         foo: {
           allowOverride: false,
           isSecret: true,
-          value: "bar"
-        }
+          value: "bar",
+        },
       },
       yamlFileBranch: "master",
-      yamlFilePath: "path/to/azure-pipelines.yml"
+      yamlFilePath: "path/to/azure-pipelines.yml",
     } as IAzureRepoPipelineConfig;
 
     const definition: BuildDefinition = definitionForAzureRepoPipeline(
@@ -91,11 +91,11 @@ describe("It builds a github repo pipeline definition", () => {
         foo: {
           allowOverride: false,
           isSecret: true,
-          value: "bar"
-        }
+          value: "bar",
+        },
       },
       yamlFileBranch: "master",
-      yamlFilePath: "path/to/azure-pipelines.yml"
+      yamlFilePath: "path/to/azure-pipelines.yml",
     } as GithubRepoPipelineConfig;
 
     const definition: BuildDefinition = definitionForGithubRepoPipeline(
@@ -136,7 +136,7 @@ describe("test createPipelineForDefinition function", () => {
       {
         createDefinition: () => {
           return {};
-        }
+        },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
       "project",
@@ -151,7 +151,7 @@ describe("test createPipelineForDefinition function", () => {
         {
           createDefinition: () => {
             throw Error("fake");
-          }
+          },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
         "project",
@@ -168,7 +168,7 @@ describe("test queueBuild function", () => {
       {
         queueBuild: () => {
           return {};
-        }
+        },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
       "project",
@@ -183,7 +183,7 @@ describe("test queueBuild function", () => {
         {
           queueBuild: () => {
             throw Error("fake");
-          }
+          },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
         "project",

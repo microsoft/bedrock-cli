@@ -2,7 +2,7 @@
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
 import {
   BuildDefinition,
-  BuildDefinitionVariable
+  BuildDefinitionVariable,
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
 import { Config } from "../../config";
@@ -10,7 +10,7 @@ import { repositoryHasFile } from "../../lib/azdoClient";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
   BUILD_SCRIPT_URL,
-  RENDER_HLD_PIPELINE_FILENAME
+  RENDER_HLD_PIPELINE_FILENAME,
 } from "../../lib/constants";
 import { AzureDevOpsOpts } from "../../lib/git";
 import { getRepositoryName, isGitHubUrl } from "../../lib/gitutils";
@@ -19,7 +19,7 @@ import {
   definitionForAzureRepoPipeline,
   getBuildApiClient,
   IAzureRepoPipelineConfig,
-  queueBuild
+  queueBuild,
 } from "../../lib/pipelines/pipelines";
 import { logger } from "../../logger";
 import decorator from "./pipeline.decorator.json";
@@ -106,18 +106,18 @@ export const requiredPipelineVariables = (
     BUILD_SCRIPT_URL: {
       allowOverride: true,
       isSecret: false,
-      value: buildScriptUrl
+      value: buildScriptUrl,
     },
     MANIFEST_REPO: {
       allowOverride: true,
       isSecret: false,
-      value: manifestRepoUrl
+      value: manifestRepoUrl,
     },
     PAT: {
       allowOverride: true,
       isSecret: true,
-      value: accessToken
-    }
+      value: accessToken,
+    },
   };
 };
 
@@ -150,7 +150,7 @@ export const installHldToManifestPipeline = async (
       values.manifestUrl
     ),
     yamlFileBranch: values.yamlFileBranch,
-    yamlFilePath: RENDER_HLD_PIPELINE_FILENAME
+    yamlFilePath: RENDER_HLD_PIPELINE_FILENAME,
   } as IAzureRepoPipelineConfig);
 
   logger.info(
@@ -196,7 +196,7 @@ export const execute = async (
     const accessOpts: AzureDevOpsOpts = {
       orgName: opts.orgName,
       personalAccessToken: opts.personalAccessToken,
-      project: opts.devopsProject
+      project: opts.devopsProject,
     };
 
     // By default the version descriptor is for the master branch

@@ -1,7 +1,7 @@
 import { ICoreApi } from "azure-devops-node-api/CoreApi";
 import {
   ProjectVisibility,
-  TeamProject
+  TeamProject,
 } from "azure-devops-node-api/interfaces/CoreInterfaces";
 import { sleep } from "../../lib/util";
 import { logger } from "../../logger";
@@ -48,15 +48,15 @@ export const createProject = async (
     await coreAPI.queueCreateProject({
       capabilities: {
         processTemplate: {
-          templateTypeId: "6b724908-ef14-45cf-84f8-768b5384da45" // TOFIX: do not know what this GUID is about (https://docs.microsoft.com/en-us/rest/api/azure/devops/processes/processes/list?view=azure-devops-rest-5.1)
+          templateTypeId: "6b724908-ef14-45cf-84f8-768b5384da45", // TOFIX: do not know what this GUID is about (https://docs.microsoft.com/en-us/rest/api/azure/devops/processes/processes/list?view=azure-devops-rest-5.1)
         },
         versioncontrol: {
-          sourceControlType: "Git"
-        }
+          sourceControlType: "Git",
+        },
       },
       description: "Created by automated tool",
       name,
-      visibility: ProjectVisibility.Organization
+      visibility: ProjectVisibility.Organization,
     });
     // poll to check if project is checked.
     let created = false;

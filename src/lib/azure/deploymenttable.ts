@@ -151,7 +151,7 @@ export const addSrcToACRPipeline = async (
     commitId,
     imageTag,
     p1: pipelineId,
-    service: serviceName
+    service: serviceName,
   };
   if (repository) {
     entry.sourceRepo = repository.toLowerCase();
@@ -200,7 +200,7 @@ export const updateMatchingArcToHLDPipelineEntry = async (
       p1: found.p1,
       p2: pipelineId.toLowerCase(),
       service: found.service,
-      sourceRepo: found.sourceRepo
+      sourceRepo: found.sourceRepo,
     };
     if (pr) {
       updateEntry.pr = pr.toLowerCase();
@@ -250,7 +250,7 @@ export const updateLastRowOfArcToHLDPipelines = async (
     p1: lastEntry.p1,
     p2: pipelineId.toLowerCase(),
     service: lastEntry.service,
-    sourceRepo: lastEntry.sourceRepo
+    sourceRepo: lastEntry.sourceRepo,
   };
   if (pr) {
     last.pr = pr.toLowerCase();
@@ -295,7 +295,7 @@ export const addNewRowToArcToHLDPipelines = async (
     imageTag: imageTag.toLowerCase(),
     p1: "",
     p2: pipelineId.toLowerCase(),
-    service: ""
+    service: "",
   };
   if (pr) {
     newEntry.pr = pr.toLowerCase();
@@ -467,7 +467,7 @@ export const updateHLDtoManifestEntry = async (
       p2: found.p2,
       p3: pipelineId.toLowerCase(),
       service: found.service,
-      sourceRepo: found.sourceRepo
+      sourceRepo: found.sourceRepo,
     };
     if (manifestCommitId) {
       entry.manifestCommitId = manifestCommitId.toLowerCase();
@@ -523,7 +523,7 @@ export const updateLastHLDtoManifestEntry = async (
     p2: lastEntry.p2,
     p3: pipelineId.toLowerCase(),
     service: lastEntry.service,
-    sourceRepo: lastEntry.sourceRepo
+    sourceRepo: lastEntry.sourceRepo,
   };
   if (manifestCommitId) {
     newEntry.manifestCommitId = manifestCommitId.toLowerCase();
@@ -571,7 +571,7 @@ export const addNewRowToHLDtoManifestPipeline = async (
     p1: "",
     p2: "",
     p3: pipelineId.toLowerCase(),
-    service: ""
+    service: "",
   };
   if (manifestCommitId) {
     newEntry.manifestCommitId = manifestCommitId.toLowerCase();
@@ -739,7 +739,7 @@ export const insertToTable = (
   const tableService = getTableService(tableInfo);
 
   return new Promise((resolve, reject) => {
-    tableService.insertEntity(tableInfo.tableName, entry, err => {
+    tableService.insertEntity(tableInfo.tableName, entry, (err) => {
       if (!err) {
         resolve();
       } else {
@@ -761,7 +761,7 @@ export const deleteFromTable = (
   const tableService = getTableService(tableInfo);
 
   return new Promise((resolve, reject) => {
-    tableService.deleteEntity(tableInfo.tableName, entry, {}, err => {
+    tableService.deleteEntity(tableInfo.tableName, entry, {}, (err) => {
       if (!err) {
         resolve();
       } else {
@@ -788,7 +788,7 @@ export const updateEntryInTable = (
   const tableService = getTableService(tableInfo);
 
   return new Promise((resolve, reject) => {
-    tableService.replaceEntity(tableInfo.tableName, entry, err => {
+    tableService.replaceEntity(tableInfo.tableName, entry, (err) => {
       if (!err) {
         resolve();
       } else {
@@ -802,7 +802,5 @@ export const updateEntryInTable = (
  * Generates a RowKey GUID 12 characters long
  */
 export const getRowKey = (): string => {
-  return uuid()
-    .replace("-", "")
-    .substring(0, 12);
+  return uuid().replace("-", "").substring(0, 12);
 };

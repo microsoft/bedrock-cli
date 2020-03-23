@@ -37,13 +37,13 @@ describe("test execute function and logic", () => {
     createBedrockYaml(tmpDir, {
       rings: {
         master: {
-          isDefault: true
+          isDefault: true,
         },
-        prod: {}
+        prod: {},
       },
       services: {},
       variableGroups: ["testvg"],
-      version: "1.0"
+      version: "1.0",
     });
     await execute("prod", tmpDir, exitFn);
 

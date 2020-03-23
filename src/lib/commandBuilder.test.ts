@@ -7,7 +7,7 @@ import {
   build,
   exit as exitCmd,
   CommandBuildElements,
-  validateForRequiredValues
+  validateForRequiredValues,
 } from "./commandBuilder";
 
 interface CommandOption {
@@ -21,7 +21,7 @@ describe("Tests Command Builder's build function", () => {
     const descriptor: CommandBuildElements = {
       alias: "cbt",
       command: "command-build-test",
-      description: "description of command"
+      description: "description of command",
     };
 
     const cmd = build(new commander.Command(), descriptor);
@@ -39,31 +39,31 @@ describe("Tests Command Builder's build function", () => {
         {
           arg: "-a, --option-a <optionA>",
           description: "description for optionA",
-          required: false
+          required: false,
         },
         {
           arg: "-b, --option-b <optionB>",
           description: "description for optionB",
-          required: false
+          required: false,
         },
         {
           arg: "-c, --option-c <optionC>",
           description: "description for optionC",
-          required: false
+          required: false,
         },
         {
           arg: "-d, --option-d <optionD>",
           defaultValue: false,
           description: "description for optionD",
-          required: false
+          required: false,
         },
         {
           arg: "-e, --option-d <optionE>",
           defaultValue: "test",
           description: "description for optionE",
-          required: false
-        }
-      ]
+          required: false,
+        },
+      ],
     };
 
     const cmd = build(new commander.Command(), descriptor);
@@ -88,7 +88,7 @@ describe("Tests Command Builder's validation function", () => {
     const descriptor: CommandBuildElements = {
       alias: "cbt",
       command: "command-build-test",
-      description: "description of command"
+      description: "description of command",
     };
 
     const errors = validateForRequiredValues(descriptor, {});
@@ -104,27 +104,27 @@ describe("Tests Command Builder's validation function", () => {
         {
           arg: "-a, --option-a <optionA>",
           description: "description for optionA",
-          required: true
+          required: true,
         },
         {
           arg: "-b, --option-b <optionB>",
           description: "description for optionB",
-          required: false
+          required: false,
         },
         {
           arg: "-c --option-c <optionC>",
           description: "description for optionC",
-          required: true
+          required: true,
         },
         {
           arg: "-d --option-d <optionD>",
-          description: "description for optionD" // required is not defined, treated as false
-        }
-      ]
+          description: "description for optionD", // required is not defined, treated as false
+        },
+      ],
     };
 
     const errors = validateForRequiredValues(descriptor, {
-      optionA: "has value"
+      optionA: "has value",
     });
 
     // Option-A is ok because we have value for optionA
@@ -136,7 +136,7 @@ describe("Tests Command Builder's validation function", () => {
 });
 
 describe("Tests Command Builder's exit function", () => {
-  it("calling exit function", async done => {
+  it("calling exit function", async (done) => {
     (watchFile as jest.Mock).mockImplementationOnce((f, cb) => {
       cb({ size: 100 });
     });
@@ -147,13 +147,13 @@ describe("Tests Command Builder's exit function", () => {
       done();
     });
   });
-  it("calling exit function without file transport", async done => {
+  it("calling exit function without file transport", async (done) => {
     const exitFn = jest.fn();
     await exitCmd(
       createLogger({
         defaultMeta: { service: "spk" },
         level: "info",
-        transports: []
+        transports: [],
       }),
       exitFn,
       1,

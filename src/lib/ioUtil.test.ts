@@ -5,7 +5,7 @@ import {
   createTempDir,
   getMissingFilenames,
   isDirEmpty,
-  removeDir
+  removeDir,
 } from "./ioUtil";
 
 describe("test createTempDir function", () => {
@@ -73,13 +73,13 @@ describe("test doFilesExist function", () => {
     const dir = createTempDir();
     const files = ["hello", "world"];
 
-    files.forEach(f => {
+    files.forEach((f) => {
       fs.writeFileSync(path.join(dir, `${f}.txt`), f);
     });
 
     const missing = getMissingFilenames(
       dir,
-      files.map(f => `${f}.txt`)
+      files.map((f) => `${f}.txt`)
     );
     expect(missing.length).toBe(0);
   });
@@ -89,7 +89,7 @@ describe("test doFilesExist function", () => {
 
     const missing = getMissingFilenames(
       dir,
-      files.map(f => `${f}.txt`)
+      files.map((f) => `${f}.txt`)
     );
     expect(missing.length).toBe(2);
   });
@@ -98,14 +98,14 @@ describe("test doFilesExist function", () => {
     const files = ["hello", "world", "again"];
 
     files
-      .filter(f => f !== "again")
-      .forEach(f => {
+      .filter((f) => f !== "again")
+      .forEach((f) => {
         fs.writeFileSync(path.join(dir, `${f}.txt`), f);
       });
 
     const missing = getMissingFilenames(
       dir,
-      files.map(f => `${f}.txt`)
+      files.map((f) => `${f}.txt`)
     );
     expect(missing.length).toBe(1);
   });

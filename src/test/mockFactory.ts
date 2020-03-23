@@ -6,14 +6,14 @@ import {
   sanitizeTriggerPath,
   IMAGE_REPO,
   IMAGE_TAG,
-  SAFE_SOURCE_BRANCH
+  SAFE_SOURCE_BRANCH,
 } from "../lib/fileutils";
 import {
   AzurePipelinesYaml,
   BedrockFile,
   ComponentYaml,
   HelmConfig,
-  MaintainersFile
+  MaintainersFile,
 } from "../types";
 
 export const createTestServiceBuildAndUpdatePipelineYaml = (
@@ -32,9 +32,9 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
   const data: AzurePipelinesYaml = {
     trigger: {
       branches: { include: ringBranches },
-      paths: { include: [sanitizeTriggerPath(relativeServicePathFormatted)] } // Only building for a single service's path.
+      paths: { include: [sanitizeTriggerPath(relativeServicePathFormatted)] }, // Only building for a single service's path.
     },
-    variables: [...(variableGroups ?? []).map(group => ({ group }))],
+    variables: [...(variableGroups ?? []).map((group) => ({ group }))],
     stages: [
       {
         // Build stage
@@ -43,32 +43,32 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
           {
             job: "run_build_push_acr",
             pool: {
-              vmImage: VM_IMAGE
+              vmImage: VM_IMAGE,
             },
             steps: [
               {
                 task: "HelmInstaller@1",
                 inputs: {
-                  helmVersionToInstall: HELM_VERSION
-                }
+                  helmVersionToInstall: HELM_VERSION,
+                },
               },
               {
                 script: generateYamlScript([
                   `echo "az login --service-principal --username $(SP_APP_ID) --password $(SP_PASS) --tenant $(SP_TENANT)"`,
-                  `az login --service-principal --username "$(SP_APP_ID)" --password "$(SP_PASS)" --tenant "$(SP_TENANT)"`
+                  `az login --service-principal --username "$(SP_APP_ID)" --password "$(SP_PASS)" --tenant "$(SP_TENANT)"`,
                 ]),
-                displayName: "Azure Login"
+                displayName: "Azure Login",
               },
               {
                 script: generateYamlScript([
                   `# Download build.sh`,
                   `curl $BEDROCK_BUILD_SCRIPT > build.sh`,
-                  `chmod +x ./build.sh`
+                  `chmod +x ./build.sh`,
                 ]),
                 displayName: "Download bedrock bash scripts",
                 env: {
-                  BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)"
-                }
+                  BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)",
+                },
               },
               {
                 script: generateYamlScript([
@@ -83,12 +83,12 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
                   `. ./build.sh --source-only`,
                   `get_spk_version`,
                   `download_spk`,
-                  `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p1 $(Build.BuildId) --image-tag $tag_name --commit-id $commitId --service $service --repository $repourl`
+                  `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p1 $(Build.BuildId) --image-tag $tag_name --commit-id $commitId --service $service --repository $repourl`,
                 ]),
                 displayName:
                   "If configured, update Spektate storage with build pipeline",
                 condition:
-                  "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''))"
+                  "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''))",
               },
               {
                 script: generateYamlScript([
@@ -98,13 +98,13 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
                   `echo "Image Name: $IMAGE_NAME"`,
                   `cd ${relativeServiceForDockerfile}`,
                   `echo "az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
-                  `az acr build -r $(ACR_NAME) --image $IMAGE_NAME .`
+                  `az acr build -r $(ACR_NAME) --image $IMAGE_NAME .`,
                 ]),
-                displayName: "ACR Build and Publish"
-              }
-            ]
-          }
-        ]
+                displayName: "ACR Build and Publish",
+              },
+            ],
+          },
+        ],
       },
       {
         // Update HLD Stage
@@ -115,25 +115,25 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
           {
             job: "update_image_tag",
             pool: {
-              vmImage: VM_IMAGE
+              vmImage: VM_IMAGE,
             },
             steps: [
               {
                 task: "HelmInstaller@1",
                 inputs: {
-                  helmVersionToInstall: HELM_VERSION
-                }
+                  helmVersionToInstall: HELM_VERSION,
+                },
               },
               {
                 script: generateYamlScript([
                   `# Download build.sh`,
                   `curl $BEDROCK_BUILD_SCRIPT > build.sh`,
-                  `chmod +x ./build.sh`
+                  `chmod +x ./build.sh`,
                 ]),
                 displayName: "Download bedrock bash scripts",
                 env: {
-                  BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)"
-                }
+                  BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)",
+                },
               },
               {
                 script: generateYamlScript([
@@ -199,21 +199,21 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
                   `get_spk_version`,
                   `download_spk`,
                   `./spk/spk deployment create  -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p2 $(Build.BuildId) --hld-commit-id $latest_commit --env $BRANCH_NAME --image-tag $tag_name --pr $pr_id --repository $repourl`,
-                  `fi`
+                  `fi`,
                 ]),
                 displayName:
                   "Download Fabrikate, Update HLD, Push changes, Open PR, and if configured, push to Spektate storage",
                 env: {
                   ACCESS_TOKEN_SECRET: "$(PAT)",
                   AZURE_DEVOPS_EXT_PAT: "$(PAT)",
-                  REPO: "$(HLD_REPO)"
-                }
-              }
-            ]
-          }
-        ]
-      }
-    ]
+                  REPO: "$(HLD_REPO)",
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
   };
 
   return asString
@@ -230,19 +230,19 @@ export const createTestMaintainersYaml = (
         maintainers: [
           {
             email: "somegithubemailg@users.noreply.github.com",
-            name: "my name"
-          }
-        ]
+            name: "my name",
+          },
+        ],
       },
       "./packages/service1": {
         maintainers: [
           {
             email: "hello@users.noreply.github.com",
-            name: "testUser"
-          }
-        ]
-      }
-    }
+            name: "testUser",
+          },
+        ],
+      },
+    },
   };
 
   return asString ? yaml.dump(data) : data;
@@ -255,50 +255,50 @@ export const createTestBedrockYaml = (
     chart: {
       branch: "master",
       git: "https://github.com/catalystcode/spk-demo-repo.git",
-      path: ""
-    }
+      path: "",
+    },
   };
 
   const service2HelmConfig: HelmConfig = {
     chart: {
       branch: "master",
       git: "https://github.com/catalystcode/spk-demo-repo.git",
-      path: "/service1"
-    }
+      path: "/service1",
+    },
   };
 
   const zookeeperHelmConfig: HelmConfig = {
     chart: {
       chart: "zookeeper",
-      repository: "https://kubernetes-charts-incubator.storage.googleapis.com/"
-    }
+      repository: "https://kubernetes-charts-incubator.storage.googleapis.com/",
+    },
   };
 
   const data: BedrockFile = {
     rings: {
       develop: {},
       master: {
-        isDefault: true
+        isDefault: true,
       },
       qa: {},
-      testing: {}
+      testing: {},
     },
     services: {
       "./": {
         helm: service1HelmConfig,
-        k8sBackendPort: 80
+        k8sBackendPort: 80,
       },
       "./packages/service1": {
         helm: service2HelmConfig,
-        k8sBackendPort: 80
+        k8sBackendPort: 80,
       },
       "./zookeeper": {
         helm: zookeeperHelmConfig,
-        k8sBackendPort: 80
-      }
+        k8sBackendPort: 80,
+      },
     },
     variableGroups: [],
-    version: "1.0"
+    version: "1.0",
   };
 
   return asString ? yaml.dump(data) : data;
@@ -310,30 +310,30 @@ export const createTestHldLifecyclePipelineYaml = (
   const data: AzurePipelinesYaml = {
     trigger: {
       branches: {
-        include: ["master"]
-      }
+        include: ["master"],
+      },
     },
     variables: [],
     pool: {
-      vmImage: VM_IMAGE
+      vmImage: VM_IMAGE,
     },
     steps: [
       {
         task: "HelmInstaller@1",
         inputs: {
-          helmVersionToInstall: HELM_VERSION
-        }
+          helmVersionToInstall: HELM_VERSION,
+        },
       },
       {
         script: generateYamlScript([
           `# Download build.sh`,
           `curl $BEDROCK_BUILD_SCRIPT > build.sh`,
-          `chmod +x ./build.sh`
+          `chmod +x ./build.sh`,
         ]),
         displayName: "Download bedrock bash scripts",
         env: {
-          BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)"
-        }
+          BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)",
+        },
       },
       {
         script: generateYamlScript([
@@ -385,7 +385,7 @@ export const createTestHldLifecyclePipelineYaml = (
 
           ``,
           `echo 'az repos pr create --description "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)." "PR created by: $(Build.DefinitionName) with buildId: $(Build.BuildId) and buildNumber: $(Build.BuildNumber)"'`,
-          `az repos pr create --description "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)." "PR created by: $(Build.DefinitionName) with buildId: $(Build.BuildId) and buildNumber: $(Build.BuildNumber)"`
+          `az repos pr create --description "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)." "PR created by: $(Build.DefinitionName) with buildId: $(Build.BuildId) and buildNumber: $(Build.BuildNumber)"`,
         ]),
         displayName:
           "Download Fabrikate and SPK, Update HLD, Push changes, Open PR",
@@ -393,10 +393,10 @@ export const createTestHldLifecyclePipelineYaml = (
           ACCESS_TOKEN_SECRET: "$(PAT)",
           APP_REPO_URL: "$(Build.Repository.Uri)",
           AZURE_DEVOPS_EXT_PAT: "$(PAT)",
-          REPO: "$(HLD_REPO)"
-        }
-      }
-    ]
+          REPO: "$(HLD_REPO)",
+        },
+      },
+    ],
   };
 
   return asString
@@ -410,34 +410,34 @@ export const createTestHldAzurePipelinesYaml = (
   const data: AzurePipelinesYaml = {
     trigger: {
       branches: {
-        include: ["master"]
-      }
+        include: ["master"],
+      },
     },
     pool: {
-      vmImage: VM_IMAGE
+      vmImage: VM_IMAGE,
     },
     steps: [
       {
         checkout: "self",
         persistCredentials: true,
-        clean: true
+        clean: true,
       },
       {
         task: "HelmInstaller@1",
         inputs: {
-          helmVersionToInstall: HELM_VERSION
-        }
+          helmVersionToInstall: HELM_VERSION,
+        },
       },
       {
         script: generateYamlScript([
           `# Download build.sh`,
           `curl $BEDROCK_BUILD_SCRIPT > build.sh`,
-          `chmod +x ./build.sh`
+          `chmod +x ./build.sh`,
         ]),
         displayName: "Download bedrock bash scripts",
         env: {
-          BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)"
-        }
+          BEDROCK_BUILD_SCRIPT: "$(BUILD_SCRIPT_URL)",
+        },
       },
       {
         script: generateYamlScript([
@@ -452,38 +452,38 @@ export const createTestHldAzurePipelinesYaml = (
           `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --pr $pr_id`,
           `else`,
           `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId`,
-          `fi`
+          `fi`,
         ]),
         displayName:
           "If configured, update manifest pipeline details in Spektate db before manifest generation",
         condition:
-          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''))"
+          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''))",
       },
       {
         task: "ShellScript@2",
         displayName: "Validate fabrikate definitions",
         inputs: {
-          scriptPath: "build.sh"
+          scriptPath: "build.sh",
         },
         condition: `eq(variables['Build.Reason'], 'PullRequest')`,
         env: {
-          VERIFY_ONLY: 1
-        }
+          VERIFY_ONLY: 1,
+        },
       },
       {
         task: "ShellScript@2",
         displayName:
           "Transform fabrikate definitions and publish to YAML manifests to repo",
         inputs: {
-          scriptPath: "build.sh"
+          scriptPath: "build.sh",
         },
         condition: `ne(variables['Build.Reason'], 'PullRequest')`,
         env: {
           ACCESS_TOKEN_SECRET: "$(PAT)",
           COMMIT_MESSAGE: "$(Build.SourceVersionMessage)",
           REPO: "$(MANIFEST_REPO)",
-          BRANCH_NAME: "$(Build.SourceBranchName)"
-        }
+          BRANCH_NAME: "$(Build.SourceBranchName)",
+        },
       },
       {
         script: generateYamlScript([
@@ -494,14 +494,14 @@ export const createTestHldAzurePipelinesYaml = (
           `repourl=\${url##*@}`,
           `get_spk_version`,
           `download_spk`,
-          `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --manifest-commit-id $latest_commit --repository $repourl`
+          `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --manifest-commit-id $latest_commit --repository $repourl`,
         ]),
         displayName:
           "If configured, update manifest pipeline details in Spektate db after manifest generation",
         condition:
-          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''))"
-      }
-    ]
+          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''))",
+      },
+    ],
   };
 
   return asString
@@ -519,9 +519,9 @@ export const createTestComponentYaml = (
         name: "traefik2",
         method: "git",
         source: "https://github.com/microsoft/fabrikate-definitions.git",
-        path: "definitions/traefik2"
-      }
-    ]
+        path: "definitions/traefik2",
+      },
+    ],
   };
 
   return asString ? yaml.dump(component) : component;

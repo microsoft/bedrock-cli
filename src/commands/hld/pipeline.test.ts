@@ -9,7 +9,7 @@ jest.mock("../../lib/pipelines/pipelines");
 import {
   createPipelineForDefinition,
   getBuildApiClient,
-  queueBuild
+  queueBuild,
 } from "../../lib/pipelines/pipelines";
 import { deepClone } from "../../lib/util";
 import { ConfigYaml } from "../../types";
@@ -20,7 +20,7 @@ import {
   CommandOptions,
   installHldToManifestPipeline,
   populateValues,
-  requiredPipelineVariables
+  requiredPipelineVariables,
 } from "./pipeline";
 import * as pipeline from "./pipeline";
 
@@ -33,7 +33,7 @@ const MOCKED_VALUES: CommandOptions = {
   orgName: "orgName",
   personalAccessToken: "personalAccessToken",
   pipelineName: "pipelineName",
-  yamlFileBranch: "master"
+  yamlFileBranch: "master",
 };
 
 const MOCKED_CONFIG = {
@@ -43,8 +43,8 @@ const MOCKED_CONFIG = {
     manifest_repository:
       "https://dev.azure.com/mocked/fabrikam/_git/materialized",
     org: "mocked_org",
-    project: "mocked_project"
-  }
+    project: "mocked_project",
+  },
 };
 
 const getMockObject = (): CommandOptions => {
@@ -98,7 +98,7 @@ describe("test populateValues function", () => {
       orgName: "",
       personalAccessToken: "",
       pipelineName: "",
-      yamlFileBranch: ""
+      yamlFileBranch: "",
     });
 
     expect(values.buildScriptUrl).toBe(BUILD_SCRIPT_URL);
@@ -132,7 +132,7 @@ describe("test populateValues function", () => {
         orgName: "",
         personalAccessToken: "",
         pipelineName: "",
-        yamlFileBranch: ""
+        yamlFileBranch: "",
       })
     ).toThrow(`GitHub repos are not supported`);
   });
@@ -147,7 +147,7 @@ describe("test populateValues function", () => {
         orgName: "",
         personalAccessToken: "",
         pipelineName: "",
-        yamlFileBranch: ""
+        yamlFileBranch: "",
       })
     ).toThrow(`GitHub repos are not supported`);
   });

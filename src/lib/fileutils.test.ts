@@ -22,7 +22,7 @@ import {
   PROJECT_PIPELINE_FILENAME,
   RENDER_HLD_PIPELINE_FILENAME,
   SERVICE_PIPELINE_FILENAME,
-  VM_IMAGE
+  VM_IMAGE,
 } from "../lib/constants";
 import { disableVerboseLogging, enableVerboseLogging } from "../logger";
 import {
@@ -30,7 +30,7 @@ import {
   createTestHldAzurePipelinesYaml,
   createTestHldLifecyclePipelineYaml,
   createTestMaintainersYaml,
-  createTestServiceBuildAndUpdatePipelineYaml
+  createTestServiceBuildAndUpdatePipelineYaml,
 } from "../test/mockFactory";
 import { AccessYaml, AzurePipelinesYaml, MaintainersFile } from "../types";
 import {
@@ -46,7 +46,7 @@ import {
   getVersionMessage,
   sanitizeTriggerPath,
   serviceBuildAndUpdatePipeline,
-  updateTriggerBranchesForServiceBuildAndUpdatePipeline
+  updateTriggerBranchesForServiceBuildAndUpdatePipeline,
 } from "./fileutils";
 
 beforeAll(() => {
@@ -73,8 +73,8 @@ describe("generateAccessYaml", () => {
   beforeEach(() => {
     mockFs({
       "hld-repository": {
-        "my-service": {}
-      }
+        "my-service": {},
+      },
     });
   });
 
@@ -105,7 +105,7 @@ describe("generateAccessYaml", () => {
 
   it("if an access.yaml already exists, it should update access.yaml in the filepath", () => {
     const mockFsOptions = {
-      [`${targetDirectory}/${serviceDirectory}/${ACCESS_FILENAME}`]: "'https://fabrikam@dev.azure.com/someorg/someproject/_git/fabrikam2019': ACCESS_TOKEN_SECRET"
+      [`${targetDirectory}/${serviceDirectory}/${ACCESS_FILENAME}`]: "'https://fabrikam@dev.azure.com/someorg/someproject/_git/fabrikam2019': ACCESS_TOKEN_SECRET",
     };
     mockFs(mockFsOptions);
 
@@ -134,7 +134,7 @@ describe("generateAccessYaml", () => {
 
   it("if an access.yaml already exists, it should update access.yaml in the filepath, but not overwrite anything that exists.", () => {
     const mockFsOptions = {
-      [`${targetDirectory}/${serviceDirectory}/${ACCESS_FILENAME}`]: "'https://fabrikam@dev.azure.com/someorg/someproject/_git/fabrikam2019': MY_CUSTOM_SECRET"
+      [`${targetDirectory}/${serviceDirectory}/${ACCESS_FILENAME}`]: "'https://fabrikam@dev.azure.com/someorg/someproject/_git/fabrikam2019': MY_CUSTOM_SECRET",
     };
     mockFs(mockFsOptions);
 
@@ -168,8 +168,8 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
   beforeEach(() => {
     mockFs({
       "app-repository": {
-        "my-service": {}
-      }
+        "my-service": {},
+      },
     });
   });
 
@@ -179,7 +179,7 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
 
   it("should not do anything if build-update-hld.yaml exists", () => {
     const mockFsOptions = {
-      [`${targetDirectory}/${serviceDirectory}/${SERVICE_PIPELINE_FILENAME}`]: "existing pipeline"
+      [`${targetDirectory}/${serviceDirectory}/${SERVICE_PIPELINE_FILENAME}`]: "existing pipeline",
     };
     mockFs(mockFsOptions);
 
@@ -226,21 +226,21 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
 
   test("no path trigger injected when the path is the project root (is: ./)", () => {
     const serviceYaml = serviceBuildAndUpdatePipeline("my-service", "./", [
-      "master"
+      "master",
     ]);
     expect(serviceYaml?.trigger?.paths).toBeUndefined();
     expect(serviceYaml.trigger).toStrictEqual({
-      branches: { include: ["master"] }
+      branches: { include: ["master"] },
     });
   });
 
   test("path trigger is injected when the path is not the root of the project (not: ./)", () => {
     for (const p of ["my-service", "foo/bar/baz"]) {
       const serviceYaml = serviceBuildAndUpdatePipeline("my-service", p, [
-        "master"
+        "master",
       ]);
       expect(serviceYaml?.trigger?.paths).toStrictEqual({
-        include: [p]
+        include: [p],
       });
     }
     const yamlWithNoDot = serviceBuildAndUpdatePipeline(
@@ -249,7 +249,7 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
       ["master"]
     );
     expect(yamlWithNoDot?.trigger?.paths).toStrictEqual({
-      include: ["another-service"]
+      include: ["another-service"],
     });
   });
 });
@@ -263,8 +263,8 @@ describe("updateTriggerBranchesForServiceBuildAndUpdatePipeline", () => {
   beforeEach(() => {
     mockFs({
       "app-repository": {
-        "my-service": {}
-      }
+        "my-service": {},
+      },
     });
   });
 
@@ -295,7 +295,7 @@ describe("updateTriggerBranchesForServiceBuildAndUpdatePipeline", () => {
     const mockFsOptions = {
       [`${targetDirectory}/${serviceDirectory}/${SERVICE_PIPELINE_FILENAME}`]: Buffer.from(
         existingPipelineAsString
-      )
+      ),
     };
     mockFs(mockFsOptions);
 
@@ -344,7 +344,7 @@ describe("generateHldLifecyclePipelineYaml", () => {
 
   beforeEach(() => {
     mockFs({
-      "app-repository": {}
+      "app-repository": {},
     });
   });
 
@@ -354,7 +354,7 @@ describe("generateHldLifecyclePipelineYaml", () => {
 
   it("should not do anything if hld-lifecycle.yaml exists", () => {
     const mockFsOptions = {
-      [`${targetDirectory}/${PROJECT_PIPELINE_FILENAME}`]: "existing pipeline"
+      [`${targetDirectory}/${PROJECT_PIPELINE_FILENAME}`]: "existing pipeline",
     };
     mockFs(mockFsOptions);
 
@@ -387,7 +387,7 @@ describe("generateHldAzurePipelinesYaml", () => {
 
   beforeEach(() => {
     mockFs({
-      "hld-repository": {}
+      "hld-repository": {},
     });
   });
   afterEach(() => {
@@ -396,7 +396,7 @@ describe("generateHldAzurePipelinesYaml", () => {
 
   it("should not do anything if file exist", () => {
     const mockFsOptions = {
-      [`${targetDirectory}/${RENDER_HLD_PIPELINE_FILENAME}`]: "existing pipeline"
+      [`${targetDirectory}/${RENDER_HLD_PIPELINE_FILENAME}`]: "existing pipeline",
     };
     mockFs(mockFsOptions);
 
@@ -433,7 +433,7 @@ describe("generateDefaultHldComponentYaml", () => {
   const componentPath = "definitions/traefik2";
   beforeEach(() => {
     mockFs({
-      "hld-repository": {}
+      "hld-repository": {},
     });
   });
   afterEach(() => {
@@ -442,7 +442,7 @@ describe("generateDefaultHldComponentYaml", () => {
 
   it("should not do anything if file exist", () => {
     const mockFsOptions = {
-      [`${targetDirectory}/component.yaml`]: "existing component"
+      [`${targetDirectory}/component.yaml`]: "existing component",
     };
     mockFs(mockFsOptions);
 
@@ -477,7 +477,7 @@ describe("Adding a new service to a Maintainer file", () => {
   beforeAll(() => {
     mockFs({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      "maintainers.yaml": createTestMaintainersYaml() as any
+      "maintainers.yaml": createTestMaintainersYaml() as any,
     });
   });
 
@@ -495,7 +495,7 @@ describe("Adding a new service to a Maintainer file", () => {
     const servicePath = "packages/my-new-service";
     const newUser = {
       email: "hello@example.com",
-      name: "testUser"
+      name: "testUser",
     };
 
     const writeSpy = jest.spyOn(fs, "writeFileSync");
@@ -508,9 +508,9 @@ describe("Adding a new service to a Maintainer file", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...((defaultMaintainersFileObject as any) as MaintainersFile).services,
         ["./" + servicePath]: {
-          maintainers: [newUser]
-        }
-      }
+          maintainers: [newUser],
+        },
+      },
     };
 
     expect(writeSpy).toBeCalledWith(
@@ -526,7 +526,7 @@ describe("generating service gitignore file", () => {
 
   beforeEach(() => {
     mockFs({
-      "my-new-service": {}
+      "my-new-service": {},
     });
   });
   afterEach(() => {
@@ -537,7 +537,7 @@ describe("generating service gitignore file", () => {
 
   it("should not do anything if file exist", () => {
     const mockFsOptions = {
-      [`${targetDirectory}/.gitignore`]: "foobar"
+      [`${targetDirectory}/.gitignore`]: "foobar",
     };
     mockFs(mockFsOptions);
 
@@ -562,7 +562,7 @@ describe("generating service Dockerfile", () => {
 
   beforeEach(() => {
     mockFs({
-      "my-new-service": {}
+      "my-new-service": {},
     });
   });
   afterEach(() => {
@@ -571,7 +571,7 @@ describe("generating service Dockerfile", () => {
 
   it("should not do anything if file exist", () => {
     const mockFsOptions = {
-      [`${targetDirectory}/Dockerfile`]: "hello!!!!"
+      [`${targetDirectory}/Dockerfile`]: "hello!!!!",
     };
     mockFs(mockFsOptions);
 
@@ -615,7 +615,7 @@ describe("serviceBuildUpdatePipeline", () => {
       variableGroups
     );
     const serializedYaml = yaml.safeDump(buildPipelineYaml, {
-      lineWidth: Number.MAX_SAFE_INTEGER
+      lineWidth: Number.MAX_SAFE_INTEGER,
     });
     const pipelinesPath = path.join(randomDirPath, SERVICE_PIPELINE_FILENAME);
     fs.writeFileSync(pipelinesPath, serializedYaml);
@@ -654,7 +654,7 @@ describe("serviceBuildUpdatePipeline", () => {
   test("that all services receive an build-update-hld-pipeline.yaml with the correct paths and variable groups have been inserted", async () => {
     // Create service directories
     const serviceReferences = ["serviceA", "serviceB", "serviceC"].map(
-      serviceName => {
+      (serviceName) => {
         const servicePath = path.join(randomDirPath, "packages", serviceName);
         shelljs.mkdir("-p", servicePath);
         return { serviceName, servicePath };
@@ -725,23 +725,23 @@ describe("sanitizeTriggerPath", () => {
     {
       name: "removes ./ when present",
       expected: "foo/bar",
-      actual: sanitizeTriggerPath("./foo/bar")
+      actual: sanitizeTriggerPath("./foo/bar"),
     },
     {
       name: "should only remove one slash",
       expected: "/foo/bar",
-      actual: sanitizeTriggerPath(".//foo/bar")
+      actual: sanitizeTriggerPath(".//foo/bar"),
     },
     {
       name: "does nothing if not starting with ./",
       expected: "foo/bar",
-      actual: sanitizeTriggerPath("foo/bar")
+      actual: sanitizeTriggerPath("foo/bar"),
     },
     {
       name: "dot is escaped",
       expected: "a/foo/bar",
-      actual: sanitizeTriggerPath("a/foo/bar")
-    }
+      actual: sanitizeTriggerPath("a/foo/bar"),
+    },
   ];
 
   for (const { name, expected, actual } of tests) {

@@ -2,7 +2,7 @@ import { DefinitionResourceReference } from "azure-devops-node-api/interfaces/Bu
 import {
   AzureKeyVaultVariableGroupProviderData,
   VariableGroup,
-  VariableGroupParameters
+  VariableGroupParameters,
 } from "azure-devops-node-api/interfaces/TaskAgentInterfaces";
 import { Config } from "../../config";
 import { logger } from "../../logger";
@@ -55,14 +55,14 @@ export const authorizeAccessToAllPipelines = async (
     logger.info(`Creating ${message}`);
     const config = Config();
     const {
-      project = config.azure_devops && config.azure_devops.project
+      project = config.azure_devops && config.azure_devops.project,
     } = opts;
 
     const resourceDefinition: DefinitionResourceReference = {
       authorized: true,
       id: variableGroup.id.toString(),
       name: variableGroup.name,
-      type: "variablegroup"
+      type: "variablegroup",
     };
 
     logger.debug(
@@ -166,7 +166,7 @@ export const addVariableGroup = async (
       description: variableGroupData.description,
       name: variableGroupData.name,
       type: "Vsts",
-      variables: variablesMap
+      variables: variablesMap,
     };
 
     return doAddVariableGroup(params, true, opts);
@@ -217,7 +217,7 @@ export const addVariableGroupWithKeyVaultMap = async (
     // create AzureKeyVaultVariableValue object
     const kvProvideData: AzureKeyVaultVariableGroupProviderData = {
       serviceEndpointId: serviceEndpoint.id,
-      vault: variableGroupData.key_vault_provider.name
+      vault: variableGroupData.key_vault_provider.name,
     };
 
     // map variables as secrets from input
@@ -229,7 +229,7 @@ export const addVariableGroupWithKeyVaultMap = async (
       name: variableGroupData.name,
       providerData: kvProvideData,
       type: "AzureKeyVault",
-      variables: secretsMap
+      variables: secretsMap,
     };
 
     return doAddVariableGroup(params, true, opts);

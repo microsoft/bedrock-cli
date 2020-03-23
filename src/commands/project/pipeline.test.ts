@@ -8,7 +8,7 @@ jest.mock("../../lib/pipelines/pipelines");
 import {
   createPipelineForDefinition,
   getBuildApiClient,
-  queueBuild
+  queueBuild,
 } from "../../lib/pipelines/pipelines";
 
 import {
@@ -16,7 +16,7 @@ import {
   execute,
   fetchValidateValues,
   CommandOptions,
-  installLifecyclePipeline
+  installLifecyclePipeline,
 } from "./pipeline";
 
 beforeAll(() => {
@@ -37,7 +37,7 @@ const mockValues: CommandOptions = {
   pipelineName: "pipelineName",
   repoName: "repoName",
   repoUrl: "repoUrl",
-  yamlFileBranch: "master"
+  yamlFileBranch: "master",
 };
 
 jest.spyOn(azdo, "repositoryHasFile").mockReturnValue(Promise.resolve());
@@ -50,7 +50,7 @@ const mockMissingValues: CommandOptions = {
   pipelineName: "pipelineName",
   repoName: "repoName",
   repoUrl: "",
-  yamlFileBranch: ""
+  yamlFileBranch: "",
 };
 
 const nullValues: CommandOptions = {
@@ -61,7 +61,7 @@ const nullValues: CommandOptions = {
   pipelineName: "pipelineName",
   repoName: "repoName",
   repoUrl: "https://github.com",
-  yamlFileBranch: ""
+  yamlFileBranch: "",
 };
 
 describe("test valid function", () => {
@@ -88,13 +88,13 @@ describe("test fetchValidateValues function", () => {
   it("SPK Config's azure_devops do not have value", () => {
     expect(() => {
       fetchValidateValues(mockMissingValues, gitUrl, {
-        azure_devops: {}
+        azure_devops: {},
       });
     }).toThrow(`Repo url not defined`);
   });
   it("SPK Config's azure_devops do not have value and command line does not have values", () => {
     const values = fetchValidateValues(nullValues, gitUrl, {
-      azure_devops: {}
+      azure_devops: {},
     });
     expect(values).toBeNull();
   });
@@ -116,7 +116,7 @@ describe("installLifecyclePipeline and execute tests", () => {
       rings: {},
       services: {},
       variableGroups: ["test"],
-      version: "1.0"
+      version: "1.0",
     });
     await execute(mockValues, tmpDir, exitFn);
 
@@ -197,7 +197,7 @@ describe("installLifecyclePipeline and execute tests", () => {
   it("should fail if a build definition id doesn't exist", async () => {
     (getBuildApiClient as jest.Mock).mockReturnValue({});
     (createPipelineForDefinition as jest.Mock).mockReturnValue({
-      fakeProperty: "temp"
+      fakeProperty: "temp",
     });
     (queueBuild as jest.Mock).mockReturnValue(Promise.reject());
 

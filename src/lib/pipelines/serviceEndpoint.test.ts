@@ -10,7 +10,7 @@ import {
   addServiceEndpoint,
   createServiceEndpointIfNotExists,
   createServiceEndPointParams,
-  getServiceEndpointByName
+  getServiceEndpointByName,
 } from "./serviceEndpoint";
 import * as serviceEndpoint from "./serviceEndpoint";
 
@@ -28,8 +28,8 @@ const tenantId: string = uuid();
 
 const mockedConfig = {
   azure_devops: {
-    orrg: uuid()
-  }
+    orrg: uuid(),
+  },
 };
 
 const mockedYaml = {
@@ -42,10 +42,10 @@ const mockedYaml = {
       service_principal_secret: servicePrincipalSecret,
       subscription_id: subscriptionId,
       subscription_name: subscriptionName,
-      tenant_id: tenantId
-    }
+      tenant_id: tenantId,
+    },
   },
-  name: "myvg"
+  name: "myvg",
 };
 
 const mockedMatchServiceEndpointResponse = {
@@ -58,29 +58,29 @@ const mockedMatchServiceEndpointResponse = {
             authenticationType: "authenticationType",
             serviceprincipalid: "serviceprincipalid",
             serviceprincipalkey: "serviceprincipalkey",
-            tenantid: "tenantid"
+            tenantid: "tenantid",
           },
-          scheme: "ssh"
+          scheme: "ssh",
         },
         createdBy: {
           _links: {
             avatar: {
-              href: "https://person.com"
-            }
+              href: "https://person.com",
+            },
           },
           descriptor: "test",
           displayName: "tester",
           id: "test",
           imageUrl: "https://www.test.com",
           uniqueName: "test",
-          url: "https://www.tester.com"
+          url: "https://www.tester.com",
         },
         data: {
           creationMode: "creationMode",
           environment: "environment",
           scopeLevel: "scopeLevel",
           subscriptionId: "subscriptionId",
-          subscriptionName: "subscriptionName"
+          subscriptionName: "subscriptionName",
         },
         id: "test",
         isReady: true,
@@ -88,27 +88,27 @@ const mockedMatchServiceEndpointResponse = {
         name: "test",
         owner: "tester",
         type: "test",
-        url: "https://www.test.com"
-      }
-    ]
+        url: "https://www.test.com",
+      },
+    ],
   },
-  statusCode: 200
+  statusCode: 200,
 };
 
 const mockedNonMatchServiceEndpointResponse = {
   result: {
     count: 0,
-    value: []
+    value: [],
   },
-  statusCode: 200
+  statusCode: 200,
 };
 
 const mockedInvalidServiceEndpointResponse = {
   result: {
     count: 2,
-    value: []
+    value: [],
   },
-  statusCode: 200
+  statusCode: 200,
 };
 
 const createServiceEndpointInput: ServiceEndpointData = {
@@ -117,7 +117,7 @@ const createServiceEndpointInput: ServiceEndpointData = {
   service_principal_secret: servicePrincipalSecret,
   subscription_id: subscriptionId,
   subscription_name: subscriptionName,
-  tenant_id: tenantId
+  tenant_id: tenantId,
 };
 
 beforeAll(() => {
@@ -139,9 +139,9 @@ describe("Validate service endpoint parameters creation", () => {
           service_principal_secret: servicePrincipalSecret,
           subscription_id: subscriptionId,
           subscription_name: subscriptionName,
-          tenant_id: tenantId
-        }
-      }
+          tenant_id: tenantId,
+        },
+      },
     });
     const input = readYaml<VariableGroupData>("");
 
@@ -174,9 +174,9 @@ describe("Validate service endpoint parameters creation", () => {
           service_principal_secret: servicePrincipalSecret,
           subscription_id: subscriptionId,
           subscription_name: subscriptionName,
-          tenant_id: tenantId
-        }
-      }
+          tenant_id: tenantId,
+        },
+      },
     });
     const input = readYaml<VariableGroupData>("");
 
@@ -199,9 +199,9 @@ describe("Validate service endpoint parameters creation", () => {
           service_principal_secret: servicePrincipalSecret,
           subscription_id: subscriptionId,
           subscription_name: subscriptionName,
-          tenant_id: tenantId
-        }
-      }
+          tenant_id: tenantId,
+        },
+      },
     });
     const input = readYaml<VariableGroupData>("");
 
@@ -224,9 +224,9 @@ describe("Validate service endpoint parameters creation", () => {
           service_principal_id: servicePrincipalId,
           subscription_id: subscriptionId,
           subscription_name: subscriptionName,
-          tenant_id: tenantId
-        }
-      }
+          tenant_id: tenantId,
+        },
+      },
     });
     const input = readYaml<VariableGroupData>("");
 
@@ -249,9 +249,9 @@ describe("Validate service endpoint parameters creation", () => {
           service_principal_id: servicePrincipalId,
           service_principal_secret: servicePrincipalSecret,
           subscription_name: subscriptionName,
-          tenant_id: tenantId
-        }
-      }
+          tenant_id: tenantId,
+        },
+      },
     });
     const input = readYaml<VariableGroupData>("");
 
@@ -274,9 +274,9 @@ describe("Validate service endpoint parameters creation", () => {
           service_principal_id: servicePrincipalId,
           service_principal_secret: servicePrincipalSecret,
           subscription_id: subscriptionId,
-          tenant_id: tenantId
-        }
-      }
+          tenant_id: tenantId,
+        },
+      },
     });
     const input = readYaml<VariableGroupData>("");
 
@@ -294,8 +294,8 @@ describe("Validate service endpoint parameters creation", () => {
     (readYaml as jest.Mock).mockReturnValue({
       description: "mydesc",
       key_vault_provider: {
-        service_endpoint: {}
-      }
+        service_endpoint: {},
+      },
     });
     const input = readYaml<VariableGroupData>("");
 
@@ -325,15 +325,15 @@ const testAddServiceEndpoint = async (
             reject(new Error("fake"));
           });
         }
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           resolve({
             result: {
-              status: "OK"
+              status: "OK",
             },
-            statusCode: positive ? 200 : 400
+            statusCode: positive ? 200 : 400,
           });
         });
-      }
+      },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)
   );
@@ -347,7 +347,7 @@ describe("test addServiceEndpoint function", () => {
   it("+ve: should pass when service endpoint config is set", async () => {
     const result = await testAddServiceEndpoint();
     expect(result).toStrictEqual({
-      status: "OK"
+      status: "OK",
     });
   });
   it("-ve: create API returns non 200 status code", async () => {
@@ -373,7 +373,7 @@ const testGetServiceEndpointByName = async (
           value: ServiceEndpoint[];
         }>
       > => {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           if (more) {
             resolve(mockedInvalidServiceEndpointResponse);
           } else if (positive) {
@@ -382,7 +382,7 @@ const testGetServiceEndpointByName = async (
             resolve(mockedNonMatchServiceEndpointResponse);
           }
         });
-      }
+      },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)
   );

@@ -16,7 +16,7 @@ import {
   handleInteractiveMode,
   handleIntrospectionInteractive,
   prompt,
-  validatePersonalAccessToken
+  validatePersonalAccessToken,
 } from "./init";
 import * as init from "./init";
 
@@ -38,7 +38,7 @@ describe("Test execute function", () => {
     await execute(
       {
         file: undefined,
-        interactive: false
+        interactive: false,
       },
       exitFn
     );
@@ -50,7 +50,7 @@ describe("Test execute function", () => {
     await execute(
       {
         file: uuid(),
-        interactive: false
+        interactive: false,
       },
       exitFn
     );
@@ -63,7 +63,7 @@ describe("Test execute function", () => {
     await execute(
       {
         file: path.join(randomTmpDir, "config.yaml"),
-        interactive: true
+        interactive: true,
       },
       exitFn
     );
@@ -81,7 +81,7 @@ describe("Test execute function", () => {
     await execute(
       {
         file: path.join(randomTmpDir, "config.yaml"),
-        interactive: false
+        interactive: false,
       },
       exitFn
     );
@@ -96,7 +96,7 @@ describe("Test execute function", () => {
     await execute(
       {
         file: "",
-        interactive: true
+        interactive: true,
       },
       exitFn
     );
@@ -111,8 +111,8 @@ describe("test getConfig function", () => {
       azure_devops: {
         access_token: "access_token",
         org: "org",
-        project: "project"
-      }
+        project: "project",
+      },
     };
     jest.spyOn(config, "loadConfiguration").mockReturnValueOnce();
     jest.spyOn(config, "Config").mockReturnValueOnce(mockedValues);
@@ -129,35 +129,35 @@ describe("test getConfig function", () => {
       azure_devops: {
         access_token: "",
         org: "",
-        project: ""
-      }
+        project: "",
+      },
     });
   });
 });
 
 describe("test validatePersonalAccessToken function", () => {
-  it("positive test", async done => {
+  it("positive test", async (done) => {
     jest.spyOn(axios, "get").mockReturnValueOnce(
       Promise.resolve({
-        status: 200
+        status: 200,
       })
     );
     const result = await validatePersonalAccessToken({
       access_token: "token",
       org: "org",
-      project: "project"
+      project: "project",
     });
     expect(result).toBe(true);
     done();
   });
-  it("negative test", async done => {
+  it("negative test", async (done) => {
     jest
       .spyOn(axios, "get")
       .mockReturnValueOnce(Promise.reject(new Error("fake")));
     const result = await validatePersonalAccessToken({
       access_token: "token",
       org: "org",
-      project: "project"
+      project: "project",
     });
     expect(result).toBe(false);
     done();
@@ -174,17 +174,17 @@ const testHandleInteractiveModeFunc = async (
     azure_devops: {
       access_token: "",
       org: "",
-      project: ""
+      project: "",
     },
     introspection: {
-      azure: {}
-    }
+      azure: {},
+    },
   });
   jest.spyOn(init, "prompt").mockResolvedValueOnce({
     azdo_org_name: "org_name",
     azdo_pat: "pat",
     azdo_project_name: "project",
-    toSetupIntrospectionConfig: true
+    toSetupIntrospectionConfig: true,
   });
   jest
     .spyOn(init, "validatePersonalAccessToken")
@@ -203,23 +203,23 @@ const testHandleInteractiveModeFunc = async (
 };
 
 describe("test handleInteractiveMode function", () => {
-  it("postive test: verified access token", async done => {
+  it("postive test: verified access token", async (done) => {
     await testHandleInteractiveModeFunc(true);
     done();
   });
-  it("negative test", async done => {
+  it("negative test", async (done) => {
     await testHandleInteractiveModeFunc(false);
     done();
   });
 });
 
 describe("test prompt function", () => {
-  it("positive test", async done => {
+  it("positive test", async (done) => {
     const answers = {
       azdo_org_name: "org",
       azdo_pat: "pat",
       azdo_project_name: "project",
-      toSetupIntrospectionConfig: true
+      toSetupIntrospectionConfig: true,
     };
     jest.spyOn(inquirer, "prompt").mockResolvedValueOnce(answers);
     const ans = await prompt({});
@@ -235,7 +235,7 @@ const testHandleIntrospectionInteractive = async (
   const config: ConfigYaml = {};
   if (!withIntrospection) {
     config["introspection"] = {
-      azure: {}
+      azure: {},
     };
   }
   jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
@@ -243,7 +243,7 @@ const testHandleIntrospectionInteractive = async (
     azdo_storage_table_name: "storagetabletest",
     azdo_storage_partition_key: "test1234key",
     azdo_storage_access_key: "accessKey",
-    azdo_storage_key_vault_name: withKeyVault ? "keyvault" : ""
+    azdo_storage_key_vault_name: withKeyVault ? "keyvault" : "",
   });
   await handleIntrospectionInteractive(config);
   expect(config.introspection?.azure?.account_name).toBe("storagetest");

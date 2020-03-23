@@ -10,7 +10,7 @@ import {
   getDefaultRings,
   getRemoteUrl,
   getSourceBranch,
-  makePullRequest
+  makePullRequest,
 } from "./create-revision";
 import * as createRevision from "./create-revision";
 
@@ -22,7 +22,7 @@ jest.spyOn(config, "Config").mockReturnValue({});
 jest.spyOn(config, "Bedrock").mockReturnValue(BedrockMockedContent);
 
 describe("test makePullRequest function", () => {
-  it("sanity test", async done => {
+  it("sanity test", async (done) => {
     const createPullRequestFunc = jest.spyOn(azure, "createPullRequest");
 
     // two times because there are two branches: master and stable
@@ -35,7 +35,7 @@ describe("test makePullRequest function", () => {
       remoteUrl: "testUrl",
       sourceBranch: "testBranch",
       targetBranch: "master",
-      title: undefined
+      title: undefined,
     });
 
     expect(createPullRequestFunc).toBeCalledTimes(2);
@@ -50,23 +50,23 @@ describe("Default rings", () => {
       rings: {
         master: { isDefault: true },
         prod: { isDefault: false },
-        westus: { isDefault: true }
+        westus: { isDefault: true },
       },
       services: {
         "foo/a": {
           helm: {
             chart: {
               chart: "elastic",
-              repository: "some-repo"
-            }
+              repository: "some-repo",
+            },
           },
           k8sBackend: "backendservice",
           k8sBackendPort: 1337,
           pathPrefix: "servicepath",
-          pathPrefixMajorVersion: "v1"
-        }
+          pathPrefixMajorVersion: "v1",
+        },
       },
-      version: "1.0"
+      version: "1.0",
     };
 
     write(validBedrockYaml, randomTmpDir);
@@ -82,23 +82,23 @@ describe("Default rings", () => {
       rings: {
         master: { isDefault: false },
         prod: { isDefault: false },
-        westus: { isDefault: false }
+        westus: { isDefault: false },
       },
       services: {
         "foo/a": {
           helm: {
             chart: {
               chart: "elastic",
-              repository: "some-repo"
-            }
+              repository: "some-repo",
+            },
           },
           k8sBackend: "backendservice",
           k8sBackendPort: 1337,
           pathPrefix: "servicepath",
-          pathPrefixMajorVersion: "v1"
-        }
+          pathPrefixMajorVersion: "v1",
+        },
       },
-      version: "1.0"
+      version: "1.0",
     };
 
     write(validBedrockYaml, randomTmpDir);
@@ -114,19 +114,19 @@ describe("Default rings", () => {
 });
 
 describe("Source branch", () => {
-  test("Defined source branch", async done => {
+  test("Defined source branch", async (done) => {
     const branch = "master";
     const sourceBranch = await getSourceBranch(branch);
     expect(sourceBranch).toBe("master");
     done();
   });
-  test("Defined source branch", async done => {
+  test("Defined source branch", async (done) => {
     const branch = undefined;
     const sourceBranch = await getSourceBranch(branch);
     expect(sourceBranch).toBe("prod");
     done();
   });
-  test("No source branch", async done => {
+  test("No source branch", async (done) => {
     const branch = undefined;
     let hasError = false;
     try {
@@ -140,7 +140,7 @@ describe("Source branch", () => {
 });
 
 describe("Create pull request", () => {
-  test("invalid parameters", async done => {
+  test("invalid parameters", async (done) => {
     for (const i of Array(4).keys()) {
       const exitFn = jest.fn();
       jest
@@ -154,7 +154,7 @@ describe("Create pull request", () => {
           remoteUrl: i === 2 ? undefined : "url",
           sourceBranch: i === 3 ? undefined : "master",
           targetBranch: undefined,
-          title: "testTitle"
+          title: "testTitle",
         },
         exitFn
       );
@@ -163,7 +163,7 @@ describe("Create pull request", () => {
       done();
     }
   });
-  test("Invalid parameters: target include source git", async done => {
+  test("Invalid parameters: target include source git", async (done) => {
     const exitFn = jest.fn();
     jest
       .spyOn(createRevision, "makePullRequest")
@@ -176,7 +176,7 @@ describe("Create pull request", () => {
         remoteUrl: "testUrl",
         sourceBranch: "master",
         targetBranch: "master",
-        title: "testTitle"
+        title: "testTitle",
       },
       exitFn
     );
@@ -184,7 +184,7 @@ describe("Create pull request", () => {
     expect(exitFn.mock.calls).toEqual([[1]]);
     done();
   });
-  test("Valid parameters", async done => {
+  test("Valid parameters", async (done) => {
     const exitFn = jest.fn();
     jest
       .spyOn(createRevision, "makePullRequest")
@@ -197,7 +197,7 @@ describe("Create pull request", () => {
         remoteUrl: "testUrl",
         sourceBranch: "testBranch",
         targetBranch: "master",
-        title: "testTitle"
+        title: "testTitle",
       },
       exitFn
     );
@@ -205,7 +205,7 @@ describe("Create pull request", () => {
     expect(exitFn.mock.calls).toEqual([[0]]);
     done();
   });
-  test("Default description", async done => {
+  test("Default description", async (done) => {
     const exitFn = jest.fn();
     jest
       .spyOn(createRevision, "makePullRequest")
@@ -218,7 +218,7 @@ describe("Create pull request", () => {
         remoteUrl: "testUrl",
         sourceBranch: "testBranch",
         targetBranch: "master",
-        title: "testTitle"
+        title: "testTitle",
       },
       exitFn
     );
@@ -226,7 +226,7 @@ describe("Create pull request", () => {
     expect(exitFn.mock.calls).toEqual([[0]]);
     done();
   });
-  it("Default title", async done => {
+  it("Default title", async (done) => {
     const exitFn = jest.fn();
     jest
       .spyOn(createRevision, "makePullRequest")
@@ -239,7 +239,7 @@ describe("Create pull request", () => {
         remoteUrl: "testUrl",
         sourceBranch: "testBranch",
         targetBranch: "master",
-        title: undefined
+        title: undefined,
       },
       exitFn
     );
@@ -250,12 +250,12 @@ describe("Create pull request", () => {
 });
 
 describe("test getRemoteUrl function", () => {
-  it("sanity test: get original url", async done => {
+  it("sanity test: get original url", async (done) => {
     const res = await getRemoteUrl(undefined);
     expect(!!res.match(/(.*?)\/spk/i)).toBe(true);
     done();
   });
-  it("sanity test", async done => {
+  it("sanity test", async (done) => {
     const res = await getRemoteUrl("https://github.com/CatalystCode/spk1");
     expect(res).toBe("https://github.com/CatalystCode/spk1");
     done();

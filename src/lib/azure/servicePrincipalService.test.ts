@@ -7,8 +7,8 @@ describe("test azCLILogin function", () => {
       JSON.stringify([
         {
           id: "subid",
-          name: "subname"
-        }
+          name: "subname",
+        },
       ])
     );
     await azCLILogin();
@@ -24,7 +24,7 @@ describe("test createWithAzCLI function", () => {
     const result = {
       appId: "b510c1ff-358c-4ed4-96c8-eb23f42bb65b",
       password: "a510c1ff-358c-4ed4-96c8-eb23f42bbc5b",
-      tenant: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+      tenant: "72f988bf-86f1-41af-91ab-2d7cd011db47",
     };
     jest.spyOn(shell, "exec").mockResolvedValueOnce(JSON.stringify(result));
     const sub = await createWithAzCLI("subscriptionId");

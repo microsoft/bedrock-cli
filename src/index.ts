@@ -27,7 +27,7 @@ const commandModules = [
   "project",
   // "ring", // Uncomment when ready to add rings
   "service",
-  "variable-group"
+  "variable-group",
 ];
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ const commandModules = [
 ////////////////////////////////////////////////////////////////////////////////
 (async (): Promise<void> => {
   const cmds = await Promise.all(
-    commandModules.map(async m => {
+    commandModules.map(async (m) => {
       const cmd = await import(`./commands/${m}`);
       return cmd.commandDecorator;
     })
@@ -48,7 +48,7 @@ const commandModules = [
         c.version(require("../package.json").version);
       },
       initCommandDecorator,
-      setupCommandDecorator
+      setupCommandDecorator,
     ],
     cmds
   );

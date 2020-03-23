@@ -21,14 +21,14 @@ import {
   updateLastHLDtoManifestEntry,
   updateLastRowOfArcToHLDPipelines,
   updateManifestCommitId,
-  updateMatchingArcToHLDPipelineEntry
+  updateMatchingArcToHLDPipelineEntry,
 } from "./deploymenttable";
 
 const mockedTableInfo: DeploymentTable = {
   accountKey: Buffer.from(uuid()).toString("base64"),
   accountName: uuid(),
   partitionKey: uuid(),
-  tableName: uuid()
+  tableName: uuid(),
 };
 const mockedPipelineId = uuid();
 const mockedPipelineId2 = uuid();
@@ -46,13 +46,13 @@ const mockedEntryACRPipeline: deploymenttable.EntrySRCToACRPipeline = {
   RowKey: uuid(),
   commitId: mockedCommitId,
   env: {
-    _: mockedEnv
+    _: mockedEnv,
   },
   imageTag: mockedImageTag,
   p1: {
-    _: mockedPipelineId
+    _: mockedPipelineId,
   },
-  service: mockedServiceName
+  service: mockedServiceName,
 };
 
 const mockedEntryACRToHLDPipeline = {
@@ -60,17 +60,17 @@ const mockedEntryACRToHLDPipeline = {
   RowKey: uuid(),
   commitId: mockedCommitId,
   env: {
-    _: mockedEnv
+    _: mockedEnv,
   },
   hldCommitId: {
-    _: mockedHldCommitId
+    _: mockedHldCommitId,
   },
   imageTag: mockedImageTag,
   p1: mockedPipelineId,
   p2: {
-    _: mockedPipelineId
+    _: mockedPipelineId,
   },
-  service: mockedServiceName
+  service: mockedServiceName,
 };
 
 const mockedNonMatchEntryACRToHLDPipeline = {
@@ -78,17 +78,17 @@ const mockedNonMatchEntryACRToHLDPipeline = {
   RowKey: uuid(),
   commitId: mockedCommitId,
   env: {
-    _: mockedEnv
+    _: mockedEnv,
   },
   hldCommitId: {
-    _: mockedHldCommitId
+    _: mockedHldCommitId,
   },
   imageTag: mockedImageTag,
   p1: mockedPipelineId,
   p2: {
-    _: uuid()
+    _: uuid(),
   },
-  service: mockedServiceName
+  service: mockedServiceName,
 };
 
 const mockedRowACRToHLDPipeline = {
@@ -101,13 +101,13 @@ const mockedRowACRToHLDPipeline = {
   p1: mockedPipelineId,
   p2: mockedPipelineId2,
   pr: mockedPr,
-  service: mockedServiceName
+  service: mockedServiceName,
 };
 
 const mockedRowHLDToManifestPipeline = Object.assign(
   {
     manifestCommitId: mockedManifestCommitId,
-    p3: mockedPipelineId3
+    p3: mockedPipelineId3,
   },
   mockedRowACRToHLDPipeline
 ) as RowHLDToManifestPipeline;
@@ -120,19 +120,19 @@ const mockedEntryHLDToManifestPipeline = {
   hldCommitId: mockedHldCommitId,
   imageTag: mockedImageTag,
   manifestCommitId: {
-    _: mockedManifestCommitId
+    _: mockedManifestCommitId,
   },
   p1: mockedPipelineId,
   p2: mockedPipelineId2,
   p3: {
-    _: mockedPipelineId3
+    _: mockedPipelineId3,
   },
-  service: mockedServiceName
+  service: mockedServiceName,
 };
 
 const mockedManifestRow: RowManifest = Object.assign(
   {
-    manifestCommitId: uuid()
+    manifestCommitId: uuid(),
   },
   mockedRowHLDToManifestPipeline
 );
@@ -146,7 +146,7 @@ afterAll(() => {
 });
 
 describe("test findMatchingDeployments function", () => {
-  it("catching exception", async done => {
+  it("catching exception", async (done) => {
     await expect(
       findMatchingDeployments(mockedTableInfo, "", "")
     ).rejects.toThrow();
@@ -155,7 +155,7 @@ describe("test findMatchingDeployments function", () => {
 });
 
 describe("test table operation functions", () => {
-  it("catching exception", async done => {
+  it("catching exception", async (done) => {
     await expect(
       insertToTable(mockedTableInfo, mockedEntryACRToHLDPipeline)
     ).rejects.toThrow();
@@ -177,7 +177,7 @@ describe("test getTableService function", () => {
 });
 
 describe("test addSrcToACRPipeline function", () => {
-  it("positive test", async done => {
+  it("positive test", async (done) => {
     jest
       .spyOn(deploymenttable, "insertToTable")
       .mockReturnValueOnce(Promise.resolve());
@@ -194,7 +194,7 @@ describe("test addSrcToACRPipeline function", () => {
     expect(entry.imageTag).toBe(mockedImageTag);
     done();
   });
-  it("negative test", async done => {
+  it("negative test", async (done) => {
     jest
       .spyOn(deploymenttable, "insertToTable")
       .mockReturnValueOnce(Promise.reject(new Error("Error")));
@@ -212,7 +212,7 @@ describe("test addSrcToACRPipeline function", () => {
 });
 
 describe("test updateMatchingArcToHLDPipelineEntry function", () => {
-  it("positive test: matching entry", async done => {
+  it("positive test: matching entry", async (done) => {
     jest
       .spyOn(deploymenttable, "updateEntryInTable")
       .mockReturnValueOnce(Promise.resolve());
@@ -229,7 +229,7 @@ describe("test updateMatchingArcToHLDPipelineEntry function", () => {
     expect(result).toBeDefined();
     done();
   });
-  it("positive test: no matching entries", async done => {
+  it("positive test: no matching entries", async (done) => {
     const result = await updateMatchingArcToHLDPipelineEntry(
       [],
       mockedTableInfo,
@@ -273,12 +273,12 @@ const testUpdateLastRowOfArcToHLDPipelines = async (
 };
 
 describe("test updateLastRowOfArcToHLDPipelines function", () => {
-  it("positive test", async done => {
+  it("positive test", async (done) => {
     const result = await testUpdateLastRowOfArcToHLDPipelines();
     expect(result).toBeDefined();
     done();
   });
-  it("negative test", async done => {
+  it("negative test", async (done) => {
     await expect(testUpdateLastRowOfArcToHLDPipelines(false)).rejects.toThrow();
     done();
   });
@@ -300,12 +300,12 @@ const testAddNewRowToArcToHLDPipelines = async (
 };
 
 describe("test addNewRowToArcToHLDPipelines function", () => {
-  it("positive test", async done => {
+  it("positive test", async (done) => {
     const result = await testAddNewRowToArcToHLDPipelines();
     expect(result).toBeDefined();
     done();
   });
-  it("negative test", async done => {
+  it("negative test", async (done) => {
     await expect(testAddNewRowToArcToHLDPipelines(false)).rejects.toThrow();
     done();
   });
@@ -381,15 +381,15 @@ const testUpdateACRToHLDPipeline = async (
 };
 
 describe("test updateACRToHLDPipeline function", () => {
-  it("positive test: matching entry", async done => {
+  it("positive test: matching entry", async (done) => {
     await testUpdateACRToHLDPipeline(false, true);
     done();
   });
-  it("positive test: no matching entries", async done => {
+  it("positive test: no matching entries", async (done) => {
     await testUpdateACRToHLDPipeline(false, false);
     done();
   });
-  it("positive test: no entries returned", async done => {
+  it("positive test: no entries returned", async (done) => {
     await testUpdateACRToHLDPipeline(true, false);
     done();
   });
@@ -430,18 +430,18 @@ const testUpdateHLDToManifestPipeline = async (
 };
 
 describe("test updateHLDToManifestPipeline function", () => {
-  it("positive test: matching hldCommitId entry", async done => {
+  it("positive test: matching hldCommitId entry", async (done) => {
     await testUpdateHLDToManifestPipeline();
     done();
   });
-  it("positive test: matching pr entry", async done => {
+  it("positive test: matching pr entry", async (done) => {
     await testUpdateHLDToManifestPipeline(false);
     done();
   });
 });
 
 describe("test updateHLDtoManifestEntry function", () => {
-  it("positive test", async done => {
+  it("positive test", async (done) => {
     jest
       .spyOn(deploymenttable, "updateEntryInTable")
       .mockReturnValueOnce(Promise.resolve());
@@ -457,7 +457,7 @@ describe("test updateHLDtoManifestEntry function", () => {
     expect(res).toBeDefined();
     done();
   });
-  it("negative test", async done => {
+  it("negative test", async (done) => {
     const res = await updateHLDtoManifestEntry(
       [mockedEntryHLDToManifestPipeline],
       mockedTableInfo,
@@ -469,7 +469,7 @@ describe("test updateHLDtoManifestEntry function", () => {
     expect(res).toBeNull();
     done();
   });
-  it("negative test: exception thrown", async done => {
+  it("negative test: exception thrown", async (done) => {
     const fn = jest.spyOn(deploymenttable, "updateEntryInTable");
     fn.mockReturnValueOnce(Promise.reject(new Error("Fake")));
 
@@ -488,7 +488,7 @@ describe("test updateHLDtoManifestEntry function", () => {
 });
 
 describe("test updateLastHLDtoManifestEntry function", () => {
-  it("positive test", async done => {
+  it("positive test", async (done) => {
     jest
       .spyOn(deploymenttable, "insertToTable")
       .mockReturnValueOnce(Promise.resolve());
@@ -504,7 +504,7 @@ describe("test updateLastHLDtoManifestEntry function", () => {
     expect(res).toBeDefined();
     done();
   });
-  it("negative test: exeption thrown", async done => {
+  it("negative test: exeption thrown", async (done) => {
     jest
       .spyOn(deploymenttable, "insertToTable")
       .mockReturnValueOnce(Promise.reject(new Error("Fake")));
@@ -524,7 +524,7 @@ describe("test updateLastHLDtoManifestEntry function", () => {
 });
 
 describe("test addNewRowToHLDtoManifestPipeline function", () => {
-  it("positive test", async done => {
+  it("positive test", async (done) => {
     jest
       .spyOn(deploymenttable, "insertToTable")
       .mockReturnValueOnce(Promise.resolve());
@@ -538,7 +538,7 @@ describe("test addNewRowToHLDtoManifestPipeline function", () => {
     expect(res).toBeDefined();
     done();
   });
-  it("nagative test", async done => {
+  it("nagative test", async (done) => {
     jest
       .spyOn(deploymenttable, "insertToTable")
       .mockReturnValueOnce(Promise.reject(new Error("Fake")));
@@ -612,22 +612,22 @@ const testUpdateHLDtoManifestHelper = async (
 };
 
 describe("test updateHLDtoManifestHelper function", () => {
-  it("positive test: matching entry", async done => {
+  it("positive test: matching entry", async (done) => {
     await testUpdateHLDtoManifestHelper(false, true);
     done();
   });
-  it("positive test: no matching entries", async done => {
+  it("positive test: no matching entries", async (done) => {
     await testUpdateHLDtoManifestHelper(false, false);
     done();
   });
-  it("positive test: empty entries", async done => {
+  it("positive test: empty entries", async (done) => {
     await testUpdateHLDtoManifestHelper(true, false);
     done();
   });
 });
 
 describe("test updateManifestCommitId function", () => {
-  it("positive test", async done => {
+  it("positive test", async (done) => {
     jest
       .spyOn(deploymenttable, "updateEntryInTable")
       .mockReturnValueOnce(Promise.resolve());
@@ -642,7 +642,7 @@ describe("test updateManifestCommitId function", () => {
     expect(res).toBeDefined();
     done();
   });
-  it("negative test", async done => {
+  it("negative test", async (done) => {
     jest
       .spyOn(deploymenttable, "findMatchingDeployments")
       .mockReturnValueOnce(Promise.resolve([]));

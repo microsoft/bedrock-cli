@@ -10,7 +10,7 @@ import {
   DefinitionQueueStatus,
   DefinitionTriggerType,
   DefinitionType,
-  YamlProcess
+  YamlProcess,
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import { logger } from "../../logger";
 import { getBuildApi } from "../azdoClient";
@@ -23,7 +23,7 @@ const hostedUbuntuPoolId = 224;
  */
 export enum RepositoryTypes {
   Github = "github",
-  Azure = "tfsgit"
+  Azure = "tfsgit",
 }
 
 /**
@@ -38,7 +38,7 @@ export const getBuildApiClient = async (
 ): Promise<IBuildApi> => {
   return await getBuildApi({
     orgName,
-    personalAccessToken
+    personalAccessToken,
   });
 };
 
@@ -86,16 +86,16 @@ export const definitionForAzureRepoPipeline = (
       branchFilters: pipelineConfig.branchFilters,
       maxConcurrentBuildsPerBranch: pipelineConfig.maximumConcurrentBuilds,
       settingsSourceType: 2,
-      triggerType: DefinitionTriggerType.ContinuousIntegration
-    } as ContinuousIntegrationTrigger
+      triggerType: DefinitionTriggerType.ContinuousIntegration,
+    } as ContinuousIntegrationTrigger,
   ];
 
   pipelineDefinition.queue = {
     name: hostedUbuntuPool,
     pool: {
       id: hostedUbuntuPoolId,
-      name: hostedUbuntuPool
-    }
+      name: hostedUbuntuPool,
+    },
   } as AgentPoolQueue;
 
   pipelineDefinition.queueStatus = DefinitionQueueStatus.Enabled;
@@ -109,11 +109,11 @@ export const definitionForAzureRepoPipeline = (
     id: pipelineConfig.repositoryName,
     name: pipelineConfig.repositoryName,
     type: RepositoryTypes.Azure,
-    url: pipelineConfig.repositoryUrl
+    url: pipelineConfig.repositoryUrl,
   } as BuildRepository;
 
   pipelineDefinition.process = {
-    yamlFilename: pipelineConfig.yamlFilePath
+    yamlFilename: pipelineConfig.yamlFilePath,
   } as YamlProcess;
 
   if (pipelineConfig.variables) {
@@ -140,16 +140,16 @@ export const definitionForGithubRepoPipeline = (
       branchFilters: pipelineConfig.branchFilters,
       maxConcurrentBuildsPerBranch: pipelineConfig.maximumConcurrentBuilds,
       settingsSourceType: 2,
-      triggerType: DefinitionTriggerType.ContinuousIntegration
-    } as ContinuousIntegrationTrigger
+      triggerType: DefinitionTriggerType.ContinuousIntegration,
+    } as ContinuousIntegrationTrigger,
   ];
 
   pipelineDefinition.queue = {
     name: hostedUbuntuPool,
     pool: {
       id: hostedUbuntuPoolId,
-      name: hostedUbuntuPool
-    }
+      name: hostedUbuntuPool,
+    },
   } as AgentPoolQueue;
 
   pipelineDefinition.queueStatus = DefinitionQueueStatus.Enabled;
@@ -163,14 +163,14 @@ export const definitionForGithubRepoPipeline = (
     id: pipelineConfig.repositoryName,
     name: pipelineConfig.repositoryName,
     properties: {
-      connectedServiceId: pipelineConfig.serviceConnectionId
+      connectedServiceId: pipelineConfig.serviceConnectionId,
     },
     type: RepositoryTypes.Github,
-    url: pipelineConfig.repositoryUrl
+    url: pipelineConfig.repositoryUrl,
   } as BuildRepository;
 
   pipelineDefinition.process = {
-    yamlFilename: pipelineConfig.yamlFilePath
+    yamlFilename: pipelineConfig.yamlFilePath,
   } as YamlProcess;
 
   if (pipelineConfig.variables) {
@@ -219,8 +219,8 @@ export const queueBuild = async (
 ): Promise<Build> => {
   const buildReference: Build = {
     definition: {
-      id: definitionId
-    }
+      id: definitionId,
+    },
   };
 
   try {

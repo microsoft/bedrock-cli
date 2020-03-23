@@ -9,7 +9,8 @@
     "build": "shx rm -rf dist && webpack && pkg -t node12-linux-x64,node12-macos-x64,node12-win-x64 dist/spk.js && shx mv spk-{linux,macos,win.exe} dist",
     "build-cmd-docs": "ts-node tools/generateDoc.ts",
     "lint": "eslint 'src/**/*.ts{,x}'",
-    "lint-fix": "tslint --fix 'src/**/*.ts{,x}'",
+    "lint-fix": "eslint --fix 'src/**/*.ts{,x}'",
+    "format": "prettier --write 'src/**/*.ts{,x}'",
     "test": "jest --rootDir src --reporters=jest-junit --reporters=default --coverage --coverageReporters=cobertura --coverageReporters=html",
     "test-watch": "jest --watchAll",
     "postinstall": "cd node_modules/azure-devops-node-api && git apply ../../patches/001-azure-devops-node.patch || true",
@@ -29,24 +30,25 @@
     "@types/node-emoji": "^1.8.1",
     "@types/shelljs": "^0.8.5",
     "@types/uuid": "^3.4.5",
-    "@typescript-eslint/eslint-plugin": "^2.23.0",
-    "@typescript-eslint/parser": "^2.23.0",
+    "@typescript-eslint/eslint-plugin": "^2.24.0",
+    "@typescript-eslint/parser": "^2.24.0",
     "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.1",
     "husky": ">=1",
-    "jest": "^24.9.0",
-    "jest-junit": "^9.0.0",
+    "jest": "^25.1.0",
+    "jest-junit": "^10.0.0",
     "jest-when": "^2.7.0",
-    "lint-staged": ">=8",
+    "lint-staged": ">=10",
     "mock-fs": "^4.10.2",
     "nyc": "^14.1.1",
     "pkg": "^4.4.0",
-    "prettier": "^1.19.1",
+    "prettier": "^2.0.1",
     "shx": "^0.3.2",
-    "ts-jest": "^24.2.0",
-    "ts-loader": "^6.2.1",
-    "ts-node": "^8.5.4",
+    "ts-jest": "^25.2.1",
+    "ts-loader": "^6.2.2",
+    "ts-node": "^8.8.1",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.7.4",
+    "typescript": "^3.8.3",
     "url-loader": "^3.0.0",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.9"
@@ -60,10 +62,10 @@
     }
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx,css,json,md}": [
-      "prettier --write",
-      "git add"
-    ]
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --cache --fix"
+    ],
+    "*.{js,jsx,ts,tsx,json,css,md}": "prettier --write"
   },
   "dependencies": {
     "@azure/arm-containerregistry": "^7.0.0",

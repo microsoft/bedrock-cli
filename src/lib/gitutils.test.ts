@@ -12,7 +12,7 @@ import {
   isGitHubUrl,
   pushBranch,
   safeGitUrlForLogging,
-  tryGetGitOrigin
+  tryGetGitOrigin,
 } from "../lib/gitutils";
 import { disableVerboseLogging, enableVerboseLogging } from "../logger";
 import { exec } from "./shell";
@@ -57,7 +57,7 @@ describe("getCurrentBranch", () => {
     expect(currentBranch).toEqual("currentBranch");
     expect(exec).toHaveBeenCalledTimes(1);
     expect(exec).toHaveBeenCalledWith("git", ["branch", "--show-current"], {
-      cwd: process.cwd()
+      cwd: process.cwd(),
     });
   });
 
@@ -97,7 +97,7 @@ describe("checkoutBranch", () => {
     expect(exec).toHaveBeenCalledWith("git", [
       "checkout",
       "-b",
-      `${branchName}`
+      `${branchName}`,
     ]);
   });
 
@@ -157,12 +157,12 @@ describe("commitDir", () => {
       "add",
       directory,
       bedrockFile,
-      maintainersFile
+      maintainersFile,
     ]);
     expect(exec).toHaveBeenCalledWith("git", [
       "commit",
       "-m",
-      `Adding new service: ${branchName}`
+      `Adding new service: ${branchName}`,
     ]);
   });
 
@@ -193,7 +193,7 @@ describe("pushBranch", () => {
       "push",
       "-u",
       "origin",
-      `${branchName}`
+      `${branchName}`,
     ]);
   });
 
@@ -266,7 +266,7 @@ describe("getOriginUrl", () => {
 
     when(exec as jest.Mock)
       .calledWith("git", ["config", "--get", "remote.origin.url"], {
-        cwd: repoPath
+        cwd: repoPath,
       })
       .mockReturnValue(originUrl);
 

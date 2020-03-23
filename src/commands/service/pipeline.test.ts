@@ -6,7 +6,7 @@ jest.mock("../../lib/pipelines/pipelines");
 import {
   createPipelineForDefinition,
   getBuildApiClient,
-  queueBuild
+  queueBuild,
 } from "../../lib/pipelines/pipelines";
 import { deepClone } from "../../lib/util";
 import {
@@ -14,7 +14,7 @@ import {
   fetchValues,
   CommandOptions,
   installBuildUpdatePipeline,
-  requiredPipelineVariables
+  requiredPipelineVariables,
 } from "./pipeline";
 import * as pipeline from "./pipeline";
 
@@ -27,7 +27,7 @@ const MOCKED_VALUES: CommandOptions = {
   pipelineName: "pipelineName",
   repoName: "repositoryName",
   repoUrl: "https://dev.azure.com/test/fabrikam/_git/app",
-  yamlFileBranch: "master"
+  yamlFileBranch: "master",
 };
 
 beforeAll(() => {

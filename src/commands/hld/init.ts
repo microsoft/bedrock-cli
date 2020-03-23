@@ -4,7 +4,7 @@ import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
   generateDefaultHldComponentYaml,
   generateGitIgnoreFile,
-  generateHldAzurePipelinesYaml
+  generateHldAzurePipelinesYaml,
 } from "../../lib/fileutils";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import { hasValue } from "../../lib/validator";

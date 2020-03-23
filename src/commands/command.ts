@@ -84,11 +84,11 @@ export const Command = (
   }
 
   // Catch-all for unknown commands
-  cmd.on("command:*", calledCmd => {
+  cmd.on("command:*", (calledCmd) => {
     logger.error(`Unknown command "${calledCmd}"`);
     cmd.outputHelp();
   });
-  cmd.on("option:*", unknownOption => {
+  cmd.on("option:*", (unknownOption) => {
     logger.error(`Unknown option "${unknownOption}"`);
   });
 
@@ -96,7 +96,7 @@ export const Command = (
     command: cmd,
     description,
     name: name.toLowerCase(),
-    subCommands
+    subCommands,
   });
 };
 
@@ -125,7 +125,7 @@ const decrementArgv = (argv: string[]): string[] => {
 export const executeCommand = (cmd: Command, argv: string[]): void => {
   const targetCommandName = argv.slice(2, 3)[0];
   const targetCommand = cmd.subCommands.find(
-    sc => sc.name === targetCommandName
+    (sc) => sc.name === targetCommandName
   );
 
   // If the the next argument matches against a sub-command, recur into it.

@@ -9,14 +9,14 @@ import {
   getAzureRepoUrl,
   getGitApi,
   getRepoInAzureOrg,
-  getRepoURL
+  getRepoURL,
 } from "./gitService";
 
 const mockRequestContext = {
   accessToken: "pat",
   orgName: "orgname",
   projectName: "project",
-  workspace: WORKSPACE
+  workspace: WORKSPACE,
 };
 
 describe("test getAzureRepoUrl function", () => {
@@ -30,14 +30,14 @@ describe("test getAzureRepoUrl function", () => {
 describe("test getGitApi function", () => {
   it("mocked webAPI", async () => {
     await getGitApi({
-      getGitApi: jest.fn()
+      getGitApi: jest.fn(),
     } as any);
   });
   it("mocked webAPI: cached", async () => {
     await getGitApi({
       getGitApi: () => {
         return {};
-      }
+      },
     } as any);
     await getGitApi({
       // without getGitApi function works because the client is cached in the first call
@@ -49,7 +49,7 @@ describe("test getRepoURL function", () => {
   it("positive test", () => {
     const res = getRepoURL(
       {
-        remoteUrl: "https://orgName@github.com/test"
+        remoteUrl: "https://orgName@github.com/test",
       } as any,
       "orgName"
     );
@@ -60,13 +60,13 @@ describe("test getRepoURL function", () => {
 describe("test createRepo function", () => {
   it("positive test", async () => {
     const mockResult = {
-      id: "testRepo"
+      id: "testRepo",
     };
     const res = await createRepo(
       {
         createRepository: async () => {
           return mockResult;
-        }
+        },
       } as any,
       "testRepo",
       "testProject"
@@ -80,9 +80,9 @@ describe("test createRepo function", () => {
           createRepository: () => {
             throw {
               message: "Authentication failure",
-              statusCode: 401
+              statusCode: 401,
             };
-          }
+          },
         } as any,
         "testRepo",
         "testProject"
@@ -95,7 +95,7 @@ describe("test createRepo function", () => {
         {
           createRepository: () => {
             throw new Error("fake");
-          }
+          },
         } as any,
         "testRepo",
         "testProject"
@@ -110,11 +110,11 @@ describe("test deleteRepo function", () => {
       {
         deleteRepository: () => {
           return;
-        }
+        },
       } as any,
       {
         id: "test",
-        name: "test"
+        name: "test",
       },
       "project"
     );
@@ -125,11 +125,11 @@ describe("test deleteRepo function", () => {
         {
           deleteRepository: () => {
             throw new Error("Fake");
-          }
+          },
         } as any,
         {
           id: "test",
-          name: "test"
+          name: "test",
         },
         "project"
       )
@@ -141,10 +141,10 @@ describe("test deleteRepo function", () => {
         {
           deleteRepository: () => {
             throw new Error("Fake");
-          }
+          },
         } as any,
         {
-          name: "test"
+          name: "test",
         },
         "project"
       )
@@ -157,14 +157,14 @@ describe("test getRepoInAzureOrg function", () => {
     const mockRepo = {
       name: "testRepo",
       project: {
-        name: "testProject"
-      }
+        name: "testProject",
+      },
     };
     const res = await getRepoInAzureOrg(
       {
         getRepositories: () => {
           return [mockRepo];
-        }
+        },
       } as any,
       "testRepo",
       "testProject"
@@ -176,7 +176,7 @@ describe("test getRepoInAzureOrg function", () => {
       {
         getRepositories: () => {
           return [];
-        }
+        },
       } as any,
       "testRepo",
       "testProject"
@@ -191,11 +191,11 @@ describe("test getRepoInAzureOrg function", () => {
             {
               name: "otherRepo",
               project: {
-                name: "testProject"
-              }
-            }
+                name: "testProject",
+              },
+            },
           ];
-        }
+        },
       } as any,
       "testRepo",
       "testProject"
@@ -209,9 +209,9 @@ describe("test getRepoInAzureOrg function", () => {
           getRepositories: () => {
             throw {
               message: "Authentication failure",
-              statusCode: 401
+              statusCode: 401,
             };
-          }
+          },
         } as any,
         "testRepo",
         "testProject"
@@ -224,7 +224,7 @@ describe("test getRepoInAzureOrg function", () => {
         {
           getRepositories: () => {
             throw new Error("fake");
-          }
+          },
         } as any,
         "testRepo",
         "testProject"
@@ -240,14 +240,14 @@ describe("test createRepoInAzureOrg function", () => {
     const mockRepo = {
       name: "testRepo",
       project: {
-        name: "testProject"
-      }
+        name: "testProject",
+      },
     };
     const res = await createRepoInAzureOrg(
       {
         getRepositories: () => {
           return [mockRepo];
-        }
+        },
       } as any,
       "testRepo",
       "testProject"
@@ -260,7 +260,7 @@ describe("test createRepoInAzureOrg function", () => {
     const fnCreateRepo = jest.spyOn(gitService, "createRepo");
     fnCreateRepo.mockReturnValueOnce(
       Promise.resolve({
-        id: "testRepo"
+        id: "testRepo",
       })
     );
 
@@ -268,13 +268,13 @@ describe("test createRepoInAzureOrg function", () => {
       {
         getRepositories: () => {
           return [];
-        }
+        },
       } as any,
       "testRepo",
       "testProject"
     );
     expect(res).toStrictEqual({
-      id: "testRepo"
+      id: "testRepo",
     });
     expect(fnCreateRepo).toBeCalledTimes(1);
     fnCreateRepo.mockReset();
@@ -284,8 +284,8 @@ describe("test createRepoInAzureOrg function", () => {
       id: "testRepo",
       name: "testRepo",
       project: {
-        name: "testProject"
-      }
+        name: "testProject",
+      },
     };
     const fnCreateRepo = jest.spyOn(gitService, "createRepo");
     fnCreateRepo.mockReturnValueOnce(Promise.resolve(mockRepo));
@@ -296,7 +296,7 @@ describe("test createRepoInAzureOrg function", () => {
       {
         getRepositories: () => {
           return [mockRepo];
-        }
+        },
       } as any,
       "testRepo",
       "testProject",
@@ -325,12 +325,12 @@ describe("test commitAndPushToRemote function", () => {
             all: [
               {
                 date: "2020-03-01 07:50:48 -0800",
-                message: "Initial commit for some repo"
-              }
-            ]
+                message: "Initial commit for some repo",
+              },
+            ],
           };
         },
-        push: jest.fn
+        push: jest.fn,
       } as any,
       mockRequestContext,
       "repoName"
@@ -342,7 +342,7 @@ describe("test commitAndPushToRemote function", () => {
         {
           commit: () => {
             throw new Error("fake");
-          }
+          },
         } as any,
         mockRequestContext,
         "repoName"

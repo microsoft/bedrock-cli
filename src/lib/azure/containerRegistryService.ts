@@ -63,13 +63,13 @@ export const getContainerRegistries = async (
   );
   const registries = await client.registries.list();
   logger.info("Successfully acquired Azure container registries");
-  return registries.map(r => {
+  return registries.map((r) => {
     const id = r.id! as string;
     const match = id.match(/\/resourceGroups\/(.+?)\//);
     return {
       id,
       name: r.name!,
-      resourceGroup: match ? match[1] : ""
+      resourceGroup: match ? match[1] : "",
     };
   });
 };
@@ -97,7 +97,7 @@ export const getContainerRegistry = async (
     subscriptionId
   );
   return registries.find(
-    r => r.resourceGroup === resourceGroup && r.name === name
+    (r) => r.resourceGroup === resourceGroup && r.name === name
   );
 };
 
@@ -126,7 +126,7 @@ export const isExist = async (
   );
 
   return (registries || []).some(
-    r => r.name === name // ACR name will be unique across Azure so only check the name.
+    (r) => r.name === name // ACR name will be unique across Azure so only check the name.
   );
 };
 
@@ -174,7 +174,7 @@ export const create = async (
   );
   await client.registries.create(resourceGroup, name, {
     location,
-    sku: { name: "Standard", tier: "Standard" }
+    sku: { name: "Standard", tier: "Standard" },
   });
   logger.info(
     `Successfully create Azure container registry, ${name} in ${resourceGroup}.`

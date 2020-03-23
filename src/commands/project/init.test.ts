@@ -4,7 +4,7 @@ import uuid from "uuid/v4";
 import { Bedrock, Maintainers, write } from "../../config";
 import {
   PROJECT_PIPELINE_FILENAME,
-  SERVICE_PIPELINE_FILENAME
+  SERVICE_PIPELINE_FILENAME,
 } from "../../lib/constants";
 import { createTempDir, getMissingFilenames } from "../../lib/ioUtil";
 import { BedrockFile, MaintainersFile } from "../../types";
@@ -16,7 +16,7 @@ const CREATED_FILES = [
   ".gitignore",
   "bedrock.yaml",
   "maintainers.yaml",
-  PROJECT_PIPELINE_FILENAME
+  PROJECT_PIPELINE_FILENAME,
 ];
 
 describe("Initializing a blank/new bedrock repository", () => {
@@ -39,7 +39,7 @@ describe("Initializing a blank/new bedrock repository", () => {
     // ensure service specific files do not get created
     const unexpected = getMissingFilenames(randomTmpDir, [
       "Dockerfile",
-      SERVICE_PIPELINE_FILENAME
+      SERVICE_PIPELINE_FILENAME,
     ]);
     expect(unexpected.length).toBe(2);
   });
@@ -64,13 +64,13 @@ describe("initializing an existing file does not modify it", () => {
             chart: {
               git: "foo",
               path: "./",
-              sha: "bar"
-            }
+              sha: "bar",
+            },
           },
-          k8sBackendPort: 1337
-        }
+          k8sBackendPort: 1337,
+        },
       },
-      version: "1.0"
+      version: "1.0",
     };
     write(bedrockFile, randomDir);
     await initialize(randomDir);
@@ -85,9 +85,9 @@ describe("initializing an existing file does not modify it", () => {
     const maintainersFile: MaintainersFile = {
       services: {
         "some/random/dir": {
-          maintainers: [{ name: "foo bar", email: "foobar@baz.com" }]
-        }
-      }
+          maintainers: [{ name: "foo bar", email: "foobar@baz.com" }],
+        },
+      },
     };
     write(maintainersFile, randomDir);
     await initialize(randomDir);
@@ -105,7 +105,7 @@ describe("Test execute function", () => {
     const randomDir = createTempDir();
     await execute(
       {
-        defaultRing: "master"
+        defaultRing: "master",
       },
       randomDir,
       exitFn
@@ -123,7 +123,7 @@ describe("Test execute function", () => {
     const randomDir = createTempDir();
     await execute(
       {
-        defaultRing: "master"
+        defaultRing: "master",
       },
       randomDir,
       exitFn

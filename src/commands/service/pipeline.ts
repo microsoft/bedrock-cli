@@ -3,7 +3,7 @@
 import { IBuildApi } from "azure-devops-node-api/BuildApi";
 import {
   BuildDefinition,
-  BuildDefinitionVariable
+  BuildDefinitionVariable,
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
 import path from "path";
@@ -12,20 +12,20 @@ import { repositoryHasFile } from "../../lib/azdoClient";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
   BUILD_SCRIPT_URL,
-  SERVICE_PIPELINE_FILENAME
+  SERVICE_PIPELINE_FILENAME,
 } from "../../lib/constants";
 import { AzureDevOpsOpts } from "../../lib/git";
 import {
   getOriginUrl,
   getRepositoryName,
   getRepositoryUrl,
-  isGitHubUrl
+  isGitHubUrl,
 } from "../../lib/gitutils";
 import {
   createPipelineForDefinition,
   definitionForAzureRepoPipeline,
   getBuildApiClient,
-  queueBuild
+  queueBuild,
 } from "../../lib/pipelines/pipelines";
 import { logger } from "../../logger";
 import decorator from "./pipeline.decorator.json";
@@ -79,7 +79,7 @@ export const execute = async (
     const accessOpts: AzureDevOpsOpts = {
       orgName: opts.orgName,
       personalAccessToken: opts.personalAccessToken,
-      project: opts.devopsProject
+      project: opts.devopsProject,
     };
 
     // if a packages dir is supplied, its a mono-repo
@@ -145,7 +145,7 @@ export const installBuildUpdatePipeline = async (
       repositoryUrl: values.repoUrl,
       variables: requiredPipelineVariables(values.buildScriptUrl),
       yamlFileBranch: values.yamlFileBranch,
-      yamlFilePath: pipelinesYamlPath
+      yamlFilePath: pipelinesYamlPath,
     });
 
     logger.debug(
@@ -199,7 +199,7 @@ export const requiredPipelineVariables = (
     BUILD_SCRIPT_URL: {
       allowOverride: true,
       isSecret: false,
-      value: buildScriptUrl
-    }
+      value: buildScriptUrl,
+    },
   };
 };
