@@ -2,6 +2,7 @@ import path from "path";
 import { create as createBedrockYaml } from "../../lib/bedrockYaml";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { BedrockFile, BedrockServiceConfig } from "../../types";
+import * as reconcile from "./reconcile";
 import {
   addChartToRing,
   checkForFabrikate,
@@ -14,13 +15,12 @@ import {
   execAndLog,
   execute,
   getFullPathPrefix,
-  ReconcileDependencies,
   normalizedName,
+  ReconcileDependencies,
   reconcileHld,
   testAndGetAbsPath,
   validateInputs,
 } from "./reconcile";
-import * as reconcile from "./reconcile";
 
 beforeAll(() => {
   enableVerboseLogging();

@@ -3,7 +3,13 @@ import yaml from "js-yaml";
 import path from "path";
 import { createTempDir } from "../lib/ioUtil";
 import { logger } from "../logger";
-import { BedrockFile, BedrockFileInfo, HelmConfig, Rings } from "../types";
+import {
+  BedrockFile,
+  BedrockFileInfo,
+  HelmConfig,
+  Rings,
+  RingConfig,
+} from "../types";
 import { writeVersion, getVersion } from "./fileutils";
 
 export const YAML_NAME = "bedrock.yaml";
@@ -232,4 +238,26 @@ export const removeRing = (
   };
 
   return bedrockWithoutRing;
+};
+
+/**
+ * Validates that the rings in `bedrock` are valid and throws an Error if not.
+ *
+ * Throws when:
+ *  - More than one ring is marked `isDefault`
+ *
+ * @param bedrock file to validate the rings of
+ */
+export const validateRings = (bedrock: BedrockFile): void => {
+  const rings = Object.entries(bedrock.rings).reduce(
+    (carry, [name, config]) => carry.concat({ ...config, name }),
+    [] as (RingConfig & { name: string })[]
+  );
+  const defaultRings = rings.filter((ring) => ring.isDefault);
+  if (defaultRings.length > 1) {
+    const defaultRingsNames = defaultRings.map((ring) => ring.name).join(", ");
+    throw Error(
+      `only one ring may be set as 'isDefault: true' -- found [${defaultRingsNames}] `
+    );
+  }
 };

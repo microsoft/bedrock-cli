@@ -18,7 +18,7 @@ export interface TraefikMiddleware {
   };
 }
 
-export const TraefikMiddleware = (
+export const create = (
   serviceName: string,
   ringName: string,
   prefixes: string[],

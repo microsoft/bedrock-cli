@@ -1,8 +1,8 @@
-import { TraefikMiddleware } from "./middleware";
+import { create } from "./middleware";
 
 describe("TraefikIngressRoute", () => {
   test("the right name with service name is created", () => {
-    const middlewareWithoutRing = TraefikMiddleware("my-service", "", [
+    const middlewareWithoutRing = create("my-service", "", [
       "/home",
       "/info",
       "/data",
@@ -15,16 +15,14 @@ describe("TraefikIngressRoute", () => {
     expect(middlewareWithoutRing.spec.stripPrefix.prefixes[1]).toBe("/info");
     expect(middlewareWithoutRing.spec.stripPrefix.prefixes[2]).toBe("/data");
 
-    const middlewareWithRing = TraefikMiddleware("my-service", "prod", [
-      "/home",
-    ]);
+    const middlewareWithRing = create("my-service", "prod", ["/home"]);
     expect(middlewareWithRing.metadata.name).toBe("my-service-prod");
     expect(middlewareWithRing.spec.stripPrefix.prefixes.length).toBe(1);
     expect(middlewareWithRing.spec.stripPrefix.prefixes[0]).toBe("/home");
   });
 
   test("optional parameters", () => {
-    const middlewareWithRing = TraefikMiddleware(
+    const middlewareWithRing = create(
       "my-service",
       "prod",
       ["/home", "/away"],

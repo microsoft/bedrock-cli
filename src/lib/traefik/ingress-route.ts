@@ -53,9 +53,10 @@ interface TraefikIngressRoute {
  *
  * @param serviceName name of the service to create the IngressRoute for
  * @param ringName name of the ring to which the service belongs
- * @param opts options to specify the manifest namespace, IngressRoute entryPoints, pathPrefix, backend service, and version
+ * @param opts options to specify the manifest namespace, IngressRoute
+ *             entryPoints, pathPrefix, backend service, and version
  */
-export const TraefikIngressRoute = (
+export const create = (
   serviceName: string,
   ringName: string,
   servicePort: number,
@@ -65,15 +66,20 @@ export const TraefikIngressRoute = (
     k8sBackend?: string;
     middlewares?: string[];
     namespace?: string;
+    isDefault?: boolean;
   }
 ): TraefikIngressRoute => {
-  const { entryPoints, k8sBackend, middlewares = [], namespace } = opts ?? {};
-  const name = ringName ? `${serviceName}-${ringName}` : serviceName;
+  const { entryPoints, k8sBackend, middlewares = [], namespace, isDefault } =
+    opts ?? {};
+  const name =
+    ringName && !isDefault ? `${serviceName}-${ringName}` : serviceName;
 
   const routeMatchPathPrefix = `PathPrefix(\`${versionAndPath}\`)`;
-  const routeMatchHeaders = ringName && `Headers(\`Ring\`, \`${ringName}\`)`; // no 'X-' prefix for header: https://tools.ietf.org/html/rfc6648
+  const routeMatchHeaders = isDefault
+    ? undefined
+    : ringName && `Headers(\`Ring\`, \`${ringName}\`)`; // no 'X-' prefix for header: https://tools.ietf.org/html/rfc6648
   const routeMatch = [routeMatchPathPrefix, routeMatchHeaders]
-    .filter((matchRule) => !!matchRule)
+    .filter((rule): rule is NonNullable<typeof rule> => !!rule)
     .join(" && ");
 
   const backendService =

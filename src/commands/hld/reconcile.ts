@@ -2,19 +2,20 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import child_process from "child_process";
 import commander from "commander";
-import { writeFileSync } from "fs";
+import fs from "fs";
 import yaml from "js-yaml";
 import path from "path";
 import process from "process";
 import shelljs, { TestOptions } from "shelljs";
 import { Bedrock } from "../../config";
 import { assertIsStringWithContent } from "../../lib/assertions";
+import * as bedrock from "../../lib/bedrockYaml";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { generateAccessYaml } from "../../lib/fileutils";
 import { tryGetGitOrigin } from "../../lib/gitutils";
 import * as dns from "../../lib/net/dns";
-import { TraefikIngressRoute } from "../../lib/traefik/ingress-route";
-import { TraefikMiddleware } from "../../lib/traefik/middleware";
+import * as ingressRoute from "../../lib/traefik/ingress-route";
+import * as middleware from "../../lib/traefik/middleware";
 import { logger } from "../../logger";
 import { BedrockFile, BedrockServiceConfig } from "../../types";
 import decorator from "./reconcile.decorator.json";
@@ -57,7 +58,7 @@ const exec = async (cmd: string, pipeIO = false): Promise<ExecResult> => {
 
 export interface ReconcileDependencies {
   exec: typeof execAndLog;
-  writeFile: typeof writeFileSync;
+  writeFile: typeof fs.writeFileSync;
   getGitOrigin: typeof tryGetGitOrigin;
   generateAccessYaml: typeof generateAccessYaml;
   createAccessYaml: typeof createAccessYaml;
@@ -105,6 +106,7 @@ export const execute = async (
     );
 
     const bedrockConfig = Bedrock(absBedrockPath);
+    bedrock.validateRings(bedrockConfig);
 
     logger.info(
       `Attempting to reconcile HLD with services tracked in bedrock.yaml`
@@ -123,7 +125,7 @@ export const execute = async (
       exec: execAndLog,
       generateAccessYaml,
       getGitOrigin: tryGetGitOrigin,
-      writeFile: writeFileSync,
+      writeFile: fs.writeFileSync,
     };
 
     await reconcileHld(
@@ -238,22 +240,23 @@ export const reconcileHld = async (
       normalizedSvcName
     );
 
-    const ringsToCreate = Object.keys(managedRings).map((ring) => {
-      const normalizedRingName = normalizedName(ring);
-      return {
-        normalizedRingName,
-        normalizedRingPathInHld: path.join(
-          normalizedSvcPathInHld,
-          normalizedRingName
-        ),
-      };
-    });
+    const ringsToCreate = Object.entries(managedRings).map(
+      ([ring, { isDefault }]) => {
+        const normalizedRingName = normalizedName(ring);
+        return {
+          isDefault: !!isDefault,
+          normalizedRingName,
+          normalizedRingPathInHld: path.join(
+            normalizedSvcPathInHld,
+            normalizedRingName
+          ),
+        };
+      }
+    );
 
     // Will only loop over _existing_ rings in bedrock.yaml - does not cover the deletion case, ie: i remove a ring from bedrock.yaml
-    for (const {
-      normalizedRingName,
-      normalizedRingPathInHld,
-    } of ringsToCreate) {
+    for (const ring of ringsToCreate) {
+      const { normalizedRingName, normalizedRingPathInHld, isDefault } = ring;
       // Create the ring in the service.
       await dependencies.createRingComponent(
         dependencies.exec,
@@ -302,7 +305,8 @@ export const reconcileHld = async (
         normalizedRingPathInHld,
         normalizedSvcName,
         normalizedRingName,
-        ingressVersionAndPath
+        ingressVersionAndPath,
+        isDefault
       );
 
       // Create Ingress Route.
@@ -312,7 +316,8 @@ export const reconcileHld = async (
         serviceConfig,
         middlewares,
         normalizedRingName,
-        ingressVersionAndPath
+        ingressVersionAndPath,
+        isDefault
       );
     }
   }
@@ -369,50 +374,89 @@ export const createAccessYaml = async (
   writeAccessYaml(absRepositoryPathInHldPath, originUrl);
 };
 
-const createIngressRouteForRing = (
+type MiddlewareMap<T = Partial<ReturnType<typeof middleware.create>>> = {
+  ringed: T;
+  default?: T;
+};
+
+export const createIngressRouteForRing = (
   ringPathInHld: string,
   serviceName: string,
   serviceConfig: BedrockServiceConfig,
-  middlewares: TraefikMiddleware,
+  middlewares: MiddlewareMap,
   ring: string,
-  ingressVersionAndPath: string
-): void => {
+  ingressVersionAndPath: string,
+  ringIsDefault = false
+): ReturnType<typeof ingressRoute.create>[] => {
   const staticComponentPathInRing = path.join(ringPathInHld, "static");
   const ingressRoutePathInStaticComponent = path.join(
     staticComponentPathInRing,
     "ingress-route.yaml"
   );
-  const ingressRoute = TraefikIngressRoute(
+
+  // Push the default ingress route with ring header
+  const ingressRoutes = [];
+  const ringedRoute = ingressRoute.create(
     serviceName,
     ring,
     serviceConfig.k8sBackendPort,
     ingressVersionAndPath,
     {
+      isDefault: false,
       k8sBackend: serviceConfig.k8sBackend,
       middlewares: [
-        middlewares.metadata.name,
+        middlewares.ringed.metadata?.name,
         ...(serviceConfig.middlewares ?? []),
-      ],
+      ].filter((e): e is NonNullable<typeof e> => !!e),
     }
   );
+  ingressRoutes.push(ringedRoute);
 
-  const routeYaml = yaml.safeDump(ingressRoute, {
-    lineWidth: Number.MAX_SAFE_INTEGER,
-  });
+  // If ring isDefault, scaffold an additional ingress route without the ring
+  // header -- i.e with an empty string ring name
+  if (ringIsDefault) {
+    const defaultRingRoute = ingressRoute.create(
+      serviceName,
+      ring,
+      serviceConfig.k8sBackendPort,
+      ingressVersionAndPath,
+      {
+        isDefault: ringIsDefault,
+        k8sBackend: serviceConfig.k8sBackend,
+        middlewares: [
+          middlewares.default?.metadata?.name,
+          ...(serviceConfig.middlewares ?? []),
+        ].filter((e): e is NonNullable<typeof e> => !!e),
+      }
+    );
+    ingressRoutes.push(defaultRingRoute);
+  }
+
+  // serialize to routes to yaml separately and join them with `---` to specify
+  // multiple yaml documents in a single string
+  const routeYaml = ingressRoutes
+    .map((str) => {
+      return yaml.safeDump(str, {
+        lineWidth: Number.MAX_SAFE_INTEGER,
+      });
+    })
+    .join("\n---\n");
 
   logger.info(
     `Writing IngressRoute YAML to '${ingressRoutePathInStaticComponent}'`
   );
 
-  writeFileSync(ingressRoutePathInStaticComponent, routeYaml);
+  fs.writeFileSync(ingressRoutePathInStaticComponent, routeYaml);
+  return ingressRoutes;
 };
 
-const createMiddlewareForRing = (
+export const createMiddlewareForRing = (
   ringPathInHld: string,
   serviceName: string,
   ring: string,
-  ingressVersionAndPath: string
-): TraefikMiddleware => {
+  ingressVersionAndPath: string,
+  ringIsDefault = false
+): MiddlewareMap => {
   // Create Middlewares
   const staticComponentPathInRing = path.join(ringPathInHld, "static");
   const middlewaresPathInStaticComponent = path.join(
@@ -420,17 +464,30 @@ const createMiddlewareForRing = (
     "middlewares.yaml"
   );
 
-  const middlewares = TraefikMiddleware(serviceName, ring, [
-    ingressVersionAndPath,
-  ]);
-  const middlewareYaml = yaml.safeDump(middlewares, {
-    lineWidth: Number.MAX_SAFE_INTEGER,
-  });
+  // Create the standard ringed middleware as well as one without the ring in
+  // the name if the ring isDefault
+  const middlewares = {
+    ringed: middleware.create(serviceName, ring, [ingressVersionAndPath]),
+    default: ringIsDefault
+      ? middleware.create(serviceName, "", [ingressVersionAndPath])
+      : undefined,
+  };
+
+  // Serialize all the middlewares to yaml separately and join the strings with
+  // '---' to specify multiple yaml docs in a single string
+  const middlewareYaml = Object.values(middlewares)
+    .filter((e): e is NonNullable<typeof e> => !!e)
+    .map((str) =>
+      yaml.safeDump(str, {
+        lineWidth: Number.MAX_SAFE_INTEGER,
+      })
+    )
+    .join("\n---\n");
 
   logger.info(
     `Writing Middlewares YAML to '${middlewaresPathInStaticComponent}'`
   );
-  writeFileSync(middlewaresPathInStaticComponent, middlewareYaml);
+  fs.writeFileSync(middlewaresPathInStaticComponent, middlewareYaml);
 
   return middlewares;
 };

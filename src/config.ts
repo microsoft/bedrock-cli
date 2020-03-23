@@ -267,7 +267,7 @@ export const saveConfiguration = (
 ): void => {
   try {
     const data = yaml.safeDump(readYaml<ConfigYaml>(sourceFilePath), {
-      lineWidth: Number.MAX_SAFE_INTEGER
+      lineWidth: Number.MAX_SAFE_INTEGER,
     });
     const targetFile = path.join(targetDir, "config.yaml");
     fs.writeFileSync(targetFile, data);
