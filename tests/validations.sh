@@ -148,6 +148,17 @@ echo "hld_repo_url $hld_repo_url"
 echo "manifest_repo_url $manifest_repo_url"
 spk hld install-manifest-pipeline --org-name $AZDO_ORG -d $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET -u https://$hld_repo_url -m https://$manifest_repo_url >> $TEST_WORKSPACE/log.txt
 
+##################################
+# Temporary: Add a variable group to hld to manifest pipeline manually for testing introspection
+# Will no longer be needed once install-manifest-pipeline supports adding a VG
+##################################
+cd $hld_dir
+echo -e "variables:\n  - group: $vg_name" | cat - manifest-generation.yaml > temp && mv temp manifest-generation.yaml
+git add .
+git commit -m "Adding variable group $vg_name to pipeline"
+git push origin master
+echo "Successfully added variable group $vg_name to hld pipeline"
+
 # Verify hld to manifest pipeline was created
 pipeline_created=$(az pipelines show --name $hld_to_manifest_pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
 
@@ -409,6 +420,12 @@ echo "Successfully reached the end of the service validations scripts."
 # # SPK Introspection Validation START
 # ##################################
 
+pipeline1id=$(az pipelines build list --definition-ids $pipeline_id --organization $AZDO_ORG_URL --project $AZDO_PROJECT | jq '.[0].id')
+
+# Verify hld to manifest pipeline run was successful, to verify the full end-end capture of
+# introspection data
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 300 15 3
+
 cd $TEST_WORKSPACE
 cd ..
 if [ -d "tests" ]; then
@@ -416,25 +433,28 @@ if [ -d "tests" ]; then
 fi
 export sa_access_key=$(echo "$sa_access_key" | tr -d '"')
 spk init -f ./spk-config-test.yaml
-export output=$(spk deployment get -O json > file.json )
+spk deployment get --build-id $pipeline1id
+export output=$(spk deployment get --build-id $pipeline1id -O json > file.json )
 length=$(cat file.json | jq 'length')
 if (( length > 0 )); then
-  echo "$length deployments were returned by spk deployment get"
+  echo "$length deployment(s) were returned by spk deployment get"
 else
   echo "Error: Empty JSON was returned from spk deployment get"
   exit 1
 fi
 
-# Compare $pipeline_id with the data returned by get.
+# Parse the response to verify data from get command
+srcPipelineId=$(cat file.json | jq '.[].srcToDockerBuild.id')
+acrPipelineId=$(cat file.json | jq '.[].dockerToHldReleaseStage.id')
+hldPipelineId=$(cat file.json | jq '.[].hldToManifestBuild.id')
+prId=$(cat file.json | jq '.[].pr')
 
-listofIds=$(cat file.json | jq '.[].srcToDockerBuild.id')
-
-if [[ $listofIds == *"$pipeline1id"* ]]; then
-  echo "Pipeline Id $pipeline1id exists. Verified that data exists in storage and could be retrieved."
+if [[ "$srcPipelineId" == "$pipeline1id" && "$acrPipelineId" == "$srcPipelineId" && "$hldPipelineId" != "" && "$prId" != "" && "$prId" != "null" ]]; then
+  echo "Verified that srcPipeline:$srcPipelineId acrPipelineId:$acrPipelineId hldPipelineId:$hldPipelineId pullrequest:$prId are all linked together correctly."
 else
-  echo "Error: Pipeline Id $pipeline1id is not found in data returned from get. "
+  echo "Error: Data returned from get command does not match expected output:"
+  cat file.json
   exit 1
 fi
-# --------------------------------
 
 echo "Successfully reached the end of spk deployment get tests."

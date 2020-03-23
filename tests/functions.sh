@@ -305,6 +305,9 @@ function verify_pipeline_with_poll () {
 
         # We expect only 1 build right now
         build_count=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq '. | length')
+        if [[ -z "$expected_build_count" ]]; then 
+            expected_build_count=1
+        fi
         if [ "$build_count" != "$expected_build_count"  ]; then
             echo "Expected $expected_build_count build for pipeline: $pipeline_name-$pipeline_id but found $build_count"
             exit 1
