@@ -47,6 +47,16 @@ Commands:
   variable-group     Creates Variable Group in Azure DevOps project.
 ```
 
+## Prerequisites
+
+To use `spk`, you must make sure you have the following tools installed:
+
+- `git` - at _least_ version 2.22. Follow download instructions
+  [here](https://git-scm.com/downloads)
+
+Follow instructions to download and install the rest of the prerequisites
+[here.](https://github.com/microsoft/bedrock/blob/master/tools/prereqs/README.md)
+
 ## Getting Started
 
 The fastest way to get started with `spk` is to following our interactive
