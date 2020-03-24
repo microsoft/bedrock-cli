@@ -121,10 +121,10 @@ remove the `ring` from the HLD repository and subsequently, the cluster, follow
 the manual steps outlined
 [here.](manual-guide-to-rings.md#removing-the-ring-from-the-cluster)
 
-### Setting the Default Ring
+### Setting the Default Ring / Routing
 
-For every bedrock project, there will be a default ring. By default, this is the
-`master` ring, which corresponds to the master branch of the repository.
+For every bedrock project, there may be a single default ring. By default, this
+is the `master` ring, which corresponds to the master branch of the repository.
 
 For a `bedrock.yaml`:
 
@@ -134,14 +134,68 @@ rings:
     isDefault: true
   develop:
     isDefault: false
-services: ...
+  qa: {} # isDefault not present is same as isDefault: false
+services:
+  ./my-service-foo:
+    displayName: fancy-service
+    helm:
+      chart:
+        accessTokenVariable: MY_ENV_VAR
+        branch: master
+        git: "https://dev.azure.com/my-org/my-project/_git/my-repo"
+        path: my-service-helm-chart
+    k8sBackend: backend-service
+    k8sBackendPort: 80
+    middlewares: []
+    pathPrefix: ""
+    pathPrefixMajorVersion: ""
 ```
 
 the property `isDefault` denotes which `ring` is the default ring.
 
-Currently this property is only being used by the `spk service create-revision`
-command. Details can be found
+Being a _default_ ring means an additional set of Traefik2 IngressRoute and
+Middleware will be created for its services in the Manifest-Generation pipeline.
+These IngressRoute and Middleware will not be _ringed_ (i.e. not require a
+header to ping it) but point to the same underlying Kubernetes service as its
+ringed counterpart. In the example of above, the Manifest-Generation pipeline
+will generate the following ingress routes:
+
+```yaml
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: fancy-service-master
+spec:
+  routes:
+    - kind: Rule
+      match: "PathPrefix(`/fancy-service`) && Headers(`Ring`, `master`)" # a route still requiring a the Ring header
+      middlewares:
+        - name: fancy-service-master
+      services:
+        - name: backend-service-master # the ringed version of the k8s backend service
+          port: 80
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: fancy-service
+spec:
+  routes:
+    - kind: Rule
+      match: PathPrefix(`/fancy-service`) # a route freely exposed without a Ring header
+      middlewares:
+        - name: fancy-service
+      services:
+        - name: backend-service-master # points to the same backend service as its ringed counterpart
+          port: 80
+```
+
+In addition this property is used by the `spk service create-revision` command.
+Details can be found
 [here.](https://catalystcode.github.io/spk/commands/index.html#service_create-revision)
+
+Note: there can only be 1 (one) ringed marked as `isDefault`.
 
 ### What Services Have What Rings?
 
@@ -216,8 +270,14 @@ ping our services now via a curl command containing the header
 ping:
 
 ```sh
+curl -H  88.88.88.88/foo/
+curl -H  88.88.88.88/bar/
 curl -H "Ring: master" 88.88.88.88/foo/
 curl -H "Ring: master" 88.88.88.88/bar/
 curl -H "Ring: develop" 88.88.88.88/foo/
 curl -H "Ring: develop" 88.88.88.88/bar/
 ```
+
+Note: the curl requests with and without the header `Ring: master` will be point
+to the same underlying service Kubernetes service (refer to:
+[Setting A Default Ring](#setting-the-default-ring--routing))
