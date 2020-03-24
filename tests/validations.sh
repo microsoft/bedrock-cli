@@ -203,8 +203,6 @@ variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $vg_name "fail"
 
 # Introspection Storage Account Setup
 storage_account_exists $AZ_STORAGE_ACCOUNT $AZ_RESOURCE_GROUP "fail"
-storage_account_cors_enabled $AZ_STORAGE_ACCOUNT "enable"
-storage_account_cors_enabled $AZ_STORAGE_ACCOUNT "wait"
 storage_account_table_exists $sat_name $AZ_STORAGE_ACCOUNT "create"
 storage_account_table_exists $sat_name $AZ_STORAGE_ACCOUNT "fail"
 sa_access_key=$(az storage account keys list -n $AZ_STORAGE_ACCOUNT -g $AZ_RESOURCE_GROUP | jq '.[0].value')

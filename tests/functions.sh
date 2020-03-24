@@ -235,44 +235,6 @@ function storage_account_table_exists () {
     fi
 }
 
-function storage_account_cors_enabled () {
-    sa_name=$1
-    action=$2
-    cors_enabled_result=$(az storage cors list --services t --account-name $sa_name | jq '.[] | select((.Service=="table") and (.AllowedMethods=="GET") and (.AllowedOrigins=="http://localhost:4040")) != null')
-
-    if [ "$cors_enabled_result" = "true" ]; then
-        echo "The storage account '$sa_name' has cors enabled"
-    else
-        echo "The storage account '$sa_name' does not have cors enabled"
-        if [ "$action" == "fail" ]; then
-            exit 1
-        fi
-        if [ "$action" == "enable" ]; then
-            echo "Enable cors in storage account '$sa_name'"
-            az storage cors add --methods "GET" --origins "http://localhost:4040" --services t --allowed-headers "*" --exposed-headers "*" --account-name $sa_name
-        fi
-        if [ "$action" == "wait" ]; then
-            total_wait_seconds=25
-            start=0
-            wait_seconds=5
-            while [ $start -lt $total_wait_seconds ]; do
-                cors_enabled_result=$(az storage cors list --services t --account-name $sa_name | jq '.[] | select((.Service=="table") and (.AllowedMethods=="GET") and (.AllowedOrigins=="http://localhost:4040")) != null')
-                if [ "$cors_enabled_result" = "true" ]; then
-                    echo "The storage account '$sa_name' has cors enabled"
-                    break
-                fi
-                echo "Wait $wait_seconds seconds..."
-                sleep $wait_seconds
-                start=$((start + wait_seconds))
-            done
-            if [ "$cors_enabled_result" != "true" ]; then
-                echo "The storage account '$sa_name' does not have cors enabled"
-                exit 1
-            fi
-        fi
-    fi
-}
-
 function pipeline_exists () {
     echo "Checking if pipeline: ${3} already exists."
     pipeline_results=$(az pipelines list --org $1 --p $2)
