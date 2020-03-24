@@ -2,12 +2,12 @@ import fs from "fs";
 import path from "path";
 import { CommandBuildElements } from "../src/lib/commandBuilder";
 
-interface ICommand {
+interface Command {
   command: string;
   subcommands: CommandBuildElements[];
 }
 
-interface ICommandElement extends CommandBuildElements {
+interface CommandElement extends CommandBuildElements {
   markdown?: string;
 }
 
@@ -17,9 +17,9 @@ interface ICommandElement extends CommandBuildElements {
 const getAllDecorators = (curDir: string): CommandBuildElements[] => {
   const allFiles = fs.readdirSync(curDir);
   const jsonFiles = allFiles.filter(f => f.endsWith(".json"));
-  const arrJson: ICommandElement[] = [];
+  const arrJson: CommandElement[] = [];
   jsonFiles.forEach(fileName => {
-    const json = require(path.join(curDir, fileName)) as ICommandElement;
+    const json = require(path.join(curDir, fileName)) as CommandElement;
     if (!json.disabled) {
       const mdPath = path.join(
         curDir,
@@ -35,7 +35,7 @@ const getAllDecorators = (curDir: string): CommandBuildElements[] => {
 };
 
 // get sub folders under commands folder.
-const getSubDirectories = (curDir: string) => {
+const getSubDirectories = (curDir: string): string[] => {
   return fs
     .readdirSync(curDir)
     .map(f => path.join(curDir, f))
@@ -46,7 +46,7 @@ const getSubDirectories = (curDir: string) => {
 // command object. e.g `spk infra generate` and
 // `spk deployment dashboard`
 const listCommands = (
-  allCommands: ICommand[]
+  allCommands: Command[]
 ): { [key: string]: CommandBuildElements } => {
   const mainCommands: { [key: string]: CommandBuildElements } = {};
   allCommands.forEach(cmd => {
@@ -68,7 +68,7 @@ const dir = path.join(process.cwd(), "src", "commands");
 const commandDirs = getSubDirectories(dir);
 commandDirs.unshift(dir); // this is needed because `spk init` is outside `commands` folder
 
-const commands: ICommand[] = commandDirs
+const commands: Command[] = commandDirs
   .map(d => {
     return {
       command: path.basename(d),

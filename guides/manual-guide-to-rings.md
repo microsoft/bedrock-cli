@@ -6,7 +6,7 @@ This guide presumes that you have set up your `spk` project, and installed all
 necessary pipelines created via `spk project init` (the lifecycle pipeline),
 `spk service create` (build update hld pipeline), and `spk hld init` (manifest
 generation pipeline), and followed the
-[guidelines for creating helm charts](./building-helm-charts-for-spk).
+[guidelines for creating helm charts](./building-helm-charts-for-spk.md).
 
 In `spk`, we offer the concept of a `ring` - a way to route inbound traffic to
 _revisions_ of a service on a Kubernetes cluster via request headers. For

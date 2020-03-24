@@ -13,9 +13,7 @@ orchestrator for your Infrastructure Generation workflow using `spk infra`.
    [here](https://github.com/yradsmikham/spk-infra-hld). You should be able to
    create your Infra HLD repo using a scaffolding process via `spk` (i.e.
    `spk infra scaffold`). For more information on how to do that, please refer
-   to the
-   [Cloud Infra Management](https://github.com/CatalystCode/spk/blob/master/docs/cloud-infra-management.md#scaffold)
-   doc.
+   to the [Cloud Infra Management](../cloud-infra-management.md) doc.
 
 ## Setup
 

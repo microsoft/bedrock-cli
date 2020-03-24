@@ -28,7 +28,7 @@ This document describes the workflow for deploying a set of services
 An overview of how these different pieces fit together from an automation
 perspective:
 
-![spk resources](/guides/images/spk-resource-diagram.png "Bedrock SPK Resources")
+![spk resources](./images/spk-resource-diagram.png "Bedrock SPK Resources")
 
 ## Requirements
 
@@ -134,7 +134,7 @@ applied to the Kubernetes cluster by Flux.
   ```
 
 **NOTE** `spk hld` command documentation can be found
-[here](/guides/hld-management.md).
+[here](./hld-management.md).
 
 ### Materialized Manifests Repository
 
@@ -225,7 +225,7 @@ application repositories
   run `install-lifecycle-pipeline` once for each repo.
 
 **NOTE** `spk project` command documentation can be found
-[here](/guides/project-management.md).
+[here](./project-management.md).
 
 #### Adding a Service to a Application Repository
 
@@ -249,7 +249,7 @@ application repositories
   definition in Azure Devops.
 
 **NOTE** `spk service` command documentation can be found
-[here](/guides/service-management.md).
+[here](./service-management.md).
 
 #### Helm Configuration for SPK
 
@@ -426,7 +426,7 @@ parameters to `spk service create --helm-config-git`:
   ```
 
 **NOTE** `spk service` command documentation can be found
-[here](/guides/service-management.md).
+[here](./service-management.md).
 
 ## Helm Charts
 

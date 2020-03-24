@@ -5,7 +5,7 @@ Service Introspection shows information about a
 
 Service introspection is used via the `spk deployment` commands. More
 information about the commands is available in the command reference
-[here](https://github.com/CatalystCode/spk/blob/master/docs/service-introspection.md).
+[here](./service-introspection.md).
 
 The following diagram shows the main components of service introspection.
 ![spk service introspection diagram](./images/service_introspection.png)
@@ -34,7 +34,7 @@ it or use an existing one.
 **Option 1:**
 
 Use the
-[`spk deployment onboard`](https://github.com/CatalystCode/spk/blob/master/guides/service-introspection.md#onboard)
+[`spk deployment onboard`](https://catalystcode.github.io/spk/commands/#master@deployment_onboard)
 command.
 
 **Option 2:**
@@ -248,10 +248,10 @@ After completing the steps in this guide, you should be able to:
 
 - Validate and verify the `spk-config.yaml` settings and the service
   introspection storage using
-  [`spk deployment validate`](https://github.com/CatalystCode/spk/blob/master/docs/service-introspection.md#validate)
+  [`spk deployment validate`](https://catalystcode.github.io/spk/commands/#master@deployment_validate)
 
 - Get information about your deployment using
-  [`spk deployment get`](https://github.com/CatalystCode/spk/blob/master/docs/service-introspection.md#get)
+  [`spk deployment get`](https://catalystcode.github.io/spk/commands/#master@deployment_get)
 
 - Launch the dashboard to visualize the data using
-  [`spk deployment dashboard`](https://github.com/CatalystCode/spk/blob/master/docs/service-introspection.md#dashboard)
+  [`spk deployment dashboard`](https://catalystcode.github.io/spk/commands/#master@deployment_dashboard)

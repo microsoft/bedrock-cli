@@ -37,6 +37,10 @@ steps:
     displayName: "YARN LINT"
 
   - script: |
+      yarn md-lint
+    displayName: "YARN MARKDOWN LINT"
+
+  - script: |
       yarn build
     displayName: "YARN BUILD"
 

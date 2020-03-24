@@ -40,8 +40,8 @@ ts-node src/index.ts project init # same as running `./spk project init`
 
 ### Implementing Commands
 
-Refer to this [doc](./guides/command-implementation.md) for guidelines for
-implementing commands.
+Refer to this [doc](./command-implementation.md) for guidelines for implementing
+commands.
 
 ### Running Tests
 

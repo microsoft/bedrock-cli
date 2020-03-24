@@ -82,8 +82,8 @@ directory):
 
 `spk` will extend the capability to clone private repositories using personal
 access tokens (PAT). For more information, please refer to this
-[section](https://github.com/CatalystCode/spk/blob/master/docs/cloud-infra-management.md#authentication)
-of Cloud Infra Management.
+[section](../cloud-infra-management.md#authentication-private-repos) of Cloud
+Infra Management.
 
 ## Future Considerations
 

@@ -13,7 +13,7 @@ scaffolding and generation detailed in the
 4. [Multiple Template Environments](#multiple-template-environments)
 5. [Embedding in SPK](#embedding-in-spk)
 6. [Issues with Terragrunt Approach](#issues-with-terragrunt-approach)
-7. [`spk infra` Vision](/SPK-Infra.md)
+7. [`spk infra` Vision](./spk-terragrunt-day-2-scenarios.md)
 
 ## Prerequisites
 

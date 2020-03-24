@@ -1,6 +1,6 @@
 # spk-config.yaml
 
-The [`spk-config.yaml`](./spk-config.yaml) consists of three main sections:
+The [`spk-config.yaml`](../spk-config.yaml) consists of three main sections:
 
 1. `introspection`
 2. `infra`
@@ -35,7 +35,7 @@ There are two options to create environment variables:
 A recommended approach is to have a `.env` file in your folder **(make sure it's
 gitignored!)** with all variables and their values.
 
-[Sample `.env`](./.env.example):
+[Sample `.env`](../.env.example):
 
 ```
 INTROSPECTION_STORAGE_ACCESS_KEY="access key"

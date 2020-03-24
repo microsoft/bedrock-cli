@@ -35,7 +35,7 @@ Global options:
 ## Requirements
 
 Fill out the service introspection settings in your spk config file, for example
-`spk-config.yaml`. [Sample config file](./../../spk-config.yaml).
+`spk-config.yaml`. [Sample config file](../spk-config.yaml).
 
 ```
 introspection:

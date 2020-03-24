@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { CommandBuildElements } from "../src/lib/commandBuilder";
 
-interface ICommandElement extends CommandBuildElements {
+interface CommandElement extends CommandBuildElements {
   markdown?: string;
 }
 
@@ -12,9 +12,9 @@ interface ICommandElement extends CommandBuildElements {
 const getAllDecorators = (curDir: string): CommandBuildElements[] => {
   const allFiles = fs.readdirSync(curDir);
   const jsonFiles = allFiles.filter(f => f.endsWith(".json"));
-  const arrJson: ICommandElement[] = [];
+  const arrJson: CommandElement[] = [];
   jsonFiles.forEach(fileName => {
-    const json = require(path.join(curDir, fileName)) as ICommandElement;
+    const json = require(path.join(curDir, fileName)) as CommandElement;
     arrJson.push(json);
   });
   return arrJson;
