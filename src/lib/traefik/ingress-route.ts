@@ -71,8 +71,13 @@ export const create = (
 ): TraefikIngressRoute => {
   const { entryPoints, k8sBackend, middlewares = [], namespace, isDefault } =
     opts ?? {};
-  const name =
-    ringName && !isDefault ? `${serviceName}-${ringName}` : serviceName;
+
+  const ringedServiceName = ringName
+    ? `${serviceName}-${ringName}`
+    : serviceName;
+
+  // IngressRoute name is _ringed_ depending on isDefault
+  const ingressName = isDefault ? serviceName : ringedServiceName;
 
   const routeMatchPathPrefix = `PathPrefix(\`${versionAndPath}\`)`;
   const routeMatchHeaders = isDefault
@@ -82,18 +87,19 @@ export const create = (
     .filter((rule): rule is NonNullable<typeof rule> => !!rule)
     .join(" && ");
 
+  // Compute the _ringed_ k8sBackend if provided - else fallback to the _ringed_ service name
   const backendService =
-    k8sBackend && ringName ? `${k8sBackend}-${ringName}` : name;
+    k8sBackend && ringName ? `${k8sBackend}-${ringName}` : ringedServiceName;
 
   // validate fields
-  dns.assertIsValid("metadata.name", name);
+  dns.assertIsValid("metadata.name", ingressName);
   dns.assertIsValid("spec.routes[].services[].name", backendService);
 
   return {
     apiVersion: "traefik.containo.us/v1alpha1",
     kind: "IngressRoute",
     metadata: {
-      name,
+      name: ingressName,
       ...(namespace ? { namespace } : {}),
     },
     spec: {

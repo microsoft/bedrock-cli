@@ -160,7 +160,8 @@ describe("TraefikIngressRoute - Unit Tests", () => {
     },
 
     {
-      name: "configured correctly when isDefault === false",
+      name:
+        "!isDefault & k8sBackend => metadata.name === ringed(service-name) && spec.routes[].services[].name == ringed(k8sBackend)",
       actual: (): unknown =>
         create("my-service", "master", 80, "/version/and/path", {
           k8sBackend: "my-k8s-svc",
@@ -174,7 +175,7 @@ describe("TraefikIngressRoute - Unit Tests", () => {
               match: expect.stringMatching(/.*ring.*master/i),
               services: expect.arrayContaining([
                 expect.objectContaining({
-                  name: expect.stringContaining("master"),
+                  name: "my-k8s-svc-master",
                 }),
               ]),
             }),
@@ -184,7 +185,8 @@ describe("TraefikIngressRoute - Unit Tests", () => {
     },
 
     {
-      name: "configured correctly when isDefault === true",
+      name:
+        "isDefault & k8sBackend => metadata.name == serviceName && spec.routes[].services[].name == ringed(k8sBackend)",
       actual: (): unknown =>
         create("my-service", "master", 80, "/version/and/path", {
           k8sBackend: "my-k8s-svc",
@@ -198,7 +200,31 @@ describe("TraefikIngressRoute - Unit Tests", () => {
               match: expect.not.stringMatching(/.*ring.*master/i),
               services: expect.arrayContaining([
                 expect.objectContaining({
-                  name: expect.stringContaining("master"),
+                  name: "my-k8s-svc-master",
+                }),
+              ]),
+            }),
+          ]),
+        },
+      }),
+    },
+
+    {
+      name:
+        "isDefault & !k8sBackend => metadata.name == serviceName && spec.routes[].services[].name == ringed(serviceName)",
+      actual: (): unknown =>
+        create("my-service", "master", 80, "/version/and/path", {
+          isDefault: true,
+        }),
+      expected: expect.objectContaining<PartialIngressRoute>({
+        metadata: { name: "my-service" },
+        spec: {
+          routes: expect.arrayContaining([
+            expect.objectContaining({
+              match: expect.not.stringMatching(/.*ring.*master/i),
+              services: expect.arrayContaining([
+                expect.objectContaining({
+                  name: "my-service-master",
                 }),
               ]),
             }),
@@ -227,7 +253,7 @@ describe("TraefikIngressRoute - Throwable", () => {
     {
       name: "throws when meta.name is invalid: dash (-) prefix",
       actual: (): unknown =>
-        create("-invalid-serivce&name", "valid-ring", 80, "v1"),
+        create("-invalid-service&name", "valid-ring", 80, "v1"),
       throws: true,
     },
 
