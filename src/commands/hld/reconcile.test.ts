@@ -352,7 +352,7 @@ describe("configureChartForRing", () => {
   let exec = jest.fn().mockReturnValue(Promise.resolve({}));
   const ringPath = "/path/to/ring";
   const ringName = "myringname";
-
+  const normalizedServiceName = "my-great-service";
   const serviceConfig: BedrockServiceConfig = {
     helm: {
       chart: {
@@ -365,11 +365,44 @@ describe("configureChartForRing", () => {
     k8sBackendPort: 80,
   };
 
-  const k8sSvcBackendAndName = [serviceConfig.k8sBackend, ringName].join("-");
-  const expectedInvocation = `cd ${ringPath} && fab set --subcomponent "chart" serviceName="${k8sSvcBackendAndName}"`;
+  it("should invoke the correct command for configuring a chart for a ring with the k8s service being configured from the config", async () => {
+    await configureChartForRing(
+      exec,
+      ringPath,
+      ringName,
+      serviceConfig,
+      normalizedServiceName
+    );
 
-  it("should invoke the correct command for configuring a chart for a ring", async () => {
-    await configureChartForRing(exec, ringPath, ringName, serviceConfig);
+    const k8sSvcBackendAndName = [serviceConfig.k8sBackend, ringName].join("-");
+    const expectedInvocation = `cd ${ringPath} && fab set --subcomponent "chart" serviceName="${k8sSvcBackendAndName}"`;
+
+    expect(exec).toBeCalled();
+    expect(exec).toBeCalledWith(expectedInvocation);
+  });
+
+  it("should invoke the correct command and calculate the k8s service name from the bedrock service name if there is no k8sbackend configured.", async () => {
+    const serviceConfigNoK8sBackend: BedrockServiceConfig = {
+      helm: {
+        chart: {
+          git: "foo",
+          path: "bar",
+          sha: "baz",
+        },
+      },
+      k8sBackend: "",
+      k8sBackendPort: 80,
+    };
+
+    const k8sSvcBackendAndName = [normalizedServiceName, ringName].join("-");
+    const expectedInvocation = `cd ${ringPath} && fab set --subcomponent "chart" serviceName="${k8sSvcBackendAndName}"`;
+    await configureChartForRing(
+      exec,
+      ringPath,
+      ringName,
+      serviceConfigNoK8sBackend,
+      normalizedServiceName
+    );
 
     expect(exec).toBeCalled();
     expect(exec).toBeCalledWith(expectedInvocation);
@@ -381,7 +414,13 @@ describe("configureChartForRing", () => {
       .mockImplementation(async () => Promise.reject(new Error()));
 
     await expect(
-      configureChartForRing(exec, ringPath, ringName, serviceConfig)
+      configureChartForRing(
+        exec,
+        ringPath,
+        ringName,
+        serviceConfig,
+        normalizedServiceName
+      )
     ).rejects.toThrow();
   });
 });

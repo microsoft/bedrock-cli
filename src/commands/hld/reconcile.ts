@@ -276,7 +276,8 @@ export const reconcileHld = async (
         dependencies.exec,
         normalizedRingPathInHld,
         normalizedRingName,
-        serviceConfig
+        serviceConfig,
+        normalizedSvcName
       );
 
       // Service explicitly requests no ingress-routes to be generated.
@@ -588,10 +589,13 @@ export const configureChartForRing = async (
   execCmd: (commandToRun: string) => Promise<ExecResult>,
   normalizedRingPathInHld: string,
   normalizedRingName: string,
-  serviceConfig: BedrockServiceConfig
+  serviceConfig: BedrockServiceConfig,
+  normalizedServiceName: string
 ): Promise<ExecResult> => {
   // Configue the k8s backend svc here along with master
-  const k8sBackendName = serviceConfig.k8sBackend || "";
+  // If no specific k8s backend name is provided, use the bedrock service name.
+  const k8sBackendName = serviceConfig.k8sBackend || normalizedServiceName;
+
   const k8sSvcBackendAndName = [
     normalizedName(k8sBackendName),
     normalizedRingName,
