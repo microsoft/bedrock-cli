@@ -266,11 +266,13 @@ export const saveConfiguration = (
   targetDir: string = defaultConfigDir()
 ): void => {
   try {
+    logger.info("Generating config.yaml from yaml file input.");
     const data = yaml.safeDump(readYaml<ConfigYaml>(sourceFilePath), {
       lineWidth: Number.MAX_SAFE_INTEGER,
     });
     const targetFile = path.join(targetDir, "config.yaml");
     fs.writeFileSync(targetFile, data);
+    logger.info(`config.yaml was generated and located at ${targetFile}.`);
   } catch (err) {
     logger.error(
       `Error occurred while writing config to default location ${err}`
