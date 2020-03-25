@@ -59,7 +59,7 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
-jest.spyOn(azdo, "repositoryHasFile").mockReturnValue(Promise.resolve());
+jest.spyOn(azdo, "validateRepository").mockReturnValue(Promise.resolve());
 
 describe("test emptyStringIfUndefined function", () => {
   it("pass in undefined", () => {

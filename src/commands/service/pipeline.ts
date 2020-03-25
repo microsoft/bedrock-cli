@@ -8,7 +8,7 @@ import {
 import commander from "commander";
 import path from "path";
 import { Config } from "../../config";
-import { repositoryHasFile } from "../../lib/azdoClient";
+import { validateRepository } from "../../lib/azdoClient";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
   BUILD_SCRIPT_URL,
@@ -90,7 +90,8 @@ export const execute = async (
         path.join(serviceName, SERVICE_PIPELINE_FILENAME);
 
     // By default the version descriptor is for the master branch
-    await repositoryHasFile(
+    await validateRepository(
+      opts.devopsProject,
       pipelinesYamlPath,
       opts.yamlFileBranch ? opts.yamlFileBranch : "master",
       opts.repoName,

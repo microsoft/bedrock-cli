@@ -157,3 +157,30 @@ export const repositoryHasFile = async (
     );
   }
 };
+
+/**
+ * Validates if a repository exists and if it contains the given file
+ * @param project  The Azure DevOps project name
+ * @param fileName The name of the file
+ * @param branch The branch name
+ * @param repoName The name of the repository
+ * @param accessOpts The Azure DevOps access options to the repository
+ */
+export const validateRepository = async (
+  project: string,
+  fileName: string,
+  branch: string,
+  repoName: string,
+  accessOpts: AzureDevOpsOpts
+): Promise<void> => {
+  const gitApi = await GitAPI(accessOpts);
+  const repo = await gitApi.getRepository(repoName, project);
+
+  if (!repo) {
+    throw Error(
+      `Project '${project}' does not contain repository '${repoName}'.`
+    );
+  }
+
+  await repositoryHasFile(fileName, branch, repoName, accessOpts);
+};

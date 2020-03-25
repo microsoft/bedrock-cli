@@ -6,7 +6,7 @@ import {
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
 import { Config } from "../../config";
-import { repositoryHasFile } from "../../lib/azdoClient";
+import { validateRepository } from "../../lib/azdoClient";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
   BUILD_SCRIPT_URL,
@@ -200,7 +200,8 @@ export const execute = async (
     };
 
     // By default the version descriptor is for the master branch
-    await repositoryHasFile(
+    await validateRepository(
+      opts.devopsProject,
       RENDER_HLD_PIPELINE_FILENAME,
       opts.yamlFileBranch ? opts.yamlFileBranch : "master",
       opts.hldName,

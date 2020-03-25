@@ -6,7 +6,7 @@ import {
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
 import { Config } from "../../config";
-import { repositoryHasFile } from "../../lib/azdoClient";
+import { validateRepository } from "../../lib/azdoClient";
 import { fileInfo as bedrockFileInfo } from "../../lib/bedrockYaml";
 import {
   build as buildCmd,
@@ -77,6 +77,7 @@ export const fetchValidateValues = (
   if (!opts.repoUrl) {
     throw Error(`Repo url not defined`);
   }
+
   const values: CommandOptions = {
     buildScriptUrl: opts.buildScriptUrl || BUILD_SCRIPT_URL,
     devopsProject: opts.devopsProject || azureDevops?.project,
@@ -84,7 +85,8 @@ export const fetchValidateValues = (
     personalAccessToken: opts.personalAccessToken || azureDevops?.access_token,
     pipelineName:
       opts.pipelineName || getRepositoryName(gitOriginUrl) + "-lifecycle",
-    repoName: getRepositoryName(gitOriginUrl),
+    repoName:
+      getRepositoryName(opts.repoUrl) || getRepositoryName(gitOriginUrl),
     repoUrl: opts.repoUrl || getRepositoryUrl(gitOriginUrl),
     yamlFileBranch: opts.yamlFileBranch,
   };
@@ -233,10 +235,11 @@ export const execute = async (
         personalAccessToken: values.personalAccessToken,
         project: values.devopsProject,
       };
-      await repositoryHasFile(
+      await validateRepository(
+        values.devopsProject!,
         PROJECT_PIPELINE_FILENAME,
         values.yamlFileBranch ? opts.yamlFileBranch : "master",
-        values.repoName!,
+        values.repoName,
         accessOpts
       );
       await installLifecyclePipeline(values);

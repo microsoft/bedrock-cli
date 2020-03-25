@@ -36,11 +36,11 @@ const mockValues: CommandOptions = {
   personalAccessToken: "PAT",
   pipelineName: "pipelineName",
   repoName: "repoName",
-  repoUrl: "repoUrl",
+  repoUrl: "https://dev.azure.com/myOrg/myProject/_git/myRepo",
   yamlFileBranch: "master",
 };
 
-jest.spyOn(azdo, "repositoryHasFile").mockReturnValue(Promise.resolve());
+jest.spyOn(azdo, "validateRepository").mockReturnValue(Promise.resolve());
 
 const mockMissingValues: CommandOptions = {
   buildScriptUrl: undefined,
@@ -122,12 +122,6 @@ describe("installLifecyclePipeline and execute tests", () => {
 
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[0]]);
-  });
-  it("test execute function: missing repo url and pipeline name", async () => {
-    const exitFn = jest.fn();
-    await execute(mockMissingValues, "", exitFn);
-    expect(exitFn).toBeCalledTimes(1);
-    expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("test execute function: github repos not supported", async () => {
     const exitFn = jest.fn();
