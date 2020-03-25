@@ -2,16 +2,73 @@
 import commander from "commander";
 import fs from "fs";
 import path from "path";
-import { readYaml } from "../../config";
-import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
+import { Config, readYaml } from "../../config";
+import {
+  build as buildCmd,
+  exit as exitCmd,
+  getOption as getCmdOption,
+} from "../../lib/commandBuilder";
 import { AzureDevOpsOpts } from "../../lib/git";
 import {
   addVariableGroup,
   addVariableGroupWithKeyVaultMap,
 } from "../../lib/pipelines/variableGroup";
+import {
+  hasValue,
+  validateProjectNameThrowable,
+  validateOrgNameThrowable,
+} from "../../lib/validator";
 import { logger } from "../../logger";
 import { VariableGroupData } from "../../types";
 import decorator from "./create.decorator.json";
+
+interface CommandOptions {
+  file: string | undefined;
+  orgName: string | undefined;
+  devopsProject: string | undefined;
+  personalAccessToken: string | undefined;
+}
+
+export const validateValues = (opts: CommandOptions): void => {
+  if (!opts.file) {
+    throw Error("You need to specify a file with variable group manifest");
+  }
+  const config = Config();
+  const azure = config.azure_devops;
+
+  if (!hasValue(opts.orgName) && !azure?.org) {
+    throw Error(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      `value for ${getCmdOption(decorator, "org-name")!.arg} is missing`
+    );
+  }
+
+  if (hasValue(opts.orgName)) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    validateOrgNameThrowable(opts.orgName!);
+  }
+
+  if (!hasValue(opts.devopsProject) && !azure?.project) {
+    throw Error(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      `value for ${getCmdOption(decorator, "devops-project")!.arg} is missing`
+    );
+  }
+
+  if (hasValue(opts.devopsProject)) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    validateProjectNameThrowable(opts.devopsProject!);
+  }
+
+  if (!hasValue(opts.personalAccessToken) && !azure?.access_token) {
+    throw Error(
+      `value for ${
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        getCmdOption(decorator, "personal-access-token")!.arg
+      } is missing`
+    );
+  }
+};
 
 /**
  * Adds the create command to the variable-group command object
@@ -19,53 +76,19 @@ import decorator from "./create.decorator.json";
  * @param command Commander command object to decorate
  */
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts) => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
     try {
-      if (!opts.file) {
-        throw new Error(
-          "You need to specify a file with variable group manifest"
-        );
-      }
-
-      const { file, orgName, devopsProject, personalAccessToken } = opts;
-
-      logger.debug(
-        `opts: ${file}, ${orgName}, ${devopsProject}, ${personalAccessToken}`
-      );
-
-      // type check
-      if (typeof orgName !== "undefined" && typeof orgName !== "string") {
-        throw Error(
-          `--org-name must be of type 'string', ${typeof orgName} specified.`
-        );
-      }
-
-      if (
-        typeof devopsProject !== "undefined" &&
-        typeof devopsProject !== "string"
-      ) {
-        throw Error(
-          `--devops-project must be of type 'string', ${typeof devopsProject} specified.`
-        );
-      }
-
-      if (
-        typeof personalAccessToken !== "undefined" &&
-        typeof personalAccessToken !== "string"
-      ) {
-        throw Error(
-          `--personal-access-token must be of type 'string', ${typeof personalAccessToken} specified.`
-        );
-      }
+      validateValues(opts);
 
       const accessOpts: AzureDevOpsOpts = {
-        orgName,
-        personalAccessToken,
-        project: devopsProject,
+        orgName: opts.orgName,
+        personalAccessToken: opts.personalAccessToken,
+        project: opts.devopsProject,
       };
       logger.debug(`access options: ${JSON.stringify(accessOpts)}`);
 
-      await create(opts.file, accessOpts);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      await create(opts.file!, accessOpts);
 
       logger.info(
         "Successfully added a variable group in Azure DevOps project!"

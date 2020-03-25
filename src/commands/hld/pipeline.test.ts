@@ -73,6 +73,54 @@ describe("test emptyStringIfUndefined function", () => {
   });
 });
 
+const orgNameTest = (hasVal: boolean): void => {
+  const data = {
+    buildScriptUrl: "",
+    devopsProject: "project",
+    hldName: "",
+    hldUrl: "https://dev.azure.com/mocked/fabrikam/_git/hld",
+    manifestUrl: "https://dev.azure.com/mocked/fabrikam/_git/materialized",
+    orgName: hasVal ? "org Name" : "",
+    personalAccessToken: "",
+    pipelineName: "",
+    yamlFileBranch: "",
+  };
+
+  if (hasVal) {
+    expect(() => populateValues(data)).toThrow(
+      "Organization names must start with a letter or number, followed by letters, numbers or hyphens, and must end with a letter or number."
+    );
+  } else {
+    expect(() => populateValues(data)).toThrow(
+      "value for -o, --org-name <organization-name> is missing"
+    );
+  }
+};
+
+const projectNameTest = (hasVal: boolean): void => {
+  const data = {
+    buildScriptUrl: "",
+    devopsProject: hasVal ? "project\\abc" : "",
+    hldName: "",
+    hldUrl: "https://dev.azure.com/mocked/fabrikam/_git/hld",
+    manifestUrl: "https://dev.azure.com/mocked/fabrikam/_git/materialized",
+    orgName: "orgName",
+    personalAccessToken: "",
+    pipelineName: "",
+    yamlFileBranch: "",
+  };
+
+  if (hasVal) {
+    expect(() => populateValues(data)).toThrow(
+      "Project name can't contain special characters, such as / : \\ ~ & % ; @ ' \" ? < > | # $ * } { , + = [ ]"
+    );
+  } else {
+    expect(() => populateValues(data)).toThrow(
+      "value for -d, --devops-project <devops-project> is missing"
+    );
+  }
+};
+
 describe("test populateValues function", () => {
   it("with all values in command opts", () => {
     jest.spyOn(config, "Config").mockImplementationOnce(
@@ -125,31 +173,24 @@ describe("test populateValues function", () => {
     expect(() =>
       populateValues({
         buildScriptUrl: "",
-        devopsProject: "",
+        devopsProject: "project",
         hldName: "",
         hldUrl: "https://github.com/fabrikam/hld",
         manifestUrl: "https://github.com/fabrikam/materialized",
-        orgName: "",
+        orgName: "orgName",
         personalAccessToken: "",
         pipelineName: "",
         yamlFileBranch: "",
       })
     ).toThrow(`GitHub repos are not supported`);
   });
-  it("negative tests: github repos not supported", () => {
-    expect(() =>
-      populateValues({
-        buildScriptUrl: "",
-        devopsProject: "",
-        hldName: "",
-        hldUrl: "https://github.com/fabrikam/hld",
-        manifestUrl: "https://github.com/fabrikam/materialized",
-        orgName: "",
-        personalAccessToken: "",
-        pipelineName: "",
-        yamlFileBranch: "",
-      })
-    ).toThrow(`GitHub repos are not supported`);
+  it("negative tests: missing and invalid org name", () => {
+    orgNameTest(false);
+    orgNameTest(true);
+  });
+  it("negative tests: missing and invalid project name", () => {
+    projectNameTest(false);
+    projectNameTest(true);
   });
 });
 

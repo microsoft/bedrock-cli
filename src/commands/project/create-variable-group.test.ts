@@ -5,11 +5,13 @@ import mockFs from "mock-fs";
 import path from "path";
 import uuid from "uuid/v4";
 import { readYaml, write } from "../../config";
+import * as config from "../../config";
 import {
   create as createBedrockYaml,
   isExists as isBedrockFileExists,
   read as readBedrockFile,
 } from "../../lib/bedrockYaml";
+import * as commandBuilder from "../../lib/commandBuilder";
 import {
   PROJECT_PIPELINE_FILENAME,
   VERSION_MESSAGE,
@@ -32,7 +34,9 @@ import {
   execute,
   setVariableGroupInBedrockFile,
   updateLifeCyclePipeline,
+  validateValues,
 } from "./create-variable-group";
+import * as createVariableGrp from "./create-variable-group";
 import * as fileutils from "../../lib/fileutils";
 
 beforeAll(() => {
@@ -57,11 +61,45 @@ const hldRepoUrl = uuid();
 const servicePrincipalId = uuid();
 const servicePrincipalPassword: string = uuid();
 const tenant = uuid();
-const orgName = uuid();
-const devopsProject = uuid();
+const orgName = "orgName";
+const devopsProject = "projectName";
 const personalAccessToken = uuid();
 
 describe("test execute function", () => {
+  it("positive test", async () => {
+    const exitFn = jest.fn();
+    jest.spyOn(createVariableGrp, "checkDependencies").mockReturnValueOnce();
+    jest.spyOn(config, "Config").mockReturnValueOnce({});
+    jest
+      .spyOn(commandBuilder, "validateForRequiredValues")
+      .mockReturnValueOnce([]);
+    jest.spyOn(createVariableGrp, "create").mockResolvedValueOnce({
+      name: "groupName",
+    });
+    jest
+      .spyOn(createVariableGrp, "setVariableGroupInBedrockFile")
+      .mockReturnValueOnce();
+    jest
+      .spyOn(createVariableGrp, "updateLifeCyclePipeline")
+      .mockReturnValueOnce();
+
+    await execute(
+      "groupName",
+      {
+        devopsProject,
+        hldRepoUrl,
+        orgName,
+        personalAccessToken,
+        registryName,
+        servicePrincipalId,
+        servicePrincipalPassword,
+        tenant,
+      },
+      exitFn
+    );
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[0]]);
+  });
   it("missing variable name", async () => {
     const exitFn = jest.fn();
     await execute(
@@ -79,6 +117,7 @@ describe("test execute function", () => {
       exitFn
     );
     expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("missing registry name", async () => {
     const exitFn = jest.fn();
@@ -97,25 +136,18 @@ describe("test execute function", () => {
       exitFn
     );
     expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
   });
 });
 
 describe("create", () => {
-  test("Should fail with empty variable group arguments", async () => {
+  it("Should fail with empty variable group arguments", async () => {
     const accessOpts: AzureDevOpsOpts = {
       orgName,
       personalAccessToken,
       project: devopsProject,
     };
-
-    let invalidDataError: Error | undefined;
-    try {
-      logger.info("calling create");
-      await create("", "", "", "", "", "", accessOpts);
-    } catch (err) {
-      invalidDataError = err;
-    }
-    expect(invalidDataError).toBeDefined();
+    await expect(create("", "", "", "", "", "", accessOpts)).rejects.toThrow();
   });
 
   test("Should pass with variable group arguments", async () => {
@@ -336,12 +368,28 @@ describe("updateLifeCyclePipeline", () => {
 
     fs.writeFileSync(hldFilePath, asYaml);
 
-    await updateLifeCyclePipeline(randomTmpDir);
+    updateLifeCyclePipeline(randomTmpDir);
 
     const hldLifeCycleYaml = readYaml<AzurePipelinesYaml>(hldFilePath);
     logger.info(`filejson: ${JSON.stringify(hldLifeCycleYaml)}`);
     expect(hldLifeCycleYaml.variables![0]).toEqual({
       group: variableGroupName,
     });
+  });
+});
+
+describe("test validateValues function", () => {
+  it("valid org and project name", () => {
+    validateValues(devopsProject, orgName);
+  });
+  it("invalid project name", () => {
+    expect(() => {
+      validateValues("project\\abc", orgName);
+    }).toThrow();
+  });
+  it("invalid org name", () => {
+    expect(() => {
+      validateValues(devopsProject, "org name");
+    }).toThrow();
   });
 });

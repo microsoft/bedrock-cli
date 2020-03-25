@@ -12,9 +12,11 @@ import {
   validateACRName,
   validateForNonEmptyValue,
   validateOrgName,
+  validateOrgNameThrowable,
   validatePassword,
   validatePrereqs,
   validateProjectName,
+  validateProjectNameThrowable,
   validateServicePrincipalId,
   validateServicePrincipalPassword,
   validateServicePrincipalTenantId,
@@ -138,17 +140,30 @@ describe("test validateOrgName function", () => {
   it("empty value and value with space", () => {
     expect(validateOrgName("")).toBe("Must enter an organization");
     expect(validateOrgName(" ")).toBe("Must enter an organization");
+    expect(() => {
+      validateOrgNameThrowable("");
+    }).toThrow();
+    expect(() => {
+      validateOrgNameThrowable(" ");
+    }).toThrow();
   });
   it("invalid value", () => {
-    expect(validateOrgName("-abc")).toBe(ORG_NAME_VIOLATION);
-    expect(validateOrgName(".abc")).toBe(ORG_NAME_VIOLATION);
-    expect(validateOrgName("abc.")).toBe(ORG_NAME_VIOLATION);
-    expect(validateOrgName("a b")).toBe(ORG_NAME_VIOLATION);
+    const values = ["-abc", ".abc", "abc.", "a b"];
+    values.forEach((v) => {
+      expect(validateOrgName(v)).toBe(ORG_NAME_VIOLATION);
+    });
+
+    values.forEach((v) => {
+      expect(() => {
+        validateOrgNameThrowable(v);
+      }).toThrow();
+    });
   });
   it("valid value", () => {
-    expect(validateOrgName("hello")).toBe(true);
-    expect(validateOrgName("1Microsoft")).toBe(true);
-    expect(validateOrgName("Microsoft#1")).toBe(true);
+    ["hello", "1Microsoft", "Microsoft#1"].forEach((v) => {
+      expect(validateOrgName(v)).toBe(true);
+      validateOrgNameThrowable(v);
+    });
   });
 });
 
@@ -156,11 +171,23 @@ describe("test validateProjectName function", () => {
   it("empty value and value with space", () => {
     expect(validateProjectName("")).toBe("Must enter a project name");
     expect(validateProjectName(" ")).toBe("Must enter a project name");
+
+    expect(() => {
+      validateProjectNameThrowable("");
+    }).toThrow();
+    expect(() => {
+      validateProjectNameThrowable(" ");
+    }).toThrow();
   });
   it("value over 64 chars long", () => {
-    expect(validateProjectName("a".repeat(65))).toBe(
+    const val = "a".repeat(65);
+    expect(validateProjectName(val)).toBe(
       "Project name cannot be longer than 64 characters"
     );
+
+    expect(() => {
+      validateProjectNameThrowable(val);
+    }).toThrow();
   });
   it("invalid value", () => {
     expect(validateProjectName("_abc")).toBe(
@@ -178,9 +205,16 @@ describe("test validateProjectName function", () => {
     expect(validateProjectName("a*b")).toBe(
       `Project name can't contain special characters, such as / : \\ ~ & % ; @ ' " ? < > | # $ * } { , + = [ ]`
     );
+
+    ["_abc", ".abc", "abc.", ".abc.", "a*b"].forEach((val) => {
+      expect(() => {
+        validateProjectNameThrowable(val);
+      }).toThrow();
+    });
   });
   it("valid value", () => {
     expect(validateProjectName("BedrockSPK")).toBe(true);
+    validateProjectNameThrowable("BedrockSPK");
   });
 });
 
@@ -325,6 +359,7 @@ describe("test validateACRName function", () => {
 
 describe("test validateStorageKeyVaultName function", () => {
   it("sanity test", () => {
+    expect(validateStorageKeyVaultName("")).toBeTruthy();
     expect(validateStorageKeyVaultName("ab*")).toBe(
       "The value for Key Value  Name is invalid."
     );

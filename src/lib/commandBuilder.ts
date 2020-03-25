@@ -156,3 +156,13 @@ export const exit = (
     }
   });
 };
+
+export const getOption = (
+  decorator: CommandBuildElements,
+  name: string
+): CommandOption | undefined => {
+  return decorator.options?.find((opt) => {
+    const match = opt.arg.match(/\s?--([-\w]+)\s?/);
+    return match && match[1] === name;
+  });
+};

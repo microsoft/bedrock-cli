@@ -18,6 +18,7 @@ import {
   CommandOptions,
   installLifecyclePipeline,
 } from "./pipeline";
+import { deepClone } from "../../lib/util";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -68,7 +69,7 @@ describe("test valid function", () => {
   it("negative test", async () => {
     try {
       const tmpDir = createBedrockYaml();
-      await checkDependencies(tmpDir);
+      checkDependencies(tmpDir);
       expect(true).toBe(false);
     } catch (e) {
       expect(e).not.toBeNull();
@@ -77,13 +78,19 @@ describe("test valid function", () => {
 });
 
 describe("test fetchValidateValues function", () => {
+  it("positive test", () => {
+    fetchValidateValues(mockValues, gitUrl, {
+      azure_devops: {
+        org: "orgName",
+        project: "projectName",
+        access_token: "sometoken",
+      },
+    });
+  });
   it("negative test: SPK Config is missing", () => {
-    try {
+    expect(() => {
       fetchValidateValues(mockValues, gitUrl, undefined);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e).not.toBeNull();
-    }
+    }).toThrow();
   });
   it("SPK Config's azure_devops do not have value", () => {
     expect(() => {
@@ -93,10 +100,29 @@ describe("test fetchValidateValues function", () => {
     }).toThrow(`Repo url not defined`);
   });
   it("SPK Config's azure_devops do not have value and command line does not have values", () => {
-    const values = fetchValidateValues(nullValues, gitUrl, {
-      azure_devops: {},
-    });
-    expect(values).toBeNull();
+    expect(() => {
+      fetchValidateValues(nullValues, gitUrl, {
+        azure_devops: {},
+      });
+    }).toThrow();
+  });
+  it("test project name validation: negative", () => {
+    const values = deepClone(mockValues);
+    values.devopsProject = "project\\name";
+    expect(() => {
+      fetchValidateValues(values, gitUrl, {
+        azure_devops: {},
+      });
+    }).toThrow();
+  });
+  it("test org name validation: negative", () => {
+    const values = deepClone(mockValues);
+    values.orgName = "org name";
+    expect(() => {
+      fetchValidateValues(values, gitUrl, {
+        azure_devops: {},
+      });
+    }).toThrow();
   });
 });
 

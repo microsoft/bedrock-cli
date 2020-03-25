@@ -112,6 +112,13 @@ export const validateOrgName = (value: string): string | boolean => {
   return ORG_NAME_VIOLATION;
 };
 
+export const validateOrgNameThrowable = (value: string): void => {
+  const err = validateOrgName(value);
+  if (typeof err == "string") {
+    throw Error(err);
+  }
+};
+
 export const isDashHex = (value: string): boolean => {
   return !!value.match(/^[a-f0-9-]+$/);
 };
@@ -189,6 +196,13 @@ export const validateProjectName = (value: string): string | boolean => {
   }
 
   return true;
+};
+
+export const validateProjectNameThrowable = (value: string): void => {
+  const err = validateProjectName(value);
+  if (typeof err == "string") {
+    throw Error(err);
+  }
 };
 
 /**

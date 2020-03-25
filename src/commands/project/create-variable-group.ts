@@ -17,7 +17,11 @@ import {
 } from "../../lib/constants";
 import { AzureDevOpsOpts } from "../../lib/git";
 import { addVariableGroup } from "../../lib/pipelines/variableGroup";
-import { hasValue } from "../../lib/validator";
+import {
+  hasValue,
+  validateProjectNameThrowable,
+  validateOrgNameThrowable,
+} from "../../lib/validator";
 import { logger } from "../../logger";
 import {
   AzurePipelinesYaml,
@@ -44,6 +48,11 @@ export const checkDependencies = (projectPath: string): void => {
   if (fileInfo.exist === false) {
     throw new Error(PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE);
   }
+};
+
+export const validateValues = (projectName: string, orgName: string): void => {
+  validateProjectNameThrowable(projectName);
+  validateOrgNameThrowable(orgName);
 };
 
 /**
@@ -104,6 +113,11 @@ export const execute = async (
       await exitFn(1);
       return;
     }
+
+    // validateForRequiredValues assure that devopsProject
+    // and orgName are not empty string
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    validateValues(devopsProject!, orgName!);
 
     const variableGroup = await create(
       variableGroupName,
@@ -176,6 +190,7 @@ export const create = (
   logger.info(
     `Creating Variable Group from group definition '${variableGroupName}'`
   );
+
   const vars: VariableGroupDataVariable = {
     ACR_NAME: {
       value: registryName,

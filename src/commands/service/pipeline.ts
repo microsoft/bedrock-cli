@@ -29,6 +29,10 @@ import {
 } from "../../lib/pipelines/pipelines";
 import { logger } from "../../logger";
 import decorator from "./pipeline.decorator.json";
+import {
+  validateOrgNameThrowable,
+  validateProjectNameThrowable,
+} from "../../lib/validator";
 
 export interface CommandOptions {
   orgName: string;
@@ -57,6 +61,10 @@ export const fetchValues = async (
   opts.repoName = getRepositoryName(opts.repoUrl);
   opts.repoUrl = opts.repoUrl || getRepositoryUrl(gitOriginUrl);
   opts.buildScriptUrl = opts.buildScriptUrl || BUILD_SCRIPT_URL;
+
+  validateOrgNameThrowable(opts.orgName);
+  validateProjectNameThrowable(opts.devopsProject);
+
   return opts;
 };
 

@@ -67,6 +67,16 @@ describe("test fetchValues function", () => {
     const values = await fetchValues(serviceName, mockedVals);
     expect(values.pipelineName).toBe(`${serviceName}-pipeline`);
   });
+  it("invalid org name", async () => {
+    const mockedVals = getMockedValues();
+    mockedVals.orgName = "abc def";
+    await expect(fetchValues("serviceName", mockedVals)).rejects.toThrow();
+  });
+  it("invalid project name", async () => {
+    const mockedVals = getMockedValues();
+    mockedVals.devopsProject = "some\\thing";
+    await expect(fetchValues("serviceName", mockedVals)).rejects.toThrow();
+  });
 });
 
 describe("test execute function", () => {
