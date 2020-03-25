@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import commander from "commander";
 import GitUrlParse from "git-url-parse";
 import open = require("open");
@@ -24,6 +23,20 @@ export interface CommandOptions {
   removeAll: boolean;
 }
 
+export interface DashboardConfig {
+  port: number;
+  image: string;
+  org: string;
+  project: string;
+  key: string;
+  accountName: string;
+  tableName: string;
+  partitionKey: string;
+  accessToken?: string;
+  sourceRepoAccessToken?: string;
+  manifestRepository?: string;
+}
+
 /**
  * Validates port and spk configuration
  *
@@ -33,7 +46,7 @@ export interface CommandOptions {
 export const validateValues = (
   config: ConfigYaml,
   opts: CommandOptions
-): void => {
+): DashboardConfig => {
   if (opts.port) {
     if (!isPortNumberString(opts.port)) {
       throw new Error("value for port option has to be a valid port number");
@@ -49,26 +62,42 @@ export const validateValues = (
     !config.introspection.azure.key ||
     !config.introspection.azure.account_name ||
     !config.introspection.azure.table_name ||
-    !config.introspection.azure.partition_key
+    !config.introspection.azure.partition_key ||
+    !config.introspection.dashboard ||
+    !config.introspection.dashboard.image
   ) {
     throw new Error(
       "You need to specify configuration for your introspection storage account and DevOps pipeline to run this dashboard. Please initialize the spk tool with the right configuration"
     );
   }
+
+  return {
+    port: parseInt(opts.port, 10),
+    image: config.introspection.dashboard.image,
+    org: config.azure_devops.org,
+    project: config.azure_devops.project,
+    key: config.introspection.azure.key,
+    accountName: config.introspection.azure.account_name,
+    tableName: config.introspection.azure.table_name,
+    partitionKey: config.introspection.azure.partition_key,
+    accessToken: config.azure_devops.access_token,
+    sourceRepoAccessToken: config.introspection.azure.source_repo_access_token,
+    manifestRepository: config.azure_devops.manifest_repository,
+  };
 };
 
 /**
  * Cleans previously launched spk dashboard docker containers
  */
 export const cleanDashboardContainers = async (
-  config: ConfigYaml
+  config: DashboardConfig
 ): Promise<void> => {
   let dockerOutput = await exec("docker", [
     "ps",
     "-a",
     "-q",
     "--filter",
-    "ancestor=" + config.introspection!.dashboard!.image!,
+    "ancestor=" + config.image,
     '--format="{{.ID}}"',
   ]);
   if (dockerOutput.length > 0) {
@@ -87,15 +116,12 @@ export const cleanDashboardContainers = async (
  * information on dashboard
  */
 export const extractManifestRepositoryInformation = (
-  config: ConfigYaml
+  config: DashboardConfig
 ): IntrospectionManifest | undefined => {
-  const { azure_devops: azureDevops } = config;
-  if (azureDevops!.manifest_repository) {
-    const manifestRepoName = getRepositoryName(
-      azureDevops!.manifest_repository
-    );
+  if (config.manifestRepository) {
+    const manifestRepoName = getRepositoryName(config.manifestRepository);
 
-    const gitComponents = GitUrlParse(azureDevops!.manifest_repository);
+    const gitComponents = GitUrlParse(config.manifestRepository);
     if (gitComponents.resource === "github.com") {
       return {
         githubUsername: gitComponents.organization,
@@ -114,72 +140,58 @@ export const extractManifestRepositoryInformation = (
  * Creates and returns an array of env vars that need to be passed into the
  * docker run command
  */
-export const getEnvVars = async (config: ConfigYaml): Promise<string[]> => {
-  const key = await config.introspection!.azure!.key;
-  const envVars = [];
-  envVars.push("-e");
-  envVars.push("REACT_APP_PIPELINE_ORG=" + config.azure_devops!.org!);
-  envVars.push("-e");
-  envVars.push("REACT_APP_PIPELINE_PROJECT=" + config.azure_devops!.project!);
-  envVars.push("-e");
-  envVars.push(
-    "REACT_APP_STORAGE_ACCOUNT_NAME=" +
-      config.introspection!.azure!.account_name!
-  );
-  envVars.push("-e");
-  envVars.push(
-    "REACT_APP_STORAGE_PARTITION_KEY=" +
-      config.introspection!.azure!.partition_key!
-  );
-  envVars.push("-e");
-  envVars.push(
-    "REACT_APP_STORAGE_TABLE_NAME=" + config.introspection!.azure!.table_name!
-  );
-  envVars.push("-e");
-  envVars.push("REACT_APP_STORAGE_ACCESS_KEY=" + key!);
-  if (config.azure_devops!.access_token) {
-    envVars.push("-e");
-    envVars.push(
-      "REACT_APP_PIPELINE_ACCESS_TOKEN=" + config.azure_devops!.access_token
-    );
+export const getEnvVars = async (
+  config: DashboardConfig
+): Promise<string[]> => {
+  const envVars = [
+    "-e",
+    `REACT_APP_PIPELINE_ORG=${config.org}`,
+    "-e",
+    `REACT_APP_PIPELINE_PROJECT=${config.project}`,
+    "-e",
+    `REACT_APP_STORAGE_ACCOUNT_NAME=${config.accountName}`,
+    "-e",
+    `REACT_APP_STORAGE_PARTITION_KEY=${config.partitionKey}`,
+    "-e",
+    `REACT_APP_STORAGE_TABLE_NAME=${config.tableName}`,
+    "-e",
+    `REACT_APP_STORAGE_ACCESS_KEY=${config.key}`,
+  ];
 
-    if (!config.introspection!.azure!.source_repo_access_token) {
+  if (config.accessToken) {
+    envVars.push("-e");
+    envVars.push(`REACT_APP_PIPELINE_ACCESS_TOKEN=${config.accessToken}`);
+
+    if (!config.sourceRepoAccessToken) {
       envVars.push("-e");
-      envVars.push(
-        "REACT_APP_SOURCE_REPO_ACCESS_TOKEN=" +
-          config.azure_devops!.access_token
-      );
+      envVars.push(`REACT_APP_SOURCE_REPO_ACCESS_TOKEN=${config.accessToken}`);
       envVars.push("-e");
-      envVars.push(
-        "REACT_APP_MANIFEST_ACCESS_TOKEN=" + config.azure_devops!.access_token
-      );
+      envVars.push(`REACT_APP_MANIFEST_ACCESS_TOKEN=${config.accessToken}`);
     }
   } else {
     logger.warn(
       "Pipeline access token was not specified during init, dashboard may show empty results if pipelines are private"
     );
   }
-  if (config.introspection!.azure!.source_repo_access_token) {
+  if (config.sourceRepoAccessToken) {
     envVars.push("-e");
     envVars.push(
-      "REACT_APP_SOURCE_REPO_ACCESS_TOKEN=" +
-        config.introspection!.azure!.source_repo_access_token
+      `REACT_APP_SOURCE_REPO_ACCESS_TOKEN=${config.sourceRepoAccessToken}`
     );
     envVars.push("-e");
     envVars.push(
-      "REACT_APP_MANIFEST_ACCESS_TOKEN=" +
-        config.introspection!.azure!.source_repo_access_token
+      `REACT_APP_MANIFEST_ACCESS_TOKEN=${config.sourceRepoAccessToken}`
     );
   }
 
   const manifestRepo = extractManifestRepositoryInformation(config);
   if (manifestRepo) {
     envVars.push("-e");
-    envVars.push("REACT_APP_MANIFEST=" + manifestRepo.manifestRepoName);
+    envVars.push(`REACT_APP_MANIFEST=${manifestRepo.manifestRepoName}`);
     if (manifestRepo.githubUsername) {
       envVars.push("-e");
       envVars.push(
-        "REACT_APP_GITHUB_MANIFEST_USERNAME=" + manifestRepo.githubUsername
+        `REACT_APP_GITHUB_MANIFEST_USERNAME=${manifestRepo.githubUsername}`
       );
     }
   }
@@ -194,8 +206,7 @@ export const getEnvVars = async (config: ConfigYaml): Promise<string[]> => {
  * @param removeAll true to remove all previously launched instances of the dashboard
  */
 export const launchDashboard = async (
-  config: ConfigYaml,
-  port: number,
+  config: DashboardConfig,
   removeAll: boolean
 ): Promise<string> => {
   try {
@@ -207,17 +218,17 @@ export const launchDashboard = async (
       await cleanDashboardContainers(config);
     }
 
-    const dockerRepository = config.introspection!.dashboard!.image!;
+    const dockerRepository = config.image;
     logger.info("Pulling dashboard docker image");
     await exec("docker", ["pull", dockerRepository]);
-    logger.info("Launching dashboard on http://localhost:" + port);
+    logger.info(`Launching dashboard on http://localhost:${config.port}`);
     const containerId = await exec("docker", [
       "run",
       "-d",
       "--rm",
       ...(await getEnvVars(config)),
       "-p",
-      port + ":5000",
+      `${config.port}:5000`,
       dockerRepository,
     ]);
     return containerId;
@@ -239,12 +250,10 @@ export const execute = async (
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
   try {
-    const config = Config();
-    validateValues(config, opts);
-    const portNumber = parseInt(opts.port, 10);
+    const config = validateValues(Config(), opts);
 
-    if (await launchDashboard(config, portNumber, opts.removeAll)) {
-      await open("http://localhost:" + opts.port);
+    if (await launchDashboard(config, opts.removeAll)) {
+      await open(`http://localhost:${config.port}`);
     }
     await exitFn(0);
   } catch (err) {
