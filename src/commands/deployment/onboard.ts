@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/camelcase */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { StorageAccount } from "@azure/arm-storage/esm/models";
 import commander from "commander";
 import fs from "fs";
@@ -20,6 +19,10 @@ import {
 import { logger } from "../../logger";
 import { AzureAccessOpts, ConfigYaml } from "../../types";
 import decorator from "./onboard.decorator.json";
+import {
+  validateStorageAccountNameThrowable,
+  validateStorageTableNameThrowable,
+} from "../../lib/validator";
 
 export interface CommandOptions {
   storageAccountName: string | undefined;
@@ -31,6 +34,18 @@ export interface CommandOptions {
   servicePrincipalPassword: string | undefined;
   tenantId: string | undefined;
   subscriptionId: string | undefined;
+}
+
+export interface OnBoardConfig {
+  storageResourceGroupName: string;
+  storageAccountName: string;
+  storageTableName: string;
+  servicePrincipalId: string;
+  servicePrincipalPassword: string;
+  subscriptionId: string;
+  tenantId: string;
+  keyVaultName?: string;
+  storageLocation?: string;
 }
 
 /**
@@ -60,31 +75,11 @@ export const populateValues = (opts: CommandOptions): CommandOptions => {
 };
 
 /**
- * Validates Account table name.
- *
- * @param name table name
- */
-export const validateTableName = (name: string): boolean => {
-  const regExpression = /^[A-Za-z][A-Za-z0-9]{2,62}$/;
-  return regExpression.test(name);
-};
-
-/**
- * Validates storage account name
- *
- * @param name Storage account name
- */
-export const validateStorageName = (name: string): boolean => {
-  const regExpression = /^[0-9a-z][a-z0-9]{2,23}$/;
-  return regExpression.test(name);
-};
-
-/**
  * Validates the values from commander.
  *
  * @param opts values from commander (including populated values from spk config)
  */
-export const validateValues = (opts: CommandOptions): void => {
+export const validateValues = (opts: CommandOptions): OnBoardConfig => {
   const errors = validateForRequiredValues(decorator, {
     servicePrincipalId: opts.servicePrincipalId,
     servicePrincipalPassword: opts.servicePrincipalPassword,
@@ -95,18 +90,30 @@ export const validateValues = (opts: CommandOptions): void => {
     tenantId: opts.tenantId,
   });
   if (errors.length > 0) {
-    throw new Error("Required values are missing");
+    throw Error("Required values are missing");
   }
-  if (!validateStorageName(opts.storageAccountName!)) {
-    throw new Error(
-      "Storage account name must be only alphanumeric characters in lowercase and must be from 3 to 24 characters long."
-    );
-  }
-  if (!validateTableName(opts.storageTableName!)) {
-    throw new Error(
-      "Table names must be only alphanumeric characters, cannot begin with a numeric character, case-insensitive, and must be from 3 to 63 characters long."
-    );
-  }
+
+  // validateForRequiredValues already check
+  // opts.storageAccountName and opts.storageTableName are not empty string
+  // or undefined.
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  validateStorageAccountNameThrowable(opts.storageAccountName!);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  validateStorageTableNameThrowable(opts.storageTableName!);
+
+  // validateForRequiredValues already check these options values
+  // are valid `|| ""` is to avoid eslint errors.
+  return {
+    storageResourceGroupName: opts.storageResourceGroupName || "",
+    storageAccountName: opts.storageAccountName || "",
+    storageTableName: opts.storageTableName || "",
+    servicePrincipalId: opts.servicePrincipalId || "",
+    servicePrincipalPassword: opts.servicePrincipalPassword || "",
+    subscriptionId: opts.subscriptionId || "",
+    tenantId: opts.tenantId || "",
+    keyVaultName: opts.keyVaultName,
+    storageLocation: opts.storageLocation,
+  };
 };
 
 /**
@@ -122,15 +129,12 @@ export const setConfiguration = (
   try {
     const data = readYaml<ConfigYaml>(defaultConfigFile());
     if (!data.introspection) {
-      data.introspection = {
-        azure: {},
-      };
-    } else if (!data.introspection.azure) {
-      data.introspection.azure = {};
+      data.introspection = {};
     }
+    data.introspection.azure = data.introspection.azure || {};
 
-    data.introspection.azure!.account_name = storageAccountName;
-    data.introspection.azure!.table_name = storageTableName;
+    data.introspection.azure.account_name = storageAccountName;
+    data.introspection.azure.table_name = storageTableName;
     const jsonData = yaml.safeDump(data);
     logger.verbose(jsonData);
     fs.writeFileSync(defaultConfigFile(), jsonData);
@@ -150,12 +154,12 @@ export const setConfiguration = (
  * @param accessOpts Azure Access Opts
  */
 export const validateAndCreateStorageAccount = async (
-  values: CommandOptions,
+  values: OnBoardConfig,
   accessOpts: AzureAccessOpts
 ): Promise<StorageAccount | undefined> => {
   const isExist = await isStorageAccountExist(
-    values.storageResourceGroupName!,
-    values.storageAccountName!,
+    values.storageResourceGroupName,
+    values.storageAccountName,
     accessOpts
   );
 
@@ -167,8 +171,8 @@ export const validateAndCreateStorageAccount = async (
       );
     }
     const storageAccount = await createStorageAccount(
-      values.storageResourceGroupName!,
-      values.storageAccountName!,
+      values.storageResourceGroupName,
+      values.storageAccountName,
       values.storageLocation,
       accessOpts
     );
@@ -186,12 +190,12 @@ export const validateAndCreateStorageAccount = async (
  * @throws Error if access key cannot be obtained.
  */
 export const getStorageAccessKey = async (
-  values: CommandOptions,
+  values: OnBoardConfig,
   accessOpts: AzureAccessOpts
 ): Promise<string> => {
   const accessKey = await getStorageAccountKey(
-    values.storageResourceGroupName!,
-    values.storageAccountName!,
+    values.storageResourceGroupName,
+    values.storageAccountName,
     accessOpts
   );
 
@@ -211,7 +215,7 @@ export const getStorageAccessKey = async (
  * @param accessKey Access Key
  */
 export const createKeyVault = async (
-  values: CommandOptions,
+  values: OnBoardConfig,
   accessOpts: AzureAccessOpts,
   accessKey: string
 ): Promise<void> => {
@@ -246,10 +250,10 @@ export const createKeyVault = async (
  * @param values Values from commander.
  */
 export const onboard = async (
-  values: CommandOptions
+  values: OnBoardConfig
 ): Promise<StorageAccount | undefined> => {
   logger.debug(
-    `onboard called with ${values.storageTableName}, ${values.storageTableName},
+    `onboard called with ${values.storageAccountName}, ${values.storageTableName},
     ${values.storageResourceGroupName}, ${values.storageLocation}, and ${values.keyVaultName}`
   );
 
@@ -267,8 +271,8 @@ export const onboard = async (
   const accessKey = await getStorageAccessKey(values, accessOpts);
 
   const tableCreated = await createTableIfNotExists(
-    values.storageAccountName!,
-    values.storageTableName!,
+    values.storageAccountName,
+    values.storageTableName,
     accessKey
   );
   if (tableCreated) {
@@ -287,7 +291,7 @@ export const onboard = async (
   await createKeyVault(values, accessOpts, accessKey);
 
   // save storage account and table names in configuration
-  setConfiguration(values.storageAccountName!, values.storageTableName!);
+  setConfiguration(values.storageAccountName, values.storageTableName);
   return storageAccount;
 };
 
@@ -304,8 +308,8 @@ export const execute = async (
 ): Promise<void> => {
   try {
     populateValues(opts);
-    validateValues(opts);
-    const storageAccount = await onboard(opts);
+    const values = validateValues(opts);
+    const storageAccount = await onboard(values);
     logger.debug(
       `Service introspection deployment onboarding is complete. \n ${JSON.stringify(
         storageAccount

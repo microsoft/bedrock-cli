@@ -44,27 +44,29 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
+const mockedConf = {
+  azure_devops: {
+    access_token: uuid(),
+    org: uuid(),
+    project: uuid(),
+  },
+  introspection: {
+    dashboard: {
+      image: "mcr.microsoft.com/k8s/bedrock/spektate:latest",
+      name: "spektate",
+    },
+    azure: {
+      account_name: uuid(),
+      key: uuid(),
+      partition_key: uuid(),
+      source_repo_access_token: "test_token",
+      table_name: uuid(),
+    },
+  },
+};
+
 const mockConfig = (): void => {
-  (Config as jest.Mock).mockReturnValueOnce({
-    azure_devops: {
-      access_token: uuid(),
-      org: uuid(),
-      project: uuid(),
-    },
-    introspection: {
-      dashboard: {
-        image: "mcr.microsoft.com/k8s/bedrock/spektate:latest",
-        name: "spektate",
-      },
-      azure: {
-        account_name: uuid(),
-        key: uuid(),
-        partition_key: uuid(),
-        source_repo_access_token: "test_token",
-        table_name: uuid(),
-      },
-    },
-  });
+  (Config as jest.Mock).mockReturnValueOnce(mockedConf);
 };
 
 describe("Test validateValues function", () => {
@@ -196,14 +198,9 @@ describe("Validate dashboard clean up", () => {
 
 describe("Fallback to azure devops access token", () => {
   test("Has repo_access_token specified", async () => {
-    mockConfig();
-    const config = Config();
     const envVars = (await getEnvVars(dashboardConf)).toString();
     logger.info(
-      `spin: ${envVars}, act: ${
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        config.introspection!.azure!.source_repo_access_token
-      }`
+      `spin: ${envVars}, act: ${mockedConf.introspection.azure.source_repo_access_token}`
     );
     const expectedSubstring = "REACT_APP_SOURCE_REPO_ACCESS_TOKEN=test_token";
     expect(envVars.includes(expectedSubstring)).toBeTruthy();
@@ -224,6 +221,7 @@ describe("Extract manifest repository information", () => {
 
     let manifestInfo = extractManifestRepositoryInformation(config);
     expect(manifestInfo).toBeDefined();
+
     if (manifestInfo) {
       expect(manifestInfo.githubUsername).toBeUndefined();
       expect(manifestInfo.manifestRepoName).toBe("materialized");

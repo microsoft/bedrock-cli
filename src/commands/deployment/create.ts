@@ -32,12 +32,19 @@ export interface CommandOptions {
   repository: string | undefined;
 }
 
+export interface CreateConfig {
+  accessKey: string;
+  name: string;
+  partitionKey: string;
+  tableName: string;
+}
+
 /**
  * Validates that the required values are provided.
  *
  * @param opts values from commander
  */
-export const validateValues = (opts: CommandOptions): void => {
+export const validateValues = (opts: CommandOptions): CreateConfig => {
   if (
     !hasValue(opts.accessKey) ||
     !hasValue(opts.name) ||
@@ -48,6 +55,13 @@ export const validateValues = (opts: CommandOptions): void => {
       "Access key, storage account name, partition key and/or table name are not provided"
     );
   }
+
+  return {
+    accessKey: opts.accessKey,
+    name: opts.name,
+    partitionKey: opts.partitionKey,
+    tableName: opts.tableName,
+  };
 };
 
 export const handlePipeline1 = async (
@@ -55,6 +69,7 @@ export const handlePipeline1 = async (
   opts: CommandOptions
 ): Promise<void> => {
   if (
+    !opts.p1 ||
     !hasValue(opts.imageTag) ||
     !hasValue(opts.commitId) ||
     !hasValue(opts.service)
@@ -65,8 +80,7 @@ export const handlePipeline1 = async (
   }
   await addSrcToACRPipeline(
     tableInfo,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    opts.p1!,
+    opts.p1,
     opts.imageTag,
     opts.service,
     opts.commitId,
@@ -79,6 +93,7 @@ export const handlePipeline2 = async (
   opts: CommandOptions
 ): Promise<void> => {
   if (
+    !opts.p2 ||
     !hasValue(opts.hldCommitId) ||
     !hasValue(opts.env) ||
     !hasValue(opts.imageTag)
@@ -89,8 +104,7 @@ export const handlePipeline2 = async (
   }
   await updateACRToHLDPipeline(
     tableInfo,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    opts.p2!,
+    opts.p2,
     opts.imageTag,
     opts.hldCommitId,
     opts.env,
@@ -111,17 +125,13 @@ export const execute = async (
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
   try {
-    validateValues(opts);
+    const config = validateValues(opts);
 
     const tableInfo: DeploymentTable = {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      accountKey: opts.accessKey!,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      accountName: opts.name!,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      partitionKey: opts.partitionKey!,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      tableName: opts.tableName!,
+      accountKey: config.accessKey,
+      accountName: config.name,
+      partitionKey: config.partitionKey,
+      tableName: config.tableName,
     };
 
     if (hasValue(opts.p1)) {
@@ -131,10 +141,8 @@ export const execute = async (
     } else if (hasValue(opts.p3) && hasValue(opts.hldCommitId)) {
       await updateHLDToManifestPipeline(
         tableInfo,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        opts.hldCommitId!,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        opts.p3!,
+        opts.hldCommitId,
+        opts.p3,
         opts.manifestCommitId,
         opts.pr,
         opts.repository

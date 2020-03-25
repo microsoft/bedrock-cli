@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/camelcase */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import fs from "fs";
 import yaml from "js-yaml";
 import * as path from "path";
@@ -21,11 +20,10 @@ import {
   getStorageAccessKey,
   CommandOptions,
   onboard,
+  OnBoardConfig,
   populateValues,
   setConfiguration,
   validateAndCreateStorageAccount,
-  validateStorageName,
-  validateTableName,
   validateValues,
 } from "./onboard";
 import * as onboardImpl from "./onboard";
@@ -50,6 +48,18 @@ const MOCKED_VALUES: CommandOptions = {
   tenantId: "tenantId",
 };
 
+const MOCKED_CONFIG: OnBoardConfig = {
+  keyVaultName: "testKeyVault",
+  servicePrincipalId: "servicePrincipalId",
+  servicePrincipalPassword: "servicePrincipalPassword",
+  storageAccountName: "testaccount",
+  storageLocation: "westus",
+  storageResourceGroupName: "testResourceGroup",
+  storageTableName: "testtable",
+  subscriptionId: "subscriptionId",
+  tenantId: "tenantId",
+};
+
 const randomTmpDir = createTempDir();
 const testConfigFile = path.join(randomTmpDir, "config.yaml");
 
@@ -57,7 +67,11 @@ const getMockedValues = (): CommandOptions => {
   return deepClone(MOCKED_VALUES);
 };
 
-const getMockedAccessOpts = (values: CommandOptions): AzureAccessOpts => {
+const getMockedConfig = (): OnBoardConfig => {
+  return deepClone(MOCKED_CONFIG);
+};
+
+const getMockedAccessOpts = (values: OnBoardConfig): AzureAccessOpts => {
   return {
     servicePrincipalId: values.servicePrincipalId,
     servicePrincipalPassword: values.servicePrincipalPassword,
@@ -111,7 +125,9 @@ describe("test populateValues", () => {
   it("storageAccountName default to config.introspection.azure.account_name", () => {
     testPopulatedVal(
       (configYaml: ConfigYaml) => {
-        configYaml.introspection!.azure!.account_name = "AccountName";
+        if (configYaml.introspection && configYaml.introspection.azure) {
+          configYaml.introspection.azure.account_name = "AccountName";
+        }
       },
       (values: CommandOptions) => {
         values.storageAccountName = undefined;
@@ -124,7 +140,9 @@ describe("test populateValues", () => {
   it("storageTableName default to config.introspection.azure.table_name", () => {
     testPopulatedVal(
       (configYaml: ConfigYaml) => {
-        configYaml.introspection!.azure!.table_name = "TableName";
+        if (configYaml.introspection && configYaml.introspection.azure) {
+          configYaml.introspection.azure.table_name = "TableName";
+        }
       },
       (values: CommandOptions) => {
         values.storageTableName = undefined;
@@ -137,21 +155,23 @@ describe("test populateValues", () => {
   it("keyVaultName default to config.introspection.azure.key_vault_name", () => {
     testPopulatedVal(
       (configYaml: ConfigYaml) => {
-        configYaml.key_vault_name = "KeyVaulteName";
+        configYaml.key_vault_name = "KeyVaultName";
       },
       (values: CommandOptions) => {
         values.keyVaultName = undefined;
       },
       (values) => {
-        expect(values.keyVaultName).toBe("KeyVaulteName");
+        expect(values.keyVaultName).toBe("KeyVaultName");
       }
     );
   });
   it("servicePrincipalId default to config.introspection.azure.service_principal_id", () => {
     testPopulatedVal(
       (configYaml: ConfigYaml) => {
-        configYaml.introspection!.azure!.service_principal_id =
-          "ServicePrincipalId";
+        if (configYaml.introspection && configYaml.introspection.azure) {
+          configYaml.introspection.azure.service_principal_id =
+            "ServicePrincipalId";
+        }
       },
       (values: CommandOptions) => {
         values.servicePrincipalId = undefined;
@@ -164,8 +184,10 @@ describe("test populateValues", () => {
   it("servicePrincipalPassword default to config.introspection.azure.service_principal_secret", () => {
     testPopulatedVal(
       (configYaml: ConfigYaml) => {
-        configYaml.introspection!.azure!.service_principal_secret =
-          "ServicePrincipalSecret";
+        if (configYaml.introspection && configYaml.introspection.azure) {
+          configYaml.introspection.azure.service_principal_secret =
+            "ServicePrincipalSecret";
+        }
       },
       (values: CommandOptions) => {
         values.servicePrincipalPassword = undefined;
@@ -178,7 +200,9 @@ describe("test populateValues", () => {
   it("tenantId default to config.introspection.azure.tenant_id", () => {
     testPopulatedVal(
       (configYaml: ConfigYaml) => {
-        configYaml.introspection!.azure!.tenant_id = "tenantId";
+        if (configYaml.introspection && configYaml.introspection.azure) {
+          configYaml.introspection.azure.tenant_id = "tenantId";
+        }
       },
       (values: CommandOptions) => {
         values.tenantId = undefined;
@@ -191,7 +215,9 @@ describe("test populateValues", () => {
   it("subscriptionId default to config.introspection.azure.subscription_id", () => {
     testPopulatedVal(
       (configYaml: ConfigYaml) => {
-        configYaml.introspection!.azure!.subscription_id = "subscriptionId";
+        if (configYaml.introspection && configYaml.introspection.azure) {
+          configYaml.introspection.azure.subscription_id = "subscriptionId";
+        }
       },
       (values: CommandOptions) => {
         values.subscriptionId = undefined;
@@ -207,56 +233,41 @@ describe("test validateValues function", () => {
   it("[-ve]: missing value - undefined", () => {
     const vals = getMockedValues();
     vals.servicePrincipalId = undefined;
-    try {
+    expect(() => {
       validateValues(vals);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e).toBeDefined();
-    }
+    }).toThrow();
   });
   it("[-ve]: missing value - empty string", () => {
     const vals = getMockedValues();
     vals.servicePrincipalPassword = "";
-    try {
+    expect(() => {
       validateValues(vals);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e).toBeDefined();
-    }
+    }).toThrow();
   });
   it("[-ve]: missing value - string with only spaces", () => {
     const vals = getMockedValues();
     vals.storageAccountName = " ";
-    try {
+    expect(() => {
       validateValues(vals);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e).toBeDefined();
-    }
+    }).toThrow();
   });
   it("[-ve]: invalid storageAccountName value", () => {
     const vals = getMockedValues();
     vals.storageAccountName = "#123";
-    try {
+    expect(() => {
       validateValues(vals);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e.message).toBe(
-        "Storage account name must be only alphanumeric characters in lowercase and must be from 3 to 24 characters long."
-      );
-    }
+    }).toThrow(
+      "The value for storage account name is invalid. Lowercase letters and numbers are allowed."
+    );
   });
   it("[-ve]: invalid storageTableName value", () => {
     const vals = getMockedValues();
     vals.storageTableName = "# ";
-    try {
+    expect(() => {
       validateValues(vals);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e.message).toBe(
-        "Table names must be only alphanumeric characters, cannot begin with a numeric character, case-insensitive, and must be from 3 to 63 characters long."
-      );
-    }
+    }).toThrow(
+      "The value for storage table name is invalid. It has to be alphanumeric and start with an alphabet."
+    );
   });
 });
 
@@ -289,7 +300,7 @@ describe("test validateAndCreateStorageAccount function", () => {
     jest
       .spyOn(storage, "createStorageAccount")
       .mockReturnValueOnce(Promise.resolve({ location: "test" }));
-    const values = getMockedValues();
+    const values = getMockedConfig();
     const accessOpts = getMockedAccessOpts(values);
     await validateAndCreateStorageAccount(values, accessOpts);
   });
@@ -297,7 +308,7 @@ describe("test validateAndCreateStorageAccount function", () => {
     jest
       .spyOn(storage, "isStorageAccountExist")
       .mockReturnValueOnce(Promise.resolve(true));
-    const values = getMockedValues();
+    const values = getMockedConfig();
     const accessOpts = getMockedAccessOpts(values);
     await validateAndCreateStorageAccount(values, accessOpts);
   });
@@ -308,7 +319,7 @@ describe("test getStorageAccessKey function", () => {
     jest
       .spyOn(storage, "getStorageAccountKey")
       .mockReturnValueOnce(Promise.resolve("key"));
-    const values = getMockedValues();
+    const values = getMockedConfig();
     const accessOpts = getMockedAccessOpts(values);
     const storageKey = await getStorageAccessKey(values, accessOpts);
     expect(storageKey).toBe("key");
@@ -317,7 +328,7 @@ describe("test getStorageAccessKey function", () => {
 
 describe("test createKeyVault function", () => {
   it("[+ve] not key vault value", async () => {
-    const values = getMockedValues();
+    const values = getMockedConfig();
     values.keyVaultName = undefined;
     const accessOpts = getMockedAccessOpts(values);
     // nothing is done
@@ -325,7 +336,7 @@ describe("test createKeyVault function", () => {
   });
   it("[+ve] with key vault value", async () => {
     jest.spyOn(keyvault, "setSecret").mockReturnValueOnce(Promise.resolve());
-    const values = getMockedValues();
+    const values = getMockedConfig();
     const accessOpts = getMockedAccessOpts(values);
     await createKeyVault(values, accessOpts, "accessString");
   });
@@ -338,7 +349,7 @@ describe("onboard", () => {
       .mockReturnValueOnce(Promise.resolve(false));
 
     try {
-      const values = getMockedValues();
+      const values = getMockedConfig();
       values.storageLocation = "";
       await onboard(values);
       expect(true).toBe(false);
@@ -358,7 +369,7 @@ describe("onboard", () => {
       .mockReturnValueOnce(Promise.resolve(undefined));
 
     try {
-      const values = getMockedValues();
+      const values = getMockedConfig();
       await onboard(values);
       expect(true).toBe(false);
     } catch (err) {
@@ -396,9 +407,24 @@ describe("onboard", () => {
     };
 
     fs.writeFileSync(testConfigFile, yaml.safeDump(data));
-    await onboard(getMockedValues());
+    await onboard(getMockedConfig());
   });
 });
+
+const validateStorageAccountTableInConfigYaml = (): void => {
+  const conf = Config();
+  expect(conf.introspection).toBeDefined();
+
+  if (conf.introspection) {
+    const azure = conf.introspection.azure;
+    expect(azure).toBeDefined();
+
+    if (azure) {
+      expect(azure.account_name).toBe(MOCKED_CONFIG.storageAccountName);
+      expect(azure.table_name).toBe(MOCKED_CONFIG.storageTableName);
+    }
+  }
+};
 
 describe("setConfiguration", () => {
   test("Should pass updating previous storage account and table names", async () => {
@@ -415,15 +441,12 @@ describe("setConfiguration", () => {
     fs.writeFileSync(testConfigFile, yaml.safeDump(data));
 
     // set storage and table names
-    await setConfiguration(
-      MOCKED_VALUES.storageAccountName!,
-      MOCKED_VALUES.storageTableName!
+    setConfiguration(
+      MOCKED_CONFIG.storageAccountName,
+      MOCKED_CONFIG.storageTableName
     );
     loadConfiguration(testConfigFile);
-
-    const { azure } = Config().introspection!;
-    expect(azure!.account_name).toBe(MOCKED_VALUES.storageAccountName);
-    expect(azure!.table_name).toBe(MOCKED_VALUES.storageTableName);
+    validateStorageAccountTableInConfigYaml();
   });
 
   test("Should pass updating previous undefined storage account and table names", () => {
@@ -438,76 +461,10 @@ describe("setConfiguration", () => {
 
     // set storage and table names
     setConfiguration(
-      MOCKED_VALUES.storageAccountName!,
-      MOCKED_VALUES.storageTableName!
+      MOCKED_CONFIG.storageAccountName,
+      MOCKED_CONFIG.storageTableName
     );
     loadConfiguration(testConfigFile);
-
-    const { azure } = Config().introspection!;
-    expect(azure!.account_name).toBe(MOCKED_VALUES.storageAccountName);
-    expect(azure!.table_name).toBe(MOCKED_VALUES.storageTableName);
-  });
-});
-
-describe("validateTableName", () => {
-  test("Should pass with valid name", async () => {
-    const isValid = await validateTableName("deployment");
-    expect(isValid).toBe(true);
-  });
-
-  test("vShould fail when name starts with number", async () => {
-    const isValid = await validateTableName("21deployment");
-    expect(isValid).toBe(false);
-  });
-
-  test("vShould fail when name is > 63 characters", async () => {
-    const isValid = await validateTableName(
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaa"
-    );
-    expect(isValid).toBe(false);
-  });
-
-  test("vShould fail when name includes special characters", async () => {
-    const isValid = await validateTableName("deployment$@");
-    expect(isValid).toBe(false);
-  });
-
-  test("vShould fail when name includes special characters", async () => {
-    const isValid = await validateTableName("deployment$@");
-    expect(isValid).toBe(false);
-  });
-});
-
-describe("validateStorageName", () => {
-  test("Should pass with valid name", async () => {
-    const isValid = await validateStorageName("teststorage");
-    expect(isValid).toBe(true);
-  });
-
-  test("Should pass with valid name", async () => {
-    const isValid = await validateStorageName("12teststorage");
-    expect(isValid).toBe(true);
-  });
-
-  test("Should fail with upper case letters in the name", async () => {
-    const isValid = await validateStorageName("teststoragE");
-    expect(isValid).toBe(false);
-  });
-
-  test("Should fail with - in the name", async () => {
-    const isValid = await validateStorageName("test-storage");
-    expect(isValid).toBe(false);
-  });
-
-  test("Should pass with max length name", async () => {
-    const isValid = await validateStorageName("aaaaaaaaaaaaaaaaaaaaaaaa");
-    logger.info(`spin1: ${isValid}`);
-    expect(isValid).toBe(true);
-  });
-
-  test("Should fail with > max length name", async () => {
-    const isValid = await validateStorageName("aaaaaaaaaaaaaaaaaaaaaaaaa");
-    logger.info(`spin1: ${isValid}`);
-    expect(isValid).toBe(false);
+    validateStorageAccountTableInConfigYaml();
   });
 });

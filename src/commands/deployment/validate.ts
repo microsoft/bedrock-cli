@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 import { Config } from "../../config";
@@ -21,6 +20,13 @@ export interface CommandOptions {
   selfTest: boolean;
 }
 
+export interface ValidateConfig {
+  accountName: string;
+  tableName: string;
+  partitionKey: string;
+  key: string;
+}
+
 /**
  * Executes the command, can all exit function with 0 or 1
  * when command completed successfully or failed respectively.
@@ -33,8 +39,7 @@ export const execute = async (
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
   try {
-    const config = Config();
-    await isValidConfig(config);
+    const config = isValidConfig(Config());
 
     if (opts.selfTest) {
       await runSelfTest(config);
@@ -61,7 +66,7 @@ export const commandDecorator = (command: commander.Command): void => {
 /**
  * Validates that the deployment configuration is specified.
  */
-export const isValidConfig = async (config: ConfigYaml): Promise<void> => {
+export const isValidConfig = (config: ConfigYaml): ValidateConfig => {
   const missingConfig = [];
 
   if (!config.introspection) {
@@ -73,9 +78,7 @@ export const isValidConfig = async (config: ConfigYaml): Promise<void> => {
       if (!config.introspection.azure.account_name) {
         missingConfig.push("config.introspection.azure.account_name");
       }
-      const key = await config.introspection.azure.key;
-
-      if (!key) {
+      if (!config.introspection.azure.key) {
         missingConfig.push("config.introspection.azure.key");
       }
       if (!config.introspection.azure.partition_key) {
@@ -105,6 +108,28 @@ export const isValidConfig = async (config: ConfigYaml): Promise<void> => {
   } else {
     logger.info("Configuration validation: SUCCEEDED");
   }
+
+  if (
+    config.introspection &&
+    config.introspection.azure &&
+    config.introspection.azure.account_name &&
+    config.introspection.azure.key &&
+    config.introspection.azure.partition_key &&
+    config.introspection.azure.table_name &&
+    config.azure_devops &&
+    config.azure_devops.org &&
+    config.azure_devops.project
+  ) {
+    return {
+      accountName: config.introspection.azure.account_name,
+      tableName: config.introspection.azure.table_name,
+      partitionKey: config.introspection.azure.partition_key,
+      key: config.introspection.azure.key,
+    };
+  }
+  throw Error(
+    "You need to specify configuration for your introspection storage account and DevOps pipeline to run this dashboard. Please initialize the spk tool with the right configuration"
+  );
 };
 
 /**
@@ -112,23 +137,22 @@ export const isValidConfig = async (config: ConfigYaml): Promise<void> => {
  *
  * @param config spk configuration values
  */
-export const runSelfTest = async (config: ConfigYaml): Promise<void> => {
+export const runSelfTest = async (config: ValidateConfig): Promise<void> => {
   try {
     logger.info("Writing self-test data for introspection...");
-    const key = await config.introspection!.azure!.key;
     const buildId = await writeSelfTestData(
-      key!,
-      config.introspection!.azure!.account_name!,
-      config.introspection!.azure!.partition_key!,
-      config.introspection!.azure!.table_name!
+      config.key,
+      config.accountName,
+      config.partitionKey,
+      config.tableName
     );
 
     logger.info("Deleting self-test data...");
     const isVerified = await deleteSelfTestData(
-      key!,
-      config.introspection!.azure!.account_name!,
-      config.introspection!.azure!.partition_key!,
-      config.introspection!.azure!.table_name!,
+      config.key,
+      config.accountName,
+      config.partitionKey,
+      config.tableName,
       buildId
     );
 

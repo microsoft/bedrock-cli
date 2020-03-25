@@ -281,6 +281,18 @@ export const validateStorageAccountName = (value: string): string | boolean => {
 };
 
 /**
+ * Throw exeception if storage account name is invalid.
+ *
+ * @param value storage account name .
+ */
+export const validateStorageAccountNameThrowable = (value: string): void => {
+  const msg = validateStorageAccountName(value);
+  if (typeof msg === "string") {
+    throw Error(msg);
+  }
+};
+
+/**
  * Returns true if storage table name is valid.
  *
  * @param value storage table name.
@@ -296,6 +308,18 @@ export const validateStorageTableName = (value: string): string | boolean => {
     return "The value for storage table name is invalid. It has to be between 3 and 63 characters long";
   }
   return true;
+};
+
+/**
+ * Throw exeception if storage table name is invalid.
+ *
+ * @param value storage table name .
+ */
+export const validateStorageTableNameThrowable = (value: string): void => {
+  const msg = validateStorageTableName(value);
+  if (typeof msg === "string") {
+    throw Error(msg);
+  }
 };
 
 /**

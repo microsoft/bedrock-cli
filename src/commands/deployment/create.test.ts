@@ -65,16 +65,14 @@ describe("test execute function", () => {
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("[+ve]: with deployment table and p1 values", async () => {
-    jest.spyOn(azure, "addSrcToACRPipeline").mockReturnValueOnce(
-      Promise.resolve({
-        PartitionKey: uuid(),
-        RowKey: uuid(),
-        commitId: uuid(),
-        imageTag: uuid(),
-        p1: uuid(),
-        service: uuid(),
-      })
-    );
+    jest.spyOn(azure, "addSrcToACRPipeline").mockResolvedValueOnce({
+      PartitionKey: uuid(),
+      RowKey: uuid(),
+      commitId: uuid(),
+      imageTag: uuid(),
+      p1: uuid(),
+      service: uuid(),
+    });
     const exitFn = jest.fn();
 
     const vals = getMockedValues(true);
@@ -90,7 +88,7 @@ describe("test execute function", () => {
   it("[-ve]: with deployment table and p1 values; addSrcToACRPipeline fails", async () => {
     jest
       .spyOn(azure, "addSrcToACRPipeline")
-      .mockReturnValueOnce(Promise.reject());
+      .mockRejectedValueOnce(Error("fake error"));
     const exitFn = jest.fn();
 
     const vals = getMockedValues(true);
@@ -112,19 +110,17 @@ describe("test execute function", () => {
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("[+ve]: with deployment table and p2 values", async () => {
-    jest.spyOn(azure, "updateACRToHLDPipeline").mockReturnValueOnce(
-      Promise.resolve({
-        PartitionKey: uuid(),
-        RowKey: uuid(),
-        commitId: uuid(),
-        env: uuid(),
-        hldCommitId: uuid(),
-        imageTag: uuid(),
-        p1: uuid(),
-        p2: uuid(),
-        service: uuid(),
-      })
-    );
+    jest.spyOn(azure, "updateACRToHLDPipeline").mockResolvedValueOnce({
+      PartitionKey: uuid(),
+      RowKey: uuid(),
+      commitId: uuid(),
+      env: uuid(),
+      hldCommitId: uuid(),
+      imageTag: uuid(),
+      p1: uuid(),
+      p2: uuid(),
+      service: uuid(),
+    });
     const exitFn = jest.fn();
 
     const vals = getMockedValues(true);
@@ -140,7 +136,7 @@ describe("test execute function", () => {
   it("[-ve]: with deployment table and p2 values; updateACRToHLDPipeline fails", async () => {
     jest
       .spyOn(azure, "updateACRToHLDPipeline")
-      .mockReturnValueOnce(Promise.reject());
+      .mockRejectedValueOnce(Error("fake error"));
     const exitFn = jest.fn();
 
     const vals = getMockedValues(true);
@@ -154,20 +150,18 @@ describe("test execute function", () => {
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("[+ve]: with deployment table and p3 values and hldCommitId values", async () => {
-    jest.spyOn(azure, "updateHLDToManifestPipeline").mockReturnValueOnce(
-      Promise.resolve({
-        PartitionKey: uuid(),
-        RowKey: uuid(),
-        commitId: uuid(),
-        env: uuid(),
-        hldCommitId: uuid(),
-        imageTag: uuid(),
-        p1: uuid(),
-        p2: uuid(),
-        p3: uuid(),
-        service: uuid(),
-      })
-    );
+    jest.spyOn(azure, "updateHLDToManifestPipeline").mockResolvedValueOnce({
+      PartitionKey: uuid(),
+      RowKey: uuid(),
+      commitId: uuid(),
+      env: uuid(),
+      hldCommitId: uuid(),
+      imageTag: uuid(),
+      p1: uuid(),
+      p2: uuid(),
+      p3: uuid(),
+      service: uuid(),
+    });
     const exitFn = jest.fn();
 
     const vals = getMockedValues(true);
@@ -181,7 +175,7 @@ describe("test execute function", () => {
   it("[-ve]: with deployment table and p3 values; updateHLDToManifestPipeline fails", async () => {
     jest
       .spyOn(azure, "updateHLDToManifestPipeline")
-      .mockReturnValueOnce(Promise.reject());
+      .mockRejectedValueOnce(Error("fake error"));
     const exitFn = jest.fn();
 
     const vals = getMockedValues(true);
@@ -193,21 +187,19 @@ describe("test execute function", () => {
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("[+ve]: with deployment table and p3 values and manifestCommitId values", async () => {
-    jest.spyOn(azure, "updateManifestCommitId").mockReturnValueOnce(
-      Promise.resolve({
-        PartitionKey: uuid(),
-        RowKey: uuid(),
-        commitId: uuid(),
-        env: uuid(),
-        hldCommitId: uuid(),
-        imageTag: uuid(),
-        manifestCommitId: uuid(),
-        p1: uuid(),
-        p2: uuid(),
-        p3: uuid(),
-        service: uuid(),
-      })
-    );
+    jest.spyOn(azure, "updateManifestCommitId").mockResolvedValueOnce({
+      PartitionKey: uuid(),
+      RowKey: uuid(),
+      commitId: uuid(),
+      env: uuid(),
+      hldCommitId: uuid(),
+      imageTag: uuid(),
+      manifestCommitId: uuid(),
+      p1: uuid(),
+      p2: uuid(),
+      p3: uuid(),
+      service: uuid(),
+    });
     const exitFn = jest.fn();
 
     const vals = getMockedValues(true);
@@ -221,7 +213,7 @@ describe("test execute function", () => {
   it("[-ve]: with deployment table and p3 values; updateHLDToManifestPipeline fails", async () => {
     jest
       .spyOn(azure, "updateManifestCommitId")
-      .mockReturnValueOnce(Promise.reject());
+      .mockRejectedValueOnce(Error("fake error"));
     const exitFn = jest.fn();
 
     const vals = getMockedValues(true);
