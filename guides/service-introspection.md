@@ -44,22 +44,11 @@ introspection:
     table_name: "table-name"
     partition_key: "partition-key"
     key: "storage-access-key"
-    service_principal_id: "service-principal-id"
-    service_principal_secret: "service-principal-secret"
-    subscription_id: "subscription-id"
-    tenant_id: "tenant-id"
-    resource-group: "resource-group-name"
 ```
 
-## Prerequisites
-
-1. Service principal with owner access.
-   [Create a service principal with owner access.](#service-principal)
-2. Optionally, Azure Key Vault can be used to securely store and tightly control
-   access to tokens, passwords, API keys, and other secrets
-   [How to create key vault](https://docs.microsoft.com/en-us/azure/key-vault/quick-create-cli).
-3. Give the service principal get and list access. Follow step 2 from
-   [these instructions](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/variable-groups?view=azure-devops&tabs=yaml#link-secrets-from-an-azure-key-vault).
+To create storage-account and table, use the `spk deployment onboard` command to
+create them where subscription Id, resource group name, service principal Id,
+password and tenant Id are required.
 
 ### Service Principal
 

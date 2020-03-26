@@ -23,10 +23,6 @@
       "required": true
     },
     {
-      "arg": "-k, --key-vault-name <key-vault-name>",
-      "description": "Name of the Azure key vault"
-    },
-    {
       "arg": "--service-principal-id <service-principal-id>",
       "description": "Azure service principal id with `contributor` role in Azure Resource Group",
       "required": true

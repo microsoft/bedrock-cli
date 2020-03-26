@@ -4,7 +4,6 @@ import yaml from "js-yaml";
 import * as path from "path";
 import { Config, loadConfiguration } from "../../config";
 import * as config from "../../config";
-import * as keyvault from "../../lib/azure/keyvault";
 import * as storage from "../../lib/azure/storage";
 import { createTempDir } from "../../lib/ioUtil";
 import { deepClone } from "../../lib/util";
@@ -15,7 +14,6 @@ import {
 } from "../../logger";
 import { AzureAccessOpts, ConfigYaml } from "../../types";
 import {
-  createKeyVault,
   execute,
   getStorageAccessKey,
   CommandOptions,
@@ -37,7 +35,6 @@ afterAll(() => {
 });
 
 const MOCKED_VALUES: CommandOptions = {
-  keyVaultName: "testKeyVault",
   servicePrincipalId: "servicePrincipalId",
   servicePrincipalPassword: "servicePrincipalPassword",
   storageAccountName: "testaccount",
@@ -49,7 +46,6 @@ const MOCKED_VALUES: CommandOptions = {
 };
 
 const MOCKED_CONFIG: OnBoardConfig = {
-  keyVaultName: "testKeyVault",
   servicePrincipalId: "servicePrincipalId",
   servicePrincipalPassword: "servicePrincipalPassword",
   storageAccountName: "testaccount",
@@ -108,7 +104,6 @@ const testPopulatedVal = (
 describe("test populateValues", () => {
   it("all values are set", () => {
     const values = populateValues(getMockedValues());
-    expect(values.keyVaultName).toBe(MOCKED_VALUES.keyVaultName);
     expect(values.servicePrincipalId).toBe(MOCKED_VALUES.servicePrincipalId);
     expect(values.servicePrincipalPassword).toBe(
       MOCKED_VALUES.servicePrincipalPassword
@@ -149,19 +144,6 @@ describe("test populateValues", () => {
       },
       (values) => {
         expect(values.storageTableName).toBe("TableName");
-      }
-    );
-  });
-  it("keyVaultName default to config.introspection.azure.key_vault_name", () => {
-    testPopulatedVal(
-      (configYaml: ConfigYaml) => {
-        configYaml.key_vault_name = "KeyVaultName";
-      },
-      (values: CommandOptions) => {
-        values.keyVaultName = undefined;
-      },
-      (values) => {
-        expect(values.keyVaultName).toBe("KeyVaultName");
       }
     );
   });
@@ -316,9 +298,7 @@ describe("test validateAndCreateStorageAccount function", () => {
 
 describe("test getStorageAccessKey function", () => {
   it("already exist", async () => {
-    jest
-      .spyOn(storage, "getStorageAccountKey")
-      .mockReturnValueOnce(Promise.resolve("key"));
+    jest.spyOn(storage, "getStorageAccountKey").mockResolvedValueOnce("key");
     const values = getMockedConfig();
     const accessOpts = getMockedAccessOpts(values);
     const storageKey = await getStorageAccessKey(values, accessOpts);
@@ -326,27 +306,9 @@ describe("test getStorageAccessKey function", () => {
   });
 });
 
-describe("test createKeyVault function", () => {
-  it("[+ve] not key vault value", async () => {
-    const values = getMockedConfig();
-    values.keyVaultName = undefined;
-    const accessOpts = getMockedAccessOpts(values);
-    // nothing is done
-    await createKeyVault(values, accessOpts, "accessString");
-  });
-  it("[+ve] with key vault value", async () => {
-    jest.spyOn(keyvault, "setSecret").mockReturnValueOnce(Promise.resolve());
-    const values = getMockedConfig();
-    const accessOpts = getMockedAccessOpts(values);
-    await createKeyVault(values, accessOpts, "accessString");
-  });
-});
-
 describe("onboard", () => {
   test("empty location", async () => {
-    jest
-      .spyOn(storage, "isStorageAccountExist")
-      .mockReturnValueOnce(Promise.resolve(false));
+    jest.spyOn(storage, "isStorageAccountExist").mockResolvedValueOnce(false);
 
     try {
       const values = getMockedConfig();
@@ -392,9 +354,6 @@ describe("onboard", () => {
     jest
       .spyOn(storage, "createStorageAccount")
       .mockReturnValueOnce(Promise.resolve({ location: "test" }));
-    jest
-      .spyOn(onboardImpl, "createKeyVault")
-      .mockReturnValueOnce(Promise.resolve());
     jest.spyOn(onboardImpl, "setConfiguration").mockReturnValueOnce(true);
 
     const data = {
