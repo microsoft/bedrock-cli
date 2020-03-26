@@ -268,7 +268,7 @@ lifecycle_pipeline_name="$mono_repo_dir-lifecycle"
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name
 
 # Deploy lifecycle pipeline and verify it runs.
-spk project install-lifecycle-pipeline --org-name $AZDO_ORG --devops-project $AZDO_PROJECT --repo-url $repo_url --pipeline-name $lifecycle_pipeline_name --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
+spk project install-lifecycle-pipeline --org-name $AZDO_ORG --devops-project $AZDO_PROJECT --repo-url "https://$repo_url" --pipeline-name $lifecycle_pipeline_name --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
 
 # TODO: Verify the lifecycle pipeline sucessfully runs
 # Verify lifecycle pipeline was created
