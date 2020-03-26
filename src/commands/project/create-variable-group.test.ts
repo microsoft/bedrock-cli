@@ -147,7 +147,14 @@ describe("create", () => {
       personalAccessToken,
       project: devopsProject,
     };
-    await expect(create("", "", "", "", "", "", accessOpts)).rejects.toThrow();
+
+    // for some reasons, cannot get the await expect(...).rejects.toThrow() to work
+    try {
+      await create("", "", "", "", "", "", accessOpts);
+      expect(true).toBeFalsy();
+    } catch (e) {
+      expect(e.message).toBe("Required values were missing");
+    }
   });
 
   test("Should pass with variable group arguments", async () => {

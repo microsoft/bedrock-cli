@@ -191,6 +191,16 @@ export const create = (
     `Creating Variable Group from group definition '${variableGroupName}'`
   );
 
+  if (
+    !registryName ||
+    !hldRepoUrl ||
+    !servicePrincipalId ||
+    !servicePrincipalPassword ||
+    !tenantId
+  ) {
+    throw Error("Required values were missing");
+  }
+
   const vars: VariableGroupDataVariable = {
     ACR_NAME: {
       value: registryName,
