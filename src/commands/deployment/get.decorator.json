@@ -39,7 +39,7 @@
       "defaultValue": ""
     },
     {
-      "arg": "-O, --output <output-format>",
+      "arg": "-o, --output <output-format>",
       "description": "Output the information one of the following: normal, wide, JSON",
       "defaultValue": "normal"
     },

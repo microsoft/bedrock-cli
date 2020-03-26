@@ -432,7 +432,7 @@ fi
 export sa_access_key=$(echo "$sa_access_key" | tr -d '"')
 spk init -f ./spk-config-test.yaml
 spk deployment get --build-id $pipeline1id
-export output=$(spk deployment get --build-id $pipeline1id -O json > file.json )
+export output=$(spk deployment get --build-id $pipeline1id -o json > file.json )
 length=$(cat file.json | jq 'length')
 if (( length > 0 )); then
   echo "$length deployment(s) were returned by spk deployment get"
