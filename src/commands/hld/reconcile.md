@@ -16,24 +16,24 @@ For a `bedrock.yaml` file that contained within the
 `https://dev.azure.com/foo/bar/_git` repository, that has the following
 structure:
 
-```
+```yaml
 rings:
   master:
     isDefault: true
 services:
   ./services/fabrikam:
-    displayName: 'fabrikam'
+    displayName: "fabrikam"
     k8sBackendPort: 8001
-    k8sBackend: 'fabrikam-k8s-svc'
-    pathPrefix: 'fabrikam-service'
-    pathPrefixMajorVersion: 'v1'
+    k8sBackend: "fabrikam-k8s-svc"
+    pathPrefix: "fabrikam-service"
+    pathPrefixMajorVersion: "v1"
     helm:
       chart:
         branch: master
-        git: 'https://dev.azure.com/foo/bar/_git'
+        git: "https://dev.azure.com/foo/bar/_git"
         path: stable/fabrikam-application
     middlewares:
-      - ''
+      - ""
 variableGroups:
   - fabrikam-vg
 ```
@@ -46,15 +46,15 @@ A HLD is produced that resembles the following:
     ├── access.yaml
     ├── component.yaml
     ├── config
-    │   └── common.yaml
+    │   └── common.yaml
     └── fabrikam
         ├── component.yaml
         ├── config
-        │   └── common.yaml
+        │   └── common.yaml
         └── master
             ├── component.yaml
             ├── config
-            │   └── common.yaml
+            │   └── common.yaml
             └── static
                 ├── ingress-route.yaml
                 └── middlewares.yaml
@@ -68,7 +68,7 @@ that strips path prefixes.
 
 For the `bedrock.yaml` shown above, the `ingress-route.yaml` produced is:
 
-```
+```yaml
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
@@ -76,7 +76,7 @@ metadata:
 spec:
   routes:
     - kind: Rule
-      match: 'PathPrefix(`/v1/fabrikam-service`) && Headers(`Ring`, `master`)'
+      match: "PathPrefix(`/v1/fabrikam-service`) && Headers(`Ring`, `master`)"
       middlewares:
         - name: fabrikam-master
       services:
@@ -86,7 +86,7 @@ spec:
 
 And the `middlewares.yaml` produced is:
 
-```
+```yaml
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
@@ -104,8 +104,8 @@ Note that there exists a third generated file, `access.yaml`. For the above
 allowing Fabrikate to pull Helm Charts that are contained within the same
 application repository:
 
-```
-'https://dev.azure.com/foo/bar/_git': ACCESS_TOKEN_SECRET
+```yaml
+"https://dev.azure.com/foo/bar/_git": ACCESS_TOKEN_SECRET
 ```
 
 When `fabrikate` is invoked in the HLD to Manifest pipeline, it will utilize the
