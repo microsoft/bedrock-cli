@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import { VariableGroupParameters } from "azure-devops-node-api/interfaces/TaskAgentInterfaces";
 import uuid from "uuid/v4";
 import * as azdoClient from "../azdoClient";

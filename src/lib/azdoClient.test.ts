@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 jest.mock("azure-devops-node-api");
 jest.mock("../config");
 

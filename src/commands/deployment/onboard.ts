@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import { StorageAccount } from "@azure/arm-storage/esm/models";
 import commander from "commander";
 import fs from "fs";

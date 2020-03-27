@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import * as config from "../../config";
 import * as azdo from "../../lib/azdoClient";
 import { BUILD_SCRIPT_URL } from "../../lib/constants";

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import uuid from "uuid/v4";
 import * as deploymenttable from "../../lib/azure/deploymenttable";
 import {

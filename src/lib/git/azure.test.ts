@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/camelcase */
+
 import { WebApi } from "azure-devops-node-api";
 import uuid from "uuid/v4";
 import { Config } from "../../config";

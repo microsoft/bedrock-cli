@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/camelcase */
+
 import commander from "commander";
 import { join } from "path";
 import { Bedrock, Config } from "../../config";

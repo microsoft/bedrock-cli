@@ -12,4 +12,7 @@ module.exports = {
     "prettier",
     "prettier/@typescript-eslint",
   ],
+  rules: {
+    "@typescript-eslint/camelcase": "off",
+  },
 };

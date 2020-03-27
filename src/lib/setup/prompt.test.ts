@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import fs from "fs";
 import inquirer from "inquirer";
 import os from "os";

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import * as msRestNodeAuth from "@azure/ms-rest-nodeauth";
 import * as config from "../../config";
 import { ConfigYaml } from "../../types";

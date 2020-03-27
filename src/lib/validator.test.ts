@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/camelcase */
+
 import path from "path";
 import { Config, loadConfiguration } from "../config";
 import {

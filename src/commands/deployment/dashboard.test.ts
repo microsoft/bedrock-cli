@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 jest.mock("open");
 import open from "open";
 jest.mock("../../config");

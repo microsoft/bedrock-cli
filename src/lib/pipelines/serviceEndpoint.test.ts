@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import { IRestResponse } from "typed-rest-client";
 import uuid from "uuid/v4";
 import { Config, readYaml } from "../../config";
