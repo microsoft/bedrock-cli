@@ -22,6 +22,8 @@ import {
   spkTemplatesPath,
 } from "./infra_common";
 import { copyTfTemplate } from "./scaffold";
+import { build as buildError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 interface CommandOptions {
   project: string | undefined;
@@ -182,14 +184,16 @@ export const checkRemoteGitExist = async (
 ): Promise<void> => {
   // Checking for git remote
   if (!fs.existsSync(sourcePath)) {
-    throw new Error(`${sourcePath} does not exist`);
+    throw buildError(errorStatusCode.GIT_OPS_ERR, {
+      errorKey: "infra-git-source-no-exist",
+      values: [sourcePath],
+    });
   }
 
   const result = await simpleGit(sourcePath).listRemote([source]);
   if (!result) {
     logger.error(result);
-    throw new Error(`Unable to clone the source remote repository. \
-The remote repo may not exist or you do not have the rights to access it`);
+    throw buildError(errorStatusCode.GIT_OPS_ERR, "infra-err-git-clone-failed");
   }
 
   logger.info(`Remote source repo: ${safeLoggingUrl} exists.`);
@@ -287,13 +291,21 @@ export const validateRemoteSource = async (
             version
           );
         } else {
-          throw new Error(
-            `Unable to determine error from supported retry cases ${err.message}`
+          throw buildError(
+            errorStatusCode.GIT_OPS_ERR,
+            "infra-err-validating-remote-git",
+            err
           );
         }
       } catch (retryError) {
-        throw new Error(`Failure error thrown during retry ${retryError}`);
+        throw buildError(
+          errorStatusCode.GIT_OPS_ERR,
+          "infra-err-retry-validating-remote-git",
+          err
+        );
       }
+    } else {
+      throw err;
     }
   }
 };

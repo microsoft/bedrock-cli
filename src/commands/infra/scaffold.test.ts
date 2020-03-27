@@ -170,12 +170,12 @@ describe("test validate function", () => {
       );
       expect(true).toBe(false);
     } catch (err) {
-      expect(err.message).toBe("Value for source is missing.");
+      expect(err.errorCode).toBe(1001);
     }
   });
   it("name, template, version is missing", () => {
     ["name", "template", "version"].forEach((key) => {
-      try {
+      expect(() => {
         validateValues(
           {},
           {
@@ -185,12 +185,7 @@ describe("test validate function", () => {
             version: key === "version" ? "" : uuid(),
           }
         );
-        expect(true).toBe(false);
-      } catch (err) {
-        expect(err.message).toBe(
-          "Values for name, version and/or 'template are missing."
-        );
-      }
+      }).toThrow();
     });
   });
 });

@@ -197,11 +197,9 @@ describe("test gitClone function", () => {
 
 describe("Validate remote git source", () => {
   test("Validating that a git source is cloned to .spk/templates", async () => {
-    jest
-      .spyOn(generate, "checkRemoteGitExist")
-      .mockReturnValueOnce(Promise.resolve());
-    jest.spyOn(generate, "gitFetchPull").mockReturnValueOnce(Promise.resolve());
-    jest.spyOn(generate, "gitCheckout").mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "checkRemoteGitExist").mockResolvedValueOnce();
+    jest.spyOn(generate, "gitFetchPull").mockResolvedValueOnce();
+    jest.spyOn(generate, "gitCheckout").mockResolvedValueOnce();
 
     const mockParentPath = "src/commands/infra/mocks/discovery-service";
     const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
@@ -272,13 +270,11 @@ describe("fetch execute function", () => {
       .spyOn(generate, "validateDefinition")
       .mockReturnValueOnce(DefinitionYAMLExistence.PARENT_ONLY);
     jest.spyOn(generate, "validateTemplateSources").mockReturnValueOnce({});
-    jest
-      .spyOn(generate, "validateRemoteSource")
-      .mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "validateRemoteSource").mockResolvedValueOnce();
     jest
       .spyOn(infraCommon, "getSourceFolderNameFromURL")
       .mockImplementationOnce(() => {
-        throw new Error("Fake");
+        throw Error("Fake");
       });
     const exitFn = jest.fn();
     await execute(
@@ -296,9 +292,7 @@ describe("fetch execute function", () => {
     jest
       .spyOn(generate, "validateDefinition")
       .mockReturnValueOnce(DefinitionYAMLExistence.BOTH_EXIST);
-    jest
-      .spyOn(generate, "validateRemoteSource")
-      .mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "validateRemoteSource").mockResolvedValueOnce();
     jest.spyOn(generate, "validateTemplateSources").mockReturnValueOnce({});
     jest
       .spyOn(generate, "generateConfig")
@@ -324,11 +318,9 @@ describe("test validateRemoteSource function", () => {
     jest
       .spyOn(infraCommon, "getSourceFolderNameFromURL")
       .mockReturnValueOnce("sourceFolder");
-    jest
-      .spyOn(generate, "checkRemoteGitExist")
-      .mockReturnValueOnce(Promise.resolve());
-    jest.spyOn(generate, "gitClone").mockReturnValueOnce(Promise.resolve());
-    jest.spyOn(generate, "gitCheckout").mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "checkRemoteGitExist").mockResolvedValueOnce();
+    jest.spyOn(generate, "gitClone").mockResolvedValueOnce();
+    jest.spyOn(generate, "gitCheckout").mockResolvedValueOnce();
 
     await validateRemoteSource({
       source: "source",
@@ -339,17 +331,11 @@ describe("test validateRemoteSource function", () => {
     jest
       .spyOn(infraCommon, "getSourceFolderNameFromURL")
       .mockReturnValueOnce("sourceFolder");
-    jest
-      .spyOn(generate, "checkRemoteGitExist")
-      .mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "checkRemoteGitExist").mockResolvedValueOnce();
     jest
       .spyOn(generate, "gitClone")
-      .mockReturnValueOnce(
-        Promise.reject(new Error("refusing to merge unrelated histories"))
-      );
-    jest
-      .spyOn(generate, "retryRemoteValidate")
-      .mockReturnValueOnce(Promise.resolve());
+      .mockRejectedValueOnce(Error("refusing to merge unrelated histories"));
+    jest.spyOn(generate, "retryRemoteValidate").mockResolvedValueOnce();
 
     await validateRemoteSource({
       source: "source",
@@ -360,15 +346,11 @@ describe("test validateRemoteSource function", () => {
     jest
       .spyOn(infraCommon, "getSourceFolderNameFromURL")
       .mockReturnValueOnce("sourceFolder");
-    jest
-      .spyOn(generate, "checkRemoteGitExist")
-      .mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "checkRemoteGitExist").mockResolvedValueOnce();
     jest
       .spyOn(generate, "gitClone")
-      .mockReturnValueOnce(Promise.reject(new Error("Authentication failed")));
-    jest
-      .spyOn(generate, "retryRemoteValidate")
-      .mockReturnValueOnce(Promise.resolve());
+      .mockRejectedValueOnce(Error("Authentication failed"));
+    jest.spyOn(generate, "retryRemoteValidate").mockResolvedValueOnce();
 
     await validateRemoteSource({
       source: "source",
@@ -379,15 +361,11 @@ describe("test validateRemoteSource function", () => {
     jest
       .spyOn(infraCommon, "getSourceFolderNameFromURL")
       .mockReturnValueOnce("sourceFolder");
-    jest
-      .spyOn(generate, "checkRemoteGitExist")
-      .mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "checkRemoteGitExist").mockResolvedValueOnce();
     jest
       .spyOn(generate, "gitClone")
-      .mockReturnValueOnce(Promise.reject(new Error("other error")));
-    jest
-      .spyOn(generate, "retryRemoteValidate")
-      .mockReturnValueOnce(Promise.resolve());
+      .mockRejectedValueOnce(Error("other error"));
+    jest.spyOn(generate, "retryRemoteValidate").mockResolvedValueOnce();
 
     try {
       await validateRemoteSource({
@@ -396,9 +374,7 @@ describe("test validateRemoteSource function", () => {
       });
       expect(true).toBe(false);
     } catch (err) {
-      expect(err.message).toBe(
-        "Failure error thrown during retry Error: Unable to determine error from supported retry cases other error"
-      );
+      expect(err.errorCode).toBe(1100);
     }
   });
 });
@@ -413,21 +389,11 @@ describe("test retryRemoteValidate function", () => {
   });
   it("negative test", async () => {
     jest.spyOn(fsExtra, "removeSync").mockReturnValueOnce();
-    jest
-      .spyOn(generate, "gitClone")
-      .mockReturnValueOnce(Promise.reject(new Error("error")));
+    jest.spyOn(generate, "gitClone").mockRejectedValueOnce(Error("error"));
 
-    try {
-      await retryRemoteValidate(
-        "source",
-        "sourcePath",
-        "safeLoggingUrl",
-        "0.1"
-      );
-      expect(true).toBe(false);
-    } catch (err) {
-      expect(err).toBeDefined();
-    }
+    await expect(
+      retryRemoteValidate("source", "sourcePath", "safeLoggingUrl", "0.1")
+    ).rejects.toThrow();
   });
 });
 

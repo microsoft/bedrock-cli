@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import commander from "commander";
 import fs from "fs";
 import fsextra from "fs-extra";
@@ -19,6 +18,8 @@ import {
   VARIABLES_TF,
 } from "./infra_common";
 import decorator from "./scaffold.decorator.json";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 export interface CommandOptions {
   name: string;
@@ -47,11 +48,17 @@ template repo and access token was not specified in spk-config.yml. Checking pas
 
     if (!opts.source) {
       // since access_token and infra_repository are missing, we cannot construct source for them
-      throw new Error("Value for source is missing.");
+      throw buildError(
+        errorStatusCode.VALIDATION_ERR,
+        "infra-scaffold-cmd-src-missing"
+      );
     }
   }
   if (!opts.name || !opts.version || !opts.template) {
-    throw new Error("Values for name, version and/or 'template are missing.");
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "infra-scaffold-cmd-values-missing"
+    );
   }
   logger.info(`All required options are configured via command line for \
 scaffolding, expecting public remote repository for terraform templates \
@@ -60,6 +67,8 @@ or PAT embedded in source URL.`);
 
 // Construct the source based on the the passed configurations of spk-config.yaml
 export const constructSource = (config: ConfigYaml): string => {
+  // config.azure_devops exists because validateValues function checks it
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const devops = config.azure_devops!;
   const source = `https://spk:${devops.access_token}@${devops.infra_repository}`;
   logger.info(
@@ -93,10 +102,14 @@ export const copyTfTemplate = async (
     }
     logger.info(`Terraform template files copied from ${templatePath}`);
   } catch (err) {
-    logger.error(
-      `Unable to find Terraform environment. Please check template path.`
+    throw buildError(
+      errorStatusCode.ENV_SETTING_ERR,
+      {
+        errorKey: "infra-err-locate-tf-env",
+        values: [templatePath],
+      },
+      err
     );
-    throw err;
   }
 };
 
@@ -106,18 +119,15 @@ export const copyTfTemplate = async (
  * @param templatePath Path to the variables.tf file
  */
 export const validateVariablesTf = (templatePath: string): void => {
-  try {
-    if (!fs.existsSync(templatePath)) {
-      throw new Error(
-        `Provided Terraform ${VARIABLES_TF} path is invalid or cannot be found: ${templatePath}`
-      );
-    }
-    logger.info(
-      `Terraform ${VARIABLES_TF} file found. Attempting to generate ${DEFINITION_YAML} file.`
-    );
-  } catch (_) {
-    throw new Error(`Unable to validate Terraform ${VARIABLES_TF}.`);
+  if (!fs.existsSync(templatePath)) {
+    throw buildError(errorStatusCode.ENV_SETTING_ERR, {
+      errorKey: "infra-err-tf-path-not-found",
+      values: [VARIABLES_TF, templatePath],
+    });
   }
+  logger.info(
+    `Terraform ${VARIABLES_TF} file found. Attempting to generate ${DEFINITION_YAML} file.`
+  );
 };
 
 /**
@@ -281,15 +291,18 @@ export const scaffold = (values: CommandOptions): void => {
           });
           fs.writeFileSync(confPath, definitionYaml, "utf8");
         } else {
-          logger.error(`Unable to generate cluster definition.`);
+          throw Error(`Unable to generate cluster definition.`);
         }
       } else {
-        logger.error(`Unable to read variable file: ${tfVariableFile}.`);
+        throw Error(`Unable to read variable file: ${tfVariableFile}.`);
       }
     }
   } catch (err) {
-    logger.warn("Unable to create scaffold");
-    throw err;
+    throw buildError(
+      errorStatusCode.EXE_FLOW_ERR,
+      "infra-err-create-scaffold",
+      err
+    );
   }
 };
 
@@ -308,7 +321,7 @@ export const removeTemplateFiles = (envPath: string): void => {
         fs.unlinkSync(path.join(envPath, f));
       });
   } catch (e) {
-    logger.error(`cannot read ${envPath}`);
+    logger.warn(`cannot read ${envPath}`);
     // TOFIX: I guess we are ok with files not removed.
   }
 };
@@ -342,8 +355,9 @@ export const execute = async (
     removeTemplateFiles(opts.name);
     await exitFn(0);
   } catch (err) {
-    logger.error("Error occurred while generating scaffold");
-    logger.error(err);
+    logError(
+      buildError(errorStatusCode.CMD_EXE_ERR, "infra-scaffold-cmd-failed", err)
+    );
     await exitFn(1);
   }
 };

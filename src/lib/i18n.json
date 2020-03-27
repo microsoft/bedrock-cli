@@ -14,5 +14,17 @@
     "storagePartitionKey": "Enter storage partition key",
     "storageAccessKey": "Enter storage access key",
     "storageKeVaultName": "Enter key vault name (have the value as empty and hit enter key to skip)"
+  },
+  "errors": {
+    "infra-scaffold-cmd-failed": "Scaffold Command was not successfully executed.",
+    "infra-scaffold-cmd-src-missing": "Value for source is required because it cannot be constructed with properties in spk-config.yaml. Provide value for source.",
+    "infra-scaffold-cmd-values-missing": "Values for name, version and/or 'template were missing. Provide value for values for them.",
+    "infra-err-validating-remote-git": "Could not determine error when validating remote git source.",
+    "infra-err-retry-validating-remote-git": "Failure error thrown during retrying validating remote git source.",
+    "infra-err-locate-tf-env": "Could not find Terraform environment. Ensure template path {0} exists.",
+    "infra-err-tf-path-not-found": "Provided Terraform {0} path is invalid or cannot be found: {1}",
+    "infra-err-create-scaffold": "Could not create scaffold",
+    "infra-err-git-clone-failed": "Could not clone the source remote repository. The remote repo might not exist or you did not have the rights to access it",
+    "infra-git-source-no-exist": "Source path, {0} did not exist."
   }
 }

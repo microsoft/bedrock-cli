@@ -109,7 +109,7 @@ export const deletePipeline = async (
 };
 
 /**
- * Returns latest build ststus of pipeline.
+ * Returns latest build status of pipeline.
  *
  * @param buildApi Build API client
  * @param projectName Project name
@@ -130,7 +130,7 @@ export const getPipelineBuild = async (
 };
 
 /**
- * Polls build ststus of pipeline.
+ * Polls build status of pipeline.
  *
  * @param buildApi Build API client
  * @param projectName Project name
