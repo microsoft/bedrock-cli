@@ -7,6 +7,8 @@ import {
   getDeploymentsBasedOnFilters,
   IDeployment,
   status as getDeploymentStatus,
+  fetchPR,
+  getRepositoryFromURL,
 } from "spektate/lib/IDeployment";
 import AzureDevOpsPipeline from "spektate/lib/pipeline/AzureDevOpsPipeline";
 import {
@@ -24,7 +26,10 @@ import { isIntegerString } from "../../lib/validator";
 import { logger } from "../../logger";
 import { ConfigYaml } from "../../types";
 import decorator from "./get.decorator.json";
+import { IPullRequest } from "spektate/lib/repository/IPullRequest";
 
+const promises: Promise<IPullRequest | undefined>[] = [];
+const pullRequests: { [id: string]: IPullRequest } = {};
 /**
  * Output formats to display service details
  */
@@ -184,13 +189,43 @@ export const getDeployments = (
   );
   return new Promise((resolve, reject) => {
     Promise.all([deploymentsPromise, syncStatusesPromise])
-      .then((tuple: [IDeployment[] | undefined, ITag[] | undefined]) => {
+      .then(async (tuple: [IDeployment[] | undefined, ITag[] | undefined]) => {
         const deployments: IDeployment[] | undefined = tuple[0];
         const syncStatuses: ITag[] | undefined = tuple[1];
-        if (values.outputFormat === OUTPUT_FORMAT.JSON) {
-          console.log(JSON.stringify(deployments, null, 2));
-          resolve(deployments);
-        } else {
+        const displayedDeployments = await displayDeployments(
+          values,
+          deployments,
+          syncStatuses
+        );
+        resolve(displayedDeployments);
+      })
+      .catch((e) => {
+        reject(new Error(e));
+      });
+  });
+};
+
+/**
+ * Displays the deployments based on output format requested and top n
+ * @param values validated command line values
+ * @param deployments list of deployments to display
+ * @param syncStatuses cluster sync statuses
+ */
+export const displayDeployments = (
+  values: ValidatedOptions,
+  deployments: IDeployment[] | undefined,
+  syncStatuses: ITag[] | undefined
+): Promise<IDeployment[]> => {
+  return new Promise((resolve, reject) => {
+    if (values.outputFormat === OUTPUT_FORMAT.WIDE) {
+      getPRs(deployments);
+    }
+    if (values.outputFormat === OUTPUT_FORMAT.JSON) {
+      console.log(JSON.stringify(deployments, null, 2));
+      resolve(deployments);
+    } else {
+      Promise.all(promises)
+        .then(() => {
           printDeployments(
             deployments,
             values.outputFormat,
@@ -198,11 +233,11 @@ export const getDeployments = (
             syncStatuses
           );
           resolve(deployments);
-        }
-      })
-      .catch((e) => {
-        reject(new Error(e));
-      });
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    }
   });
 };
 
@@ -362,9 +397,16 @@ export const printDeployments = (
       "Env",
       "Hld Commit",
       "Result",
-      "HLD to Manifest",
-      "Result",
     ];
+    let prsExist = false;
+    if (
+      Object.keys(pullRequests).length > 0 &&
+      outputFormat === OUTPUT_FORMAT.WIDE
+    ) {
+      header = header.concat(["Approval PR", "Merged By"]);
+      prsExist = true;
+    }
+    header = header.concat(["HLD to Manifest", "Result"]);
     if (outputFormat === OUTPUT_FORMAT.WIDE) {
       header = header.concat([
         "Duration",
@@ -403,6 +445,7 @@ export const printDeployments = (
 
     toDisplay.forEach((deployment) => {
       const row = [];
+      let deploymentStatus = getDeploymentStatus(deployment);
       row.push(
         deployment.srcToDockerBuild
           ? deployment.srcToDockerBuild.startTime.toLocaleString()
@@ -445,6 +488,25 @@ export const printDeployments = (
       );
       row.push(deployment.hldCommitId || "-");
       row.push(dockerToHldStatus);
+
+      // Print PR if available
+      if (
+        prsExist &&
+        deployment.pr &&
+        deployment.pr.toString() in pullRequests
+      ) {
+        row.push(deployment.pr);
+        if (pullRequests[deployment.pr!.toString()].mergedBy) {
+          row.push(pullRequests[deployment.pr!.toString()].mergedBy?.name);
+        } else {
+          deploymentStatus = "Waiting";
+          row.push("-");
+        }
+      } else if (prsExist) {
+        row.push("-");
+        row.push("-");
+      }
+
       row.push(
         deployment.hldToManifestBuild ? deployment.hldToManifestBuild.id : "-"
       );
@@ -455,7 +517,7 @@ export const printDeployments = (
       );
       if (outputFormat === OUTPUT_FORMAT.WIDE) {
         row.push(duration(deployment) + " mins");
-        row.push(getDeploymentStatus(deployment));
+        row.push(deploymentStatus);
         row.push(deployment.manifestCommitId || "-");
         row.push(
           deployment.hldToManifestBuild &&
@@ -486,6 +548,44 @@ export const printDeployments = (
     logger.info("No deployments found for specified filters.");
     return undefined;
   }
+};
+
+/**
+ * Gets PR information for all the deployments
+ * @param deployments all deployments to be displayed
+ */
+export const getPRs = (deployments: IDeployment[] | undefined) => {
+  if (deployments && deployments.length > 0) {
+    deployments.forEach((deployment: IDeployment) => {
+      fetchPRInformation(deployment);
+    });
+  }
+};
+
+/**
+ * Fetches pull request data for deployments that complete merge into HLD
+ * by merging a PR
+ * @param deployment deployment for which PR has to be fetched
+ */
+export const fetchPRInformation = (deployment: IDeployment) => {
+  const config = Config();
+  if (!deployment.hldRepo || !deployment.pr) {
+    return;
+  }
+  const repo: IAzureDevOpsRepo | IGitHub | undefined = getRepositoryFromURL(
+    deployment.hldRepo!
+  );
+  const promise = fetchPR(
+    repo!,
+    deployment.pr!.toString(),
+    config.introspection?.azure?.source_repo_access_token
+  );
+  promise.then((pr: IPullRequest | undefined) => {
+    if (pr) {
+      pullRequests[deployment.pr!.toString()] = pr;
+    }
+  });
+  promises.push(promise);
 };
 
 /**

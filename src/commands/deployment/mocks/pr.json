@@ -1,0 +1,14 @@
+{
+  "description": "Updating samiya.frontend to master-20200318.1.\nPR created by: samiya2019 with buildId: 14751 and buildNumber: 20200318.1",
+  "id": 1371,
+  "mergedBy": {
+    "imageUrl": "https://dev.azure.com/epicstuff/_api/_common/identityImage?id=e8900b94-217f-4a51-9d86-6bbf5d82b6fb",
+    "name": "Samiya Akhtar",
+    "url": "https://dev.azure.com/epicstuff/e7236bd9-a6f9-4554-8dce-ad81ae94faf6/_apis/git/repositories/a491cdad-443c-4419-9726-95e7619673ae/pullRequests/1371",
+    "username": "saakhta@microsoft.com"
+  },
+  "sourceBranch": "DEPLOY/samiya2019-samiya.frontend-master-20200318.1",
+  "targetBranch": "master",
+  "title": "Updating samiya.frontend image tag to master-20200318.1.",
+  "url": "https://dev.azure.com/epicstuff/hellobedrockprivate/_git/samiya-hld/pullrequest/1371"
+}

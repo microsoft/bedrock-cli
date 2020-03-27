@@ -28,6 +28,7 @@ import {
   watchGetDeployments,
 } from "./get";
 import * as get from "./get";
+import { IPullRequest } from "spektate/lib/repository/IPullRequest";
 
 const MOCKED_INPUT_VALUES: CommandOptions = {
   buildId: "",
@@ -49,7 +50,7 @@ const MOCKED_VALUES: ValidatedOptions = {
   imageTag: "",
   nTop: 0,
   output: "",
-  outputFormat: OUTPUT_FORMAT.NORMAL,
+  outputFormat: OUTPUT_FORMAT.WIDE,
   service: "",
   top: "",
   watch: false,
@@ -68,18 +69,25 @@ const data = require("./mocks/data.json");
 const fakeDeployments = data;
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fakeClusterSyncs = require("./mocks/cluster-sync.json");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fakePR = require("./mocks/pr.json");
 const mockedDeps: IDeployment[] = fakeDeployments.data.map(
   (dep: IDeployment) => {
     return {
       commitId: dep.commitId,
       deploymentId: dep.deploymentId,
       dockerToHldRelease: dep.dockerToHldRelease,
+      dockerToHldReleaseStage: dep.dockerToHldReleaseStage,
       environment: dep.environment,
       hldCommitId: dep.hldCommitId || "",
+      hldRepo: dep.hldRepo,
       hldToManifestBuild: dep.hldToManifestBuild,
       imageTag: dep.imageTag,
       manifestCommitId: dep.manifestCommitId,
+      manifestRepo: dep.manifestRepo,
+      pr: dep.pr,
       service: dep.service,
+      sourceRepo: dep.sourceRepo,
       srcToDockerBuild: dep.srcToDockerBuild,
       timeStamp: dep.timeStamp,
     };
@@ -95,6 +103,7 @@ jest
 jest
   .spyOn(AzureDevOpsRepo, "getManifestSyncState")
   .mockReturnValue(Promise.resolve(mockedClusterSyncs));
+jest.spyOn(Deployment, "fetchPR").mockReturnValue(Promise.resolve(fakePR));
 
 let initObject: InitObject;
 
@@ -338,7 +347,7 @@ describe("Print deployments", () => {
 
     table = printDeployments(
       mockedDeps,
-      processOutputFormat("normal"),
+      processOutputFormat("wide"),
       3,
       mockedClusterSyncs
     );
@@ -380,7 +389,7 @@ describe("Output formats", () => {
     );
     expect(table).not.toBeUndefined();
     table!.forEach((field) => {
-      expect(field).toHaveLength(18);
+      expect(field).toHaveLength(20);
     });
   });
 });

@@ -50,6 +50,10 @@
         "registryURL": "hellorings.azurecr.io",
         "registryResourceGroup": "bedrock-rings"
       },
+      "pr": "1123",
+      "hldRepo": "https://github.com/samiyaakhtar/hello-bedrock-hld",
+      "manifestRepo": "https://github.com/samiyaakhtar/hello-bedrock-manifest",
+      "sourceRepo": "https://github.com/samiyaakhtar/hello-bedrock",
       "commitId": "c626394",
       "hldCommitId": "a3dc9a7",
       "imageTag": "hello-bedrock-master-6053",
@@ -108,6 +112,10 @@
         "registryURL": "hellorings.azurecr.io",
         "registryResourceGroup": "bedrock-rings"
       },
+      "pr": "1133",
+      "hldRepo": "https://github.com/samiyaakhtar/hello-bedrock-hld",
+      "manifestRepo": "https://github.com/samiyaakhtar/hello-bedrock-manifest",
+      "sourceRepo": "https://github.com/samiyaakhtar/hello-bedrock",
       "commitId": "a0bca78",
       "hldCommitId": "316abbc",
       "imageTag": "hello-spektate-master-6042",
@@ -166,6 +174,10 @@
         "registryURL": "hellorings.azurecr.io",
         "registryResourceGroup": "bedrock-rings"
       },
+      "pr": "1173",
+      "hldRepo": "https://github.com/samiyaakhtar/hello-bedrock-hld",
+      "manifestRepo": "https://github.com/samiyaakhtar/hello-bedrock-manifest",
+      "sourceRepo": "https://github.com/samiyaakhtar/hello-bedrock",
       "commitId": "c626394",
       "hldCommitId": "e4a2730",
       "imageTag": "hello-bedrock-master-5977",
@@ -224,6 +236,10 @@
         "registryURL": "hellorings.azurecr.io",
         "registryResourceGroup": "bedrock-rings"
       },
+      "pr": "1125",
+      "hldRepo": "https://github.com/samiyaakhtar/hello-bedrock-hld",
+      "manifestRepo": "https://github.com/samiyaakhtar/hello-bedrock-manifest",
+      "sourceRepo": "https://github.com/samiyaakhtar/hello-bedrock",
       "commitId": "5b54eb4",
       "hldCommitId": "18abc7a",
       "imageTag": "hello-bedrock-master-6074",
@@ -282,6 +298,10 @@
         "registryURL": "hellorings.azurecr.io",
         "registryResourceGroup": "bedrock-rings"
       },
+      "pr": "1120",
+      "hldRepo": "https://github.com/samiyaakhtar/hello-bedrock-hld",
+      "manifestRepo": "https://github.com/samiyaakhtar/hello-bedrock-manifest",
+      "sourceRepo": "https://github.com/samiyaakhtar/hello-bedrock",
       "commitId": "a0bca78",
       "hldCommitId": "863d50f",
       "imageTag": "hello-spektate-master-6049",
@@ -340,6 +360,10 @@
         "registryURL": "hellorings.azurecr.io",
         "registryResourceGroup": "bedrock-rings"
       },
+      "pr": "1119",
+      "hldRepo": "https://github.com/samiyaakhtar/hello-bedrock-hld",
+      "manifestRepo": "https://github.com/samiyaakhtar/hello-bedrock-manifest",
+      "sourceRepo": "https://github.com/samiyaakhtar/hello-bedrock",
       "commitId": "c626394",
       "hldCommitId": "706685f",
       "imageTag": "hello-bedrock-master-6046",
@@ -398,6 +422,10 @@
         "registryURL": "hellorings.azurecr.io",
         "registryResourceGroup": "bedrock-rings"
       },
+      "pr": "1118",
+      "hldRepo": "https://github.com/samiyaakhtar/hello-bedrock-hld",
+      "manifestRepo": "https://github.com/samiyaakhtar/hello-bedrock-manifest",
+      "sourceRepo": "https://github.com/samiyaakhtar/hello-bedrock",
       "commitId": "c626394",
       "hldCommitId": "bac890c",
       "imageTag": "hello-bedrock-master-6044",
@@ -456,6 +484,10 @@
         "registryURL": "hellorings.azurecr.io",
         "registryResourceGroup": "bedrock-rings"
       },
+      "pr": "1115",
+      "hldRepo": "https://github.com/samiyaakhtar/hello-bedrock-hld",
+      "manifestRepo": "https://github.com/samiyaakhtar/hello-bedrock-manifest",
+      "sourceRepo": "https://github.com/samiyaakhtar/hello-bedrock",
       "commitId": "a0bca78",
       "hldCommitId": "316abbc",
       "imageTag": "hello-spektate-master-6042",
@@ -514,6 +546,10 @@
         "registryURL": "hellorings.azurecr.io",
         "registryResourceGroup": "bedrock-rings"
       },
+      "pr": "1111",
+      "hldRepo": "https://github.com/samiyaakhtar/hello-bedrock-hld",
+      "manifestRepo": "https://github.com/samiyaakhtar/hello-bedrock-manifest",
+      "sourceRepo": "https://github.com/samiyaakhtar/hello-bedrock",
       "commitId": "8028a15",
       "hldCommitId": "0612e7a",
       "imageTag": "hello-spektate-master-6009",
@@ -560,10 +596,10 @@
         }
       },
       "deploymentId": "33733a9f4573",
-      "dockerToHldRelease": {
+      "dockerToHldReleaseStage": {
         "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_release?releaseId=173&_a=release-summary",
         "finishTime": "2019-08-28T20:14:30.093Z",
-        "id": 173,
+        "id": 5975,
         "queueTime": "2019-08-28T20:13:56.163Z",
         "releaseName": "Release-170",
         "startTime": "2019-08-28T20:14:08.787Z",
