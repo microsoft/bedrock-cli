@@ -19,6 +19,7 @@ import {
   MaintainersFile,
   User,
 } from "../types";
+import { readYaml, write } from "../config";
 
 /**
  * Read given pipeline file as json object.
@@ -471,6 +472,29 @@ export const updateTriggerBranchesForServiceBuildAndUpdatePipeline = (
 };
 
 /**
+ * Appends a variable group an Azure pipeline yaml
+ * @param dir The directory where the pipeline yaml file is
+ * @param pipelineFile The name of the pipeline yaml file
+ * @param variableGroupName The name of the variable group to be added
+ */
+export const appendVariableGroupToPipelineYaml = (
+  dir: string,
+  fileName: string,
+  variableGroupName: string
+): void => {
+  const pipelineFile = readYaml(path.join(dir, fileName)) as AzurePipelinesYaml;
+
+  if (!pipelineFile.variables) {
+    pipelineFile.variables = [];
+  }
+
+  pipelineFile.variables.push({ group: variableGroupName });
+
+  logger.info(`Updating '${dir}/${fileName}'.`);
+  write(pipelineFile, dir, fileName);
+};
+
+/**
  * Returns a the Manifest Generation Pipeline as defined here: https://github.com/microsoft/bedrock/blob/master/gitops/azure-devops/ManifestGeneration.md#add-azure-pipelines-build-yaml
  */
 const manifestGenerationPipelineYaml = (): string => {
@@ -481,6 +505,7 @@ const manifestGenerationPipelineYaml = (): string => {
         include: ["master"],
       },
     },
+    variables: [],
     pool: {
       vmImage: VM_IMAGE,
     },

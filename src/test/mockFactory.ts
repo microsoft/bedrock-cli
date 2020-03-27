@@ -413,6 +413,7 @@ export const createTestHldAzurePipelinesYaml = (
         include: ["master"],
       },
     },
+    variables: [],
     pool: {
       vmImage: VM_IMAGE,
     },
@@ -503,6 +504,19 @@ export const createTestHldAzurePipelinesYaml = (
       },
     ],
   };
+
+  return asString
+    ? yaml.safeDump(data, { lineWidth: Number.MAX_SAFE_INTEGER })
+    : data;
+};
+
+export const createTestHldAzurePipelinesYamlWithVariableGroup = (
+  asString = true
+): AzurePipelinesYaml | string => {
+  const data: AzurePipelinesYaml = createTestHldAzurePipelinesYaml(
+    false
+  ) as AzurePipelinesYaml;
+  data.variables = [{ group: "my-vg" }];
 
   return asString
     ? yaml.safeDump(data, { lineWidth: Number.MAX_SAFE_INTEGER })

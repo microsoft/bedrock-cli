@@ -226,6 +226,11 @@
       }
     ]
   },
+  "hld append-variable-group": {
+    "command": "append-variable-group <variable-group-name>",
+    "alias": "avg",
+    "description": "Appends the name of an existing variable group to the current manifest-generation.yaml file."
+  },
   "hld init": {
     "command": "init",
     "alias": "i",

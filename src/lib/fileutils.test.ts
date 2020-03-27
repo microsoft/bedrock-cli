@@ -28,6 +28,7 @@ import { disableVerboseLogging, enableVerboseLogging } from "../logger";
 import {
   createTestComponentYaml,
   createTestHldAzurePipelinesYaml,
+  createTestHldAzurePipelinesYamlWithVariableGroup,
   createTestHldLifecyclePipelineYaml,
   createTestMaintainersYaml,
   createTestServiceBuildAndUpdatePipelineYaml,
@@ -35,6 +36,7 @@ import {
 import { AccessYaml, AzurePipelinesYaml, MaintainersFile } from "../types";
 import {
   addNewServiceToMaintainersFile,
+  appendVariableGroupToPipelineYaml,
   generateAccessYaml,
   generateDefaultHldComponentYaml,
   generateDockerfile,
@@ -420,6 +422,44 @@ describe("generateHldAzurePipelinesYaml", () => {
       "utf8"
     );
     expect(writeSpy).toBeCalled();
+  });
+});
+
+describe("appendVariableGroupToHldAzurePipelinesYaml", () => {
+  const targetDirectory = "hld-repository";
+  const writeSpy = jest.spyOn(fs, "writeFileSync");
+  const appendSpy = jest.spyOn(fs, "appendFileSync");
+  beforeEach(() => {
+    mockFs({
+      "hld-repository": {},
+    });
+  });
+  afterEach(() => {
+    mockFs.restore();
+  });
+  it("should append a variable group", () => {
+    const absTargetPath = path.resolve(targetDirectory);
+    const expectedFilePath = `${absTargetPath}/${RENDER_HLD_PIPELINE_FILENAME}`;
+
+    const mockFsOptions = {
+      [`${targetDirectory}/${RENDER_HLD_PIPELINE_FILENAME}`]: createTestHldAzurePipelinesYaml() as string,
+    };
+    mockFs(mockFsOptions);
+
+    appendVariableGroupToPipelineYaml(
+      absTargetPath,
+      RENDER_HLD_PIPELINE_FILENAME,
+      "my-vg"
+    );
+    expect(writeSpy).toBeCalledWith(
+      expectedFilePath,
+      `${getVersionMessage()}\n`,
+      "utf8"
+    );
+    expect(appendSpy).toBeCalledWith(
+      expectedFilePath,
+      createTestHldAzurePipelinesYamlWithVariableGroup()
+    );
   });
 });
 

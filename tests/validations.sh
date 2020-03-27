@@ -153,7 +153,7 @@ spk hld install-manifest-pipeline --org-name $AZDO_ORG -d $AZDO_PROJECT --person
 # Will no longer be needed once install-manifest-pipeline supports adding a VG
 ##################################
 cd $hld_dir
-printf "variables:\n  - group: $vg_name\n" | cat - manifest-generation.yaml > temp && mv temp manifest-generation.yaml
+spk hld append-variable-group $vg_name
 git add .
 git commit -m "Adding variable group $vg_name to pipeline"
 git push origin master

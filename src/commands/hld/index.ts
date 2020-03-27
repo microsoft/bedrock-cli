@@ -1,6 +1,6 @@
 import { Command } from "../command";
 
-const subfolders = ["init", "pipeline", "reconcile"];
+const subfolders = ["init", "pipeline", "reconcile", "append-variable-group"];
 
 export const commandDecorator = Command(
   "hld",
