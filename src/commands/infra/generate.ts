@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 import fs from "fs";
@@ -31,9 +30,9 @@ interface CommandOptions {
 }
 
 export interface SourceInformation {
-  source?: string;
-  template?: string;
-  version?: string;
+  source: string;
+  template: string;
+  version: string;
 }
 
 export enum DefinitionYAMLExistence {
@@ -57,6 +56,8 @@ export const execute = async (
       parentPath,
       projectPath
     );
+    // validateTemplateSources makes sure that
+    // sourceConfig has values for source, template and version
     await validateRemoteSource(sourceConfig);
     await generateConfig(
       parentPath,
@@ -142,7 +143,11 @@ export const validateTemplateSources = (
   const sourceKeys = ["source", "template", "version"] as Array<
     keyof SourceInformation
   >;
-  const source: SourceInformation = {};
+  const source: SourceInformation = {
+    source: "",
+    template: "",
+    version: "",
+  };
   let parentInfraConfig: InfraConfigYaml;
   let leafInfraConfig: InfraConfigYaml;
 
@@ -163,18 +168,18 @@ export const validateTemplateSources = (
       source[k] = parentInfraConfig[k];
     }
   });
-  if (!source.source || !source.template || !source.version) {
-    throw new Error(
-      `The ${DEFINITION_YAML} file is invalid. \
+  if (source.source && source.template && source.version) {
+    const safeLoggingUrl = safeGitUrlForLogging(source.source);
+    logger.info(
+      `Checking for locally stored template: ${source.template} from remote repository: ${safeLoggingUrl} at version: ${source.version}`
+    );
+    return source;
+  }
+  throw new Error(
+    `The ${DEFINITION_YAML} file is invalid. \
 There is a missing field for it's sources. \
 Template: ${source.template} source: ${source.source} version: ${source.version}`
-    );
-  }
-  const safeLoggingUrl = safeGitUrlForLogging(source.source!);
-  logger.info(
-    `Checking for locally stored template: ${source.template} from remote repository: ${safeLoggingUrl} at version: ${source.version}`
   );
-  return source;
 };
 
 export const checkRemoteGitExist = async (
@@ -226,8 +231,8 @@ export const gitCheckout = async (
 export const validateRemoteSource = async (
   sourceConfig: SourceInformation
 ): Promise<void> => {
-  const source = sourceConfig.source!;
-  const version = sourceConfig.version!;
+  const source = sourceConfig.source;
+  const version = sourceConfig.version;
 
   // Converting source name to storable folder name
   const sourceFolder = getSourceFolderNameFromURL(source);
@@ -378,11 +383,11 @@ export const generateConfig = async (
   outputPath: string
 ): Promise<void> => {
   const parentDirectory = getParentGeneratedFolder(parentPath, outputPath);
-  const sourceFolder = getSourceFolderNameFromURL(sourceConfig.source!);
+  const sourceFolder = getSourceFolderNameFromURL(sourceConfig.source);
   const templatePath = path.join(
     spkTemplatesPath,
     sourceFolder,
-    sourceConfig.template!
+    sourceConfig.template
   );
   const childDirectory =
     projectPath === parentPath
@@ -405,7 +410,9 @@ export const generateConfig = async (
     }
 
     combineVariable(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       parentInfraConfig.variables!,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       leafInfraConfig.variables!,
       childDirectory,
       SPK_TFVARS

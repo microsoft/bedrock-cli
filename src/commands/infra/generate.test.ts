@@ -269,7 +269,11 @@ describe("fetch execute function", () => {
     jest
       .spyOn(generate, "validateDefinition")
       .mockReturnValueOnce(DefinitionYAMLExistence.PARENT_ONLY);
-    jest.spyOn(generate, "validateTemplateSources").mockReturnValueOnce({});
+    jest.spyOn(generate, "validateTemplateSources").mockReturnValueOnce({
+      source: "",
+      template: "",
+      version: "",
+    });
     jest.spyOn(generate, "validateRemoteSource").mockResolvedValueOnce();
     jest
       .spyOn(infraCommon, "getSourceFolderNameFromURL")
@@ -293,7 +297,11 @@ describe("fetch execute function", () => {
       .spyOn(generate, "validateDefinition")
       .mockReturnValueOnce(DefinitionYAMLExistence.BOTH_EXIST);
     jest.spyOn(generate, "validateRemoteSource").mockResolvedValueOnce();
-    jest.spyOn(generate, "validateTemplateSources").mockReturnValueOnce({});
+    jest.spyOn(generate, "validateTemplateSources").mockReturnValueOnce({
+      source: "",
+      template: "",
+      version: "",
+    });
     jest
       .spyOn(generate, "generateConfig")
       .mockReturnValueOnce(Promise.resolve());
@@ -324,6 +332,7 @@ describe("test validateRemoteSource function", () => {
 
     await validateRemoteSource({
       source: "source",
+      template: "",
       version: "0.1",
     });
   });
@@ -339,6 +348,7 @@ describe("test validateRemoteSource function", () => {
 
     await validateRemoteSource({
       source: "source",
+      template: "",
       version: "0.1",
     });
   });
@@ -354,6 +364,7 @@ describe("test validateRemoteSource function", () => {
 
     await validateRemoteSource({
       source: "source",
+      template: "",
       version: "0.1",
     });
   });
@@ -370,6 +381,7 @@ describe("test validateRemoteSource function", () => {
     try {
       await validateRemoteSource({
         source: "source",
+        template: "",
         version: "0.1",
       });
       expect(true).toBe(false);

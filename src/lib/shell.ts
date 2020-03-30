@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import child_process from "child_process";
 import { logger } from "../logger";
 
