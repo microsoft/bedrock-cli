@@ -109,4 +109,31 @@ E.g.
 > Value for organization name option was missing. Provide value for this option.
 
 2. We do not want pronoun in error messages. E.g.
+
    > You did not enter value for organization name. Please provide value for it.
+
+3. All error shall be created with the error builder,
+   https://github.com/CatalystCode/spk/blob/master/src/lib/errorBuilder.ts so
+   that we can generate the exception chain. In this manner, we can precisely
+   know the root cause of the problem. Error shall be logged at the end of the
+   command like this
+
+```
+export const execute = async (
+  config: ConfigYaml,
+  opts: CommandOptions,
+  exitFn: (status: number) => Promise<void>
+): Promise<void> => {
+  try {
+    ...;
+    await exitFn(0);
+  } catch (err) {
+    logError(
+      buildError(errorStatusCode.CMD_EXE_ERR, "infra-scaffold-cmd-failed", err)
+    );
+    await exitFn(1);
+  }
+};
+```
+
+[Reference](../technical-docs/designs/exceptionHandling.md)
