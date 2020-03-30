@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import uuid from "uuid/v4";
 import { Bedrock, Maintainers, write } from "../../config";
+import * as bedrockYaml from "../../lib/bedrockYaml";
 import {
   PROJECT_PIPELINE_FILENAME,
   SERVICE_PIPELINE_FILENAME,
@@ -58,8 +59,9 @@ describe("initializing an existing file does not modify it", () => {
     const randomDir = createTempDir();
     const bedrockFile: BedrockFile = {
       rings: { master: { isDefault: true } },
-      services: {
-        "some/random/dir": {
+      services: [
+        {
+          path: "some/random/dir",
           helm: {
             chart: {
               git: "foo",
@@ -69,10 +71,10 @@ describe("initializing an existing file does not modify it", () => {
           },
           k8sBackendPort: 1337,
         },
-      },
+      ],
       version: "1.0",
     };
-    write(bedrockFile, randomDir);
+    bedrockYaml.create(randomDir, bedrockFile);
     await initialize(randomDir);
 
     // bedrock file should not have been modified

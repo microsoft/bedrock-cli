@@ -1,27 +1,28 @@
 import fs from "fs";
 import yaml from "js-yaml";
 import path from "path";
-import { createTempDir } from "../lib/ioUtil";
-import { logger } from "../logger";
+import { logger } from "../../logger";
 import {
   BedrockFile,
   BedrockFileInfo,
   HelmConfig,
-  Rings,
   RingConfig,
-} from "../types";
-import { writeVersion, getVersion } from "./fileutils";
-import { build as buildError } from "./errorBuilder";
-import { errorStatusCode } from "./errorStatusCode";
+  Rings,
+} from "../../types";
+import { writeVersion, getVersion } from "../fileutils";
+import { build as buildError } from "../errorBuilder";
+import { errorStatusCode } from "../errorStatusCode";
+import { createTempDir } from "../ioUtil";
+import * as indexByNameMigration from "./migrations/service-map-to-list";
 
 export const YAML_NAME = "bedrock.yaml";
 
-export const DEFAULT_CONTENT: BedrockFile = {
+export const DEFAULT_CONTENT = (): BedrockFile => ({
   rings: {},
-  services: {},
+  services: [],
   variableGroups: [],
   version: getVersion(),
-};
+});
 
 /**
  * Creates a <code>Bedrock.yaml</code> file.
@@ -36,7 +37,7 @@ export const DEFAULT_CONTENT: BedrockFile = {
 export const create = (dir?: string, data?: BedrockFile): string => {
   dir = dir || createTempDir();
   const absPath = path.resolve(dir);
-  data = data || DEFAULT_CONTENT;
+  data = data || DEFAULT_CONTENT();
   const asYaml = yaml.safeDump(data, {
     lineWidth: Number.MAX_SAFE_INTEGER,
   });
@@ -70,7 +71,8 @@ export const isExists = (dir: string): boolean => {
 export const read = (dir: string): BedrockFile => {
   const absPath = path.resolve(dir);
   const file = path.join(absPath, YAML_NAME);
-  return yaml.safeLoad(fs.readFileSync(file, "utf8"));
+  const b = yaml.safeLoad(fs.readFileSync(file, "utf8"));
+  return indexByNameMigration.migrate(b, dir);
 };
 
 /**
@@ -100,15 +102,19 @@ export const addNewService = (
   const absPath = path.resolve(dir);
   const data = read(absPath);
 
-  data.services["./" + newServicePath] = {
-    displayName: svcDisplayName,
-    helm: helmConfig,
-    k8sBackend,
-    k8sBackendPort,
-    middlewares,
-    pathPrefix,
-    pathPrefixMajorVersion,
-  };
+  data.services = [
+    ...data.services.filter((s) => s.displayName !== svcDisplayName),
+    {
+      displayName: svcDisplayName,
+      path: "./" + newServicePath,
+      helm: helmConfig,
+      k8sBackend,
+      k8sBackendPort,
+      middlewares,
+      pathPrefix,
+      pathPrefixMajorVersion,
+    },
+  ];
 
   const asYaml = yaml.safeDump(data, {
     lineWidth: Number.MAX_SAFE_INTEGER,
@@ -250,16 +256,29 @@ export const removeRing = (
 };
 
 /**
+ * Returns a list of Ring configurations with an added `name` parameter which
+ * it is indexed on.
+ *
+ * @param b bedrock config file
+ */
+export const getRings = (
+  b: BedrockFile
+): Array<RingConfig & { name: string }> => {
+  return Object.entries(b.rings).map(([name, config]) => ({
+    ...config,
+    name,
+    isDefault: !!config.isDefault,
+  }));
+};
+
+/**
  * Validates that the rings in `bedrock` are valid and throws an Error if not.
  *
  * @param bedrock file to validate the rings
  * @throws if more than one ring is marked `isDefault`
  */
 export const validateRings = (bedrock: BedrockFile): void => {
-  const rings = Object.entries(bedrock.rings).reduce(
-    (carry, [name, config]) => carry.concat({ ...config, name }),
-    [] as (RingConfig & { name: string })[]
-  );
+  const rings = getRings(bedrock);
   const defaultRings = rings.filter((ring) => ring.isDefault);
   if (defaultRings.length > 1) {
     const defaultRingsNames = defaultRings.map((ring) => ring.name).join(", ");

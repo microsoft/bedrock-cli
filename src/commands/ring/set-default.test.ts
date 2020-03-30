@@ -41,7 +41,7 @@ describe("test execute function and logic", () => {
         },
         prod: {},
       },
-      services: {},
+      services: [],
       variableGroups: ["testvg"],
       version: "1.0",
     });

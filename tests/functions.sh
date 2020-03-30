@@ -267,7 +267,7 @@ function verify_pipeline_with_poll () {
 
         # We expect only 1 build right now
         build_count=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq '. | length')
-        if [[ -z "$expected_build_count" ]]; then 
+        if [[ -z "$expected_build_count" ]]; then
             expected_build_count=1
         fi
         if [ "$build_count" != "$expected_build_count"  ]; then
@@ -341,8 +341,8 @@ function create_spk_project_and_service () {
     variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $var_group_name "fail"
 
     # $spk service create . -n "$repo_dir_name-service" -p chart -g "$1/$2/_git/$repo_dir_name" -b master >> $TEST_WORKSPACE/log.txt
-    echo "$spk service create . -n "$repo_dir_name-service" -p "$repo_dir_name/chart" -g $helm_repo_url -b master"
-    $spk service create . -n "$repo_dir_name-service" -p "$repo_dir_name/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
+    echo "$spk service create "$repo_dir_name-service" . -p "$repo_dir_name/chart" -g $helm_repo_url -b master"
+    $spk service create "$repo_dir_name-service" . -p "$repo_dir_name/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
     directory_to_check="$TEST_WORKSPACE/$repo_dir_name"
     file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" "maintainers.yaml" "hld-lifecycle.yaml" "spk.log" "bedrock.yaml")
     validate_directory $directory_to_check "${file_we_expect[@]}"

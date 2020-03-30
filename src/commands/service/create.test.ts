@@ -5,7 +5,6 @@ import uuid = require("uuid/v4");
 import { Bedrock } from "../../config";
 import * as config from "../../config";
 import * as bedrockYaml from "../../lib/bedrockYaml";
-import { DEFAULT_CONTENT as BedrockMockedContent } from "../../lib/bedrockYaml";
 import { SERVICE_PIPELINE_FILENAME } from "../../lib/constants";
 import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import { createTempDir, removeDir } from "../../lib/ioUtil";
@@ -28,6 +27,7 @@ import {
   CommandValues,
   validateGitUrl,
 } from "./create";
+import { BedrockServiceConfig, HelmConfig } from "../../types";
 
 jest.mock("../../lib/gitutils");
 
@@ -44,7 +44,6 @@ beforeEach(() => {
 });
 
 const mockValues: CommandValues = {
-  displayName: "",
   gitPush: false,
   helmChartChart: "",
   helmChartRepository: "",
@@ -72,14 +71,14 @@ const getMockValues = (): CommandValues => {
 
 const validateDirNFiles = (
   dir: string,
-  serviceName: string,
+  servicePath: string,
   values: CommandValues
 ): void => {
   // Check temp test directory exists
   expect(fs.existsSync(dir)).toBe(true);
 
   // Check service directory exists
-  const serviceDirPath = path.join(dir, values.packagesDir, serviceName);
+  const serviceDirPath = path.join(dir, values.packagesDir, servicePath);
   expect(fs.existsSync(serviceDirPath)).toBe(true);
 
   // Verify new azure-pipelines created
@@ -105,7 +104,9 @@ describe("Test fetchValues function", () => {
   });
 
   it("Positive test: with middlewares value", () => {
-    jest.spyOn(config, "Bedrock").mockReturnValueOnce(BedrockMockedContent);
+    jest
+      .spyOn(config, "Bedrock")
+      .mockReturnValueOnce(bedrockYaml.DEFAULT_CONTENT());
     const mocked = getMockValues();
     mocked.middlewares = "mid1, mid2"; // space after comma is intentional, expecting trimming to happen
     const result = fetchValues(mocked);
@@ -113,7 +114,7 @@ describe("Test fetchValues function", () => {
   });
 
   it("Positive test: with bedrock rings", () => {
-    const mockedBedrockFileConfig = { ...BedrockMockedContent };
+    const mockedBedrockFileConfig = { ...bedrockYaml.DEFAULT_CONTENT() };
     mockedBedrockFileConfig.rings = {
       master: {},
       qa: {},
@@ -127,7 +128,9 @@ describe("Test fetchValues function", () => {
 
   it("Positive test", () => {
     const mocked = getMockValues();
-    jest.spyOn(config, "Bedrock").mockReturnValueOnce(BedrockMockedContent);
+    jest
+      .spyOn(config, "Bedrock")
+      .mockReturnValueOnce(bedrockYaml.DEFAULT_CONTENT());
     const result = fetchValues(mocked);
     expect(result).toEqual(mocked);
   });
@@ -137,7 +140,6 @@ describe("isValidDnsInputs", () => {
   test("valid inputs does not throw", () => {
     expect(() =>
       assertValidDnsInputs({
-        displayName: "bar",
         k8sBackend: "my-service",
         pathPrefix: "service",
         pathPrefixMajorVersion: "v1",
@@ -148,16 +150,6 @@ describe("isValidDnsInputs", () => {
   test("invalid inputs throws", () => {
     expect(() =>
       assertValidDnsInputs({
-        displayName: "-not_dns_compliant",
-        k8sBackend: "",
-        pathPrefix: "",
-        pathPrefixMajorVersion: "",
-      })
-    ).toThrow();
-
-    expect(() =>
-      assertValidDnsInputs({
-        displayName: "",
         k8sBackend: "-not_dns_compliant",
         pathPrefix: "",
         pathPrefixMajorVersion: "",
@@ -166,7 +158,6 @@ describe("isValidDnsInputs", () => {
 
     expect(() =>
       assertValidDnsInputs({
-        displayName: "",
         k8sBackend: "",
         pathPrefix: "-not_dns_compliant",
         pathPrefixMajorVersion: "",
@@ -175,7 +166,6 @@ describe("isValidDnsInputs", () => {
 
     expect(() =>
       assertValidDnsInputs({
-        displayName: "",
         k8sBackend: "",
         pathPrefix: "",
         pathPrefixMajorVersion: "-not_dns_compliant",
@@ -188,30 +178,20 @@ describe("Test execute function", () => {
   it("Negative test: with non-dns compliant values", async () => {
     const exitFn = jest.fn();
     jest.spyOn(dns, "assertIsValid");
-    await execute(
-      "foo",
-      { ...getMockValues(), displayName: "-non_dns@compliant" },
-      exitFn
-    );
+    await execute("-non_dns@compliant", "foo", { ...getMockValues() }, exitFn);
     expect(dns.assertIsValid).toHaveBeenCalledTimes(1);
   });
 
   it("Negative test: without service name", async () => {
     const exitFn = jest.fn();
-    await execute("", getMockValues(), exitFn);
-    expect(exitFn).toBeCalledTimes(1);
-    expect(exitFn.mock.calls).toEqual([[1]]);
-  });
-
-  it("Negative test: service name is cwd and missing display name", async () => {
-    const exitFn = jest.fn();
-    await execute(".", getMockValues(), exitFn);
+    await execute("", "my/service/path", getMockValues(), exitFn);
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
 
   it("Negative test: missing bedrock file", async () => {
     const testServiceName = uuid();
+    const testServicePath = "my/service/path";
     const exitFn = jest.fn();
 
     jest.spyOn(bedrockYaml, "fileInfo").mockImplementation(() => ({
@@ -220,7 +200,7 @@ describe("Test execute function", () => {
     }));
 
     try {
-      await execute(testServiceName, getMockValues(), exitFn);
+      await execute(testServiceName, testServicePath, getMockValues(), exitFn);
       expect(exitFn).toBeCalledTimes(1);
       expect(exitFn.mock.calls).toEqual([[1]]);
     } finally {
@@ -230,6 +210,7 @@ describe("Test execute function", () => {
 
   it("Negative test: missing bedrock variable groups", async () => {
     const testServiceName = uuid();
+    const testServicePath = "my/service/path";
     const exitFn = jest.fn();
 
     jest.spyOn(bedrockYaml, "fileInfo").mockImplementation(() => ({
@@ -238,7 +219,7 @@ describe("Test execute function", () => {
     }));
 
     try {
-      await execute(testServiceName, getMockValues(), exitFn);
+      await execute(testServiceName, testServicePath, getMockValues(), exitFn);
       expect(exitFn).toBeCalledTimes(1);
       expect(exitFn.mock.calls).toEqual([[1]]);
     } finally {
@@ -317,33 +298,6 @@ describe("Adding a service to a repo directory", () => {
     randomTmpDir = createTempDir();
   });
 
-  test("New service is created in project root directory. No display name given, so this should throw an error.", async () => {
-    await writeSampleMaintainersFileToDir(
-      path.join(randomTmpDir, "maintainers.yaml")
-    );
-    await writeSampleBedrockFileToDir(path.join(randomTmpDir, "bedrock.yaml"));
-
-    const values = getMockValues();
-    values.packagesDir = "";
-    values.k8sPort = 1337;
-    const serviceName = ".";
-
-    logger.info(
-      `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
-    );
-
-    let hasError = false;
-    try {
-      await createService(randomTmpDir, serviceName, values);
-    } catch (err) {
-      hasError = true;
-      expect(err.message).toBe(
-        "Cannot create service pipeline due to serviceName being '.'. Please include a displayName if you are trying to create a service in your project root directory."
-      );
-    }
-    expect(hasError).toBe(true);
-  });
-
   test("New service is created in project root directory. With display name given, so this works fine.", async () => {
     await writeSampleMaintainersFileToDir(
       path.join(randomTmpDir, "maintainers.yaml")
@@ -353,34 +307,34 @@ describe("Adding a service to a repo directory", () => {
     const values = getMockValues();
     values.packagesDir = "";
     values.k8sPort = 1337;
-    values.displayName = "my-service-name";
     values.helmConfigAccessTokenVariable = "SOME_ENV_VAR";
-    const serviceName = ".";
+    const serviceName = "my-service-name";
+    const servicePath = ".";
 
     logger.info(
       `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
     );
 
-    let hasError = false;
-    try {
-      await createService(randomTmpDir, serviceName, values);
-    } catch (err) {
-      hasError = true;
-    }
-    expect(hasError).toBe(false);
-
-    await createService(randomTmpDir, serviceName, values);
-    validateDirNFiles(randomTmpDir, serviceName, values);
+    expect(createService(randomTmpDir, serviceName, servicePath, values))
+      .resolves;
+    validateDirNFiles(randomTmpDir, servicePath, values);
 
     // TODO: Verify root project bedrock.yaml and maintainers.yaml has been changed too.
     const bedrock = Bedrock(randomTmpDir);
-    const newService = bedrock.services["./"];
-    expect(newService).toBeDefined();
-    expect(newService.k8sBackendPort).toBe(values.k8sPort);
-    expect(newService.displayName).toBe(values.displayName);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((newService.helm.chart as any).accessTokenVariable).toBe(
-      values.helmConfigAccessTokenVariable
+    const newService = bedrock.services.find(
+      (s) => s.displayName === "my-service-name"
+    ) as BedrockServiceConfig;
+    expect(newService).toStrictEqual(
+      expect.objectContaining({
+        path: "./",
+        k8sBackendPort: values.k8sPort,
+        displayName: serviceName,
+        helm: {
+          chart: expect.objectContaining({
+            accessTokenVariable: "SOME_ENV_VAR",
+          }),
+        },
+      })
     );
   });
 
@@ -394,19 +348,27 @@ describe("Adding a service to a repo directory", () => {
     values.packagesDir = "";
     values.k8sPort = 1337;
     const serviceName = uuid();
+    const servicePath = uuid();
 
     logger.info(
       `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
     );
 
-    await createService(randomTmpDir, serviceName, values);
-    validateDirNFiles(randomTmpDir, serviceName, values);
+    await createService(randomTmpDir, serviceName, servicePath, values);
+    validateDirNFiles(randomTmpDir, servicePath, values);
 
     // TODO: Verify root project bedrock.yaml and maintainers.yaml has been changed too.
     const bedrock = Bedrock(randomTmpDir);
-    const newService = bedrock.services["./" + serviceName];
-    expect(newService).toBeDefined();
-    expect(newService.k8sBackendPort).toBe(values.k8sPort);
+    const newService = bedrock.services.find(
+      (s) => s.displayName === serviceName
+    ) as BedrockServiceConfig;
+    expect(newService).toStrictEqual(
+      expect.objectContaining({
+        path: "./" + servicePath,
+        k8sBackendPort: values.k8sPort,
+        displayName: serviceName,
+      })
+    );
   });
 
   test("New directory is created under '/packages' directory with required service files.", async () => {
@@ -419,14 +381,15 @@ describe("Adding a service to a repo directory", () => {
     values.packagesDir = "packages";
     values.k8sPort = 1337;
     const serviceName = uuid();
+    const servicePath = uuid();
 
     logger.info(
       `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
     );
 
     // addService call
-    await createService(randomTmpDir, serviceName, values);
-    validateDirNFiles(randomTmpDir, serviceName, values);
+    await createService(randomTmpDir, serviceName, servicePath, values);
+    validateDirNFiles(randomTmpDir, servicePath, values);
 
     // TODO: Verify root project bedrock.yaml and maintainers.yaml has been changed too.
   });
@@ -442,13 +405,14 @@ describe("Adding a service to a repo directory", () => {
     values.gitPush = true;
     values.k8sPort = 1337;
     const serviceName = uuid();
+    const servicePath = uuid();
 
     logger.info(
       `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
     );
 
-    await createService(randomTmpDir, serviceName, values);
-    validateDirNFiles(randomTmpDir, serviceName, values);
+    await createService(randomTmpDir, serviceName, servicePath, values);
+    validateDirNFiles(randomTmpDir, servicePath, values);
 
     expect(checkoutCommitPushCreatePRLink).toHaveBeenCalled();
   });
@@ -462,21 +426,21 @@ describe("Adding a service to a repo directory", () => {
     const values = getMockValues();
     values.k8sPort = 1337;
     const serviceName = uuid();
+    const servicePath = uuid();
+
     logger.info(
       `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
     );
 
     // create service with no middleware
-    await createService(randomTmpDir, serviceName, values);
-    validateDirNFiles(randomTmpDir, serviceName, values);
+    await createService(randomTmpDir, serviceName, servicePath, values);
+    validateDirNFiles(randomTmpDir, servicePath, values);
 
     const bedrockConfig = Bedrock(randomTmpDir);
 
     // check the added service has an empty list for middlewares
-    for (const [servicePath, service] of Object.entries(
-      bedrockConfig.services
-    )) {
-      if (servicePath.includes(serviceName)) {
+    for (const service of bedrockConfig.services) {
+      if (service.displayName === serviceName) {
         expect(service.middlewares).toBeDefined();
         if (service.middlewares) {
           expect(Array.isArray(service.middlewares)).toBe(true);
@@ -497,20 +461,19 @@ describe("Adding a service to a repo directory", () => {
     values.middlewaresArray = ["foo", "bar", "baz"];
 
     const serviceName = uuid();
+    const servicePath = uuid();
     logger.info(
       `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
     );
 
-    await createService(randomTmpDir, serviceName, values);
-    validateDirNFiles(randomTmpDir, serviceName, values);
+    await createService(randomTmpDir, serviceName, servicePath, values);
+    validateDirNFiles(randomTmpDir, servicePath, values);
 
     const bedrockConfig = Bedrock(randomTmpDir);
 
     // check that the added service has the expected middlewares
-    for (const [servicePath, service] of Object.entries(
-      bedrockConfig.services
-    )) {
-      if (servicePath.includes(serviceName)) {
+    for (const service of bedrockConfig.services) {
+      if (service.displayName === serviceName) {
         expect(service.middlewares).toBeDefined();
         expect(Array.isArray(service.middlewares)).toBe(true);
         expect(service.middlewares?.length).toBe(

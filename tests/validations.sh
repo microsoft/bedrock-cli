@@ -224,14 +224,14 @@ cd "$TEST_WORKSPACE/$mono_repo_dir"
 
 # helm_repo_url="$AZDO_ORG_URL/$AZDO_PROJECT/_git/$helm_charts_dir"
 local_repo_url="$AZDO_ORG_URL/$AZDO_PROJECT/_git/$mono_repo_dir"
-spk service create $FrontEnd -d $services_dir -p "chart" -g $local_repo_url -b master >> $TEST_WORKSPACE/log.txt
-# spk service create $FrontEnd -d $services_dir -p "$FrontEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
+spk service create $FrontEnd $FrontEnd -d $services_dir -p "chart" -g $local_repo_url -b master >> $TEST_WORKSPACE/log.txt
+# spk service create $FrontEnd $FrontEnd -d $services_dir -p "$FrontEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
 directory_to_check="$services_full_dir/$FrontEnd"
 file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" )
 validate_directory $directory_to_check "${file_we_expect[@]}"
 
 # TODO uncomment this when helm chart fixed
-# spk service create $BackEnd -d $services_dir -p "$BackEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
+# spk service create $BackEnd $BackEnd -d $services_dir -p "$BackEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
 # validate_directory "$services_full_dir/$BackEnd" "${file_we_expect[@]}"
 
 git add -A

@@ -35,7 +35,7 @@ rings:
   qa:
   prod:
 services:
-  ./:
+  - path: ./
     displayName: "fabrikam"
     helm:
       chart:
@@ -87,7 +87,7 @@ rings:
   prod:
   test-new-homepage: <-- NEW -->
 services:
-  ./:
+  - path: ./
     displayName: "fabrikam"
     helm:
       chart:

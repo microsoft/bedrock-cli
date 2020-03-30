@@ -38,8 +38,8 @@ rings:
   dev:
     isDefault: true
 services:
-  ./:
-    displayName: "fabrikam"
+  - displayName: "fabrikam"
+    path: ./
     helm:
       chart:
         branch: master
@@ -58,7 +58,7 @@ The above service `fabrikam` was added to `bedrock.yaml` by invoking
 `spk service create` with the requisite parameters ie:
 
 ```sh
-spk service create . \
+spk service create fabrikam . \
 --display-name fabrikam \
 --helm-config-git https://dev.azure.com/fabrikam/frontend/_git/charts \
 --helm-config-path frontend \
@@ -152,9 +152,9 @@ rings:
   dev:
     isDefault: true
 services:
-  ./
-    ...
+  - path: ./
     k8sBackend: 'fabrikam-k8s-svc'
+    ...
 ```
 
 The `serviceName` is generated from a combination of the `k8sBackend`,
@@ -179,7 +179,7 @@ rings:
   dev:
     isDefault: true
 services:
-  ./
+  - path: ./
     ...
     displayName: 'fabrikam'
     k8sBackend: 'fabrikam-k8s-svc'

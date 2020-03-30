@@ -32,7 +32,7 @@ describe("checkDependencies", () => {
           isDefault: true,
         },
       },
-      services: {},
+      services: [],
       variableGroups: ["testvg"],
       version: "1.0",
     });
@@ -46,7 +46,7 @@ describe("checkDependencies", () => {
           isDefault: true,
         },
       },
-      services: {},
+      services: [],
       variableGroups: ["testvg"],
       version: "1.0",
     });
@@ -94,8 +94,9 @@ describe("test execute function and logic", () => {
           isDefault: true,
         },
       },
-      services: {
-        "./my-service": {
+      services: [
+        {
+          path: "./my-service",
           helm: {
             chart: {
               branch: "master",
@@ -105,7 +106,7 @@ describe("test execute function and logic", () => {
           },
           k8sBackendPort: 80,
         },
-      },
+      ],
       variableGroups: ["testvg"],
       version: "1.0",
     });

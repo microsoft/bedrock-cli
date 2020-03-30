@@ -206,8 +206,7 @@ export const initService = async (
   rc: RequestContext,
   repoName: string
 ): Promise<void> => {
-  await createService(".", ".", {
-    displayName: repoName,
+  await createService(".", repoName, ".", {
     gitPush: false,
     helmChartChart: "",
     helmChartRepository: "",

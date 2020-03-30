@@ -9,10 +9,11 @@ import { writeVersion } from "./lib/fileutils";
 import { logger } from "./logger";
 import {
   AzurePipelinesYaml,
-  BedrockFile,
   ConfigYaml,
   MaintainersFile,
+  BedrockFile,
 } from "./types";
+import * as bedrockYaml from "./lib/bedrockYaml";
 
 ////////////////////////////////////////////////////////////////////////////////
 // State
@@ -156,6 +157,8 @@ export const Config = (): ConfigYaml => {
 };
 
 /**
+ * **DEPRECATED**: Use `read()` from bedrockYaml lib
+ *
  * Returns the current bedrock.yaml file for the project
  *
  * Does some validations against the file; if errors occur, an Exception is
@@ -166,7 +169,7 @@ export const Config = (): ConfigYaml => {
  */
 export const Bedrock = (fileDirectory = process.cwd()): BedrockFile => {
   const bedrockYamlPath = path.join(fileDirectory, "bedrock.yaml");
-  const bedrock = readYaml<BedrockFile>(bedrockYamlPath);
+  const bedrock = bedrockYaml.read(fileDirectory);
   const { services } = bedrock;
 
   // validate service helm configurations
@@ -206,6 +209,8 @@ export const Bedrock = (fileDirectory = process.cwd()): BedrockFile => {
 };
 
 /**
+ * **DEPRECATED**: Use `read()` from bedrockYaml lib
+ *
  * Async wrapper for the Bedrock() function
  * Use this if preferring to use Promise based control flow over try/catch as
  * Bedrock() can throw and Error
@@ -236,22 +241,17 @@ export const MaintainersAsync = async (
 ): Promise<MaintainersFile> => Maintainers(fileDirectory);
 
 /**
- * Helper to write out a bedrock.yaml or maintainers.yaml file to the project root
+ * Helper to write out a maintainers.yaml or azure-pipelines.yaml file to the project root
  *
  * @param file config file object to serialize and write out
  */
 export const write = (
-  file: BedrockFile | MaintainersFile | AzurePipelinesYaml,
+  file: MaintainersFile | AzurePipelinesYaml,
   targetDirectory = process.cwd(),
   fileName?: string
 ): void => {
   const asYaml = yaml.safeDump(file, { lineWidth: Number.MAX_SAFE_INTEGER });
-  if ("rings" in file) {
-    // Is bedrock.yaml
-    fileName = "bedrock.yaml";
-    writeVersion(path.join(targetDirectory, fileName));
-    return fs.appendFileSync(path.join(targetDirectory, fileName), asYaml);
-  } else if ("services" in file) {
+  if ("services" in file) {
     // Is maintainers file
     fileName = "maintainers.yaml";
     writeVersion(path.join(targetDirectory, fileName));

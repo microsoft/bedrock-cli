@@ -21,7 +21,7 @@ rings:
   master:
     isDefault: true
 services:
-  ./services/fabrikam:
+  - path: ./services/fabrikam
     displayName: "fabrikam"
     k8sBackendPort: 8001
     k8sBackend: "fabrikam-k8s-svc"

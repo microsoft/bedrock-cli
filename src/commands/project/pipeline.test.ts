@@ -145,7 +145,7 @@ describe("installLifecyclePipeline and execute tests", () => {
     const tmpDir = createTempDir();
     createBedrockYaml(tmpDir, {
       rings: {},
-      services: {},
+      services: [],
       variableGroups: ["test"],
       version: "1.0",
     });

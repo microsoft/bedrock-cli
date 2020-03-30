@@ -1,6 +1,6 @@
 import { write } from "../../config";
 import * as config from "../../config";
-import { DEFAULT_CONTENT as BedrockMockedContent } from "../../lib/bedrockYaml";
+import * as bedrockYaml from "../../lib/bedrockYaml";
 import * as azure from "../../lib/git/azure";
 import * as gitutils from "../../lib/gitutils";
 import { createTempDir } from "../../lib/ioUtil";
@@ -19,7 +19,7 @@ jest
   .mockReturnValueOnce(Promise.resolve("prod"))
   .mockReturnValue(Promise.resolve(""));
 jest.spyOn(config, "Config").mockReturnValue({});
-jest.spyOn(config, "Bedrock").mockReturnValue(BedrockMockedContent);
+jest.spyOn(config, "Bedrock").mockReturnValue(bedrockYaml.DEFAULT_CONTENT());
 
 describe("test makePullRequest function", () => {
   it("sanity test", async (done) => {
@@ -52,8 +52,9 @@ describe("Default rings", () => {
         prod: { isDefault: false },
         westus: { isDefault: true },
       },
-      services: {
-        "foo/a": {
+      services: [
+        {
+          path: "foo/a",
           helm: {
             chart: {
               chart: "elastic",
@@ -65,11 +66,11 @@ describe("Default rings", () => {
           pathPrefix: "servicepath",
           pathPrefixMajorVersion: "v1",
         },
-      },
+      ],
       version: "1.0",
     };
 
-    write(validBedrockYaml, randomTmpDir);
+    bedrockYaml.create(randomTmpDir, validBedrockYaml);
     const defaultRings = getDefaultRings(undefined, validBedrockYaml);
     expect(defaultRings.length).toBe(2);
     expect(defaultRings[0]).toBe("master");
@@ -84,8 +85,9 @@ describe("Default rings", () => {
         prod: { isDefault: false },
         westus: { isDefault: false },
       },
-      services: {
-        "foo/a": {
+      services: [
+        {
+          path: "foo/a",
           helm: {
             chart: {
               chart: "elastic",
@@ -97,11 +99,11 @@ describe("Default rings", () => {
           pathPrefix: "servicepath",
           pathPrefixMajorVersion: "v1",
         },
-      },
+      ],
       version: "1.0",
     };
 
-    write(validBedrockYaml, randomTmpDir);
+    bedrockYaml.create(randomTmpDir, validBedrockYaml);
     let hasError = false;
 
     try {

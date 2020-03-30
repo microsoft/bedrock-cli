@@ -524,9 +524,8 @@ export const reconcileHld = async (
     normalizedAbsRepositoryInHldPath
   );
 
-  for (const [serviceRelPath, serviceConfig] of Object.entries(
-    managedServices
-  )) {
+  for (const serviceConfig of managedServices) {
+    const serviceRelPath = serviceConfig.path;
     const serviceName =
       serviceConfig.displayName || path.basename(serviceRelPath);
 

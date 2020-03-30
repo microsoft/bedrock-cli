@@ -1,7 +1,7 @@
 import uuid = require("uuid/v4");
-import { createTempDir } from "../lib/ioUtil";
-import { createTestBedrockYaml } from "../test/mockFactory";
-import { BedrockFile, HelmConfig } from "../types";
+import { createTestBedrockYaml } from "../../test/mockFactory";
+import { BedrockFile, HelmConfig, RingConfig } from "../../types";
+import { createTempDir } from "../ioUtil";
 import {
   addNewRing,
   addNewService,
@@ -13,25 +13,26 @@ import {
   removeRing,
   setDefaultRing,
   validateRings,
+  getRings,
 } from "./bedrockYaml";
 
 describe("Creation and Existence test on bedrock.yaml", () => {
   it("without folder name in creation function call", () => {
     const dir = create();
     expect(isExists(dir)).toBe(true);
-    expect(read(dir)).toEqual(DEFAULT_CONTENT);
+    expect(read(dir)).toEqual(DEFAULT_CONTENT());
   });
   it("with folder name in creation function call", () => {
     const dir = createTempDir();
     create(dir);
     expect(isExists(dir)).toBe(true);
-    expect(read(dir)).toEqual(DEFAULT_CONTENT);
+    expect(read(dir)).toEqual(DEFAULT_CONTENT());
   });
   it("withContent", () => {
     const dir = createTempDir();
     const data = {
       rings: {},
-      services: {},
+      services: [],
       version: "1.0",
     };
     create(dir, data);
@@ -80,9 +81,10 @@ describe("Adding a new service to a Bedrock file", () => {
 
     const expected: BedrockFile = {
       ...defaultBedrockFileObject,
-      services: {
+      services: [
         ...(defaultBedrockFileObject as BedrockFile).services,
-        ["./" + servicePath]: {
+        {
+          path: "./" + servicePath,
           displayName: svcDisplayName,
           helm: helmConfig,
           k8sBackend,
@@ -91,7 +93,7 @@ describe("Adding a new service to a Bedrock file", () => {
           pathPrefix,
           pathPrefixMajorVersion,
         },
-      },
+      ],
       variableGroups: [],
       version: defaultBedrockFileObject.version,
     };
@@ -118,9 +120,7 @@ describe("Adding a new ring to an existing bedrock.yaml", () => {
         ...(defaultBedrockFileObject as BedrockFile).rings,
         [ringName]: {},
       },
-      services: {
-        ...(defaultBedrockFileObject as BedrockFile).services,
-      },
+      services: [...(defaultBedrockFileObject as BedrockFile).services],
       variableGroups: [],
       version: defaultBedrockFileObject.version,
     };
@@ -149,7 +149,7 @@ describe("Bedrock file info", () => {
     const dir = createTempDir();
     const data = {
       rings: {},
-      services: {},
+      services: [],
       variableGroups: [uuid()],
       version: "1.0",
     };
@@ -168,7 +168,7 @@ describe("Set default ring", () => {
         master: { isDefault: false },
         prod: {},
       },
-      services: {},
+      services: [],
       variableGroups: [uuid()],
       version: "1.0",
     };
@@ -185,7 +185,7 @@ describe("Set default ring", () => {
         master: { isDefault: false },
         prod: { isDefault: true },
       },
-      services: {},
+      services: [],
       variableGroups: [uuid()],
       version: "1.0",
     };
@@ -271,6 +271,53 @@ describe("validateRings", () => {
       } else {
         expect(() => actual()).not.toThrow();
       }
+    });
+  }
+});
+
+describe("getRings", () => {
+  const tests: {
+    name: string;
+    actual: unknown;
+    expected: Array<RingConfig & { name: string }>;
+  }[] = [
+    {
+      name: "empty rings",
+      actual: getRings({ rings: {}, services: [], version: "" }),
+      expected: [],
+    },
+    {
+      name: "one ring -- isDefault is automatically added to output",
+      actual: getRings({
+        rings: { master: {} },
+        services: [],
+        version: "",
+      }),
+      expected: [{ name: "master", isDefault: false }],
+    },
+
+    {
+      name: "multiple rings -- isDefault is automatically added to output",
+      actual: getRings({
+        rings: {
+          master: {},
+          qa: { isDefault: false },
+          dev: { isDefault: true },
+        },
+        services: [],
+        version: "",
+      }),
+      expected: [
+        { name: "master", isDefault: false },
+        { name: "qa", isDefault: false },
+        { name: "dev", isDefault: true },
+      ],
+    },
+  ];
+
+  for (const { name, actual, expected } of tests) {
+    it(name, () => {
+      expect(actual).toStrictEqual(expected);
     });
   }
 });

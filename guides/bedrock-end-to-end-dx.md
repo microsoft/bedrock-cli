@@ -72,7 +72,7 @@ The core `discovery-service` microservice already exists, so he grandfathers it
 into the Bedrock workflow with:
 
 ```bash
-$ spk service create discovery-service -d services
+$ spk service create discovery-service ./path/to/discovery/service -d services
 ```
 
 This updates the bedrock.yaml file to include this service:
@@ -80,13 +80,12 @@ This updates the bedrock.yaml file to include this service:
 ```bash
 $ cat bedrock.yaml
 services:
-    ./services/discovery-service:
-        helm:
-            chart:
-                branch: ''
-                git: ''
-                path: ''
-
+  - path: ./services/discovery-service
+    helm:
+      chart:
+          branch: ''
+          git: ''
+          path: ''
 ```
 
 and adds a `build-update-hld.yaml` file in `services/discovery-service` to build

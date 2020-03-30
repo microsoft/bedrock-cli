@@ -136,7 +136,7 @@ rings:
     isDefault: false
   qa: {} # isDefault not present is same as isDefault: false
 services:
-  ./my-service-foo:
+  - path: my-service-foo
     displayName: fancy-service
     helm:
       chart:
@@ -212,7 +212,7 @@ rings:
   develop:
     isDefault: false
 services:
-  ./foo:
+  - path: ./foo
     displayName: ""
     helm:
       chart:
@@ -225,7 +225,7 @@ services:
     middlewares: []
     pathPrefix: ""
     pathPrefixMajorVersion: ""
-  ./bar:
+  - path: bar
     displayName: ""
     helm:
       chart:

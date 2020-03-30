@@ -356,6 +356,7 @@ describe("addChartToRing", () => {
     const chartPath = "/charts/service";
 
     const serviceConfig: BedrockServiceConfig = {
+      path: "./",
       helm: {
         chart: {
           branch,
@@ -384,6 +385,7 @@ describe("addChartToRing", () => {
     const chartPath = "/charts/service";
 
     const serviceConfig: BedrockServiceConfig = {
+      path: "./",
       helm: {
         chart: {
           git,
@@ -411,6 +413,7 @@ describe("addChartToRing", () => {
     const chart = "/charts/service";
 
     const serviceConfig: BedrockServiceConfig = {
+      path: "./",
       helm: {
         chart: {
           chart,
@@ -439,6 +442,7 @@ describe("addChartToRing", () => {
     const chart = "/charts/service";
 
     const serviceConfig: BedrockServiceConfig = {
+      path: "./",
       helm: {
         chart: {
           chart,
@@ -460,6 +464,7 @@ describe("configureChartForRing", () => {
   const ringName = "myringname";
   const normalizedServiceName = "my-great-service";
   const serviceConfig: BedrockServiceConfig = {
+    path: "./",
     helm: {
       chart: {
         git: "foo",
@@ -489,6 +494,7 @@ describe("configureChartForRing", () => {
 
   it("should invoke the correct command and calculate the k8s service name from the bedrock service name if there is no k8sbackend configured.", async () => {
     const serviceConfigNoK8sBackend: BedrockServiceConfig = {
+      path: "./",
       helm: {
         chart: {
           git: "foo",
@@ -563,8 +569,9 @@ describe("reconcile tests", () => {
         },
         prod: {},
       },
-      services: {
-        "./path/to/a/svc/": {
+      services: [
+        {
+          path: "./path/to/a/svc/",
           disableRouteScaffold: false,
           helm: {
             chart: {
@@ -577,7 +584,7 @@ describe("reconcile tests", () => {
           k8sBackend: "cool-service",
           k8sBackendPort: 1337,
         },
-      },
+      ],
       version: "1.0",
     };
   });
@@ -634,8 +641,9 @@ describe("reconcile tests", () => {
           isDefault: true,
         },
       },
-      services: {
-        "./path/to/svc/": {
+      services: [
+        {
+          path: "./path/to/svc/",
           disableRouteScaffold: true,
           helm: {
             chart: {
@@ -646,7 +654,7 @@ describe("reconcile tests", () => {
           },
           k8sBackendPort: 1337,
         },
-      },
+      ],
       version: "1.0",
     };
 
@@ -714,8 +722,9 @@ describe("reconcile tests", () => {
   });
 
   it("does not create service components if the service path is `.`, and a display name does not exist", async () => {
-    bedrockYaml.services = {
-      ".": {
+    bedrockYaml.services = [
+      {
+        path: ".",
         disableRouteScaffold: false,
         helm: {
           chart: {
@@ -726,7 +735,7 @@ describe("reconcile tests", () => {
         },
         k8sBackendPort: 80,
       },
-    };
+    ];
 
     await reconcileHld(
       dependencies,
@@ -742,8 +751,9 @@ describe("reconcile tests", () => {
   it("does create service components if the service path is `.` and a display name does exist", async () => {
     const displayName = "fabrikam";
 
-    bedrockYaml.services = {
-      ".": {
+    bedrockYaml.services = [
+      {
+        path: ".",
         disableRouteScaffold: false,
         displayName,
         helm: {
@@ -755,7 +765,7 @@ describe("reconcile tests", () => {
         },
         k8sBackendPort: 80,
       },
-    };
+    ];
 
     await reconcileHld(
       dependencies,
@@ -775,8 +785,9 @@ describe("reconcile tests", () => {
   it("uses display name over the service path for creating service components", async () => {
     const displayName = "fabrikam";
 
-    bedrockYaml.services = {
-      "/my/service/path": {
+    bedrockYaml.services = [
+      {
+        path: "/my/service/path",
         disableRouteScaffold: false,
         displayName,
         helm: {
@@ -788,7 +799,7 @@ describe("reconcile tests", () => {
         },
         k8sBackendPort: 80,
       },
-    };
+    ];
 
     await reconcileHld(
       dependencies,
@@ -808,18 +819,22 @@ describe("reconcile tests", () => {
   it("properly updates access.yaml", async () => {
     const anotherGit = "github.com/foobar/baz";
     const anotherToken = "MY_FANCY_ENV_VAR";
-    bedrockYaml.services["another/service"] = {
-      disableRouteScaffold: false,
-      helm: {
-        chart: {
-          accessTokenVariable: anotherToken,
-          git: anotherGit,
-          path: "path/to/chart",
-          sha: "12345",
+    bedrockYaml.services = [
+      ...bedrockYaml.services,
+      {
+        path: "another/service",
+        disableRouteScaffold: false,
+        helm: {
+          chart: {
+            accessTokenVariable: anotherToken,
+            git: anotherGit,
+            path: "path/to/chart",
+            sha: "12345",
+          },
         },
+        k8sBackendPort: 8888,
       },
-      k8sBackendPort: 8888,
-    };
+    ];
     const pathToHLD = "./the/path/to/hld";
     const service = "service";
     await reconcileHld(

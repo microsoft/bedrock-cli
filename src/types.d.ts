@@ -53,22 +53,21 @@ export interface RingConfig {
  */
 export interface BedrockFile {
   rings: Rings;
-  services: {
-    [relativeDirectory: string]: BedrockServiceConfig;
-  };
+  services: BedrockServiceConfig[];
   variableGroups?: string[];
   version: string;
 }
 
 export interface BedrockServiceConfig {
   displayName?: string;
-  middlewares?: string[];
-  helm: HelmConfig;
+  path: string; // a **new** required path to the service
   disableRouteScaffold?: boolean;
+  helm: HelmConfig;
+  k8sBackend?: string; // k8s service backend name for ingress routing
   k8sBackendPort: number; // the service port for the k8s service Traefik2 IngressRoutes will point to
+  middlewares?: string[];
   pathPrefix?: string; // pathprefix for ingress route, ie. document-service
   pathPrefixMajorVersion?: string; // api version, will prefix path prefix if provided. ie. 'v1' will result in the endpoint: /v1/document-service
-  k8sBackend?: string; // k8s service backend name for ingress routing
 }
 
 /**@see https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#triggers */

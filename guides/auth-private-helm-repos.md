@@ -36,7 +36,7 @@ can make it aware of it via the `--helm-config-access-token-variable` flag in
 the `spk service create` command.
 
 ```sh
-spk service create my-service \
+spk service create my-service ./path/to/service \
   --helm-config-git https://dev.azure.com/my-org/my-project/_git/my-repo \
   --helm-config-branch master \
   --helm-config-path my-service-helm-chart \
@@ -57,8 +57,8 @@ rings:
   master:
     isDefault: true
 services:
-  ./my-service:
-    displayName: ""
+  - path: ./path/to/service
+    displayName: my-service
     helm:
       chart:
         accessTokenVariable: MY_ENV_VAR # Note: this is where the environment variable gets tracked

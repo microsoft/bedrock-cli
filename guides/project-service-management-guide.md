@@ -235,7 +235,7 @@ application repositories
   flag parameters can be used if `spk` was not intialized)
   ```
   SERVICE_NAME=<my-new-service-name>
-  spk service create . --display-name $SERVICE_NAME ...
+  spk service create $SERVICE_NAME . ...
   git add -A
   git commit -m "Adding $SERVICE_NAME to the repository."
   git push -u origin --all
@@ -286,8 +286,8 @@ As an `spk` user, if you would like to incorporate helm charts from a well known
 public repository, you may simply run `spk` the following `helm-chart`
 arguments:
 
-```
-spk service create --helm-chart-chart stable/nginx --helm-chart-repository github.com/helm/charts
+```sh
+spk service create nginx my-nginx-service --helm-chart-chart stable/nginx --helm-chart-repository github.com/helm/charts
 ```
 
 ##### Helm Charts in a distinct Git Repository from Application Sources in the same Azure DevOps Project
@@ -296,7 +296,7 @@ If your Helm Charts are in their own distinct Git Repository in the _same_ Azure
 DevOps project, you can use the `helm-config` arguments to configure `spk`:
 
 ```
-spk service create \
+spk service create fabrikam path/to/fabrikam \
   --helm-config-git https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts
   --helm-config-branch master \
   --helm-path /charts/fabrikam
@@ -340,7 +340,7 @@ the environment variable containing the Personal Access Token to access the git
 repository in `helm-config-git`:
 
 ```
-spk service create \
+spk service create fabrikam path/to/fabrikam \
   --helm-config-git https://dev.azure.com/fabrikam/fabrikam-helm-charts-project/_git/fabrikam-helm-charts \
   --helm-config-branch master \
   --helm-path /charts/fabrikam \

@@ -286,20 +286,23 @@ export const createTestBedrockYaml = (
       qa: {},
       testing: {},
     },
-    services: {
-      "./": {
+    services: [
+      {
+        path: "./",
         helm: service1HelmConfig,
         k8sBackendPort: 80,
       },
-      "./packages/service1": {
+      {
+        path: "./packages/service1",
         helm: service2HelmConfig,
         k8sBackendPort: 80,
       },
-      "./zookeeper": {
+      {
+        path: "./zookeeper",
         helm: zookeeperHelmConfig,
         k8sBackendPort: 80,
       },
-    },
+    ],
     variableGroups: [],
     version: "1.0",
   };

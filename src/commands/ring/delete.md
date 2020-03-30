@@ -16,7 +16,7 @@ rings:
   qa:
   prod:
 services:
-  ./:
+  - path: ./
     displayName: "fabrikam"
     helm:
       chart:
@@ -41,18 +41,18 @@ running `spk ring delete prod` will result in a few changes:
      isDefault: true
    qa:
    services:
-   ./:
-     displayName: "fabrikam"
-     helm:
-     chart:
-       branch: master
-       git: "https://dev.azure.com/fabrikam/frontend/_git/charts"
-       path: frontend
-     k8sBackend: "fabrikam-k8s-svc"
-     k8sBackendPort: 80
-     middlewares: []
-     pathPrefix: "fabrikam-service"
-     pathPrefixMajorVersion: "v1"
+     - path: ./
+       displayName: "fabrikam"
+       helm:
+       chart:
+         branch: master
+         git: "https://dev.azure.com/fabrikam/frontend/_git/charts"
+         path: frontend
+       k8sBackend: "fabrikam-k8s-svc"
+       k8sBackendPort: 80
+       middlewares: []
+       pathPrefix: "fabrikam-service"
+       pathPrefixMajorVersion: "v1"
    variableGroups:
      - fabrikam-vg
    ```

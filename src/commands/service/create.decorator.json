@@ -1,5 +1,5 @@
 {
-  "command": "create <service-name>",
+  "command": "create <service-name> <service-path>",
   "alias": "c",
   "description": "Add a new service into this initialized spk project repository",
   "options": [
@@ -36,11 +36,6 @@
     {
       "arg": "-d, --packages-dir <dir>",
       "description": "The directory containing the mono-repo packages.",
-      "defaultValue": ""
-    },
-    {
-      "arg": "-n, --display-name <display-name>",
-      "description": "Display name of the service.",
       "defaultValue": ""
     },
     {

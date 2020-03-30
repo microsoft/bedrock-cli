@@ -2,6 +2,7 @@ import commander from "commander";
 import fs from "fs";
 import path from "path";
 import { Bedrock, write } from "../../config";
+import * as bedrockYaml from "../../lib/bedrockYaml";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
   generateGitIgnoreFile,
@@ -40,7 +41,7 @@ const generateBedrockFile = (
       },
       {}
     ),
-    services: {},
+    services: [],
     version: getVersion(),
   };
 
@@ -52,7 +53,7 @@ const generateBedrockFile = (
     );
   } else {
     // Write out
-    write(baseBedrockFile, absProjectPath);
+    bedrockYaml.create(absProjectPath, baseBedrockFile);
   }
 };
 
