@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 import {
   fileInfo as bedrockFileInfo,
@@ -11,6 +10,17 @@ import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import { BedrockFileInfo } from "../../types";
 import decorator from "./set-default.decorator.json";
+
+/**
+ * Check for bedrock.yaml
+ * @param projectPath
+ */
+export const checkDependencies = (projectPath: string): void => {
+  const fileInfo: BedrockFileInfo = bedrockFileInfo(projectPath);
+  if (fileInfo.exist === false) {
+    throw new Error(PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE);
+  }
+};
 
 /**
  * Executes the command.
@@ -52,15 +62,4 @@ export const commandDecorator = (command: commander.Command): void => {
       await exitCmd(logger, process.exit, status);
     });
   });
-};
-
-/**
- * Check for bedrock.yaml
- * @param projectPath
- */
-export const checkDependencies = (projectPath: string): void => {
-  const fileInfo: BedrockFileInfo = bedrockFileInfo(projectPath);
-  if (fileInfo.exist === false) {
-    throw new Error(PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE);
-  }
 };
