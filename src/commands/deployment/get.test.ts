@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import path from "path";
 import { duration, IDeployment, status } from "spektate/lib/IDeployment";
 import * as Deployment from "spektate/lib/IDeployment";
@@ -28,7 +27,6 @@ import {
   watchGetDeployments,
 } from "./get";
 import * as get from "./get";
-import { IPullRequest } from "spektate/lib/repository/IPullRequest";
 
 const MOCKED_INPUT_VALUES: CommandOptions = {
   buildId: "",
@@ -337,42 +335,49 @@ describe("Print deployments", () => {
       "EUROPE",
     ];
 
-    const matchItems = table!.filter((field) => field[2] === deployment[2]);
-    expect(matchItems).toHaveLength(1); // one matching row
+    expect(table).toBeDefined();
 
-    (matchItems[0] as IDeployment[]).forEach((field, i) => {
-      expect(field).toEqual(deployment[i]);
-    });
-    expect(matchItems[0]).toHaveLength(14);
+    if (table) {
+      const matchItems = table.filter((field) => field[2] === deployment[2]);
+      expect(matchItems).toHaveLength(1); // one matching row
 
-    table = printDeployments(
-      mockedDeps,
-      processOutputFormat("wide"),
-      3,
-      mockedClusterSyncs
-    );
-    expect(table).toHaveLength(3);
+      (matchItems[0] as IDeployment[]).forEach((field, i) => {
+        expect(field).toEqual(deployment[i]);
+      });
+      expect(matchItems[0]).toHaveLength(14);
+
+      table = printDeployments(
+        mockedDeps,
+        processOutputFormat("wide"),
+        3,
+        mockedClusterSyncs
+      );
+      expect(table).toHaveLength(3);
+    }
   });
 });
 
 describe("Cluster sync", () => {
   test("Verify cluster syncs", async () => {
     // test a github setup too
-    if (initObject.config.azure_devops?.manifest_repository) {
-      initObject.config.azure_devops!.manifest_repository! = "https://github.com/someone/something";
+    if (initObject.manifestRepo) {
+      initObject.manifestRepo = "https://github.com/someone/something";
     }
     const clusterSyncs = await getClusterSyncStatuses(initObject);
     expect(clusterSyncs).toBeDefined();
     expect(clusterSyncs).toHaveLength(5);
-    expect(clusterSyncs![0].name).toBe("CANADA");
-    expect(clusterSyncs![0].commit).toBe("efeeebe");
-    expect(clusterSyncs![0].tagger).toBe("Weave Flux");
+
+    if (clusterSyncs) {
+      expect(clusterSyncs[0].name).toBe("CANADA");
+      expect(clusterSyncs[0].commit).toBe("efeeebe");
+      expect(clusterSyncs[0].tagger).toBe("Weave Flux");
+    }
   });
 
   test("Verify cluster syncs - empty", async () => {
     // test empty manifest scenario
-    if (initObject.config.azure_devops?.manifest_repository) {
-      initObject.config.azure_devops!.manifest_repository! = "";
+    if (initObject.manifestRepo) {
+      initObject.manifestRepo = "";
     }
     const clusterSyncs = await getClusterSyncStatuses(initObject);
     expect(clusterSyncs).toBeUndefined();
@@ -387,9 +392,10 @@ describe("Output formats", () => {
       undefined,
       mockedClusterSyncs
     );
-    expect(table).not.toBeUndefined();
-    table!.forEach((field) => {
-      expect(field).toHaveLength(20);
-    });
+    expect(table).toBeDefined();
+
+    if (table) {
+      table.forEach((field) => expect(field).toHaveLength(20));
+    }
   });
 });

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import Table from "cli-table";
 import commander from "commander";
@@ -24,7 +23,6 @@ import { Config } from "../../config";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { isIntegerString } from "../../lib/validator";
 import { logger } from "../../logger";
-import { ConfigYaml } from "../../types";
 import decorator from "./get.decorator.json";
 import { IPullRequest } from "spektate/lib/repository/IPullRequest";
 
@@ -45,11 +43,15 @@ export enum OUTPUT_FORMAT {
  * process
  */
 export interface InitObject {
-  config: ConfigYaml;
+  accountName: string;
+  tableName: string;
+  partitionKey: string;
   clusterPipeline: AzureDevOpsPipeline;
   hldPipeline: AzureDevOpsPipeline;
   key: string;
   srcPipeline: AzureDevOpsPipeline;
+  manifestRepo?: string;
+  accessToken?: string;
 }
 
 /**
@@ -170,13 +172,12 @@ export const getDeployments = (
   initObj: InitObject,
   values: ValidatedOptions
 ): Promise<IDeployment[]> => {
-  const config = initObj.config;
   const syncStatusesPromise = getClusterSyncStatuses(initObj);
   const deploymentsPromise = getDeploymentsBasedOnFilters(
-    config.introspection!.azure!.account_name!,
+    initObj.accountName,
     initObj.key,
-    config.introspection!.azure!.table_name!,
-    config.introspection!.azure!.partition_key!,
+    initObj.tableName,
+    initObj.partitionKey,
     initObj.srcPipeline,
     initObj.hldPipeline,
     initObj.clusterPipeline,
@@ -195,7 +196,8 @@ export const getDeployments = (
         const displayedDeployments = await displayDeployments(
           values,
           deployments,
-          syncStatuses
+          syncStatuses,
+          initObj
         );
         resolve(displayedDeployments);
       })
@@ -209,16 +211,18 @@ export const getDeployments = (
  * Displays the deployments based on output format requested and top n
  * @param values validated command line values
  * @param deployments list of deployments to display
- * @param syncStatuses cluster sync statuses
+ * @param syncStatuses cluster sync statuses,
+ * @param initObj initialization object
  */
 export const displayDeployments = (
   values: ValidatedOptions,
   deployments: IDeployment[] | undefined,
-  syncStatuses: ITag[] | undefined
+  syncStatuses: ITag[] | undefined,
+  initObj: InitObject
 ): Promise<IDeployment[]> => {
   return new Promise((resolve, reject) => {
     if (values.outputFormat === OUTPUT_FORMAT.WIDE) {
-      getPRs(deployments);
+      getPRs(deployments, initObj);
     }
     if (values.outputFormat === OUTPUT_FORMAT.JSON) {
       console.log(JSON.stringify(deployments, null, 2));
@@ -248,25 +252,16 @@ export const displayDeployments = (
 export const getClusterSyncStatuses = (
   initObj: InitObject
 ): Promise<ITag[] | undefined> => {
-  const config = initObj.config;
   return new Promise((resolve, reject) => {
     try {
-      if (
-        config.azure_devops?.manifest_repository &&
-        config.azure_devops?.manifest_repository.includes("azure.com")
-      ) {
-        const manifestUrlSplit = config.azure_devops?.manifest_repository.split(
-          "/"
-        );
+      if (initObj.manifestRepo && initObj.manifestRepo.includes("azure.com")) {
+        const manifestUrlSplit = initObj.manifestRepo.split("/");
         const manifestRepo: IAzureDevOpsRepo = {
           org: manifestUrlSplit[3],
           project: manifestUrlSplit[4],
           repo: manifestUrlSplit[6],
         };
-        getAzureManifestSyncState(
-          manifestRepo,
-          config.azure_devops.access_token
-        )
+        getAzureManifestSyncState(manifestRepo, initObj.accessToken)
           .then((syncCommits: ITag[]) => {
             resolve(syncCommits);
           })
@@ -274,21 +269,16 @@ export const getClusterSyncStatuses = (
             reject(e);
           });
       } else if (
-        config.azure_devops?.manifest_repository &&
-        config.azure_devops?.manifest_repository.includes("github.com")
+        initObj.manifestRepo &&
+        initObj.manifestRepo.includes("github.com")
       ) {
-        const manifestUrlSplit = config.azure_devops?.manifest_repository.split(
-          "/"
-        );
+        const manifestUrlSplit = initObj.manifestRepo.split("/");
         const manifestRepo: IGitHub = {
           reponame: manifestUrlSplit[4],
           username: manifestUrlSplit[3],
         };
 
-        getGithubManifestSyncState(
-          manifestRepo,
-          config.azure_devops.access_token
-        )
+        getGithubManifestSyncState(manifestRepo, initObj.accessToken)
           .then((syncCommits: ITag[]) => {
             resolve(syncCommits);
           })
@@ -310,10 +300,8 @@ export const getClusterSyncStatuses = (
  */
 export const initialize = async (): Promise<InitObject> => {
   const config = Config();
-  const key = await config.introspection!.azure!.key;
 
   if (
-    !key ||
     !config.introspection ||
     !config.azure_devops ||
     !config.introspection.azure ||
@@ -322,9 +310,10 @@ export const initialize = async (): Promise<InitObject> => {
     !config.introspection.azure.account_name ||
     !config.introspection.azure.table_name ||
     !config.introspection.azure.key ||
-    !config.introspection.azure.partition_key
+    !config.introspection.azure.partition_key ||
+    !config.introspection.azure.key
   ) {
-    throw new Error(
+    throw Error(
       "You need to run `spk init` and `spk deployment onboard` to configure `spk."
     );
   }
@@ -336,20 +325,24 @@ export const initialize = async (): Promise<InitObject> => {
       false,
       config.azure_devops.access_token
     ),
-    config,
     hldPipeline: new AzureDevOpsPipeline(
       config.azure_devops.org,
       config.azure_devops.project,
       true,
       config.azure_devops.access_token
     ),
-    key,
+    key: config.introspection.azure.key,
     srcPipeline: new AzureDevOpsPipeline(
       config.azure_devops.org,
       config.azure_devops.project,
       false,
       config.azure_devops.access_token
     ),
+    accountName: config.introspection.azure.account_name,
+    tableName: config.introspection.azure.table_name,
+    partitionKey: config.introspection.azure.partition_key,
+    manifestRepo: config.azure_devops.manifest_repository,
+    accessToken: config.azure_devops.access_token,
   };
 };
 
@@ -496,8 +489,8 @@ export const printDeployments = (
         deployment.pr.toString() in pullRequests
       ) {
         row.push(deployment.pr);
-        if (pullRequests[deployment.pr!.toString()].mergedBy) {
-          row.push(pullRequests[deployment.pr!.toString()].mergedBy?.name);
+        if (pullRequests[deployment.pr.toString()].mergedBy) {
+          row.push(pullRequests[deployment.pr.toString()].mergedBy?.name);
         } else {
           deploymentStatus = "Waiting";
           row.push("-");
@@ -551,41 +544,43 @@ export const printDeployments = (
 };
 
 /**
- * Gets PR information for all the deployments
+ * Gets PR information for all the deployments.
+ *
  * @param deployments all deployments to be displayed
+ * @param initObj initialization object
  */
-export const getPRs = (deployments: IDeployment[] | undefined) => {
-  if (deployments && deployments.length > 0) {
-    deployments.forEach((deployment: IDeployment) => {
-      fetchPRInformation(deployment);
-    });
-  }
+export const getPRs = (
+  deployments: IDeployment[] | undefined,
+  initObj: InitObject
+): void => {
+  (deployments || []).forEach((d) => fetchPRInformation(d, initObj));
 };
 
 /**
  * Fetches pull request data for deployments that complete merge into HLD
  * by merging a PR
+ *
  * @param deployment deployment for which PR has to be fetched
+ * @param initObj initialization object
  */
-export const fetchPRInformation = (deployment: IDeployment) => {
-  const config = Config();
-  if (!deployment.hldRepo || !deployment.pr) {
-    return;
-  }
-  const repo: IAzureDevOpsRepo | IGitHub | undefined = getRepositoryFromURL(
-    deployment.hldRepo!
-  );
-  const promise = fetchPR(
-    repo!,
-    deployment.pr!.toString(),
-    config.introspection?.azure?.source_repo_access_token
-  );
-  promise.then((pr: IPullRequest | undefined) => {
-    if (pr) {
-      pullRequests[deployment.pr!.toString()] = pr;
+export const fetchPRInformation = (
+  deployment: IDeployment,
+  initObj: InitObject
+): void => {
+  if (deployment.hldRepo && deployment.pr) {
+    const repo = getRepositoryFromURL(deployment.hldRepo);
+    const strPr = deployment.pr.toString();
+
+    if (repo) {
+      const promise = fetchPR(repo, strPr, initObj.accountName);
+      promise.then((pr) => {
+        if (pr) {
+          pullRequests[strPr] = pr;
+        }
+      });
+      promises.push(promise);
     }
-  });
-  promises.push(promise);
+  }
 };
 
 /**
