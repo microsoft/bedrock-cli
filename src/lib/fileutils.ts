@@ -10,6 +10,7 @@ import {
   SERVICE_PIPELINE_FILENAME,
   VERSION_MESSAGE,
   VM_IMAGE,
+  BEDROCK_FILENAME,
 } from "../lib/constants";
 import { logger } from "../logger";
 import {
@@ -149,7 +150,12 @@ export const serviceBuildAndUpdatePipeline = (
       branches: { include: [...new Set(ringBranches)] },
       ...(relativeServicePathFormatted === ""
         ? {}
-        : { paths: { include: [relativeServicePathFormatted] } }),
+        : {
+            paths: {
+              include: [relativeServicePathFormatted],
+              exclude: [BEDROCK_FILENAME],
+            },
+          }),
     },
     variables: [...(variableGroups ?? []).map((group) => ({ group }))],
     stages: [
