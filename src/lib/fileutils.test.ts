@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 ////////////////////////////////////////////////////////////////////////////////
 // !!NOTE!!
 // This test suite uses mock-fs to mock out the the file system
@@ -34,6 +33,7 @@ import {
   createTestServiceBuildAndUpdatePipelineYaml,
 } from "../test/mockFactory";
 import { AccessYaml, AzurePipelinesYaml, MaintainersFile } from "../types";
+import { errorStatusCode } from "./errorStatusCode";
 import {
   addNewServiceToMaintainersFile,
   appendVariableGroupToPipelineYaml,
@@ -461,6 +461,17 @@ describe("appendVariableGroupToHldAzurePipelinesYaml", () => {
       createTestHldAzurePipelinesYamlWithVariableGroup()
     );
   });
+  it("negative test", () => {
+    try {
+      appendVariableGroupToPipelineYaml(
+        uuid(),
+        RENDER_HLD_PIPELINE_FILENAME,
+        "my-vg"
+      );
+    } catch (err) {
+      expect(err.errorCode).toBe(errorStatusCode.FILE_IO_ERR);
+    }
+  });
 });
 
 describe("generateDefaultHldComponentYaml", () => {
@@ -667,26 +678,48 @@ describe("serviceBuildUpdatePipeline", () => {
     expect(deserializedYaml).toStrictEqual(buildPipelineYaml);
 
     // variables should include all groups
-    for (const group of variableGroups) {
-      expect(buildPipelineYaml.variables!.includes({ group }));
+    expect(buildPipelineYaml.variables).toBeDefined();
+    if (buildPipelineYaml.variables) {
+      expect(buildPipelineYaml.variables.length).toBe(variableGroups.length);
+
+      for (const group of variableGroups) {
+        expect(buildPipelineYaml.variables.includes({ group }));
+      }
     }
-    expect(buildPipelineYaml.variables!.length).toBe(variableGroups.length);
 
     // trigger branches should include all ring branches
-    for (const branch of ringBranches) {
-      expect(buildPipelineYaml.trigger!.branches!.include!.includes(branch));
+    expect(buildPipelineYaml.trigger).toBeDefined();
+    if (buildPipelineYaml.trigger) {
+      expect(buildPipelineYaml.trigger.branches).toBeDefined();
+
+      if (buildPipelineYaml.trigger.branches) {
+        expect(buildPipelineYaml.trigger.branches.include).toBeDefined();
+
+        if (buildPipelineYaml.trigger.branches.include) {
+          expect(buildPipelineYaml.trigger.branches.include.length).toBe(
+            ringBranches.length
+          );
+          for (const branch of ringBranches) {
+            expect(buildPipelineYaml.trigger.branches.include.includes(branch));
+          }
+        }
+      }
     }
-    expect(buildPipelineYaml.trigger!.branches!.include!.length).toBe(
-      ringBranches.length
-    );
 
     // verify components of stages
-    expect(buildPipelineYaml.stages && buildPipelineYaml.stages.length === 2);
-    for (const stage of buildPipelineYaml.stages!) {
-      for (const job of stage.jobs) {
-        // pool.vmImage should be 'gentoo'
-        expect(job.pool!.vmImage).toBe(VM_IMAGE);
-        expect(job.steps);
+    expect(buildPipelineYaml.stages).toBeDefined();
+    if (buildPipelineYaml.stages) {
+      expect(buildPipelineYaml.stages && buildPipelineYaml.stages.length === 2);
+      for (const stage of buildPipelineYaml.stages) {
+        for (const job of stage.jobs) {
+          expect(job.pool).toBeDefined();
+
+          if (job.pool) {
+            // pool.vmImage should be 'gentoo'
+            expect(job.pool.vmImage).toBe(VM_IMAGE);
+            expect(job.steps);
+          }
+        }
       }
     }
   });
@@ -723,28 +756,44 @@ describe("serviceBuildUpdatePipeline", () => {
           "utf8"
         )
       );
-      const hasCorrectIncludes = azureYaml.trigger!.paths!.include!.includes(
-        path.relative(randomDirPath, serviceReference.servicePath)
-      );
-      expect(hasCorrectIncludes).toBe(true);
 
-      let hasCorrectVariableGroup1 = false;
-      let hasCorrectVariableGroup2 = false;
-      for (const value of Object.values(azureYaml.variables!)) {
-        const item = value as { group: string };
+      expect(azureYaml.trigger).toBeDefined();
 
-        if (item.group === variableGroups[0]) {
-          hasCorrectVariableGroup1 = true;
-        }
+      if (azureYaml.trigger) {
+        expect(azureYaml.trigger.paths).toBeDefined();
 
-        if (item.group === variableGroups[1]) {
-          hasCorrectVariableGroup2 = true;
+        if (azureYaml.trigger.paths) {
+          expect(azureYaml.trigger.paths.include).toBeDefined();
+
+          if (azureYaml.trigger.paths.include) {
+            const hasCorrectIncludes = azureYaml.trigger.paths.include.includes(
+              path.relative(randomDirPath, serviceReference.servicePath)
+            );
+            expect(hasCorrectIncludes).toBe(true);
+          }
         }
       }
 
-      expect(hasCorrectIncludes).toBe(true);
-      expect(hasCorrectVariableGroup1).toBe(true);
-      expect(hasCorrectVariableGroup2).toBe(true);
+      expect(azureYaml.variables).toBeDefined();
+
+      if (azureYaml.variables) {
+        let hasCorrectVariableGroup1 = false;
+        let hasCorrectVariableGroup2 = false;
+        for (const value of Object.values(azureYaml.variables)) {
+          const item = value as { group: string };
+
+          if (item.group === variableGroups[0]) {
+            hasCorrectVariableGroup1 = true;
+          }
+
+          if (item.group === variableGroups[1]) {
+            hasCorrectVariableGroup2 = true;
+          }
+        }
+
+        expect(hasCorrectVariableGroup1).toBe(true);
+        expect(hasCorrectVariableGroup2).toBe(true);
+      }
     }
   });
 });

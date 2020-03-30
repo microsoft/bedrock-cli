@@ -3,6 +3,9 @@ import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { RENDER_HLD_PIPELINE_FILENAME } from "../../lib/constants";
 import { appendVariableGroupToPipelineYaml } from "../../lib/fileutils";
 import { logger } from "../../logger";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
+import { hasValue } from "../../lib/validator";
 import decorator from "./append-variable-group.decorator.json";
 
 /**
@@ -18,13 +21,14 @@ export const execute = async (
   variableGroupName: string,
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
-  if (!variableGroupName) {
-    logger.error("Variable group name is missing.");
-    await exitFn(1);
-    return;
-  }
-
   try {
+    if (!hasValue(variableGroupName)) {
+      throw buildError(
+        errorStatusCode.VALIDATION_ERR,
+        "hld-append-var-group-name-missing"
+      );
+    }
+
     appendVariableGroupToPipelineYaml(
       hldRepoPath,
       RENDER_HLD_PIPELINE_FILENAME,
@@ -32,8 +36,13 @@ export const execute = async (
     );
     await exitFn(0);
   } catch (err) {
-    logger.error(`Error occurred while appending variable group.`);
-    logger.error(err);
+    logError(
+      buildError(
+        errorStatusCode.CMD_EXE_ERR,
+        "hld-append-var-group-cmd-failed",
+        err
+      )
+    );
     await exitFn(1);
   }
 };

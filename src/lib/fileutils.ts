@@ -20,6 +20,8 @@ import {
   User,
 } from "../types";
 import { readYaml, write } from "../config";
+import { build as buildError } from "../lib/errorBuilder";
+import { errorStatusCode } from "../lib/errorStatusCode";
 
 /**
  * Read given pipeline file as json object.
@@ -482,16 +484,23 @@ export const appendVariableGroupToPipelineYaml = (
   fileName: string,
   variableGroupName: string
 ): void => {
-  const pipelineFile = readYaml(path.join(dir, fileName)) as AzurePipelinesYaml;
+  try {
+    const pipelineFile = readYaml(
+      path.join(dir, fileName)
+    ) as AzurePipelinesYaml;
+    pipelineFile.variables = pipelineFile.variables || [];
 
-  if (!pipelineFile.variables) {
-    pipelineFile.variables = [];
+    pipelineFile.variables.push({ group: variableGroupName });
+
+    logger.info(`Updating '${dir}/${fileName}'.`);
+    write(pipelineFile, dir, fileName);
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.FILE_IO_ERR,
+      "fileutils-append-variable-group-to-pipeline-yaml",
+      err
+    );
   }
-
-  pipelineFile.variables.push({ group: variableGroupName });
-
-  logger.info(`Updating '${dir}/${fileName}'.`);
-  write(pipelineFile, dir, fileName);
 };
 
 /**

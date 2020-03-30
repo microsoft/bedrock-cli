@@ -25,6 +25,11 @@
     "infra-err-tf-path-not-found": "Provided Terraform {0} path is invalid or cannot be found: {1}",
     "infra-err-create-scaffold": "Could not create scaffold",
     "infra-err-git-clone-failed": "Could not clone the source remote repository. The remote repo might not exist or you did not have the rights to access it",
-    "infra-git-source-no-exist": "Source path, {0} did not exist."
+    "infra-git-source-no-exist": "Source path, {0} did not exist.",
+
+    "hld-append-var-group-cmd-failed": "HLD Append Variable Group Command was not successfully executed.",
+    "hld-append-var-group-name-missing": "Variable group name was not provided. Provide variable group.",
+
+    "fileutils-append-variable-group-to-pipeline-yaml": "Could not append variable group name to manifest-generation.yaml file in HLD repo. Check this is file exist and if it is YAML format."
   }
 }
