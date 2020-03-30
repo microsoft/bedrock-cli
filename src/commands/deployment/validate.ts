@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import commander from "commander";
 import { Config } from "../../config";
 import {
@@ -26,42 +25,6 @@ export interface ValidateConfig {
   partitionKey: string;
   key: string;
 }
-
-/**
- * Executes the command, can all exit function with 0 or 1
- * when command completed successfully or failed respectively.
- *
- * @param opts validated option values
- * @param exitFn exit function
- */
-export const execute = async (
-  opts: CommandOptions,
-  exitFn: (status: number) => Promise<void>
-): Promise<void> => {
-  try {
-    const config = isValidConfig(Config());
-
-    if (opts.selfTest) {
-      await runSelfTest(config);
-    }
-    await exitFn(0);
-  } catch (err) {
-    logger.error(err);
-    await exitFn(1);
-  }
-};
-
-/**
- * Adds the validate command to the commander command object
- * @param command Commander command object to decorate
- */
-export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
-    await execute(opts, async (status: number) => {
-      await exitCmd(logger, process.exit, status);
-    });
-  });
-};
 
 /**
  * Validates that the deployment configuration is specified.
@@ -130,44 +93,6 @@ export const isValidConfig = (config: ConfigYaml): ValidateConfig => {
   throw Error(
     "You need to specify configuration for your introspection storage account and DevOps pipeline to run this dashboard. Please initialize the spk tool with the right configuration"
   );
-};
-
-/**
- * Run the self-test for introspection
- *
- * @param config spk configuration values
- */
-export const runSelfTest = async (config: ValidateConfig): Promise<void> => {
-  try {
-    logger.info("Writing self-test data for introspection...");
-    const buildId = await writeSelfTestData(
-      config.key,
-      config.accountName,
-      config.partitionKey,
-      config.tableName
-    );
-
-    logger.info("Deleting self-test data...");
-    const isVerified = await deleteSelfTestData(
-      config.key,
-      config.accountName,
-      config.partitionKey,
-      config.tableName,
-      buildId
-    );
-
-    const statusMessage =
-      "Finished running self-test. Service introspection self-test status: ";
-
-    if (!isVerified) {
-      logger.error(statusMessage + "FAILED. Please try again.");
-    } else {
-      logger.info(statusMessage + "SUCCEEDED.");
-    }
-  } catch (err) {
-    logger.error("Error running self-test.");
-    throw err;
-  }
 };
 
 /**
@@ -260,4 +185,78 @@ export const deleteSelfTestData = async (
     return foundEntry;
   });
   return isDeleted;
+};
+
+/**
+ * Run the self-test for introspection
+ *
+ * @param config spk configuration values
+ */
+export const runSelfTest = async (config: ValidateConfig): Promise<void> => {
+  try {
+    logger.info("Writing self-test data for introspection...");
+    const buildId = await writeSelfTestData(
+      config.key,
+      config.accountName,
+      config.partitionKey,
+      config.tableName
+    );
+
+    logger.info("Deleting self-test data...");
+    const isVerified = await deleteSelfTestData(
+      config.key,
+      config.accountName,
+      config.partitionKey,
+      config.tableName,
+      buildId
+    );
+
+    const statusMessage =
+      "Finished running self-test. Service introspection self-test status: ";
+
+    if (!isVerified) {
+      logger.error(statusMessage + "FAILED. Please try again.");
+    } else {
+      logger.info(statusMessage + "SUCCEEDED.");
+    }
+  } catch (err) {
+    logger.error("Error running self-test.");
+    throw err;
+  }
+};
+
+/**
+ * Executes the command, can all exit function with 0 or 1
+ * when command completed successfully or failed respectively.
+ *
+ * @param opts validated option values
+ * @param exitFn exit function
+ */
+export const execute = async (
+  opts: CommandOptions,
+  exitFn: (status: number) => Promise<void>
+): Promise<void> => {
+  try {
+    const config = isValidConfig(Config());
+
+    if (opts.selfTest) {
+      await runSelfTest(config);
+    }
+    await exitFn(0);
+  } catch (err) {
+    logger.error(err);
+    await exitFn(1);
+  }
+};
+
+/**
+ * Adds the validate command to the commander command object
+ * @param command Commander command object to decorate
+ */
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(async (opts: CommandOptions) => {
+    await execute(opts, async (status: number) => {
+      await exitCmd(logger, process.exit, status);
+    });
+  });
 };
