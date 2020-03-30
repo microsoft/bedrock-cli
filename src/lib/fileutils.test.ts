@@ -22,6 +22,7 @@ import {
   RENDER_HLD_PIPELINE_FILENAME,
   SERVICE_PIPELINE_FILENAME,
   VM_IMAGE,
+  BEDROCK_FILENAME,
 } from "../lib/constants";
 import { disableVerboseLogging, enableVerboseLogging } from "../logger";
 import {
@@ -243,6 +244,7 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
       ]);
       expect(serviceYaml?.trigger?.paths).toStrictEqual({
         include: [p],
+        exclude: [BEDROCK_FILENAME],
       });
     }
     const yamlWithNoDot = serviceBuildAndUpdatePipeline(
@@ -252,6 +254,7 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
     );
     expect(yamlWithNoDot?.trigger?.paths).toStrictEqual({
       include: ["another-service"],
+      exclude: [BEDROCK_FILENAME],
     });
   });
 });

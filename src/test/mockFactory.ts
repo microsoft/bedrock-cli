@@ -1,5 +1,5 @@
 import yaml from "js-yaml";
-import { HELM_VERSION, VM_IMAGE } from "../lib/constants";
+import { HELM_VERSION, VM_IMAGE, BEDROCK_FILENAME } from "../lib/constants";
 import {
   BUILD_REPO_NAME,
   generateYamlScript,
@@ -32,7 +32,10 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
   const data: AzurePipelinesYaml = {
     trigger: {
       branches: { include: ringBranches },
-      paths: { include: [sanitizeTriggerPath(relativeServicePathFormatted)] }, // Only building for a single service's path.
+      paths: {
+        include: [sanitizeTriggerPath(relativeServicePathFormatted)],
+        exclude: [BEDROCK_FILENAME],
+      }, // Only building for a single service's path.
     },
     variables: [...(variableGroups ?? []).map((group) => ({ group }))],
     stages: [
