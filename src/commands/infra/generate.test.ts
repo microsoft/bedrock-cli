@@ -188,7 +188,7 @@ describe("test gitClone function", () => {
   it("negative Test", async () => {
     const git = simpleGit();
     git.clone = (): Promise<never> => {
-      throw new Error("Error");
+      throw Error("Error");
     };
 
     await expect(gitClone(git, "source", "path")).rejects.toThrow();
@@ -221,7 +221,7 @@ describe("Validate remote git source", () => {
   });
 });
 
-jest.spyOn(generate, "gitClone").mockReturnValue(Promise.resolve());
+jest.spyOn(generate, "gitClone").mockResolvedValue();
 jest.spyOn(generate, "createGenerated").mockReturnValue();
 jest.spyOn(generate, "checkTfvars").mockReturnValue();
 jest.spyOn(generate, "writeTfvarsFile").mockReturnValue();
@@ -302,9 +302,7 @@ describe("fetch execute function", () => {
       template: "",
       version: "",
     });
-    jest
-      .spyOn(generate, "generateConfig")
-      .mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "generateConfig").mockResolvedValueOnce();
 
     const exitFn = jest.fn();
     await execute(
@@ -394,9 +392,9 @@ describe("test validateRemoteSource function", () => {
 describe("test retryRemoteValidate function", () => {
   it("positive test", async () => {
     jest.spyOn(fsExtra, "removeSync").mockReturnValueOnce();
-    jest.spyOn(generate, "gitClone").mockReturnValueOnce(Promise.resolve());
-    jest.spyOn(generate, "gitFetchPull").mockReturnValueOnce(Promise.resolve());
-    jest.spyOn(generate, "gitCheckout").mockReturnValueOnce(Promise.resolve());
+    jest.spyOn(generate, "gitClone").mockResolvedValueOnce();
+    jest.spyOn(generate, "gitFetchPull").mockResolvedValueOnce();
+    jest.spyOn(generate, "gitCheckout").mockResolvedValueOnce();
     await retryRemoteValidate("source", "sourcePath", "safeLoggingUrl", "0.1");
   });
   it("negative test", async () => {

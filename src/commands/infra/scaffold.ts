@@ -278,23 +278,24 @@ export const scaffold = (values: CommandOptions): void => {
     if (fs.existsSync(tfVariableFile)) {
       logger.info(`A ${VARIABLES_TF} file found : ${tfVariableFile}`);
 
-      const data: string = fs.readFileSync(tfVariableFile, "utf8");
+      const data = fs.readFileSync(tfVariableFile, "utf8");
 
       if (data) {
         const baseDef = generateClusterDefinition(values, backendData, data);
+        // baseDef shall be always defined based on what generateClusterDefinition
+        // function returns. hence we do not need to check if it is defined or not
         const definitionYaml = yaml.safeDump(baseDef);
-        if (baseDef) {
-          const confPath: string = path.format({
-            base: DEFINITION_YAML,
-            dir: values.name,
-            root: "/ignored",
-          });
-          fs.writeFileSync(confPath, definitionYaml, "utf8");
-        } else {
-          throw Error(`Unable to generate cluster definition.`);
-        }
+        const confPath: string = path.format({
+          base: DEFINITION_YAML,
+          dir: values.name,
+          root: "/ignored",
+        });
+        fs.writeFileSync(confPath, definitionYaml, "utf8");
       } else {
-        throw Error(`Unable to read variable file: ${tfVariableFile}.`);
+        throw buildError(errorStatusCode.ENV_SETTING_ERR, {
+          errorKey: "infra-unable-read-var-file",
+          values: [tfVariableFile],
+        });
       }
     }
   } catch (err) {

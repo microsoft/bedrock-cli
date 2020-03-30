@@ -16,9 +16,16 @@
     "storageKeVaultName": "Enter key vault name (have the value as empty and hit enter key to skip)"
   },
   "errors": {
-    "infra-scaffold-cmd-failed": "Scaffold Command was not successfully executed.",
+    "infra-scaffold-cmd-failed": "Infra scaffold Command was not successfully executed.",
     "infra-scaffold-cmd-src-missing": "Value for source is required because it cannot be constructed with properties in spk-config.yaml. Provide value for source.",
     "infra-scaffold-cmd-values-missing": "Values for name, version and/or 'template were missing. Provide value for values for them.",
+
+    "infra-generate-cmd-failed": "Infra generate Command was not successfully executed.",
+
+    "infra-defn-yaml-not-found": "{0} was not found in {1}",
+    "infra-defn-yaml-invalid": "The {0} file is invalid. There are missing fields. template: {1} source: {2} version: {3}.",
+    "infra-unable-read-var-file": "Could read variable file: {0}. Make sure that it exists.",
+
     "infra-err-validating-remote-git": "Could not determine error when validating remote git source.",
     "infra-err-retry-validating-remote-git": "Failure error thrown during retrying validating remote git source.",
     "infra-err-locate-tf-env": "Could not find Terraform environment. Ensure template path {0} exists.",
