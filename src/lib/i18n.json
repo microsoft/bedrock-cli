@@ -16,6 +16,9 @@
     "storageKeVaultName": "Enter key vault name (have the value as empty and hit enter key to skip)"
   },
   "errors": {
+    "hld-init-cmd-failed": "Hld init command was not successfully executed.",
+    "hld-init-cmd-project-path-missing": "Value for project path was not provided. Provide it.",
+
     "infra-scaffold-cmd-failed": "Infra scaffold command was not successfully executed.",
     "infra-scaffold-cmd-src-missing": "Value for source is required because it cannot be constructed with properties in spk-config.yaml. Provide value for source.",
     "infra-scaffold-cmd-values-missing": "Values for name, version and/or 'template were missing. Provide value for values for them.",
@@ -38,6 +41,11 @@
     "hld-append-var-group-name-missing": "Variable group name was not provided. Provide variable group.",
 
     "fileutils-append-variable-group-to-pipeline-yaml": "Could not append variable group name to manifest-generation.yaml file in HLD repo. Check this is file exist and if it is YAML format.",
+    "fileutils-generate-hld-pipeline-yaml": "Could not generate HLD Azure pipeline YAML.",
+    "fileutils-generate-default-hld-component-yaml": "Could not generate default HLD component YAML.",
+    "fileutils-generate-git-ignore-file": "Could not generate .gitignore file in {0}.",
+
+    "git-checkout-commit-push-create-PR-link": "Could not checkout, commit, push or create pull request",
 
     "introspect-create-cmd-failed": "Deployment create command was not successfully executed.",
     "introspect-create-cmd-no-ops": "No action could be performed for specified arguments.",

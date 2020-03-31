@@ -623,37 +623,44 @@ const manifestGenerationPipelineYaml = (): string => {
 export const generateHldAzurePipelinesYaml = (
   targetDirectory: string
 ): void => {
-  const absTargetPath = path.resolve(targetDirectory);
-  logger.info(`Generating hld manifest-generation in ${absTargetPath}`);
+  try {
+    const absTargetPath = path.resolve(targetDirectory);
+    logger.info(`Generating hld manifest-generation in ${absTargetPath}`);
 
-  const azurePipelinesYamlPath = path.join(
-    absTargetPath,
-    RENDER_HLD_PIPELINE_FILENAME
-  );
-
-  if (fs.existsSync(azurePipelinesYamlPath)) {
-    logger.warn(
-      `Existing ${RENDER_HLD_PIPELINE_FILENAME} found at ${azurePipelinesYamlPath}, skipping generation.`
+    const azurePipelinesYamlPath = path.join(
+      absTargetPath,
+      RENDER_HLD_PIPELINE_FILENAME
     );
 
-    return;
+    if (fs.existsSync(azurePipelinesYamlPath)) {
+      logger.warn(
+        `Existing ${RENDER_HLD_PIPELINE_FILENAME} found at ${azurePipelinesYamlPath}, skipping generation.`
+      );
+      return;
+    }
+    const hldYaml = manifestGenerationPipelineYaml();
+    logger.info(
+      `Writing ${RENDER_HLD_PIPELINE_FILENAME} file to ${azurePipelinesYamlPath}`
+    );
+
+    const requiredPipelineVariables = [
+      `'MANIFEST_REPO' (Repository for your kubernetes manifests in AzDo. eg. 'dev.azure.com/bhnook/fabrikam/_git/materialized')`,
+      `'PAT' (AzDo Personal Access Token with permissions to the HLD repository.)`,
+    ].join(", ");
+
+    logger.info(
+      `Generated ${RENDER_HLD_PIPELINE_FILENAME}. Commit and push this file to master before attempting to deploy via the command 'spk hld install-manifest-pipeline'; before running the pipeline ensure the following environment variables are available to your pipeline: ${requiredPipelineVariables}`
+    );
+
+    writeVersion(azurePipelinesYamlPath);
+    fs.appendFileSync(azurePipelinesYamlPath, hldYaml, "utf8");
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.FILE_IO_ERR,
+      "fileutils-generate-hld-pipeline-yaml",
+      err
+    );
   }
-  const hldYaml = manifestGenerationPipelineYaml();
-  logger.info(
-    `Writing ${RENDER_HLD_PIPELINE_FILENAME} file to ${azurePipelinesYamlPath}`
-  );
-
-  const requiredPipelineVariables = [
-    `'MANIFEST_REPO' (Repository for your kubernetes manifests in AzDo. eg. 'dev.azure.com/bhnook/fabrikam/_git/materialized')`,
-    `'PAT' (AzDo Personal Access Token with permissions to the HLD repository.)`,
-  ].join(", ");
-
-  logger.info(
-    `Generated ${RENDER_HLD_PIPELINE_FILENAME}. Commit and push this file to master before attempting to deploy via the command 'spk hld install-manifest-pipeline'; before running the pipeline ensure the following environment variables are available to your pipeline: ${requiredPipelineVariables}`
-  );
-
-  writeVersion(azurePipelinesYamlPath);
-  fs.appendFileSync(azurePipelinesYamlPath, hldYaml, "utf8");
 };
 
 /**
@@ -688,34 +695,41 @@ export const generateDefaultHldComponentYaml = (
   componentName: string,
   componentPath: string
 ): void => {
-  const absTargetPath = path.resolve(targetDirectory);
-  logger.info(`Generating component.yaml in ${absTargetPath}`);
+  try {
+    const absTargetPath = path.resolve(targetDirectory);
+    logger.info(`Generating component.yaml in ${absTargetPath}`);
 
-  const fabrikateComponentPath = path.join(absTargetPath, "component.yaml");
+    const fabrikateComponentPath = path.join(absTargetPath, "component.yaml");
 
-  if (fs.existsSync(fabrikateComponentPath)) {
-    logger.warn(
-      `Existing component.yaml found at ${fabrikateComponentPath}, skipping generation.`
+    if (fs.existsSync(fabrikateComponentPath)) {
+      logger.warn(
+        `Existing component.yaml found at ${fabrikateComponentPath}, skipping generation.`
+      );
+      return;
+    }
+
+    const componentYaml = defaultComponentYaml(
+      componentGit,
+      componentName,
+      componentPath
     );
 
-    return;
+    logger.info(
+      `Writing ${HLD_COMPONENT_FILENAME} file to ${fabrikateComponentPath}`
+    );
+
+    fs.writeFileSync(
+      fabrikateComponentPath,
+      yaml.safeDump(componentYaml, { lineWidth: Number.MAX_SAFE_INTEGER }),
+      "utf8"
+    );
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.FILE_IO_ERR,
+      "fileutils-generate-default-hld-component-yaml",
+      err
+    );
   }
-
-  const componentYaml = defaultComponentYaml(
-    componentGit,
-    componentName,
-    componentPath
-  );
-
-  logger.info(
-    `Writing ${HLD_COMPONENT_FILENAME} file to ${fabrikateComponentPath}`
-  );
-
-  fs.writeFileSync(
-    fabrikateComponentPath,
-    yaml.safeDump(componentYaml, { lineWidth: Number.MAX_SAFE_INTEGER }),
-    "utf8"
-  );
 };
 
 const hldLifecyclePipelineYaml = (): string => {
@@ -896,18 +910,28 @@ export const generateGitIgnoreFile = (
   const absTargetPath = path.resolve(targetDirectory);
   logger.info(`Generating starter .gitignore in ${absTargetPath}`);
 
-  const gitIgnoreFilePath = path.join(absTargetPath, ".gitignore");
+  try {
+    const gitIgnoreFilePath = path.join(absTargetPath, ".gitignore");
 
-  if (fs.existsSync(gitIgnoreFilePath)) {
-    logger.warn(
-      `Existing .gitignore found at ${gitIgnoreFilePath}, skipping generation.`
+    if (fs.existsSync(gitIgnoreFilePath)) {
+      logger.warn(
+        `Existing .gitignore found at ${gitIgnoreFilePath}, skipping generation.`
+      );
+      return;
+    }
+
+    logger.info(`Writing .gitignore file to ${gitIgnoreFilePath}`);
+    fs.writeFileSync(gitIgnoreFilePath, content, "utf8");
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.FILE_IO_ERR,
+      {
+        errorKey: "fileutils-generate-git-ignore-file",
+        values: [absTargetPath],
+      },
+      err
     );
-
-    return;
   }
-
-  logger.info(`Writing .gitignore file to ${gitIgnoreFilePath}`);
-  fs.writeFileSync(gitIgnoreFilePath, content, "utf8");
 };
 
 /**

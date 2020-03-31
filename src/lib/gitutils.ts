@@ -4,6 +4,8 @@ import path from "path";
 import url from "url";
 import { logger } from "../logger";
 import { exec } from "./shell";
+import { build as buildError } from "./errorBuilder";
+import { errorStatusCode } from "./errorStatusCode";
 
 /**
  * For git urls that you may want to log only!
@@ -329,8 +331,11 @@ export const checkoutCommitPushCreatePRLink = async (
       );
     });
   } catch (err) {
-    logger.error(err);
-    throw err;
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      "git-checkout-commit-push-create-PR-link",
+      err
+    );
   }
 };
 

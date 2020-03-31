@@ -10,6 +10,8 @@ import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import decorator from "./init.decorator.json";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 // values that we need to pull out from command operator
 interface CommandOptions {
@@ -57,7 +59,10 @@ export const execute = async (
 ): Promise<void> => {
   try {
     if (!hasValue(hldRepoPath)) {
-      throw new Error("project path is not provided");
+      throw buildError(
+        errorStatusCode.VALIDATION_ERR,
+        "hld-init-cmd-project-path-missing"
+      );
     }
     await initialize(
       hldRepoPath,
@@ -68,10 +73,9 @@ export const execute = async (
     );
     await exitFn(0);
   } catch (err) {
-    logger.error(
-      `Error occurred while initializing hld repository ${hldRepoPath}`
+    logError(
+      buildError(errorStatusCode.CMD_EXE_ERR, "hld-init-cmd-failed", err)
     );
-    logger.error(err);
     await exitFn(1);
   }
 };
