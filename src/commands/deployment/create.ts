@@ -10,6 +10,8 @@ import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import decorator from "./create.decorator.json";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 /**
  * Command Line values from the commander
@@ -51,8 +53,9 @@ export const validateValues = (opts: CommandOptions): CreateConfig => {
     !hasValue(opts.partitionKey) ||
     !hasValue(opts.tableName)
   ) {
-    throw new Error(
-      "Access key, storage account name, partition key and/or table name are not provided"
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "introspect-create-cmd-missing-values"
     );
   }
 
@@ -74,8 +77,9 @@ export const handlePipeline1 = async (
     !hasValue(opts.commitId) ||
     !hasValue(opts.service)
   ) {
-    throw new Error(
-      "For updating the details of source pipeline, you must specify --image-tag, --commit-id and --service"
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "introspect-create-cmd-cmd-p1-missing-values"
     );
   }
   await addSrcToACRPipeline(
@@ -98,8 +102,9 @@ export const handlePipeline2 = async (
     !hasValue(opts.env) ||
     !hasValue(opts.imageTag)
   ) {
-    throw new Error(
-      "For updating the details of image tag release pipeline, you must specify --p2, --hld-commit-id, --image-tag and --env"
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "introspect-create-cmd-cmd-p2-missing-values"
     );
   }
   await updateACRToHLDPipeline(
@@ -155,11 +160,20 @@ export const execute = async (
         opts.repository
       );
     } else {
-      throw new Error("No action could be performed for specified arguments.");
+      throw buildError(
+        errorStatusCode.VALIDATION_ERR,
+        "introspect-create-cmd-no-ops"
+      );
     }
     await exitFn(0);
   } catch (err) {
-    logger.error(err);
+    logError(
+      buildError(
+        errorStatusCode.CMD_EXE_ERR,
+        "introspect-create-cmd-failed",
+        err
+      )
+    );
     await exitFn(1);
   }
 };

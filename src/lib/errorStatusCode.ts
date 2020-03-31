@@ -9,4 +9,5 @@ export enum errorStatusCode {
   FILE_IO_ERR = 1011,
   INCORRECT_DEFINITION = 1012,
   GIT_OPS_ERR = 1100,
+  AZURE_STORAGE_OP_ERR = 2000,
 }

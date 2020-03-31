@@ -2,6 +2,9 @@
 import * as azure from "azure-storage";
 import uuid from "uuid/v4";
 import { logger } from "../../logger";
+import { build as buildError } from "../errorBuilder";
+import { errorStatusCode } from "../errorStatusCode";
+
 /**
  * Deployment Table interface to hold necessary information about a table for deployments
  */
@@ -400,30 +403,38 @@ export const updateHLDToManifestPipeline = async (
   pr?: string,
   repository?: string
 ): Promise<RowHLDToManifestPipeline> => {
-  let entries = await findMatchingDeployments<EntryHLDToManifestPipeline>(
-    tableInfo,
-    "hldCommitId",
-    hldCommitId
-  );
-
-  // cannot find entries by hldCommitId.
-  // attempt to find entries by pr
-  if ((!entries || entries.length === 0) && pr) {
-    entries = await findMatchingDeployments<EntryHLDToManifestPipeline>(
+  try {
+    let entries = await findMatchingDeployments<EntryHLDToManifestPipeline>(
       tableInfo,
-      "pr",
-      pr
+      "hldCommitId",
+      hldCommitId
+    );
+
+    // cannot find entries by hldCommitId.
+    // attempt to find entries by pr
+    if ((!entries || entries.length === 0) && pr) {
+      entries = await findMatchingDeployments<EntryHLDToManifestPipeline>(
+        tableInfo,
+        "pr",
+        pr
+      );
+    }
+    return updateHLDtoManifestHelper(
+      entries,
+      tableInfo,
+      hldCommitId,
+      pipelineId,
+      manifestCommitId,
+      pr,
+      repository
+    );
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      "deployment-table-update-hld-manifest-pipeline-failed",
+      err
     );
   }
-  return updateHLDtoManifestHelper(
-    entries,
-    tableInfo,
-    hldCommitId,
-    pipelineId,
-    manifestCommitId,
-    pr,
-    repository
-  );
 };
 
 /**
@@ -664,27 +675,36 @@ export const updateManifestCommitId = async (
   manifestCommitId: string,
   repository?: string
 ): Promise<RowManifest> => {
-  const entries = await findMatchingDeployments<RowManifest>(
-    tableInfo,
-    "p3",
-    pipelineId
-  );
-  // Ideally there should only be one entry for every pipeline id
-  if (entries.length > 0) {
-    const entry = entries[0];
-    entry.manifestCommitId = manifestCommitId;
-    if (repository) {
-      entry.manifestRepo = repository.toLowerCase();
-    }
-    await updateEntryInTable(tableInfo, entry);
-    logger.info(
-      `Update manifest commit Id ${manifestCommitId} for pipeline Id ${pipelineId}`
+  try {
+    const entries = await findMatchingDeployments<RowManifest>(
+      tableInfo,
+      "p3",
+      pipelineId
     );
-    return entry;
+    // Ideally there should only be one entry for every pipeline id
+    if (entries.length > 0) {
+      const entry = entries[0];
+      entry.manifestCommitId = manifestCommitId;
+      if (repository) {
+        entry.manifestRepo = repository.toLowerCase();
+      }
+      await updateEntryInTable(tableInfo, entry);
+      logger.info(
+        `Update manifest commit Id ${manifestCommitId} for pipeline Id ${pipelineId}`
+      );
+      return entry;
+    }
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      "deployment-table-update-manifest-commit-id-failed",
+      err
+    );
   }
-  throw new Error(
-    `No manifest generation found to update manifest commit ${manifestCommitId}`
-  );
+  throw buildError(errorStatusCode.AZURE_STORAGE_OP_ERR, {
+    errorKey: "deployment-table-update-manifest-commit-id-failed-no-generation",
+    values: [manifestCommitId],
+  });
 };
 
 /**

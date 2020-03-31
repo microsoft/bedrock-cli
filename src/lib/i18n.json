@@ -16,11 +16,11 @@
     "storageKeVaultName": "Enter key vault name (have the value as empty and hit enter key to skip)"
   },
   "errors": {
-    "infra-scaffold-cmd-failed": "Infra scaffold Command was not successfully executed.",
+    "infra-scaffold-cmd-failed": "Infra scaffold command was not successfully executed.",
     "infra-scaffold-cmd-src-missing": "Value for source is required because it cannot be constructed with properties in spk-config.yaml. Provide value for source.",
     "infra-scaffold-cmd-values-missing": "Values for name, version and/or 'template were missing. Provide value for values for them.",
 
-    "infra-generate-cmd-failed": "Infra generate Command was not successfully executed.",
+    "infra-generate-cmd-failed": "Infra generate command was not successfully executed.",
 
     "infra-defn-yaml-not-found": "{0} was not found in {1}",
     "infra-defn-yaml-invalid": "The {0} file is invalid. There are missing fields. template: {1} source: {2} version: {3}.",
@@ -34,9 +34,19 @@
     "infra-err-git-clone-failed": "Could not clone the source remote repository. The remote repo might not exist or you did not have the rights to access it",
     "infra-git-source-no-exist": "Source path, {0} did not exist.",
 
-    "hld-append-var-group-cmd-failed": "HLD Append Variable Group Command was not successfully executed.",
+    "hld-append-var-group-cmd-failed": "HLD Append Variable Group command was not successfully executed.",
     "hld-append-var-group-name-missing": "Variable group name was not provided. Provide variable group.",
 
-    "fileutils-append-variable-group-to-pipeline-yaml": "Could not append variable group name to manifest-generation.yaml file in HLD repo. Check this is file exist and if it is YAML format."
+    "fileutils-append-variable-group-to-pipeline-yaml": "Could not append variable group name to manifest-generation.yaml file in HLD repo. Check this is file exist and if it is YAML format.",
+
+    "introspect-create-cmd-failed": "Deployment create command was not successfully executed.",
+    "introspect-create-cmd-no-ops": "No action could be performed for specified arguments.",
+    "introspect-create-cmd-missing-values": "Access key, storage account name, partition key and/or table name were not provided. Provide them.",
+    "introspect-create-cmd-cmd-p1-missing-values": "Values for image-tag, commit-id and service options were missing. They are required for updating the details of source pipeline. Provide them.",
+    "introspect-create-cmd-cmd-p2-missing-values": "Values for p2, hld-commit-id, image-tag and env options were missing. They are required For updating the details of image tag release pipeline. Provide them.",
+
+    "deployment-table-update-hld-manifest-pipeline-failed": "Could not update HLD to manifest pipeline.",
+    "deployment-table-update-manifest-commit-id-failed": "Could not update manifest commit Id.",
+    "deployment-table-update-manifest-commit-id-failed-no-generation": "No manifest generation found to update manifest commit {0}."
   }
 }
