@@ -572,7 +572,7 @@ export const fetchPRInformation = (
     const strPr = deployment.pr.toString();
 
     if (repo) {
-      const promise = fetchPR(repo, strPr, initObj.accountName);
+      const promise = fetchPR(repo, strPr, initObj.accessToken);
       promise.then((pr) => {
         if (pr) {
           pullRequests[strPr] = pr;
