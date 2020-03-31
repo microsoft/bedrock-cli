@@ -13,6 +13,7 @@ import * as projectService from "../lib/setup/projectService";
 import * as promptInstance from "../lib/setup/prompt";
 import * as scaffold from "../lib/setup/scaffold";
 import * as setupLog from "../lib/setup/setupLog";
+import * as azureStorage from "../lib/setup/azureStorage";
 import { deepClone } from "../lib/util";
 import { ConfigYaml } from "../types";
 import {
@@ -43,6 +44,27 @@ describe("test createSPKConfig function", () => {
     const data = readYaml<ConfigYaml>(tmpFile);
     expect(data.azure_devops).toStrictEqual({
       access_token: "pat",
+      hld_repository:
+        "https://dev.azure.com/orgname/project/_git/quick-start-hld",
+      manifest_repository:
+        "https://dev.azure.com/orgname/project/_git/quick-start-manifest",
+      org: "orgname",
+      project: "project",
+    });
+  });
+  it("positive test with toCreateAppRepo = false", () => {
+    const tmpFile = path.join(createTempDir(), "config.yaml");
+    jest.spyOn(config, "defaultConfigFile").mockReturnValueOnce(tmpFile);
+    const oData = deepClone(mockRequestContext);
+    oData.toCreateAppRepo = false;
+    createSPKConfig(oData);
+    const data = readYaml<ConfigYaml>(tmpFile);
+    expect(data.azure_devops).toStrictEqual({
+      access_token: "pat",
+      hld_repository:
+        "https://dev.azure.com/orgname/project/_git/quick-start-hld",
+      manifest_repository:
+        "https://dev.azure.com/orgname/project/_git/quick-start-manifest",
       org: "orgname",
       project: "project",
     });
@@ -53,7 +75,10 @@ describe("test createSPKConfig function", () => {
     const rc: RequestContext = deepClone(mockRequestContext);
     rc.toCreateAppRepo = true;
     rc.toCreateSP = true;
-    rc.servicePrincipalId = "1eba2d04-1506-4278-8f8c-b1eb2fc462a8";
+    (rc.storageAccountName = "storageAccount"),
+      (rc.storageTableName = "storageTable"),
+      (rc.storageAccountAccessKey = "storageAccessKey"),
+      (rc.servicePrincipalId = "1eba2d04-1506-4278-8f8c-b1eb2fc462a8");
     rc.servicePrincipalPassword = "e4c19d72-96d6-4172-b195-66b3b1c36db1";
     rc.servicePrincipalTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";
     rc.subscriptionId = "72f988bf-86f1-41af-91ab-2d7cd011db48";
@@ -62,15 +87,27 @@ describe("test createSPKConfig function", () => {
     const data = readYaml<ConfigYaml>(tmpFile);
     expect(data.azure_devops).toStrictEqual({
       access_token: "pat",
+      hld_repository:
+        "https://dev.azure.com/orgname/project/_git/quick-start-hld",
+      manifest_repository:
+        "https://dev.azure.com/orgname/project/_git/quick-start-manifest",
       org: "orgname",
       project: "project",
     });
     expect(data.introspection).toStrictEqual({
+      dashboard: {
+        image: "mcr.microsoft.com/k8s/bedrock/spektate:latest",
+        name: "spektate",
+      },
       azure: {
         service_principal_id: rc.servicePrincipalId,
         service_principal_secret: rc.servicePrincipalPassword,
         subscription_id: rc.subscriptionId,
         tenant_id: rc.servicePrincipalTenantId,
+        account_name: "storageAccount",
+        table_name: "storageTable",
+        key: "storageAccessKey",
+        partition_key: "quick-start-part-key",
       },
     });
   });
@@ -83,7 +120,7 @@ const testExecuteFunc = async (
   jest
     .spyOn(gitService, "getGitApi")
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .mockReturnValueOnce(Promise.resolve({} as any));
+    .mockResolvedValueOnce({} as any);
   jest.spyOn(fsUtil, "createDirectory").mockReturnValueOnce();
   jest.spyOn(scaffold, "hldRepo").mockResolvedValueOnce();
   jest.spyOn(scaffold, "manifestRepo").mockResolvedValueOnce();
@@ -99,39 +136,37 @@ const testExecuteFunc = async (
   if (usePrompt) {
     jest
       .spyOn(promptInstance, "prompt")
-      .mockReturnValueOnce(Promise.resolve(mockRequestContext));
+      .mockResolvedValueOnce(mockRequestContext);
   } else {
     jest
       .spyOn(promptInstance, "getAnswerFromFile")
       .mockReturnValueOnce(mockRequestContext);
   }
   jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
-  jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce(
-    Promise.resolve({
-      getCoreApi: async () => {
-        return {};
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any)
-  );
+  jest.spyOn(azdoClient, "getWebApi").mockResolvedValueOnce({
+    getCoreApi: async () => {
+      return {};
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any);
   jest
     .spyOn(azdoClient, "getBuildApi")
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .mockReturnValueOnce(Promise.resolve({} as any));
+    .mockResolvedValueOnce({} as any);
   if (hasProject) {
     jest
       .spyOn(projectService, "getProject")
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .mockReturnValueOnce(Promise.resolve({} as any));
+      .mockResolvedValueOnce({} as any);
   } else {
     jest
       .spyOn(projectService, "getProject")
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .mockReturnValueOnce(Promise.resolve(undefined as any));
+      .mockResolvedValueOnce(undefined as any);
   }
   const fncreateProject = jest
     .spyOn(projectService, "createProject")
-    .mockReturnValueOnce(Promise.resolve());
+    .mockResolvedValueOnce();
 
   if (usePrompt) {
     await execute(
@@ -176,19 +211,17 @@ describe("test execute function", () => {
     const exitFn = jest.fn();
     jest
       .spyOn(promptInstance, "prompt")
-      .mockReturnValueOnce(Promise.resolve(mockRequestContext));
+      .mockResolvedValueOnce(mockRequestContext);
     jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
-    jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce(
-      Promise.resolve({
-        getCoreApi: () => {
-          throw {
-            message: "Authentication failure",
-            statusCode: 401,
-          };
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
-    );
+    jest.spyOn(azdoClient, "getWebApi").mockResolvedValueOnce({
+      getCoreApi: () => {
+        throw {
+          message: "Authentication failure",
+          statusCode: 401,
+        };
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
     jest.spyOn(setupLog, "create").mockReturnValueOnce();
 
     await execute(
@@ -206,18 +239,16 @@ describe("test execute function", () => {
 
     jest
       .spyOn(promptInstance, "prompt")
-      .mockReturnValueOnce(Promise.resolve(mockRequestContext));
+      .mockResolvedValueOnce(mockRequestContext);
     jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
-    jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce(
-      Promise.resolve({
-        getCoreApi: () => {
-          throw {
-            message: "VS402392: ",
-          };
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
-    );
+    jest.spyOn(azdoClient, "getWebApi").mockResolvedValueOnce({
+      getCoreApi: () => {
+        throw {
+          message: "VS402392: ",
+        };
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
     jest.spyOn(setupLog, "create").mockReturnValueOnce();
 
     await execute(
@@ -235,18 +266,16 @@ describe("test execute function", () => {
 
     jest
       .spyOn(promptInstance, "prompt")
-      .mockReturnValueOnce(Promise.resolve(mockRequestContext));
+      .mockResolvedValueOnce(mockRequestContext);
     jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
-    jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce(
-      Promise.resolve({
-        getCoreApi: () => {
-          throw {
-            message: "other error",
-          };
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
-    );
+    jest.spyOn(azdoClient, "getWebApi").mockResolvedValueOnce({
+      getCoreApi: () => {
+        throw {
+          message: "other error",
+        };
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
     jest.spyOn(setupLog, "create").mockReturnValueOnce();
 
     await execute(
@@ -264,18 +293,16 @@ describe("test execute function", () => {
 
     jest
       .spyOn(promptInstance, "prompt")
-      .mockReturnValueOnce(Promise.resolve(mockRequestContext));
+      .mockResolvedValueOnce(mockRequestContext);
     jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
-    jest.spyOn(azdoClient, "getWebApi").mockReturnValueOnce(
-      Promise.resolve({
-        getCoreApi: () => {
-          throw {
-            message: "other error",
-          };
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
-    );
+    jest.spyOn(azdoClient, "getWebApi").mockResolvedValueOnce({
+      getCoreApi: () => {
+        throw {
+          message: "other error",
+        };
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
     await execute(
       {
         file: undefined,
@@ -323,10 +350,12 @@ const testCreateAppRepoTasks = async (prApproved = true): Promise<void> => {
     servicePrincipalTenantId: "tenant",
     subscriptionId: "12344",
     acrName: "acr",
+    storageAccountName: "storage",
     workspace: "dummy",
   };
 
   jest.spyOn(resourceService, "create").mockResolvedValueOnce(true);
+  jest.spyOn(azureStorage, "createStorage").mockResolvedValueOnce();
   jest
     .spyOn(azureContainerRegistryService, "create")
     .mockResolvedValueOnce(true);
@@ -340,6 +369,9 @@ const testCreateAppRepoTasks = async (prApproved = true): Promise<void> => {
     .mockResolvedValueOnce(prApproved);
   if (prApproved) {
     jest.spyOn(pipelineService, "createBuildPipeline").mockResolvedValueOnce();
+    jest
+      .spyOn(promptInstance, "promptForApprovingHLDPullRequest")
+      .mockResolvedValueOnce(prApproved);
   }
 
   const res = await createAppRepoTasks(

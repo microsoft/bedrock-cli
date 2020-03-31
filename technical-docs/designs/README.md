@@ -52,4 +52,5 @@ _Describe what documentation needs to be added or modified (if any)._
 
 ### Appendix
 
-_Reference any additional artifacts (docs, images, links) that would help give context to the proposed design._
+_Reference any additional artifacts (docs, images, links) that would help give
+context to the proposed design._

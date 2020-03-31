@@ -10,6 +10,8 @@ import {
   validateServicePrincipalPassword,
   validateServicePrincipalTenantId,
   validateSubscriptionId,
+  validateStorageAccountName,
+  validateStorageTableName,
 } from "../validator";
 import {
   ACR_NAME,
@@ -170,7 +172,7 @@ export const prompt = async (): Promise<RequestContext> => {
   return rc;
 };
 
-const validationServicePrincipalInfoFromFile = (
+export const validationServicePrincipalInfoFromFile = (
   rc: RequestContext,
   map: { [key: string]: string }
 ): void => {
@@ -247,6 +249,18 @@ export const getAnswerFromFile = (file: string): RequestContext => {
     throw new Error(vToken);
   }
 
+  const vStorageAccountName = validateStorageAccountName(
+    map.az_storage_account_name
+  );
+  if (typeof vStorageAccountName === "string") {
+    throw new Error(vStorageAccountName);
+  }
+
+  const vStorageTable = validateStorageTableName(map.az_storage_table);
+  if (typeof vStorageTable === "string") {
+    throw new Error(vStorageTable);
+  }
+
   const rc: RequestContext = {
     accessToken: map.azdo_pat,
     orgName: map.azdo_org_name,
@@ -255,6 +269,8 @@ export const getAnswerFromFile = (file: string): RequestContext => {
     servicePrincipalPassword: map.az_sp_password,
     servicePrincipalTenantId: map.az_sp_tenant,
     acrName: map.az_acr_name || ACR_NAME,
+    storageAccountName: map.az_storage_account_name,
+    storageTableName: map.az_storage_table,
     workspace: WORKSPACE,
   };
 
@@ -272,14 +288,8 @@ export const promptForApprovingHLDPullRequest = async (
     rc.projectName,
     HLD_REPO
   )}/pullrequest`;
-  const questions = [
-    {
-      default: true,
-      message: `Please approve and merge the Pull Request at ${urlPR}? Refresh the page if you do not see an active Pull Request.`,
-      name: "approve_hld_pr",
-      type: "confirm",
-    },
-  ];
-  const answers = await inquirer.prompt(questions);
+  const answers = await inquirer.prompt([
+    promptBuilder.approvingHLDPullRequest(urlPR),
+  ]);
   return !!answers.approve_hld_pr;
 };

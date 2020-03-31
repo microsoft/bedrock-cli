@@ -14,7 +14,10 @@ import { logger } from "../../logger";
 import { AzureAccessOpts } from "../../types";
 import { getManagementCredentials } from "./azurecredentials";
 
-let storageManagementClient: StorageManagementClient | undefined; // singleton Storage Management Client so it can be reused
+// for caching Storage Management Client so it can be reused
+// so we need not have to fetch client every time.
+// there is an huge overhead in fetching it.
+let storageManagementClient: StorageManagementClient | undefined;
 
 /**
  * Creates  Azure storage management client
@@ -92,7 +95,7 @@ export const getStorageAccountKeys = async (
   }
 
   if (errors.length !== 0) {
-    throw new Error(`\n${errors.join("\n")}`);
+    throw Error(`\n${errors.join("\n")}`);
   }
 
   const storageAccountKeys: string[] = [];
@@ -182,7 +185,7 @@ export const getStorageAccount = async (
   }
 
   if (errors.length !== 0) {
-    throw new Error(`\n${errors.join("\n")}`);
+    throw Error(`\n${errors.join("\n")}`);
   }
 
   const message = `Azure storage account ${accountName} in resource group ${resourceGroup}`;
@@ -239,7 +242,7 @@ export const isStorageAccountExist = async (
   }
 
   if (errors.length !== 0) {
-    throw new Error(`\n${errors.join("\n")}`);
+    throw Error(`\n${errors.join("\n")}`);
   }
 
   const message = `Azure storage account ${accountName} in resource group ${resourceGroup}`;
@@ -278,7 +281,7 @@ const validateInputsForCreateAccount = (
     errors.push(`Invalid location`);
   }
   if (errors.length !== 0) {
-    throw new Error(`\n${errors.join("\n")}`);
+    throw Error(`\n${errors.join("\n")}`);
   }
 };
 
@@ -314,7 +317,7 @@ export const createStorageAccount = async (
     if (response.nameAvailable === false) {
       const nameErrorMessage = `Storage account name ${accountName} is not available. Please choose a different name.`;
       logger.error(nameErrorMessage);
-      throw new Error(nameErrorMessage);
+      throw Error(nameErrorMessage);
     }
 
     logger.verbose(`Storage account name ${accountName} is available`);
@@ -369,7 +372,7 @@ export const getStorageAccountKey = async (
   }
 
   if (errors.length !== 0) {
-    throw new Error(`\n${errors.join("\n")}`);
+    throw Error(`\n${errors.join("\n")}`);
   }
 
   try {
@@ -422,7 +425,7 @@ const validateValuesForCreateStorageTable = (
   }
 
   if (errors.length !== 0) {
-    throw new Error(`\n${errors.join("\n")}`);
+    throw Error(`\n${errors.join("\n")}`);
   }
 };
 
@@ -437,8 +440,8 @@ export const createTableIfNotExists = (
   accountName: string,
   tableName: string,
   accessKey: string
-): Promise<boolean | undefined> => {
-  return new Promise<boolean | undefined>((resolve, reject) => {
+): Promise<boolean> => {
+  return new Promise<boolean>((resolve, reject) => {
     try {
       validateValuesForCreateStorageTable(accountName, tableName);
       const createTblService = storage.createTableService(
@@ -452,9 +455,10 @@ export const createTableIfNotExists = (
             `Unable to create table in storage account ${accountName} \n ${err}`
           );
           reject(err);
+        } else {
+          logger.debug(`table result: ${JSON.stringify(result)}`);
+          resolve(result.created);
         }
-        logger.debug(`table result: ${JSON.stringify(result)}`);
-        resolve(result.created);
       });
     } catch (err) {
       reject(err);
@@ -467,7 +471,6 @@ export const createTableIfNotExists = (
  *
  * @param name The Azure resource group name
  * @param location The Azure resource group location
- *
  */
 export const createResourceGroupIfNotExists = async (
   name: string,
@@ -485,7 +488,7 @@ export const createResourceGroupIfNotExists = async (
   }
 
   if (errors.length !== 0) {
-    throw new Error(`\n${errors.join("\n")}`);
+    throw Error(`\n${errors.join("\n")}`);
   }
 
   const message = `Azure resource group ${name} in ${location} location`;

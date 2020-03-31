@@ -22,6 +22,8 @@ export const create = (rc: RequestContext | undefined, file?: string): void => {
       `az_sp_tenant=${rc.servicePrincipalTenantId || ""}`,
       `az_subscription_id=${rc.subscriptionId || ""}`,
       `az_acr_name=${rc.acrName || ""}`,
+      `az_storage_account_name=${rc.storageAccountName || ""}`,
+      `az_storage_table=${rc.storageTableName || ""}`,
       `workspace: ${rc.workspace}`,
       `Project Created: ${getBooleanVal(rc.createdProject)}`,
       `High Level Definition Repo Scaffolded: ${getBooleanVal(rc.scaffoldHLD)}`,
@@ -38,12 +40,24 @@ export const create = (rc: RequestContext | undefined, file?: string): void => {
       )}`,
       `Build Pipeline Created: ${getBooleanVal(rc.createdBuildPipeline)}`,
       `ACR Created: ${getBooleanVal(rc.createdACR)}`,
+      `Storage Account Created: ${getBooleanVal(rc.createdStorageAccount)}`,
+      `Storage Table Created: ${getBooleanVal(rc.createdStorageTable)}`
     ];
     if (rc.error) {
       buff.push(`Error: ${rc.error}`);
       buff.push("Status: Incomplete");
     } else {
       buff.push("Status: Completed");
+    }
+
+    console.log("");
+    console.log(buff.join("\n"));
+    console.log("");
+
+    if (rc.toCreateAppRepo && !rc.error) {
+      console.log(
+        `type "spk deployment get" or "spk deployment dashboard" command to view deployments information.`
+      );
     }
 
     fs.writeFileSync(file, buff.join("\n"));

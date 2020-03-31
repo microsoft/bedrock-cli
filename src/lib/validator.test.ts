@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
 import path from "path";
 import { Config, loadConfiguration } from "../config";
 import {
@@ -117,9 +115,15 @@ const testValidatePrereqs = (
 
   if (global) {
     const config = Config();
-    expect(config.infra!).toBeDefined();
-    expect(config.infra!.checks).toBeDefined();
-    expect(config.infra!.checks![cmd]!).toBe(expectedResult);
+    expect(config.infra).toBeDefined();
+
+    if (config.infra) {
+      expect(config.infra.checks).toBeDefined();
+
+      if (config.infra.checks) {
+        expect(config.infra.checks[cmd]).toBe(expectedResult);
+      }
+    }
   } else {
     expect(result).toBe(expectedResult);
   }

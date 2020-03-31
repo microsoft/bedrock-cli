@@ -5,7 +5,9 @@ import simpleGit from "simple-git/promise";
 import * as cmdCreateVariableGroup from "../../commands/project/create-variable-group";
 import * as projectInit from "../../commands/project/init";
 import * as createService from "../../commands/service/create";
+import * as fileutils from "../../lib/fileutils";
 import * as variableGroup from "../../lib/pipelines/variableGroup";
+import * as sVariableGroup from "../setup/variableGroup";
 import { createTempDir } from "../ioUtil";
 import {
   APP_REPO,
@@ -76,6 +78,10 @@ describe("test hldRepo function", () => {
     jest
       .spyOn(gitService, "commitAndPushToRemote")
       .mockReturnValueOnce({} as any);
+    jest
+      .spyOn(fileutils, "appendVariableGroupToPipelineYaml")
+      .mockReturnValueOnce();
+
     const git = simpleGit();
     git.init = jest.fn();
 
@@ -173,7 +179,7 @@ describe("test appRepo function", () => {
     jest
       .spyOn(variableGroup, "deleteVariableGroup")
       .mockResolvedValueOnce(true);
-    jest.spyOn(cmdCreateVariableGroup, "create").mockResolvedValueOnce({});
+    jest.spyOn(sVariableGroup, "create").mockResolvedValueOnce();
     jest
       .spyOn(cmdCreateVariableGroup, "setVariableGroupInBedrockFile")
       .mockReturnValueOnce();

@@ -16,9 +16,9 @@ interface CommandElement extends CommandBuildElements {
 // add this content into the json file
 const getAllDecorators = (curDir: string): CommandBuildElements[] => {
   const allFiles = fs.readdirSync(curDir);
-  const jsonFiles = allFiles.filter(f => f.endsWith(".json"));
+  const jsonFiles = allFiles.filter((f) => f.endsWith(".json"));
   const arrJson: CommandElement[] = [];
-  jsonFiles.forEach(fileName => {
+  jsonFiles.forEach((fileName) => {
     const json = require(path.join(curDir, fileName)) as CommandElement;
     if (!json.disabled) {
       const mdPath = path.join(
@@ -38,8 +38,8 @@ const getAllDecorators = (curDir: string): CommandBuildElements[] => {
 const getSubDirectories = (curDir: string): string[] => {
   return fs
     .readdirSync(curDir)
-    .map(f => path.join(curDir, f))
-    .filter(p => fs.lstatSync(p).isDirectory());
+    .map((f) => path.join(curDir, f))
+    .filter((p) => fs.lstatSync(p).isDirectory());
 };
 
 // get the list of command from the array of
@@ -49,14 +49,14 @@ const listCommands = (
   allCommands: Command[]
 ): { [key: string]: CommandBuildElements } => {
   const mainCommands: { [key: string]: CommandBuildElements } = {};
-  allCommands.forEach(cmd => {
+  allCommands.forEach((cmd) => {
     let level1 = cmd.command;
     if (level1 === "commands") {
       level1 = "";
     } else {
       level1 = level1 + " ";
     }
-    cmd.subcommands.forEach(c => {
+    cmd.subcommands.forEach((c) => {
       const key = `${level1}${c.command.replace(/ .+/, "")}`;
       mainCommands[key] = c;
     });
@@ -69,13 +69,13 @@ const commandDirs = getSubDirectories(dir);
 commandDirs.unshift(dir); // this is needed because `spk init` is outside `commands` folder
 
 const commands: Command[] = commandDirs
-  .map(d => {
+  .map((d) => {
     return {
       command: path.basename(d),
-      subcommands: getAllDecorators(d)
+      subcommands: getAllDecorators(d),
     };
   })
-  .filter(item => item.subcommands.length > 0);
+  .filter((item) => item.subcommands.length > 0);
 
 const mapCommands = listCommands(commands);
 
