@@ -3,13 +3,13 @@ import {
   RESOURCE_GROUP,
   STORAGE_ACCOUNT_NAME,
   STORAGE_TABLE_NAME,
-  RESOURCE_GROUP_LOCATION
+  RESOURCE_GROUP_LOCATION,
 } from "./constants";
 import {
   createStorageAccount as createAccount,
   createTableIfNotExists,
   getStorageAccount,
-  getStorageAccountKey
+  getStorageAccountKey,
 } from "../azure/storage";
 import * as promptBuilder from "../promptBuilder";
 import inquirer from "inquirer";
@@ -46,7 +46,7 @@ export const tryToCreateStorageAccount = async (
   let res = await createStorageAccount(rc.storageAccountName);
   while (res === undefined) {
     const ans = await inquirer.prompt([
-      promptBuilder.azureStorageAccountName()
+      promptBuilder.azureStorageAccountName(),
     ]);
     rc.storageAccountName = ans.azdo_storage_account_name as string;
     res = await createStorageAccount(rc.storageAccountName);

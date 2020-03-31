@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { SecretClient } from "@azure/keyvault-secrets";
 import { logger } from "../../logger";
 import { AzureAccessOpts } from "../../types";
@@ -30,6 +29,7 @@ export const getClient = async (
 ): Promise<SecretClient> => {
   const url = `https://${keyVaultName}.vault.azure.net`;
   const credentials = await getCredentials(opts);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   return new SecretClient(url, credentials!);
 };
 

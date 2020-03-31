@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as azdo from "azure-devops-node-api";
 import { IGitApi } from "azure-devops-node-api/GitApi";
 import AZGitInterfaces, {
@@ -87,7 +86,7 @@ export const generatePRUrl = async (
   ) {
     const gitAPI = await GitAPI();
     const parentRepo = await gitAPI.getRepository(pr.repository.id);
-    return `${parentRepo.webUrl!}/pullrequest/${pr.pullRequestId}`;
+    return `${parentRepo.webUrl}/pullrequest/${pr.pullRequestId}`;
   }
   throw Error(
     `Failed to generate PR URL; PR did not contain a valid repository ID`
@@ -170,10 +169,11 @@ export const getMatchingBranch = async (
     await Promise.all(
       reposWithMatchingOrigin.map(async (repo) => {
         logger.info(`Retrieving branches for repository '${repo.name}'`);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const branches = await gitAPI.getBranches(repo.id!);
         return {
           branches: branches.filter((branch) => {
-            return [sourceRef, targetRef].includes(branch.name!);
+            return branch.name && [sourceRef, targetRef].includes(branch.name);
           }),
           repo,
         };
@@ -219,6 +219,7 @@ const handleErrorForCreatePullRequest = async (
       targetRefName: `refs/heads/${targetRef}`,
     };
     const existingPRs = await gitAPI.getPullRequests(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       repoToPRAgainst.id!,
       searchCriteria
     );
@@ -275,12 +276,13 @@ export const createPullRequest = async (
   );
 
   logger.info(
-    `Creating pull request in repository '${repoToPRAgainst.name!}' to merge branch '${sourceRef}' into '${targetRef}'`
+    `Creating pull request in repository '${repoToPRAgainst.name}' to merge branch '${sourceRef}' into '${targetRef}'`
   );
 
   try {
     const createdPR = await gitAPI.createPullRequest(
       prConfig,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       repoToPRAgainst.id!
     );
     logger.info(

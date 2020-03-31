@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import GitUrlParse from "git-url-parse";
 import path from "path";
 import url from "url";
@@ -115,21 +114,6 @@ export const pushBranch = async (branchName: string): Promise<void> => {
 };
 
 /**
- * Tries to fetch the Git origin from an AzDo set environment variable, else falls back to fetching it from Git directly.
- * @param absRepoPath The Absolute Path to the Repository to fetch the origin url.
- */
-export const tryGetGitOrigin = async (
-  absRepoPath?: string
-): Promise<string> => {
-  return getAzdoOriginUrl().catch(() => {
-    logger.warn(
-      "Could not get Git Origin for Azure DevOps - are you running 'spk' _not_ in a pipeline?"
-    );
-    return getOriginUrl(absRepoPath);
-  });
-};
-
-/**
  * Gets the origin url.
  * @param absRepositoryPath The Absolute Path to the Repository to fetch the origin
  */
@@ -164,6 +148,21 @@ export const getAzdoOriginUrl = async (): Promise<string> => {
   } catch (error) {
     throw Error(`Unable to get azdo origin URL: ${error}`);
   }
+};
+
+/**
+ * Tries to fetch the Git origin from an AzDo set environment variable, else falls back to fetching it from Git directly.
+ * @param absRepoPath The Absolute Path to the Repository to fetch the origin url.
+ */
+export const tryGetGitOrigin = async (
+  absRepoPath?: string
+): Promise<string> => {
+  return getAzdoOriginUrl().catch(() => {
+    logger.warn(
+      "Could not get Git Origin for Azure DevOps - are you running 'spk' _not_ in a pipeline?"
+    );
+    return getOriginUrl(absRepoPath);
+  });
 };
 
 /**

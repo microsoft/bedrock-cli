@@ -1,10 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-  GetSecretOptions,
-  KeyVaultSecret,
-  SecretClient,
-  SetSecretOptions,
-} from "@azure/keyvault-secrets";
+import { KeyVaultSecret } from "@azure/keyvault-secrets";
 import uuid from "uuid/v4";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { getSecret, setSecret } from "./keyvault";
@@ -16,10 +10,7 @@ const secretValue = uuid();
 
 jest.spyOn(keyvault, "getClient").mockReturnValue(
   Promise.resolve({
-    getSecret: async (
-      secretName: string,
-      options?: GetSecretOptions
-    ): Promise<KeyVaultSecret> => {
+    getSecret: async (): Promise<KeyVaultSecret> => {
       return {
         name: "test",
         properties: {
@@ -29,11 +20,7 @@ jest.spyOn(keyvault, "getClient").mockReturnValue(
         value: "secretValue",
       };
     },
-    setSecret: async (
-      secretName: string,
-      value: string,
-      options?: SetSecretOptions
-    ): Promise<KeyVaultSecret> => {
+    setSecret: async (): Promise<KeyVaultSecret> => {
       return {
         name: "test",
         properties: {
@@ -42,7 +29,8 @@ jest.spyOn(keyvault, "getClient").mockReturnValue(
         },
       };
     },
-  } as SecretClient)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any)
 );
 
 beforeAll(() => {
@@ -67,14 +55,11 @@ describe("set secret", () => {
   test("negative test", async () => {
     jest.spyOn(keyvault, "getClient").mockReturnValueOnce(
       Promise.resolve({
-        setSecret: (
-          secretName: string,
-          value: string,
-          options?: SetSecretOptions
-        ): Promise<KeyVaultSecret> => {
+        setSecret: (): Promise<KeyVaultSecret> => {
           throw new Error("fake error");
         },
-      } as SecretClient)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
     );
     try {
       await setSecret(keyVaultName, mockedName, secretValue);
@@ -100,16 +85,14 @@ describe("get secret", () => {
   it("negative test: secret not found", async () => {
     jest.spyOn(keyvault, "getClient").mockReturnValueOnce(
       Promise.resolve({
-        getSecret: (
-          secretName: string,
-          options?: GetSecretOptions
-        ): Promise<KeyVaultSecret> => {
+        getSecret: (): Promise<KeyVaultSecret> => {
           throw {
             code: "SecretNotFound",
             statusCode: 404,
           };
         },
-      } as SecretClient)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
     );
     try {
       const val = await getSecret(keyVaultName, mockedName);
@@ -121,16 +104,14 @@ describe("get secret", () => {
   it("negative test: other errors", async () => {
     jest.spyOn(keyvault, "getClient").mockReturnValueOnce(
       Promise.resolve({
-        getSecret: (
-          secretName: string,
-          options?: GetSecretOptions
-        ): Promise<KeyVaultSecret> => {
+        getSecret: (): Promise<KeyVaultSecret> => {
           throw {
             code: "something else",
             statusCode: 400,
           };
         },
-      } as SecretClient)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
     );
     try {
       await getSecret(keyVaultName, mockedName);

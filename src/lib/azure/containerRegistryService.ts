@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { ContainerRegistryManagementClient } from "@azure/arm-containerregistry";
 import { loginWithServicePrincipalSecret } from "@azure/ms-rest-nodeauth";
 import { logger } from "../../logger";
@@ -64,10 +63,12 @@ export const getContainerRegistries = async (
   const registries = await client.registries.list();
   logger.info("Successfully acquired Azure container registries");
   return registries.map((r) => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const id = r.id! as string;
     const match = id.match(/\/resourceGroups\/(.+?)\//);
     return {
       id,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       name: r.name!,
       resourceGroup: match ? match[1] : "",
     };

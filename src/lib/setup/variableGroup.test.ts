@@ -14,7 +14,7 @@ const mockRequestContext: RequestContext = {
   servicePrincipalTenantId: "servicePrincipalTenantId",
   storageAccountAccessKey: "storageAccountAccessKey",
   storageAccountName: "storageAccountName",
-  storageTableName: "storageTableName"
+  storageTableName: "storageTableName",
 };
 
 describe("test create function", () => {
@@ -39,9 +39,9 @@ describe("test createVariableData function", () => {
       "servicePrincipalTenantId",
       "storageAccountAccessKey",
       "storageAccountName",
-      "storageTableName"
+      "storageTableName",
     ];
-    properties.forEach(prop => {
+    properties.forEach((prop) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const clone = deepClone(mockRequestContext) as any;
       delete clone[prop];

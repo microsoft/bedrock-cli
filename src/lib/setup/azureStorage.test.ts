@@ -3,7 +3,7 @@ import {
   createStorage,
   createStorageAccount,
   tryToCreateStorageAccount,
-  waitForStorageAccountToBeProvisioned
+  waitForStorageAccountToBeProvisioned,
 } from "./azureStorage";
 import * as azureStorage from "./azureStorage";
 import { RequestContext } from "./constants";
@@ -12,7 +12,7 @@ import * as azure from "../azure/storage";
 const testCreateStorage = async (positive: boolean): Promise<void> => {
   jest.spyOn(azureStorage, "tryToCreateStorageAccount").mockImplementationOnce(
     (rc: RequestContext): Promise<void> => {
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         rc.createdStorageAccount = true;
         resolve();
       });
@@ -29,7 +29,7 @@ const testCreateStorage = async (positive: boolean): Promise<void> => {
     orgName: "notUsed",
     projectName: "notUsed",
     accessToken: "notUsed",
-    workspace: "notUsed"
+    workspace: "notUsed",
   };
 
   if (positive) {
@@ -63,7 +63,7 @@ describe("test tryToCreateStorageAccount function", () => {
       orgName: "notUsed",
       projectName: "notUsed",
       accessToken: "notUsed",
-      workspace: "notUsed"
+      workspace: "notUsed",
     };
     await tryToCreateStorageAccount(rc);
     expect(rc.createdStorageAccount).toBeTruthy();
@@ -77,7 +77,7 @@ describe("test tryToCreateStorageAccount function", () => {
       .mockResolvedValueOnce(true);
     jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
       // eslint-disable-next-line @typescript-eslint/camelcase
-      azdo_storage_account_name: "teststore"
+      azdo_storage_account_name: "teststore",
     });
     jest
       .spyOn(azureStorage, "waitForStorageAccountToBeProvisioned")
@@ -87,7 +87,7 @@ describe("test tryToCreateStorageAccount function", () => {
       orgName: "notUsed",
       projectName: "notUsed",
       accessToken: "notUsed",
-      workspace: "notUsed"
+      workspace: "notUsed",
     };
     await tryToCreateStorageAccount(rc);
     expect(rc.createdStorageAccount).toBeTruthy();
@@ -126,7 +126,7 @@ describe("test waitForStorageAccountToBeProvisioned function", () => {
     const fn = jest.spyOn(azure, "getStorageAccount");
     fn.mockReset();
     fn.mockResolvedValueOnce({
-      provisioningState: "Succeeded"
+      provisioningState: "Succeeded",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
     await waitForStorageAccountToBeProvisioned("dummy");
@@ -137,12 +137,12 @@ describe("test waitForStorageAccountToBeProvisioned function", () => {
     fn.mockReset();
 
     fn.mockResolvedValueOnce({
-      provisioningState: ""
+      provisioningState: "",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     fn.mockResolvedValueOnce({
-      provisioningState: "Succeeded"
+      provisioningState: "Succeeded",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 

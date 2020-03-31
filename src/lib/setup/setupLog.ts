@@ -41,7 +41,7 @@ export const create = (rc: RequestContext | undefined, file?: string): void => {
       `Build Pipeline Created: ${getBooleanVal(rc.createdBuildPipeline)}`,
       `ACR Created: ${getBooleanVal(rc.createdACR)}`,
       `Storage Account Created: ${getBooleanVal(rc.createdStorageAccount)}`,
-      `Storage Table Created: ${getBooleanVal(rc.createdStorageTable)}`
+      `Storage Table Created: ${getBooleanVal(rc.createdStorageTable)}`,
     ];
     if (rc.error) {
       buff.push(`Error: ${rc.error}`);

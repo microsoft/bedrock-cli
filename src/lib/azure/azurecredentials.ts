@@ -1,10 +1,22 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { ClientSecretCredential } from "@azure/identity";
 import * as msRestNodeAuth from "@azure/ms-rest-nodeauth";
 import { Config } from "../../config";
 import { logger } from "../../logger";
 import { AzureAccessOpts } from "../../types";
+
+const verifyConfigDefined = (
+  servicePrincipalId?: string,
+  servicePrincipalPassword?: string,
+  tenantId?: string
+): boolean => {
+  if (servicePrincipalId && servicePrincipalPassword && tenantId) {
+    return true;
+  }
+  logger.error(
+    `Configuration is missing required fields tenant_id, service_principal_id and service_principal_secret. Please run the init command`
+  );
+  return false;
+};
 
 /**
  * Create an instance of `ClientSecretCredential` and returns for Azure data plane activities
@@ -34,9 +46,14 @@ export const getCredentials = async (
   ) {
     return undefined;
   }
+
+  // verifyConfigDefined has confirmed that these values are defined.
   return new ClientSecretCredential(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     tenantId!,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     servicePrincipalId!,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     servicePrincipalPassword!
   );
 };
@@ -68,23 +85,13 @@ export const getManagementCredentials = async (
     return undefined;
   }
 
+  // verifyConfigDefined has confirmed that these values are defined.
   return msRestNodeAuth.loginWithServicePrincipalSecret(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     servicePrincipalId!,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     servicePrincipalPassword!,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     tenantId!
   );
-};
-
-const verifyConfigDefined = (
-  servicePrincipalId?: string,
-  servicePrincipalPassword?: string,
-  tenantId?: string
-): boolean => {
-  if (servicePrincipalId && servicePrincipalPassword && tenantId) {
-    return true;
-  }
-  logger.error(
-    `Configuration is missing required fields tenant_id, service_principal_id and service_principal_secret. Please run the init command`
-  );
-  return false;
 };

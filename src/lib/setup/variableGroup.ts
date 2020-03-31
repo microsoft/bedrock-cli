@@ -26,40 +26,40 @@ export const createVariableData = (
   validateData(rc);
   return {
     ACR_NAME: {
-      value: rc.acrName
+      value: rc.acrName,
     },
     HLD_REPO: {
-      value: getAzureRepoUrl(rc.orgName, rc.projectName, HLD_REPO)
+      value: getAzureRepoUrl(rc.orgName, rc.projectName, HLD_REPO),
     },
     PAT: {
       isSecret: true,
-      value: rc.accessToken
+      value: rc.accessToken,
     },
     SP_APP_ID: {
       isSecret: true,
-      value: rc.servicePrincipalId
+      value: rc.servicePrincipalId,
     },
     SP_PASS: {
       isSecret: true,
-      value: rc.servicePrincipalPassword
+      value: rc.servicePrincipalPassword,
     },
     SP_TENANT: {
       isSecret: true,
-      value: rc.servicePrincipalTenantId
+      value: rc.servicePrincipalTenantId,
     },
     INTROSPECTION_ACCOUNT_KEY: {
       isSecret: true,
-      value: rc.storageAccountAccessKey
+      value: rc.storageAccountAccessKey,
     },
     INTROSPECTION_ACCOUNT_NAME: {
-      value: rc.storageAccountName
+      value: rc.storageAccountName,
     },
     INTROSPECTION_PARTITION_KEY: {
-      value: STORAGE_PARTITION_KEY
+      value: STORAGE_PARTITION_KEY,
     },
     INTROSPECTION_TABLE_NAME: {
-      value: rc.storageTableName
-    }
+      value: rc.storageTableName,
+    },
   };
 };
 
@@ -73,6 +73,6 @@ export const create = async (
     description: "Created by spk quick start command",
     name,
     type: "Vsts",
-    variables: createVariableData(rc)
+    variables: createVariableData(rc),
   });
 };

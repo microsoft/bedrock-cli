@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
 import { WebApi } from "azure-devops-node-api";
 import uuid from "uuid/v4";
 import { Config } from "../../config";
@@ -145,7 +143,9 @@ describe("createPullRequest", () => {
       expect(true).toBe(false);
     } catch (err) {
       expect(err).toBeDefined();
-      expect(err!.message).toMatch(/0 repositories found with remote url/);
+      if (err) {
+        expect(err.message).toMatch(/0 repositories found with remote url/);
+      }
     }
 
     gitApi.getBranches = originalBranches;
@@ -163,7 +163,7 @@ describe("createPullRequest", () => {
   });
   it("negative test", async () => {
     gitApi.createPullRequest = async (): Promise<unknown> => {
-      throw new Error("fake");
+      throw Error("fake");
     };
 
     await expect(
@@ -175,7 +175,7 @@ describe("createPullRequest", () => {
   });
   it("negative test: TF401179 error", async () => {
     gitApi.createPullRequest = async (): Promise<unknown> => {
-      throw new Error("TF401179");
+      throw Error("TF401179");
     };
 
     await expect(
