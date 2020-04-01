@@ -14,8 +14,9 @@ import {
   checkDependencies,
   execute,
   fetchValidateValues,
-  CommandOptions,
+  ConfigValues,
   installLifecyclePipeline,
+  CommandOptions,
 } from "./pipeline";
 import { deepClone } from "../../lib/util";
 
@@ -29,7 +30,7 @@ afterAll(() => {
 
 const gitUrl = "https://github.com/CatalystCode/spk.git";
 
-const mockValues: CommandOptions = {
+const mockValues: ConfigValues = {
   buildScriptUrl: "buildScriptUrl",
   devopsProject: "azDoProject",
   orgName: "orgName",
@@ -40,7 +41,7 @@ const mockValues: CommandOptions = {
   yamlFileBranch: "master",
 };
 
-jest.spyOn(azdo, "validateRepository").mockReturnValue(Promise.resolve());
+jest.spyOn(azdo, "validateRepository").mockResolvedValue();
 
 const mockMissingValues: CommandOptions = {
   buildScriptUrl: undefined,

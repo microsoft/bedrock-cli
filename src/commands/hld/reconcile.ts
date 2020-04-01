@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/camelcase
 import child_process from "child_process";
 import commander from "commander";
 import fs from "fs";
@@ -28,7 +27,6 @@ import { errorStatusCode } from "../../lib/errorStatusCode";
  * reject()
  */
 interface ExecResult {
-  // eslint-disable-next-line @typescript-eslint/camelcase
   error?: child_process.ExecException;
   value?: { stdout: string; stderr: string };
 }
@@ -43,7 +41,6 @@ interface ExecResult {
  */
 const exec = async (cmd: string, pipeIO = false): Promise<ExecResult> => {
   return new Promise<ExecResult>((resolve) => {
-    // eslint-disable-next-line @typescript-eslint/camelcase
     const child = child_process.exec(cmd, (error, stdout, stderr) => {
       return resolve({
         error: error ?? undefined,

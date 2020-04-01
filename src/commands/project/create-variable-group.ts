@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
-
 import { VariableGroup } from "azure-devops-node-api/interfaces/ReleaseInterfaces";
 import commander from "commander";
 import path from "path";
@@ -53,118 +51,6 @@ export const checkDependencies = (projectPath: string): void => {
 export const validateValues = (projectName: string, orgName: string): void => {
   validateProjectNameThrowable(projectName);
   validateOrgNameThrowable(orgName);
-};
-
-/**
- * Executes the command.
- *
- * @param variableGroupName Variable Group Name
- * @param opts Option object from command
- */
-export const execute = async (
-  variableGroupName: string,
-  opts: CommandOptions,
-  exitFn: (status: number) => Promise<void>
-): Promise<void> => {
-  if (!hasValue(variableGroupName)) {
-    await exitFn(1);
-    return;
-  }
-
-  try {
-    const projectPath = process.cwd();
-    logger.verbose(`project path: ${projectPath}`);
-
-    checkDependencies(projectPath);
-
-    const { azure_devops } = Config();
-
-    const {
-      registryName,
-      servicePrincipalId,
-      servicePrincipalPassword,
-      tenant,
-      hldRepoUrl = azure_devops?.hld_repository,
-      orgName = azure_devops?.org,
-      personalAccessToken = azure_devops?.access_token,
-      devopsProject = azure_devops?.project,
-    } = opts;
-
-    const accessOpts: AzureDevOpsOpts = {
-      orgName,
-      personalAccessToken,
-      project: devopsProject,
-    };
-
-    logger.debug(`access options: ${JSON.stringify(accessOpts)}`);
-
-    const errors = validateForRequiredValues(decorator, {
-      devopsProject,
-      hldRepoUrl,
-      orgName,
-      personalAccessToken,
-      registryName,
-      servicePrincipalId,
-      servicePrincipalPassword,
-      tenant,
-    });
-
-    if (errors.length !== 0) {
-      await exitFn(1);
-      return;
-    }
-
-    // validateForRequiredValues assure that devopsProject
-    // and orgName are not empty string
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    validateValues(devopsProject!, orgName!);
-
-    const variableGroup = await create(
-      variableGroupName,
-      registryName,
-      hldRepoUrl,
-      servicePrincipalId,
-      servicePrincipalPassword,
-      tenant,
-      accessOpts
-    );
-
-    // set the variable group name
-    // variableGroup.name is set at this point that's it should have value
-    // and not empty string or undefined. having || "" is just to avoid
-    // eslint error
-    setVariableGroupInBedrockFile(projectPath, variableGroup.name || "");
-
-    // update hld-lifecycle.yaml with variable groups in bedrock.yaml
-    updateLifeCyclePipeline(projectPath);
-
-    // print newly created variable group
-    echo(JSON.stringify(variableGroup, null, 2));
-
-    logger.info(
-      "Successfully created a variable group in Azure DevOps project!"
-    );
-    await exitFn(0);
-  } catch (err) {
-    logger.error(`Error occurred while creating variable group`);
-    logger.error(err);
-    await exitFn(1);
-  }
-};
-
-/**
- * Adds the create command to the variable-group command object
- *
- * @param command Commander command object to decorate
- */
-export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(
-    async (variableGroupName: string, opts: CommandOptions) => {
-      await execute(variableGroupName, opts, async (status: number) => {
-        await exitCmd(logger, process.exit, status);
-      });
-    }
-  );
 };
 
 /**
@@ -318,4 +204,116 @@ export const updateLifeCyclePipeline = (rootProjectPath: string): void => {
 
   // Write out
   write(pipelineFile, absProjectRoot, fileName);
+};
+
+/**
+ * Executes the command.
+ *
+ * @param variableGroupName Variable Group Name
+ * @param opts Option object from command
+ */
+export const execute = async (
+  variableGroupName: string,
+  opts: CommandOptions,
+  exitFn: (status: number) => Promise<void>
+): Promise<void> => {
+  if (!hasValue(variableGroupName)) {
+    await exitFn(1);
+    return;
+  }
+
+  try {
+    const projectPath = process.cwd();
+    logger.verbose(`project path: ${projectPath}`);
+
+    checkDependencies(projectPath);
+
+    const { azure_devops } = Config();
+
+    const {
+      registryName,
+      servicePrincipalId,
+      servicePrincipalPassword,
+      tenant,
+      hldRepoUrl = azure_devops?.hld_repository,
+      orgName = azure_devops?.org,
+      personalAccessToken = azure_devops?.access_token,
+      devopsProject = azure_devops?.project,
+    } = opts;
+
+    const accessOpts: AzureDevOpsOpts = {
+      orgName,
+      personalAccessToken,
+      project: devopsProject,
+    };
+
+    logger.debug(`access options: ${JSON.stringify(accessOpts)}`);
+
+    const errors = validateForRequiredValues(decorator, {
+      devopsProject,
+      hldRepoUrl,
+      orgName,
+      personalAccessToken,
+      registryName,
+      servicePrincipalId,
+      servicePrincipalPassword,
+      tenant,
+    });
+
+    if (errors.length !== 0) {
+      await exitFn(1);
+      return;
+    }
+
+    // validateForRequiredValues assure that devopsProject
+    // and orgName are not empty string
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    validateValues(devopsProject!, orgName!);
+
+    const variableGroup = await create(
+      variableGroupName,
+      registryName,
+      hldRepoUrl,
+      servicePrincipalId,
+      servicePrincipalPassword,
+      tenant,
+      accessOpts
+    );
+
+    // set the variable group name
+    // variableGroup.name is set at this point that's it should have value
+    // and not empty string or undefined. having || "" is just to avoid
+    // eslint error
+    setVariableGroupInBedrockFile(projectPath, variableGroup.name || "");
+
+    // update hld-lifecycle.yaml with variable groups in bedrock.yaml
+    updateLifeCyclePipeline(projectPath);
+
+    // print newly created variable group
+    echo(JSON.stringify(variableGroup, null, 2));
+
+    logger.info(
+      "Successfully created a variable group in Azure DevOps project!"
+    );
+    await exitFn(0);
+  } catch (err) {
+    logger.error(`Error occurred while creating variable group`);
+    logger.error(err);
+    await exitFn(1);
+  }
+};
+
+/**
+ * Adds the create command to the variable-group command object
+ *
+ * @param command Commander command object to decorate
+ */
+export const commandDecorator = (command: commander.Command): void => {
+  buildCmd(command, decorator).action(
+    async (variableGroupName: string, opts: CommandOptions) => {
+      await execute(variableGroupName, opts, async (status: number) => {
+        await exitCmd(logger, process.exit, status);
+      });
+    }
+  );
 };

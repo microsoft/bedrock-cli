@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import fs from "fs";
 import yaml from "js-yaml";
 import mockFs from "mock-fs";
@@ -252,7 +251,10 @@ describe("setVariableGroupInBedrockFile", () => {
     const bedrockFile = readBedrockFile(randomTmpDir);
 
     logger.info(`filejson: ${JSON.stringify(bedrockFile)}`);
-    expect(bedrockFile.variableGroups![0]).toBe(variableGroupName);
+    expect(bedrockFile.variableGroups).toBeDefined();
+    if (bedrockFile.variableGroups) {
+      expect(bedrockFile.variableGroups[0]).toBe(variableGroupName);
+    }
   });
 
   test("Should pass adding a valid variable group name when bedrock file exists when variableGroups length is > 0", async () => {
@@ -273,8 +275,11 @@ describe("setVariableGroupInBedrockFile", () => {
 
     const bedrockFile = readBedrockFile(randomTmpDir);
     logger.info(`filejson: ${JSON.stringify(bedrockFile)}`);
-    expect(bedrockFile.variableGroups![0]).toBe(prevariableGroupName);
-    expect(bedrockFile.variableGroups![1]).toBe(variableGroupName);
+    expect(bedrockFile.variableGroups).toBeDefined();
+    if (bedrockFile.variableGroups) {
+      expect(bedrockFile.variableGroups[0]).toBe(prevariableGroupName);
+      expect(bedrockFile.variableGroups[1]).toBe(variableGroupName);
+    }
   });
 });
 
@@ -343,7 +348,10 @@ describe("updateLifeCyclePipeline", () => {
 
     const hldLifeCycleYaml = readYaml<AzurePipelinesYaml>(hldFilePath);
     logger.info(`filejson: ${JSON.stringify(hldLifeCycleYaml)}`);
-    expect(hldLifeCycleYaml.variables!.length).toBeLessThanOrEqual(0);
+    expect(hldLifeCycleYaml.variables).toBeDefined();
+    if (hldLifeCycleYaml.variables) {
+      expect(hldLifeCycleYaml.variables.length).toBeLessThanOrEqual(0);
+    }
   });
 
   test("Should pass adding variable groups when bedrock file exists with one variableGroup", async () => {
@@ -379,9 +387,13 @@ describe("updateLifeCyclePipeline", () => {
 
     const hldLifeCycleYaml = readYaml<AzurePipelinesYaml>(hldFilePath);
     logger.info(`filejson: ${JSON.stringify(hldLifeCycleYaml)}`);
-    expect(hldLifeCycleYaml.variables![0]).toEqual({
-      group: variableGroupName,
-    });
+    expect(hldLifeCycleYaml.variables).toBeDefined();
+
+    if (hldLifeCycleYaml.variables) {
+      expect(hldLifeCycleYaml.variables[0]).toEqual({
+        group: variableGroupName,
+      });
+    }
   });
 });
 
