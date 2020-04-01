@@ -75,8 +75,15 @@
     "introspect-create-cmd-failed": "Deployment create command was not successfully executed.",
     "introspect-create-cmd-no-ops": "No action could be performed for specified arguments.",
     "introspect-create-cmd-missing-values": "Access key, storage account name, partition key and/or table name were not provided. Provide them.",
-    "introspect-create-cmd-cmd-p1-missing-values": "Values for image-tag, commit-id and service options were missing. They are required for updating the details of source pipeline. Provide them.",
-    "introspect-create-cmd-cmd-p2-missing-values": "Values for p2, hld-commit-id, image-tag and env options were missing. They are required For updating the details of image tag release pipeline. Provide them.",
+    "introspect-create-cmd-p1-missing-values": "Values for image-tag, commit-id and service options were missing. They are required for updating the details of source pipeline. Provide them.",
+    "introspect-create-cmd-p2-missing-values": "Values for p2, hld-commit-id, image-tag and env options were missing. They are required For updating the details of image tag release pipeline. Provide them.",
+
+    "introspect-validate-cmd-failed": "Deployment validate command was not successfully executed.",
+    "introspect-validate-cmd-valid-err": "Validation failed. Missing configuration: {0}",
+    "introspect-validate-cmd-missing-vals": "Configuration for introspection storage account and DevOps pipeline to execute this command were missing. Initialize the spk tool with the right configuration",
+    "introspect-validate-cmd-valid-failed": "Validation was unsuccessful. Try again.",
+    "introspect-validate-cmd-valid-exception": "Error was caught during validation.",
+    "introspect-validate-cmd-write-pipeline": "Error writing data to service introspection.",
 
     "introspect-dashboard-cmd-failed": "Deployment dashboard command was not successfully executed.",
     "introspect-dashboard-cmd-invalid-port": "value for port option has to be a valid port number. Enter a valid port number.",
@@ -88,6 +95,8 @@
 
     "deployment-table-update-hld-manifest-pipeline-failed": "Could not update HLD to manifest pipeline.",
     "deployment-table-update-manifest-commit-id-failed": "Could not update manifest commit Id.",
-    "deployment-table-update-manifest-commit-id-failed-no-generation": "No manifest generation found to update manifest commit {0}."
+    "deployment-table-update-manifest-commit-id-failed-no-generation": "No manifest generation found to update manifest commit {0}.",
+    "deployment-table-add-src-to-acr-pipeline": "Could not add source to ACR pipeline information to storage table.",
+    "deployment-table-add-acr-to-hld-pipeline": "Could not add ACR to HLD pipeline information to storage table."
   }
 }

@@ -11,7 +11,9 @@ import {
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { logger } from "../../logger";
 import { ConfigYaml } from "../../types";
-import decorator from "./validator.decorator.json";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
+import decorator from "./validate.decorator.json";
 
 const service = "spk-self-test";
 
@@ -64,10 +66,10 @@ export const isValidConfig = (config: ConfigYaml): ValidateConfig => {
   }
 
   if (missingConfig.length > 0) {
-    logger.error(
-      "Validation failed. Missing configuration: " + missingConfig.join(" ")
-    );
-    throw new Error("missing configuration in spk configuration");
+    throw buildError(errorStatusCode.VALIDATION_ERR, {
+      errorKey: "introspect-validate-cmd-valid-err",
+      values: [missingConfig.join(" ")],
+    });
   } else {
     logger.info("Configuration validation: SUCCEEDED");
   }
@@ -90,8 +92,10 @@ export const isValidConfig = (config: ConfigYaml): ValidateConfig => {
       key: config.introspection.azure.key,
     };
   }
-  throw Error(
-    "You need to specify configuration for your introspection storage account and DevOps pipeline to run this dashboard. Please initialize the spk tool with the right configuration"
+
+  throw buildError(
+    errorStatusCode.VALIDATION_ERR,
+    "introspect-validate-cmd-missing-vals"
   );
 };
 
@@ -133,8 +137,11 @@ export const writeSelfTestData = async (
 
     return buildId;
   } catch (err) {
-    logger.error(err);
-    throw new Error("Error writing data to service introspection.");
+    throw buildError(
+      errorStatusCode.ENV_SETTING_ERR,
+      "introspect-validate-cmd-write-pipeline",
+      err
+    );
   }
 };
 
@@ -216,12 +223,18 @@ export const runSelfTest = async (config: ValidateConfig): Promise<void> => {
 
     if (!isVerified) {
       logger.error(statusMessage + "FAILED. Please try again.");
-    } else {
-      logger.info(statusMessage + "SUCCEEDED.");
+      throw buildError(
+        errorStatusCode.ENV_SETTING_ERR,
+        "introspect-validate-cmd-valid-failed"
+      );
     }
+    logger.info(statusMessage + "SUCCEEDED.");
   } catch (err) {
-    logger.error("Error running self-test.");
-    throw err;
+    throw buildError(
+      errorStatusCode.EXE_FLOW_ERR,
+      "introspect-validate-cmd-valid-exception",
+      err
+    );
   }
 };
 
@@ -244,7 +257,13 @@ export const execute = async (
     }
     await exitFn(0);
   } catch (err) {
-    logger.error(err);
+    logError(
+      buildError(
+        errorStatusCode.CMD_EXE_ERR,
+        "introspect-validate-cmd-failed",
+        err
+      )
+    );
     await exitFn(1);
   }
 };

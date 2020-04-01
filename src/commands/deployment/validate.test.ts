@@ -224,7 +224,9 @@ describe("test runSelfTest function", () => {
 
     const config = deepClone(mockedValidateConfig);
     config.tableName = "";
-    await runSelfTest(config);
+    await expect(runSelfTest(config)).rejects.toThrow(
+      "introspect-validate-cmd-valid-exception: Error was caught during validation."
+    );
   });
   it("negative test: error thrown", async () => {
     jest

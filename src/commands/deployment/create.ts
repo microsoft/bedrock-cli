@@ -79,7 +79,7 @@ export const handlePipeline1 = async (
   ) {
     throw buildError(
       errorStatusCode.VALIDATION_ERR,
-      "introspect-create-cmd-cmd-p1-missing-values"
+      "introspect-create-cmd-p1-missing-values"
     );
   }
   await addSrcToACRPipeline(
@@ -104,7 +104,7 @@ export const handlePipeline2 = async (
   ) {
     throw buildError(
       errorStatusCode.VALIDATION_ERR,
-      "introspect-create-cmd-cmd-p2-missing-values"
+      "introspect-create-cmd-p2-missing-values"
     );
   }
   await updateACRToHLDPipeline(

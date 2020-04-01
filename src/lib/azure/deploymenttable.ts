@@ -148,20 +148,28 @@ export const addSrcToACRPipeline = async (
   commitId: string,
   repository?: string
 ): Promise<RowSrcToACRPipeline> => {
-  const entry: RowSrcToACRPipeline = {
-    PartitionKey: tableInfo.partitionKey,
-    RowKey: getRowKey(),
-    commitId,
-    imageTag,
-    p1: pipelineId,
-    service: serviceName,
-  };
-  if (repository) {
-    entry.sourceRepo = repository.toLowerCase();
+  try {
+    const entry: RowSrcToACRPipeline = {
+      PartitionKey: tableInfo.partitionKey,
+      RowKey: getRowKey(),
+      commitId,
+      imageTag,
+      p1: pipelineId,
+      service: serviceName,
+    };
+    if (repository) {
+      entry.sourceRepo = repository.toLowerCase();
+    }
+    await insertToTable(tableInfo, entry);
+    logger.info("Added first pipeline details to the database");
+    return entry;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      "deployment-table-add-src-to-acr-pipeline",
+      err
+    );
   }
-  await insertToTable(tableInfo, entry);
-  logger.info("Added first pipeline details to the database");
-  return entry;
 };
 
 /**
@@ -330,33 +338,48 @@ export const updateACRToHLDPipeline = async (
   pr?: string,
   repository?: string
 ): Promise<RowACRToHLDPipeline> => {
-  const entries = await findMatchingDeployments<EntryACRToHLDPipeline>(
-    tableInfo,
-    "imageTag",
-    imageTag
-  );
-
-  // 1. try to find the matching entry.
-  if (entries && entries.length > 0) {
-    const found = await updateMatchingArcToHLDPipelineEntry(
-      entries,
+  try {
+    const entries = await findMatchingDeployments<EntryACRToHLDPipeline>(
       tableInfo,
-      pipelineId,
-      imageTag,
-      hldCommitId,
-      env,
-      pr,
-      repository
+      "imageTag",
+      imageTag
     );
 
-    if (found) {
-      return found;
+    // 1. try to find the matching entry.
+    if (entries && entries.length > 0) {
+      const found = await updateMatchingArcToHLDPipelineEntry(
+        entries,
+        tableInfo,
+        pipelineId,
+        imageTag,
+        hldCommitId,
+        env,
+        pr,
+        repository
+      );
+
+      if (found) {
+        return found;
+      }
+
+      // 2. when cannot find the entry, we take the last row and INSERT it.
+      // TODO: rethink this logic.
+      return await updateLastRowOfArcToHLDPipelines(
+        entries,
+        tableInfo,
+        pipelineId,
+        imageTag,
+        hldCommitId,
+        env,
+        pr,
+        repository
+      );
     }
 
-    // 2. when cannot find the entry, we take the last row and INSERT it.
+    // Fallback: Ideally we should not be getting here, because there should
+    // always be a p1 for any p2 being created.
     // TODO: rethink this logic.
-    return await updateLastRowOfArcToHLDPipelines(
-      entries,
+    return await addNewRowToArcToHLDPipelines(
       tableInfo,
       pipelineId,
       imageTag,
@@ -365,20 +388,13 @@ export const updateACRToHLDPipeline = async (
       pr,
       repository
     );
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      "deployment-table-add-acr-to-hld-pipeline",
+      err
+    );
   }
-
-  // Fallback: Ideally we should not be getting here, because there should
-  // always be a p1 for any p2 being created.
-  // TODO: rethink this logic.
-  return await addNewRowToArcToHLDPipelines(
-    tableInfo,
-    pipelineId,
-    imageTag,
-    hldCommitId,
-    env,
-    pr,
-    repository
-  );
 };
 
 /**
