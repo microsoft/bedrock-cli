@@ -18,6 +18,8 @@ import * as middleware from "../../lib/traefik/middleware";
 import { logger } from "../../logger";
 import { BedrockFile, BedrockServiceConfig } from "../../types";
 import decorator from "./reconcile.decorator.json";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 /**
  * IExecResult represents the possible return value of a Promise based wrapper
@@ -70,8 +72,14 @@ export const execAndLog = async (commandToRun: string): Promise<ExecResult> => {
   const pipeOutputToCurrentShell = true;
   const result = await exec(commandToRun, pipeOutputToCurrentShell);
   if (result.error) {
-    logger.error(`an error occurred executing command: \`${commandToRun}\``);
-    throw result.error;
+    throw buildError(
+      errorStatusCode.CMD_EXE_ERR,
+      {
+        errorKey: "hld-reconcile-err-cmd-failed",
+        values: [commandToRun],
+      },
+      result.error
+    );
   }
   return result;
 };
@@ -107,10 +115,14 @@ export const createRepositoryComponent = async (
   return execCmd(
     `cd ${absHldPath} && mkdir -p ${repositoryName} && fab add ${repositoryName} --path ./${repositoryName} --method local`
   ).catch((err) => {
-    logger.error(
-      `error creating repository component '${repositoryName}' in path '${absHldPath}'`
+    throw buildError(
+      errorStatusCode.EXE_FLOW_ERR,
+      {
+        errorKey: "hld-reconcile-err-repo-create",
+        values: [repositoryName, absHldPath],
+      },
+      err
     );
-    throw err;
   });
 };
 
@@ -142,8 +154,11 @@ export const configureChartForRing = async (
   const fabConfigureCommand = `cd ${normalizedRingPathInHld} && fab set --subcomponent "chart" serviceName="${k8sSvcBackendAndName}"`;
 
   return execCmd(fabConfigureCommand).catch((err) => {
-    logger.error(`error configuring helm chart for service `);
-    throw err;
+    throw buildError(
+      errorStatusCode.EXE_FLOW_ERR,
+      "hld-reconcile-err-helm-config",
+      err
+    );
   });
 };
 
@@ -160,10 +175,14 @@ export const createServiceComponent = async (
   return execCmd(
     `cd ${absRepositoryInHldPath} && mkdir -p ${serviceName} config && fab add ${serviceName} --path ./${serviceName} --method local --type component && touch ./config/common.yaml`
   ).catch((err) => {
-    logger.error(
-      `error creating service component '${serviceName}' in path '${absRepositoryInHldPath}'`
+    throw buildError(
+      errorStatusCode.EXE_FLOW_ERR,
+      {
+        errorKey: "hld-reconcile-err-service-create",
+        values: [serviceName, absRepositoryInHldPath],
+      },
+      err
     );
-    throw err;
   });
 };
 
@@ -177,10 +196,14 @@ export const createRingComponent = async (
   const createRingInSvcCommand = `cd ${svcPathInHld} && mkdir -p ${normalizedRingName} config && fab add ${normalizedRingName} --path ./${normalizedRingName} --method local --type component && touch ./config/common.yaml`;
 
   return execCmd(createRingInSvcCommand).catch((err) => {
-    logger.error(
-      `error creating ring component '${normalizedRingName}' in path '${svcPathInHld}'`
+    throw buildError(
+      errorStatusCode.EXE_FLOW_ERR,
+      {
+        errorKey: "hld-reconcile-err-ring-create",
+        values: [normalizedRingName, svcPathInHld],
+      },
+      err
     );
-    throw err;
   });
 };
 
@@ -211,12 +234,14 @@ export const addChartToRing = async (
 
   return execCmd(`cd ${ringPathInHld} && ${addHelmChartCommand}`).catch(
     (err) => {
-      logger.error(
-        `error adding helm chart for service-config ${JSON.stringify(
-          serviceConfig
-        )} to ring path '${ringPathInHld}'`
+      throw buildError(
+        errorStatusCode.EXE_FLOW_ERR,
+        {
+          errorKey: "hld-reconcile-err-helm-add",
+          values: [JSON.stringify(serviceConfig), ringPathInHld],
+        },
+        err
       );
-      throw err;
     }
   );
 };
@@ -229,8 +254,14 @@ export const createStaticComponent = async (
   const createConfigAndStaticComponentCommand = `cd ${ringPathInHld} && mkdir -p config static && fab add static --path ./static --method local --type static && touch ./config/common.yaml`;
 
   return execCmd(createConfigAndStaticComponentCommand).catch((err) => {
-    logger.error(`error creating static component in path '${ringPathInHld}'`);
-    throw err;
+    throw buildError(
+      errorStatusCode.EXE_FLOW_ERR,
+      {
+        errorKey: "hld-reconcile-err-static-create",
+        values: [ringPathInHld],
+      },
+      err
+    );
   });
 };
 
@@ -379,9 +410,7 @@ export const validateInputs = (
 export const checkForFabrikate = (which: (path: string) => string): void => {
   const fabrikateInstalled = which("fab");
   if (fabrikateInstalled === "") {
-    throw ReferenceError(
-      `Fabrikate not installed. Please fetch and install the latest version: https://github.com/microsoft/fabrikate/releases`
-    );
+    throw buildError(errorStatusCode.VALIDATION_ERR, "hld-reconcile-err-fab");
   }
 };
 
@@ -393,7 +422,10 @@ export const testAndGetAbsPath = (
 ): string => {
   const absPath = path.resolve(possiblyRelativePath);
   if (!test("-e", absPath) && !test("-d", absPath)) {
-    throw Error(`Could not validate ${pathType} path.`);
+    throw buildError(errorStatusCode.VALIDATION_ERR, {
+      errorKey: "hld-reconcile-err-path",
+      values: [pathType],
+    });
   }
   log(`Found ${pathType} at ${absPath}`);
   return absPath;
@@ -632,8 +664,9 @@ export const execute = async (
     );
     await exitFn(0);
   } catch (err) {
-    logger.error(`An error occurred while reconciling HLD`);
-    logger.error(err);
+    logError(
+      buildError(errorStatusCode.CMD_EXE_ERR, "hld-reconcile-err-cmd-exe", err)
+    );
     await exitFn(1);
   }
 };

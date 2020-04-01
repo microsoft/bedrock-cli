@@ -19,6 +19,17 @@
     "hld-init-cmd-failed": "Hld init command was not successfully executed.",
     "hld-init-cmd-project-path-missing": "Value for project path was not provided. Provide it.",
 
+    "hld-reconcile-err-repo-create": "Error creating repository component '{0}' in path '{1}'.",
+    "hld-reconcile-err-helm-config": "Error configuring helm chart for service.",
+    "hld-reconcile-err-service-create": "Error creating service component '{0}' in path '{1}'.",
+    "hld-reconcile-err-ring-create": "`error creating ring component '{0}' in path '{1}'.",
+    "hld-reconcile-err-helm-add": "Error adding helm chart for service-config {0} to ring path '{1}'.",
+    "hld-reconcile-err-static-create": "Error creating static component in path '{0}'.",
+    "hld-reconcile-err-fab": "Fabrikate not installed. Please fetch and install the latest version: https://github.com/microsoft/fabrikate/releases",
+    "hld-reconcile-err-path": "Could not validate {0} path.",
+    "hld-reconcile-err-cmd-failed": "An error occurred executing command: {0}",
+    "hld-reconcile-err-cmd-exe": "An error occurred while reconciling HLD.",
+
     "infra-scaffold-cmd-failed": "Infra scaffold command was not successfully executed.",
     "infra-scaffold-cmd-src-missing": "Value for source is required because it cannot be constructed with properties in spk-config.yaml. Provide value for source.",
     "infra-scaffold-cmd-values-missing": "Values for name, version and/or 'template were missing. Provide value for values for them.",
