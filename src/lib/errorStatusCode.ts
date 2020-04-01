@@ -10,4 +10,5 @@ export enum errorStatusCode {
   INCORRECT_DEFINITION = 1012,
   GIT_OPS_ERR = 1100,
   AZURE_STORAGE_OP_ERR = 2000,
+  DOCKER_ERR = 3000,
 }

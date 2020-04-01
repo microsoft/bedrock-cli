@@ -9,6 +9,12 @@ import { isPortNumberString, validatePrereqs } from "../../lib/validator";
 import { logger } from "../../logger";
 import { ConfigYaml } from "../../types";
 import decorator from "./dashboard.decorator.json";
+import {
+  build as buildError,
+  log as logError,
+  build,
+} from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 export interface IntrospectionManifest {
   githubUsername?: string;
@@ -49,7 +55,10 @@ export const validateValues = (
 ): DashboardConfig => {
   if (opts.port) {
     if (!isPortNumberString(opts.port)) {
-      throw new Error("value for port option has to be a valid port number");
+      throw buildError(
+        errorStatusCode.VALIDATION_ERR,
+        "introspect-dashboard-cmd-invalid-port"
+      );
     }
   }
 
@@ -66,8 +75,9 @@ export const validateValues = (
     !config.introspection.dashboard ||
     !config.introspection.dashboard.image
   ) {
-    throw new Error(
-      "You need to specify configuration for your introspection storage account and DevOps pipeline to run this dashboard. Please initialize the spk tool with the right configuration"
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "introspect-dashboard-cmd-missing-vals"
     );
   }
 
@@ -92,21 +102,29 @@ export const validateValues = (
 export const cleanDashboardContainers = async (
   config: DashboardConfig
 ): Promise<void> => {
-  let dockerOutput = await exec("docker", [
-    "ps",
-    "-a",
-    "-q",
-    "--filter",
-    "ancestor=" + config.image,
-    '--format="{{.ID}}"',
-  ]);
-  if (dockerOutput.length > 0) {
-    dockerOutput = dockerOutput.replace(/\n/g, " ");
-    dockerOutput = dockerOutput.replace(/"/g, "");
-    const containerIds = dockerOutput.split(" ");
-    const args = ["kill", ...containerIds];
+  try {
+    let dockerOutput = await exec("docker", [
+      "ps",
+      "-a",
+      "-q",
+      "--filter",
+      "ancestor=" + config.image,
+      '--format="{{.ID}}"',
+    ]);
+    if (dockerOutput.length > 0) {
+      dockerOutput = dockerOutput.replace(/\n/g, " ");
+      dockerOutput = dockerOutput.replace(/"/g, "");
+      const containerIds = dockerOutput.split(" ");
+      const args = ["kill", ...containerIds];
 
-    await exec("docker", args);
+      await exec("docker", args);
+    }
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.DOCKER_ERR,
+      "introspect-dashboard-cmd-kill-docker-container",
+      err
+    );
   }
 };
 
@@ -143,60 +161,70 @@ export const extractManifestRepositoryInformation = (
 export const getEnvVars = async (
   config: DashboardConfig
 ): Promise<string[]> => {
-  const envVars = [
-    "-e",
-    `REACT_APP_PIPELINE_ORG=${config.org}`,
-    "-e",
-    `REACT_APP_PIPELINE_PROJECT=${config.project}`,
-    "-e",
-    `REACT_APP_STORAGE_ACCOUNT_NAME=${config.accountName}`,
-    "-e",
-    `REACT_APP_STORAGE_PARTITION_KEY=${config.partitionKey}`,
-    "-e",
-    `REACT_APP_STORAGE_TABLE_NAME=${config.tableName}`,
-    "-e",
-    `REACT_APP_STORAGE_ACCESS_KEY=${config.key}`,
-  ];
+  try {
+    const envVars = [
+      "-e",
+      `REACT_APP_PIPELINE_ORG=${config.org}`,
+      "-e",
+      `REACT_APP_PIPELINE_PROJECT=${config.project}`,
+      "-e",
+      `REACT_APP_STORAGE_ACCOUNT_NAME=${config.accountName}`,
+      "-e",
+      `REACT_APP_STORAGE_PARTITION_KEY=${config.partitionKey}`,
+      "-e",
+      `REACT_APP_STORAGE_TABLE_NAME=${config.tableName}`,
+      "-e",
+      `REACT_APP_STORAGE_ACCESS_KEY=${config.key}`,
+    ];
 
-  if (config.accessToken) {
-    envVars.push("-e");
-    envVars.push(`REACT_APP_PIPELINE_ACCESS_TOKEN=${config.accessToken}`);
+    if (config.accessToken) {
+      envVars.push("-e");
+      envVars.push(`REACT_APP_PIPELINE_ACCESS_TOKEN=${config.accessToken}`);
 
-    if (!config.sourceRepoAccessToken) {
-      envVars.push("-e");
-      envVars.push(`REACT_APP_SOURCE_REPO_ACCESS_TOKEN=${config.accessToken}`);
-      envVars.push("-e");
-      envVars.push(`REACT_APP_MANIFEST_ACCESS_TOKEN=${config.accessToken}`);
-    }
-  } else {
-    logger.warn(
-      "Pipeline access token was not specified during init, dashboard may show empty results if pipelines are private"
-    );
-  }
-  if (config.sourceRepoAccessToken) {
-    envVars.push("-e");
-    envVars.push(
-      `REACT_APP_SOURCE_REPO_ACCESS_TOKEN=${config.sourceRepoAccessToken}`
-    );
-    envVars.push("-e");
-    envVars.push(
-      `REACT_APP_MANIFEST_ACCESS_TOKEN=${config.sourceRepoAccessToken}`
-    );
-  }
-
-  const manifestRepo = extractManifestRepositoryInformation(config);
-  if (manifestRepo) {
-    envVars.push("-e");
-    envVars.push(`REACT_APP_MANIFEST=${manifestRepo.manifestRepoName}`);
-    if (manifestRepo.githubUsername) {
-      envVars.push("-e");
-      envVars.push(
-        `REACT_APP_GITHUB_MANIFEST_USERNAME=${manifestRepo.githubUsername}`
+      if (!config.sourceRepoAccessToken) {
+        envVars.push("-e");
+        envVars.push(
+          `REACT_APP_SOURCE_REPO_ACCESS_TOKEN=${config.accessToken}`
+        );
+        envVars.push("-e");
+        envVars.push(`REACT_APP_MANIFEST_ACCESS_TOKEN=${config.accessToken}`);
+      }
+    } else {
+      logger.warn(
+        "Pipeline access token was not specified during init, dashboard may show empty results if pipelines are private"
       );
     }
-  }
+    if (config.sourceRepoAccessToken) {
+      envVars.push("-e");
+      envVars.push(
+        `REACT_APP_SOURCE_REPO_ACCESS_TOKEN=${config.sourceRepoAccessToken}`
+      );
+      envVars.push("-e");
+      envVars.push(
+        `REACT_APP_MANIFEST_ACCESS_TOKEN=${config.sourceRepoAccessToken}`
+      );
+    }
 
-  return envVars;
+    const manifestRepo = extractManifestRepositoryInformation(config);
+    if (manifestRepo) {
+      envVars.push("-e");
+      envVars.push(`REACT_APP_MANIFEST=${manifestRepo.manifestRepoName}`);
+      if (manifestRepo.githubUsername) {
+        envVars.push("-e");
+        envVars.push(
+          `REACT_APP_GITHUB_MANIFEST_USERNAME=${manifestRepo.githubUsername}`
+        );
+      }
+    }
+
+    return envVars;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.ENV_SETTING_ERR,
+      "introspect-dashboard-cmd-get-env",
+      err
+    );
+  }
 };
 
 /**
@@ -211,7 +239,10 @@ export const launchDashboard = async (
 ): Promise<string> => {
   try {
     if (!validatePrereqs(["docker"], false)) {
-      throw new Error("Requirements to launch dashboard are not met");
+      throw buildError(
+        errorStatusCode.DOCKER_ERR,
+        "introspect-dashboard-cmd-launch-pre-req-err"
+      );
     }
 
     if (removeAll) {
@@ -233,8 +264,11 @@ export const launchDashboard = async (
     ]);
     return containerId;
   } catch (err) {
-    logger.error(`Error occurred while launching dashboard ${err}`);
-    throw err;
+    throw buildError(
+      errorStatusCode.DOCKER_ERR,
+      "introspect-dashboard-cmd-launch-err",
+      err
+    );
   }
 };
 
@@ -257,7 +291,13 @@ export const execute = async (
     }
     await exitFn(0);
   } catch (err) {
-    logger.error(err);
+    logError(
+      buildError(
+        errorStatusCode.CMD_EXE_ERR,
+        "introspect-dashboard-cmd-failed",
+        err
+      )
+    );
     await exitFn(1);
   }
 };

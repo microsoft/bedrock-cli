@@ -79,7 +79,7 @@ describe("Test validateValues function", () => {
       expect(true).toBe(false);
     } catch (e) {
       expect(e.message).toBe(
-        "value for port option has to be a valid port number"
+        "introspect-dashboard-cmd-invalid-port: value for port option has to be a valid port number. Enter a valid port number."
       );
     }
   });
@@ -95,7 +95,7 @@ describe("Test validateValues function", () => {
       expect(true).toBe(false);
     } catch (e) {
       expect(e.message).toBe(
-        "You need to specify configuration for your introspection storage account and DevOps pipeline to run this dashboard. Please initialize the spk tool with the right configuration"
+        "introspect-dashboard-cmd-missing-vals: Configuration for storage account and DevOps pipeline were missing. Initialize the spk tool with the right configuration."
       );
     }
   });

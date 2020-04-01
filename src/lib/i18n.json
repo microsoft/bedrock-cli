@@ -78,6 +78,14 @@
     "introspect-create-cmd-cmd-p1-missing-values": "Values for image-tag, commit-id and service options were missing. They are required for updating the details of source pipeline. Provide them.",
     "introspect-create-cmd-cmd-p2-missing-values": "Values for p2, hld-commit-id, image-tag and env options were missing. They are required For updating the details of image tag release pipeline. Provide them.",
 
+    "introspect-dashboard-cmd-failed": "Deployment dashboard command was not successfully executed.",
+    "introspect-dashboard-cmd-invalid-port": "value for port option has to be a valid port number. Enter a valid port number.",
+    "introspect-dashboard-cmd-missing-vals": "Configuration for storage account and DevOps pipeline were missing. Initialize the spk tool with the right configuration.",
+    "introspect-dashboard-cmd-kill-docker-container": "Could not kill dashboard docker containers.",
+    "introspect-dashboard-cmd-get-env": "Could not get environment parameters.",
+    "introspect-dashboard-cmd-launch-pre-req-err": "Requirements to launch dashboard were not met",
+    "introspect-dashboard-cmd-launch-err": "Could not launch dashboard docker container.",
+
     "deployment-table-update-hld-manifest-pipeline-failed": "Could not update HLD to manifest pipeline.",
     "deployment-table-update-manifest-commit-id-failed": "Could not update manifest commit Id.",
     "deployment-table-update-manifest-commit-id-failed-no-generation": "No manifest generation found to update manifest commit {0}."
