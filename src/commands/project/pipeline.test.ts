@@ -227,7 +227,7 @@ describe("installLifecyclePipeline and execute tests", () => {
       expect(e).toBeDefined();
       const builtDefnString = JSON.stringify({ fakeProperty: "temp" });
       expect(e.message).toBe(
-        `Invalid BuildDefinition created, parameter 'id' is missing from ${builtDefnString}`
+        `project-pipeline-err-invalid-build-definition: Invalid BuildDefinition created, parameter 'id' is missing from ${builtDefnString}`
       );
     }
   });
