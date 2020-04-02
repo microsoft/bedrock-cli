@@ -138,19 +138,11 @@ export const handleIntrospectionInteractive = async (
     promptBuilder.azureStorageTableName(azure.table_name),
     promptBuilder.azureStoragePartitionKey(azure.partition_key),
     promptBuilder.azureStorageAccessKey(azure.key),
-    promptBuilder.azureKeyVaultName(curConfig.key_vault_name),
   ]);
   azure["account_name"] = ans.azdo_storage_account_name;
   azure["table_name"] = ans.azdo_storage_table_name;
   azure["partition_key"] = ans.azdo_storage_partition_key;
   azure.key = ans.azdo_storage_access_key;
-
-  const keyVaultName = ans.azdo_storage_key_vault_name.trim();
-  if (keyVaultName) {
-    curConfig["key_vault_name"] = keyVaultName;
-  } else {
-    delete curConfig["key_vault_name"];
-  }
 };
 
 /**

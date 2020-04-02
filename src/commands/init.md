@@ -20,7 +20,6 @@ shall be no default values. These are the questions
    1. Storage Table Name
    1. Storage Partition Key
    1. Storage Access Key
-   1. Key Vault Name (optional)
 
 This tool shall verify these values by making an API call to Azure dev-op. They
 shall be written to `config.yaml` regardless the verification is successful or

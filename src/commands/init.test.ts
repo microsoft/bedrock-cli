@@ -228,8 +228,7 @@ describe("test prompt function", () => {
 });
 
 const testHandleIntrospectionInteractive = async (
-  withIntrospection = false,
-  withKeyVault = false
+  withIntrospection = false
 ): Promise<void> => {
   const config: ConfigYaml = {};
   if (!withIntrospection) {
@@ -242,26 +241,17 @@ const testHandleIntrospectionInteractive = async (
     azdo_storage_table_name: "storagetabletest",
     azdo_storage_partition_key: "test1234key",
     azdo_storage_access_key: "accessKey",
-    azdo_storage_key_vault_name: withKeyVault ? "keyvault" : "",
   });
   await handleIntrospectionInteractive(config);
   expect(config.introspection?.azure?.account_name).toBe("storagetest");
   expect(config.introspection?.azure?.table_name).toBe("storagetabletest");
   expect(config.introspection?.azure?.partition_key).toBe("test1234key");
   expect(config.introspection?.azure?.key).toBe("accessKey");
-
-  if (withKeyVault) {
-    expect(config.key_vault_name).toBe("keyvault");
-  } else {
-    expect(config.key_vault_name).toBeUndefined();
-  }
 };
 
 describe("test handleIntrospectionInteractive function", () => {
   it("positive test", async () => {
     await testHandleIntrospectionInteractive(false);
     await testHandleIntrospectionInteractive(true);
-    await testHandleIntrospectionInteractive(false, true);
-    await testHandleIntrospectionInteractive(true, true);
   });
 });
