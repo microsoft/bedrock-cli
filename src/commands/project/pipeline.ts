@@ -140,14 +140,14 @@ export const fetchValidateValues = (
   // values are validate, adding || "" is just to
   // satisfy the no-non-null-assertion eslint rule
   const configVals: ConfigValues = {
-    orgName: opts.orgName || "",
-    buildScriptUrl: opts.buildScriptUrl || BUILD_SCRIPT_URL,
-    devopsProject: opts.devopsProject || "",
-    repoName: opts.repoName || "",
-    personalAccessToken: opts.personalAccessToken || "",
-    pipelineName: opts.pipelineName || "",
-    repoUrl: opts.repoUrl || "",
-    yamlFileBranch: opts.yamlFileBranch,
+    orgName: values.orgName || "",
+    buildScriptUrl: values.buildScriptUrl || BUILD_SCRIPT_URL,
+    devopsProject: values.devopsProject || "",
+    repoName: values.repoName,
+    personalAccessToken: values.personalAccessToken || "",
+    pipelineName: values.pipelineName || "",
+    repoUrl: values.repoUrl || "",
+    yamlFileBranch: values.yamlFileBranch,
   };
 
   validateProjectNameThrowable(configVals.devopsProject);
