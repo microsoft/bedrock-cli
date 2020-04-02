@@ -8,6 +8,36 @@ interface ErrorParam {
   errorKey: string;
   values: string[];
 }
+
+/**
+ * Returns error message
+ *
+ * @param errorInstance Error instance
+ */
+export const getErrorMessage = (errorInstance: string | ErrorParam): string => {
+  let key = "";
+  let values: string[] | undefined = undefined;
+
+  if (typeof errorInstance === "string") {
+    key = errorInstance;
+  } else {
+    key = errorInstance.errorKey;
+    values = errorInstance.values;
+  }
+
+  // if key is found in i18n json
+  if (key in errors) {
+    let results = errors[key];
+    if (values) {
+      values.forEach((val, i) => {
+        const re = new RegExp("\\{" + i + "}", "g");
+        results = results.replace(re, val);
+      });
+    }
+    return `${key}: ${results}`;
+  }
+  return key;
+};
 class ErrorChain extends Error {
   errorCode: number;
   details: string | undefined;
@@ -25,28 +55,7 @@ class ErrorChain extends Error {
    * @param errorInstance Error instance
    */
   getErrorMessage(errorInstance: string | ErrorParam): string {
-    let key = "";
-    let values: string[] | undefined = undefined;
-
-    if (typeof errorInstance === "string") {
-      key = errorInstance;
-    } else {
-      key = errorInstance.errorKey;
-      values = errorInstance.values;
-    }
-
-    // if key is found in i18n json
-    if (key in errors) {
-      let results = errors[key];
-      if (values) {
-        values.forEach((val, i) => {
-          const re = new RegExp("\\{" + i + "}", "g");
-          results = results.replace(re, val);
-        });
-      }
-      return `${key}: ${results}`;
-    }
-    return key;
+    return getErrorMessage(errorInstance);
   }
   /**
    * Generates error messages and have them in messages array.

@@ -3,6 +3,7 @@ import * as azdo from "../../lib/azdoClient";
 import { BUILD_SCRIPT_URL } from "../../lib/constants";
 import { getRepositoryName } from "../../lib/gitutils";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
+import { getErrorMessage } from "../../lib/errorBuilder";
 jest.mock("../../lib/pipelines/pipelines");
 
 import {
@@ -88,7 +89,7 @@ const orgNameTest = (hasVal: boolean): void => {
 
   if (hasVal) {
     expect(() => populateValues(data)).toThrow(
-      "Organization names must start with a letter or number, followed by letters, numbers or hyphens, and must end with a letter or number."
+      getErrorMessage("validation-err-org-name")
     );
   } else {
     expect(() => populateValues(data)).toThrow(

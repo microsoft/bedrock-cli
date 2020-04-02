@@ -16,6 +16,8 @@
     "storageKeVaultName": "Enter key vault name (have the value as empty and hit enter key to skip)"
   },
   "errors": {
+    "setup-cmd-failed": "Setup command was not successfully executed.",
+
     "hld-init-cmd-failed": "Hld init command was not successfully executed.",
     "hld-init-cmd-project-path-missing": "Value for project path was not provided. Provide it.",
 
@@ -96,6 +98,45 @@
     "deployment-table-update-manifest-commit-id-failed": "Could not update manifest commit Id.",
     "deployment-table-update-manifest-commit-id-failed-no-generation": "No manifest generation found to update manifest commit {0}.",
     "deployment-table-add-src-to-acr-pipeline": "Could not add source to ACR pipeline information to storage table.",
-    "deployment-table-add-acr-to-hld-pipeline": "Could not add ACR to HLD pipeline information to storage table."
+    "deployment-table-add-acr-to-hld-pipeline": "Could not add ACR to HLD pipeline information to storage table.",
+
+    "validation-err-org-name-missing": "Organization name was missing. Provide it.",
+    "validation-err-org-name": "Organization name must start with a letter or number, followed by letters, numbers or hyphens, and must end with a letter or number.",
+    "validation-err-password-missing": "Password was missing. Provide it.",
+    "validation-err-password-too-short": "Password was too short, it must be more than 8 characters long. Reenter password.",
+    "validation-err-project-name-missing": "Project name was missing. Provide it.",
+    "validation-err-project-name-too-long": "Project name was too long, it cannot be longer than 64 characters.",
+    "validation-err-project-name-begin-underscore": "Project name was invalid as it cannot begin with an underscore",
+    "validation-err-project-name-period": "Project name was invalid as it cannot begin or end with a period",
+    "validation-err-project-name-special-char": "Project name can't contain special characters, such as / : \\ ~ & % ; @ ' \" ? < > | # $ * } { , + = [ ]",
+    "validation-err-personal-access-token-missing": "Personal access token was missing. Provide it",
+
+    "validation-err-service-principal-id-missing": "Service Principal Id was missing. Provide it.",
+    "validation-err-service-principal-id-invalid": "Service Principal Id was invalid. Check and re-enter.",
+    "validation-err-service-principal-pwd-missing": "Service Principal Password was missing. Provide it.",
+    "validation-err-service-principal-pwd-invalid": "Service Principal Password was invalid. Check and re-enter.",
+    "validation-err-service-principal-tenant-id-missing": "Service Principal Tenant Id was missing. Provide it.",
+    "validation-err-service-principal-tenant-id-invalid": "Service Principal Tenant Id was invalid. Check and re-enter.",
+
+    "validation-err-subscription-id-missing": "Subscription Id was missing. Provide it.",
+    "validation-err-subscription-id-invalid": "Subscription Id was invalid. Check and re-enter.",
+
+    "validation-err-storage-account-name-missing": "Storage Account Name was missing. Provide it.",
+    "validation-err-storage-account-name-invalid": "Storage Account Name was invalid. Only lowercase letters and numbers are allowed.",
+    "validation-err-storage-account-name-length": "Storage Account Name was invalid. It has to be between 3 and 24 characters long.",
+    "validation-err-storage-table-name-missing": "Storage Table Name was missing. Provide it.",
+    "validation-err-storage-table-name-invalid": "The value for storage table name is invalid. It has to be alphanumeric and start with an alphabet.",
+    "validation-err-storage-table-name-length": "The value for storage table name is invalid. It has to be between 3 and 63 characters long.",
+    "validation-err-storage-partition-key-missing": "Storage Partition Key was missing. Provide it.",
+    "validation-err-storage-partition-key-invalid": "The value for storage partition key is invalid. /, \\, # and ? characters are not allowed.",
+    "validation-err-acr-missing": "Azure Container Registry Name was missing. Provide it.",
+    "validation-err-acr-invalid": "The value for Azure Container Registry name was invalid. It has to be alphanumeric.",
+    "validation-err-acr-length": "The value for Azure Container Registry name was invalid as it has to be between 5 and 50 characters long.",
+    "validation-err-storage-key-vault-invalid": "Storage Key Vault was invalid as it cannot only has dash and alphanumeric characters.",
+    "validation-err-storage-key-vault-start-letter": "Storage Key Vault was invalid as it must start with a letter.",
+    "validation-err-storage-key-vault-end-char": "Storage Key Vault was invalid as it must end with letter or digit.",
+    "validation-err-storage-key-vault-hyphen": "Storage Key Vault was invalid as it cannot contain consecutive hyphens.",
+    "validation-err-storage-key-vault-length": "Storage Key Vault was invalid as it has to be between 3 and 24 characters long.",
+    "validation-err-storage-access-key-missing": "Storage Access Key was missing. Provide it."
   }
 }

@@ -24,6 +24,7 @@ import {
   validateValues,
 } from "./onboard";
 import * as onboardImpl from "./onboard";
+import { getErrorMessage } from "../../lib/errorBuilder";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -237,9 +238,7 @@ describe("test validateValues function", () => {
     vals.storageAccountName = "#123";
     expect(() => {
       validateValues(vals);
-    }).toThrow(
-      "The value for storage account name is invalid. Lowercase letters and numbers are allowed."
-    );
+    }).toThrow(getErrorMessage("validation-err-storage-account-name-invalid"));
   });
   it("[-ve]: invalid storageTableName value", () => {
     const vals = getMockedValues();

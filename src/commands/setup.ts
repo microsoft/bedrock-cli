@@ -40,6 +40,8 @@ import { create as createSetupLog } from "../lib/setup/setupLog";
 import { logger } from "../logger";
 import decorator from "./setup.decorator.json";
 import { createStorage } from "../lib/setup/azureStorage";
+import { build as buildError, log as logError } from "../lib/errorBuilder";
+import { errorStatusCode } from "../lib/errorStatusCode";
 import { ConfigYaml } from "../types";
 
 interface CommandOptions {
@@ -211,6 +213,8 @@ export const execute = async (
     createSetupLog(rc);
     await exitFn(0);
   } catch (err) {
+    logError(buildError(errorStatusCode.CMD_EXE_ERR, "setup-cmd-failed", err));
+
     const msg = getErrorMessage(requestContext, err);
 
     // requestContext will not be created if input validation failed
@@ -218,8 +222,6 @@ export const execute = async (
       requestContext.error = msg;
     }
     createSetupLog(requestContext);
-
-    logger.error(msg);
     await exitFn(1);
   }
 };

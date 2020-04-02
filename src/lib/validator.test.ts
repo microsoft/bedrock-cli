@@ -5,8 +5,8 @@ import {
   isDashHex,
   isIntegerString,
   isPortNumberString,
-  ORG_NAME_VIOLATION,
   validateAccessToken,
+  validateAccessTokenThrowable,
   validateACRName,
   validateForNonEmptyValue,
   validateOrgName,
@@ -19,12 +19,16 @@ import {
   validateServicePrincipalPassword,
   validateServicePrincipalTenantId,
   validateStorageAccountName,
+  validateStorageAccountNameThrowable,
   validateStorageAccessKey,
   validateStorageKeyVaultName,
   validateStoragePartitionKey,
   validateStorageTableName,
+  validateStorageTableNameThrowable,
   validateSubscriptionId,
+  validateSubscriptionIdThrowable,
 } from "./validator";
+import { getErrorMessage } from "./errorBuilder";
 
 describe("Tests on validator helper functions", () => {
   it("Test hasValue function", () => {
@@ -142,25 +146,31 @@ describe("Validating executable prerequisites in spk-config", () => {
 
 describe("test validateOrgName function", () => {
   it("empty value and value with space", () => {
-    expect(validateOrgName("")).toBe("Must enter an organization");
-    expect(validateOrgName(" ")).toBe("Must enter an organization");
+    expect(validateOrgName("")).toBe(
+      getErrorMessage("validation-err-org-name-missing")
+    );
+    expect(validateOrgName(" ")).toBe(
+      getErrorMessage("validation-err-org-name-missing")
+    );
     expect(() => {
       validateOrgNameThrowable("");
-    }).toThrow();
+    }).toThrow(getErrorMessage("validation-err-org-name-missing"));
     expect(() => {
       validateOrgNameThrowable(" ");
-    }).toThrow();
+    }).toThrow(getErrorMessage("validation-err-org-name-missing"));
   });
   it("invalid value", () => {
     const values = ["-abc", ".abc", "abc.", "a b"];
     values.forEach((v) => {
-      expect(validateOrgName(v)).toBe(ORG_NAME_VIOLATION);
+      expect(validateOrgName(v)).toBe(
+        getErrorMessage("validation-err-org-name")
+      );
     });
 
     values.forEach((v) => {
       expect(() => {
         validateOrgNameThrowable(v);
-      }).toThrow();
+      }).toThrow(getErrorMessage("validation-err-org-name"));
     });
   });
   it("valid value", () => {
@@ -173,8 +183,12 @@ describe("test validateOrgName function", () => {
 
 describe("test validateProjectName function", () => {
   it("empty value and value with space", () => {
-    expect(validateProjectName("")).toBe("Must enter a project name");
-    expect(validateProjectName(" ")).toBe("Must enter a project name");
+    expect(validateProjectName("")).toBe(
+      getErrorMessage("validation-err-project-name-missing")
+    );
+    expect(validateProjectName(" ")).toBe(
+      getErrorMessage("validation-err-project-name-missing")
+    );
 
     expect(() => {
       validateProjectNameThrowable("");
@@ -186,7 +200,7 @@ describe("test validateProjectName function", () => {
   it("value over 64 chars long", () => {
     const val = "a".repeat(65);
     expect(validateProjectName(val)).toBe(
-      "Project name cannot be longer than 64 characters"
+      getErrorMessage("validation-err-project-name-too-long")
     );
 
     expect(() => {
@@ -195,19 +209,19 @@ describe("test validateProjectName function", () => {
   });
   it("invalid value", () => {
     expect(validateProjectName("_abc")).toBe(
-      "Project name cannot begin with an underscore"
+      getErrorMessage("validation-err-project-name-begin-underscore")
     );
     expect(validateProjectName(".abc")).toBe(
-      "Project name cannot begin or end with a period"
+      getErrorMessage("validation-err-project-name-period")
     );
     expect(validateProjectName("abc.")).toBe(
-      "Project name cannot begin or end with a period"
+      getErrorMessage("validation-err-project-name-period")
     );
     expect(validateProjectName(".abc.")).toBe(
-      "Project name cannot begin or end with a period"
+      getErrorMessage("validation-err-project-name-period")
     );
     expect(validateProjectName("a*b")).toBe(
-      `Project name can't contain special characters, such as / : \\ ~ & % ; @ ' " ? < > | # $ * } { , + = [ ]`
+      getErrorMessage("validation-err-project-name-special-char")
     );
 
     ["_abc", ".abc", "abc.", ".abc.", "a*b"].forEach((val) => {
@@ -225,8 +239,11 @@ describe("test validateProjectName function", () => {
 describe("test validateAccessToken function", () => {
   it("empty value", () => {
     expect(validateAccessToken("")).toBe(
-      "Must enter a personal access token with read/write/manage permissions"
+      getErrorMessage("validation-err-personal-access-token-missing")
     );
+    expect(() => {
+      validateAccessTokenThrowable("");
+    }).toThrow();
   });
   it("validate value", () => {
     expect(validateAccessToken("mysecretshhhh")).toBe(true);
@@ -246,22 +263,23 @@ describe("test validateServicePrincipal functions", () => {
     [
       {
         fn: validateServicePrincipalId,
-        prop: "Service Principal Id",
+        missing: "validation-err-service-principal-id-missing",
+        invalid: "validation-err-service-principal-id-invalid",
       },
       {
         fn: validateServicePrincipalPassword,
-        prop: "Service Principal Password",
+        missing: "validation-err-service-principal-pwd-missing",
+        invalid: "validation-err-service-principal-pwd-invalid",
       },
       {
         fn: validateServicePrincipalTenantId,
-        prop: "Service Principal Tenant Id",
+        missing: "validation-err-service-principal-tenant-id-missing",
+        invalid: "validation-err-service-principal-tenant-id-invalid",
       },
     ].forEach((item) => {
-      expect(item.fn("")).toBe(`Must enter a ${item.prop}.`);
+      expect(item.fn("")).toBe(getErrorMessage(item.missing));
       expect(item.fn("b510c1ff-358c-4ed4-96c8-eb23f42bb65b")).toBe(true);
-      expect(item.fn(".eb23f42bb65b")).toBe(
-        `The value for ${item.prop} is invalid.`
-      );
+      expect(item.fn(".eb23f42bb65b")).toBe(getErrorMessage(item.invalid));
     });
   });
 });
@@ -269,29 +287,42 @@ describe("test validateServicePrincipal functions", () => {
 describe("test validateSubscriptionId function", () => {
   it("sanity test", () => {
     expect(validateSubscriptionId("")).toBe(
-      "Must enter a subscription identifier."
+      getErrorMessage("validation-err-subscription-id-missing")
     );
     expect(validateSubscriptionId("xyz")).toBe(
-      "The value for subscription identifier is invalid."
+      getErrorMessage("validation-err-subscription-id-invalid")
     );
     expect(validateSubscriptionId("abc123-456")).toBeTruthy();
+    expect(() => {
+      validateSubscriptionIdThrowable("");
+    }).toThrow();
+    expect(() => {
+      validateSubscriptionIdThrowable("xyz");
+    }).toThrow();
   });
 });
 
 describe("test validateStorageAccountName test", () => {
   it("sanity test", () => {
     expect(validateStorageAccountName("")).toBe(
-      "Must enter a storage account name."
+      getErrorMessage("validation-err-storage-account-name-missing")
     );
     expect(validateStorageAccountName("XYZ123")).toBe(
-      "The value for storage account name is invalid. Lowercase letters and numbers are allowed."
+      getErrorMessage("validation-err-storage-account-name-invalid")
     );
     expect(validateStorageAccountName("ab")).toBe(
-      "The value for storage account name is invalid. It has to be between 3 and 24 characters long"
+      getErrorMessage("validation-err-storage-account-name-length")
     );
     expect(validateStorageAccountName("12345678a".repeat(3))).toBe(
-      "The value for storage account name is invalid. It has to be between 3 and 24 characters long"
+      getErrorMessage("validation-err-storage-account-name-length")
     );
+
+    ["", "XYZ123", "ab", "12345678a".repeat(3)].forEach((val) => {
+      expect(() => {
+        validateStorageAccountNameThrowable(val);
+      }).toThrow();
+    });
+
     expect(validateStorageAccountName("abc123456")).toBeTruthy();
   });
 });
@@ -299,29 +330,37 @@ describe("test validateStorageAccountName test", () => {
 describe("test validateStorageTableName test", () => {
   it("sanity test", () => {
     expect(validateStorageTableName("")).toBe(
-      "Must enter a storage table name."
+      getErrorMessage("validation-err-storage-table-name-missing")
     );
     expect(validateStorageTableName("XYZ123*")).toBe(
-      "The value for storage table name is invalid. It has to be alphanumeric and start with an alphabet."
+      getErrorMessage("validation-err-storage-table-name-invalid")
     );
     expect(validateStorageTableName("1XYZ123")).toBe(
-      "The value for storage table name is invalid. It has to be alphanumeric and start with an alphabet."
+      getErrorMessage("validation-err-storage-table-name-invalid")
     );
     expect(validateStorageTableName("ab")).toBe(
-      "The value for storage table name is invalid. It has to be between 3 and 63 characters long"
+      getErrorMessage("validation-err-storage-table-name-length")
     );
     expect(validateStorageTableName("a123456789".repeat(7))).toBe(
-      "The value for storage table name is invalid. It has to be between 3 and 63 characters long"
+      getErrorMessage("validation-err-storage-table-name-length")
     );
     expect(validateStorageTableName("abc123456")).toBeTruthy();
+
+    ["", "XYZ123*", "1XYZ123", "ab", "a123456789".repeat(7)].forEach((val) => {
+      expect(() => {
+        validateStorageTableNameThrowable(val);
+      }).toThrow();
+    });
   });
 });
 
 describe("test validatePassword test", () => {
   it("sanity test", () => {
-    expect(validatePassword("")).toBe("Must enter a value.");
+    expect(validatePassword("")).toBe(
+      getErrorMessage("validation-err-password-missing")
+    );
     expect(validatePassword("1234567")).toBe(
-      "Must be more than 8 characters long."
+      getErrorMessage("validation-err-password-too-short")
     );
     expect(validatePassword("abcd1234")).toBeTruthy();
     expect(validatePassword("abcdefg123456678")).toBeTruthy();
@@ -331,11 +370,11 @@ describe("test validatePassword test", () => {
 describe("test validateStoragePartitionKey test", () => {
   it("sanity test", () => {
     expect(validateStoragePartitionKey("")).toBe(
-      "Must enter a storage partition key."
+      getErrorMessage("validation-err-storage-partition-key-missing")
     );
     ["abc\\", "abc/", "abc?", "abc#"].forEach((s) => {
       expect(validateStoragePartitionKey(s)).toBe(
-        "The value for storage partition key is invalid. /, \\, # and ? characters are not allowed."
+        getErrorMessage("validation-err-storage-partition-key-invalid")
       );
     });
     expect(validateStoragePartitionKey("abcdefg123456678")).toBeTruthy();
@@ -345,18 +384,17 @@ describe("test validateStoragePartitionKey test", () => {
 describe("test validateACRName function", () => {
   it("sanity test", () => {
     expect(validateACRName("")).toBe(
-      "Must enter an Azure Container Registry Name."
+      getErrorMessage("validation-err-acr-missing")
     );
     expect(validateACRName("xyz-")).toBe(
-      "The value for Azure Container Registry Name is invalid."
+      getErrorMessage("validation-err-acr-invalid")
     );
     expect(validateACRName("1")).toBe(
-      "The value for Azure Container Registry Name is invalid because it has to be between 5 and 50 characters long."
+      getErrorMessage("validation-err-acr-length")
     );
     expect(validateACRName("1234567890a".repeat(10))).toBe(
-      "The value for Azure Container Registry Name is invalid because it has to be between 5 and 50 characters long."
+      getErrorMessage("validation-err-acr-length")
     );
-
     expect(validateACRName("abc12356")).toBeTruthy();
   });
 });
@@ -365,22 +403,22 @@ describe("test validateStorageKeyVaultName function", () => {
   it("sanity test", () => {
     expect(validateStorageKeyVaultName("")).toBeTruthy();
     expect(validateStorageKeyVaultName("ab*")).toBe(
-      "The value for Key Value  Name is invalid."
+      getErrorMessage("validation-err-storage-key-vault-invalid")
     );
     expect(validateStorageKeyVaultName("1abc0")).toBe(
-      "Key Value Name must start with a letter."
+      getErrorMessage("validation-err-storage-key-vault-start-letter")
     );
     expect(validateStorageKeyVaultName("abc0-")).toBe(
-      "Key Value Name must end with letter or digit."
+      getErrorMessage("validation-err-storage-key-vault-end-char")
     );
     expect(validateStorageKeyVaultName("a--b")).toBe(
-      "Key Value Name cannot contain consecutive hyphens."
+      getErrorMessage("validation-err-storage-key-vault-hyphen")
     );
     expect(validateStorageKeyVaultName("ab")).toBe(
-      "The value for Key Vault Name is invalid because it has to be between 3 and 24 characters long."
+      getErrorMessage("validation-err-storage-key-vault-length")
     );
     expect(validateStorageKeyVaultName("a12345678".repeat(3))).toBe(
-      "The value for Key Vault Name is invalid because it has to be between 3 and 24 characters long."
+      getErrorMessage("validation-err-storage-key-vault-length")
     );
     expect(validateStorageKeyVaultName("abc-12356")).toBeTruthy();
   });
@@ -389,7 +427,7 @@ describe("test validateStorageKeyVaultName function", () => {
 describe("test validateStorageAccessKey function", () => {
   it("sanity test", () => {
     expect(validateStorageAccessKey("")).toBe(
-      "Must enter an Storage Access Key."
+      getErrorMessage("validation-err-storage-access-key-missing")
     );
     expect(validateStorageAccessKey("abc-12356")).toBeTruthy();
   });

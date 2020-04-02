@@ -1,9 +1,8 @@
 import shelljs from "shelljs";
 import { Config } from "../config";
 import { logger } from "../logger";
-
-export const ORG_NAME_VIOLATION =
-  "Organization names must start with a letter or number, followed by letters, numbers or hyphens, and must end with a letter or number.";
+import { build as buildError, getErrorMessage } from "./errorBuilder";
+import { errorStatusCode } from "./errorStatusCode";
 
 /**
  * Values to be validated
@@ -101,7 +100,7 @@ export const validatePrereqs = (
  */
 export const validateOrgName = (value: string): string | boolean => {
   if (!hasValue((value || "").trim())) {
-    return "Must enter an organization";
+    return getErrorMessage("validation-err-org-name-missing");
   }
   const pass = value.match(
     /^[0-9a-zA-Z][^\s]*[0-9a-zA-Z]$/ // No Spaces
@@ -109,13 +108,13 @@ export const validateOrgName = (value: string): string | boolean => {
   if (pass) {
     return true;
   }
-  return ORG_NAME_VIOLATION;
+  return getErrorMessage("validation-err-org-name");
 };
 
 export const validateOrgNameThrowable = (value: string): void => {
   const err = validateOrgName(value);
   if (typeof err == "string") {
-    throw Error(err);
+    throw buildError(errorStatusCode.VALIDATION_ERR, err);
   }
 };
 
@@ -138,10 +137,10 @@ export const isDashAlphaNumeric = (value: string): boolean => {
  */
 export const validatePassword = (value: string): string | boolean => {
   if (!hasValue(value)) {
-    return "Must enter a value.";
+    return getErrorMessage("validation-err-password-missing");
   }
   if (value.length < 8) {
-    return "Must be more than 8 characters long.";
+    return getErrorMessage("validation-err-password-too-short");
   }
   return true;
 };
@@ -153,16 +152,16 @@ export const validatePassword = (value: string): string | boolean => {
  */
 export const validateProjectName = (value: string): string | boolean => {
   if (!hasValue(value)) {
-    return "Must enter a project name";
+    return getErrorMessage("validation-err-project-name-missing");
   }
   if (value.length > 64) {
-    return "Project name cannot be longer than 64 characters";
+    return getErrorMessage("validation-err-project-name-too-long");
   }
   if (value.startsWith("_")) {
-    return "Project name cannot begin with an underscore";
+    return getErrorMessage("validation-err-project-name-begin-underscore");
   }
   if (value.startsWith(".") || value.endsWith(".")) {
-    return "Project name cannot begin or end with a period";
+    return getErrorMessage("validation-err-project-name-period");
   }
 
   const invalidChars = [
@@ -192,7 +191,7 @@ export const validateProjectName = (value: string): string | boolean => {
     "]",
   ];
   if (invalidChars.some((x) => value.indexOf(x) !== -1)) {
-    return `Project name can't contain special characters, such as / : \\ ~ & % ; @ ' " ? < > | # $ * } { , + = [ ]`;
+    return getErrorMessage("validation-err-project-name-special-char");
   }
 
   return true;
@@ -201,7 +200,7 @@ export const validateProjectName = (value: string): string | boolean => {
 export const validateProjectNameThrowable = (value: string): void => {
   const err = validateProjectName(value);
   if (typeof err == "string") {
-    throw Error(err);
+    throw buildError(errorStatusCode.VALIDATION_ERR, err);
   }
 };
 
@@ -212,20 +211,28 @@ export const validateProjectNameThrowable = (value: string): void => {
  */
 export const validateAccessToken = (value: string): string | boolean => {
   if (!hasValue(value)) {
-    return "Must enter a personal access token with read/write/manage permissions";
+    return getErrorMessage("validation-err-personal-access-token-missing");
   }
   return true;
 };
 
+export const validateAccessTokenThrowable = (value: string): void => {
+  const err = validateAccessToken(value);
+  if (typeof err == "string") {
+    throw buildError(errorStatusCode.VALIDATION_ERR, err);
+  }
+};
+
 export const validateServicePrincipal = (
   value: string,
-  property: string
+  missing: string,
+  invalid: string
 ): string | boolean => {
   if (!hasValue(value)) {
-    return `Must enter a ${property}.`;
+    return getErrorMessage(missing);
   }
   if (!isDashHex(value)) {
-    return `The value for ${property} is invalid.`;
+    return getErrorMessage(invalid);
   }
   return true;
 };
@@ -236,7 +243,23 @@ export const validateServicePrincipal = (
  * @param value service principal id
  */
 export const validateServicePrincipalId = (value: string): string | boolean => {
-  return validateServicePrincipal(value, "Service Principal Id");
+  return validateServicePrincipal(
+    value,
+    "validation-err-service-principal-id-missing",
+    "validation-err-service-principal-id-invalid"
+  );
+};
+
+/**
+ * Validate service principal id
+ *
+ * @param value service principal id
+ */
+export const validateServicePrincipalIdThrowable = (value: string): void => {
+  const msg = validateServicePrincipalId(value);
+  if (typeof msg === "string") {
+    throw buildError(errorStatusCode.VALIDATION_ERR, msg);
+  }
 };
 
 /**
@@ -247,7 +270,25 @@ export const validateServicePrincipalId = (value: string): string | boolean => {
 export const validateServicePrincipalPassword = (
   value: string
 ): string | boolean => {
-  return validateServicePrincipal(value, "Service Principal Password");
+  return validateServicePrincipal(
+    value,
+    "validation-err-service-principal-pwd-missing",
+    "validation-err-service-principal-pwd-invalid"
+  );
+};
+
+/**
+ * Validate service principal password
+ *
+ * @param value service principal password
+ */
+export const validateServicePrincipalPasswordThrowable = (
+  value: string
+): void => {
+  const msg = validateServicePrincipalPassword(value);
+  if (typeof msg === "string") {
+    throw buildError(errorStatusCode.VALIDATION_ERR, msg);
+  }
 };
 
 /**
@@ -258,7 +299,25 @@ export const validateServicePrincipalPassword = (
 export const validateServicePrincipalTenantId = (
   value: string
 ): string | boolean => {
-  return validateServicePrincipal(value, "Service Principal Tenant Id");
+  return validateServicePrincipal(
+    value,
+    "validation-err-service-principal-tenant-id-missing",
+    "validation-err-service-principal-tenant-id-invalid"
+  );
+};
+
+/**
+ * Validate service principal tenant Id
+ *
+ * @param value service principal tenant Id
+ */
+export const validateServicePrincipalTenantIdThrowable = (
+  value: string
+): void => {
+  const msg = validateServicePrincipalTenantId(value);
+  if (typeof msg === "string") {
+    throw buildError(errorStatusCode.VALIDATION_ERR, msg);
+  }
 };
 
 /**
@@ -268,12 +327,24 @@ export const validateServicePrincipalTenantId = (
  */
 export const validateSubscriptionId = (value: string): string | boolean => {
   if (!hasValue(value)) {
-    return "Must enter a subscription identifier.";
+    return getErrorMessage("validation-err-subscription-id-missing");
   }
   if (!isDashHex(value)) {
-    return "The value for subscription identifier is invalid.";
+    return getErrorMessage("validation-err-subscription-id-invalid");
   }
   return true;
+};
+
+/**
+ * Validate subscription identifier
+ *
+ * @param value subscription identifier
+ */
+export const validateSubscriptionIdThrowable = (value: string): void => {
+  const msg = validateSubscriptionId(value);
+  if (typeof msg === "string") {
+    throw buildError(errorStatusCode.VALIDATION_ERR, msg);
+  }
 };
 
 /**
@@ -283,13 +354,13 @@ export const validateSubscriptionId = (value: string): string | boolean => {
  */
 export const validateStorageAccountName = (value: string): string | boolean => {
   if (!hasValue(value)) {
-    return "Must enter a storage account name.";
+    return getErrorMessage("validation-err-storage-account-name-missing");
   }
   if (!value.match(/^[a-z0-9]+$/)) {
-    return "The value for storage account name is invalid. Lowercase letters and numbers are allowed.";
+    return getErrorMessage("validation-err-storage-account-name-invalid");
   }
   if (value.length < 3 || value.length > 24) {
-    return "The value for storage account name is invalid. It has to be between 3 and 24 characters long";
+    return getErrorMessage("validation-err-storage-account-name-length");
   }
   return true;
 };
@@ -302,7 +373,7 @@ export const validateStorageAccountName = (value: string): string | boolean => {
 export const validateStorageAccountNameThrowable = (value: string): void => {
   const msg = validateStorageAccountName(value);
   if (typeof msg === "string") {
-    throw Error(msg);
+    throw buildError(errorStatusCode.VALIDATION_ERR, msg);
   }
 };
 
@@ -313,13 +384,13 @@ export const validateStorageAccountNameThrowable = (value: string): void => {
  */
 export const validateStorageTableName = (value: string): string | boolean => {
   if (!hasValue(value)) {
-    return "Must enter a storage table name.";
+    return getErrorMessage("validation-err-storage-table-name-missing");
   }
   if (!value.match(/^[A-Za-z][A-Za-z0-9]*$/)) {
-    return "The value for storage table name is invalid. It has to be alphanumeric and start with an alphabet.";
+    return getErrorMessage("validation-err-storage-table-name-invalid");
   }
   if (value.length < 3 || value.length > 63) {
-    return "The value for storage table name is invalid. It has to be between 3 and 63 characters long";
+    return getErrorMessage("validation-err-storage-table-name-length");
   }
   return true;
 };
@@ -332,7 +403,7 @@ export const validateStorageTableName = (value: string): string | boolean => {
 export const validateStorageTableNameThrowable = (value: string): void => {
   const msg = validateStorageTableName(value);
   if (typeof msg === "string") {
-    throw Error(msg);
+    throw buildError(errorStatusCode.VALIDATION_ERR, msg);
   }
 };
 
@@ -345,10 +416,10 @@ export const validateStoragePartitionKey = (
   value: string
 ): string | boolean => {
   if (!hasValue(value)) {
-    return "Must enter a storage partition key.";
+    return getErrorMessage("validation-err-storage-partition-key-missing");
   }
   if (value.match(/[/\\#?]/)) {
-    return "The value for storage partition key is invalid. /, \\, # and ? characters are not allowed.";
+    return getErrorMessage("validation-err-storage-partition-key-invalid");
   }
   return true;
 };
@@ -360,13 +431,13 @@ export const validateStoragePartitionKey = (
  */
 export const validateACRName = (value: string): string | boolean => {
   if (!hasValue(value)) {
-    return "Must enter an Azure Container Registry Name.";
+    return getErrorMessage("validation-err-acr-missing");
   }
   if (!isAlphaNumeric(value)) {
-    return "The value for Azure Container Registry Name is invalid.";
+    return getErrorMessage("validation-err-acr-invalid");
   }
   if (value.length < 5 || value.length > 50) {
-    return "The value for Azure Container Registry Name is invalid because it has to be between 5 and 50 characters long.";
+    return getErrorMessage("validation-err-acr-length");
   }
   return true;
 };
@@ -378,26 +449,26 @@ export const validateStorageKeyVaultName = (
     return true; // optional
   }
   if (!isDashAlphaNumeric(value)) {
-    return "The value for Key Value  Name is invalid.";
+    return getErrorMessage("validation-err-storage-key-vault-invalid");
   }
   if (!value.match(/^[a-zA-Z]/)) {
-    return "Key Value Name must start with a letter.";
+    return getErrorMessage("validation-err-storage-key-vault-start-letter");
   }
   if (!value.match(/[a-zA-Z0-9]$/)) {
-    return "Key Value Name must end with letter or digit.";
+    return getErrorMessage("validation-err-storage-key-vault-end-char");
   }
   if (value.indexOf("--") !== -1) {
-    return "Key Value Name cannot contain consecutive hyphens.";
+    return getErrorMessage("validation-err-storage-key-vault-hyphen");
   }
   if (value.length < 3 || value.length > 24) {
-    return "The value for Key Vault Name is invalid because it has to be between 3 and 24 characters long.";
+    return getErrorMessage("validation-err-storage-key-vault-length");
   }
   return true;
 };
 
 export const validateStorageAccessKey = (value: string): string | boolean => {
   if (!hasValue(value)) {
-    return "Must enter an Storage Access Key.";
+    return getErrorMessage("validation-err-storage-access-key-missing");
   }
   return true;
 };

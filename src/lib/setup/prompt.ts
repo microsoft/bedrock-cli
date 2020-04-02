@@ -2,16 +2,16 @@ import fs from "fs";
 import inquirer from "inquirer";
 import * as promptBuilder from "../promptBuilder";
 import {
-  validateAccessToken,
+  validateAccessTokenThrowable,
   validateACRName,
-  validateOrgName,
-  validateProjectName,
-  validateServicePrincipalId,
-  validateServicePrincipalPassword,
-  validateServicePrincipalTenantId,
-  validateSubscriptionId,
-  validateStorageAccountName,
-  validateStorageTableName,
+  validateOrgNameThrowable,
+  validateProjectNameThrowable,
+  validateServicePrincipalIdThrowable,
+  validateServicePrincipalPasswordThrowable,
+  validateServicePrincipalTenantIdThrowable,
+  validateSubscriptionIdThrowable,
+  validateStorageAccountNameThrowable,
+  validateStorageTableNameThrowable,
 } from "../validator";
 import {
   ACR_NAME,
@@ -182,24 +182,12 @@ export const validationServicePrincipalInfoFromFile = (
     // file needs to contain sp information if user
     // choose not to create SP
     if (!rc.toCreateSP) {
-      const vSPId = validateServicePrincipalId(map.az_sp_id);
-      if (typeof vSPId === "string") {
-        throw new Error(vSPId);
-      }
-      const vSPPassword = validateServicePrincipalPassword(map.az_sp_password);
-      if (typeof vSPPassword === "string") {
-        throw new Error(vSPPassword);
-      }
-      const vSPTenantId = validateServicePrincipalTenantId(map.az_sp_tenant);
-      if (typeof vSPTenantId === "string") {
-        throw new Error(vSPTenantId);
-      }
+      validateServicePrincipalIdThrowable(map.az_sp_id);
+      validateServicePrincipalPasswordThrowable(map.az_sp_password);
+      validateServicePrincipalTenantIdThrowable(map.az_sp_tenant);
     }
 
-    const vSubscriptionId = validateSubscriptionId(map.az_subscription_id);
-    if (typeof vSubscriptionId === "string") {
-      throw new Error(vSubscriptionId);
-    }
+    validateSubscriptionIdThrowable(map.az_subscription_id);
     rc.subscriptionId = map.az_subscription_id;
   }
 };
@@ -234,32 +222,11 @@ export const getAnswerFromFile = (file: string): RequestContext => {
   const map = parseInformationFromFile(file);
   map["azdo_project_name"] = map.azdo_project_name || DEFAULT_PROJECT_NAME;
 
-  const vOrgName = validateOrgName(map.azdo_org_name);
-  if (typeof vOrgName === "string") {
-    throw new Error(vOrgName);
-  }
-
-  const vProjectName = validateProjectName(map.azdo_project_name);
-  if (typeof vProjectName === "string") {
-    throw new Error(vProjectName);
-  }
-
-  const vToken = validateAccessToken(map.azdo_pat);
-  if (typeof vToken === "string") {
-    throw new Error(vToken);
-  }
-
-  const vStorageAccountName = validateStorageAccountName(
-    map.az_storage_account_name
-  );
-  if (typeof vStorageAccountName === "string") {
-    throw new Error(vStorageAccountName);
-  }
-
-  const vStorageTable = validateStorageTableName(map.az_storage_table);
-  if (typeof vStorageTable === "string") {
-    throw new Error(vStorageTable);
-  }
+  validateOrgNameThrowable(map.azdo_org_name);
+  validateProjectNameThrowable(map.azdo_project_name);
+  validateAccessTokenThrowable(map.azdo_pat);
+  validateStorageAccountNameThrowable(map.az_storage_account_name);
+  validateStorageTableNameThrowable(map.az_storage_table);
 
   const rc: RequestContext = {
     accessToken: map.azdo_pat,
@@ -276,7 +243,6 @@ export const getAnswerFromFile = (file: string): RequestContext => {
 
   rc.toCreateAppRepo = map.az_create_app === "true";
   validationServicePrincipalInfoFromFile(rc, map);
-
   return rc;
 };
 
