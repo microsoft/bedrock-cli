@@ -13,9 +13,11 @@ import {
   pushBranch,
   safeGitUrlForLogging,
   tryGetGitOrigin,
+  validateRepoUrl,
 } from "../lib/gitutils";
 import { disableVerboseLogging, enableVerboseLogging } from "../logger";
 import { exec } from "./shell";
+import { ConfigValues } from "../commands/project/pipeline";
 
 jest.mock("./shell");
 
@@ -568,5 +570,36 @@ describe("test github urls", () => {
     expect(
       isGitHubUrl("https://dev.azure.com/test/fabrikam/_git/fabrikam")
     ).toBe(false);
+  });
+});
+
+describe("Returns an azure devops git repo url if it is defined", () => {
+  it("positive test", async () => {
+    const mockValues: ConfigValues = {
+      buildScriptUrl: "buildScriptUrl",
+      devopsProject: "azDoProject",
+      orgName: "orgName",
+      personalAccessToken: "PAT",
+      pipelineName: "pipelineName",
+      repoName: "repoName",
+      repoUrl: "https://dev.azure.com/myOrg/myProject/_git/myRepo",
+      yamlFileBranch: "master",
+    };
+    const gitUrl = "https://github.com/CatalystCode/spk.git";
+    expect(validateRepoUrl(mockValues, gitUrl)).toBe("https://dev.azure.com/myOrg/myProject/_git/myRepo");
+  });
+  it("another positive test", async () => {
+    const mockValues: ConfigValues = {
+      buildScriptUrl: "buildScriptUrl",
+      devopsProject: "azDoProject",
+      orgName: "orgName",
+      personalAccessToken: "PAT",
+      pipelineName: "pipelineName",
+      repoName: "repoName",
+      repoUrl: "",
+      yamlFileBranch: "master",
+    };
+    const gitUrl = "https://github.com/CatalystCode/spk";
+    expect(validateRepoUrl(mockValues, gitUrl)).toBe("https://github.com/CatalystCode/spk");
   });
 });

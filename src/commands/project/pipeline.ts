@@ -22,6 +22,7 @@ import {
   getRepositoryName,
   getRepositoryUrl,
   isGitHubUrl,
+  validateRepoUrl
 } from "../../lib/gitutils";
 import {
   createPipelineForDefinition,
@@ -45,7 +46,7 @@ export interface CommandOptions {
   devopsProject: string | undefined;
   pipelineName: string;
   repoName: string;
-  repoUrl: string;
+  repoUrl: string | undefined;
   buildScriptUrl: string | undefined;
   yamlFileBranch: string;
 }
@@ -97,13 +98,7 @@ export const fetchValidateValues = (
     );
   }
   const azureDevops = spkConfig?.azure_devops;
-  if (!opts.repoUrl) {
-    throw buildError(
-      errorStatusCode.VALIDATION_ERR,
-      "project-pipeline-err-repo-url-undefined"
-    );
-  }
-
+  const repoUrl = validateRepoUrl(opts,gitOriginUrl);
   const values: CommandOptions = {
     buildScriptUrl: opts.buildScriptUrl || BUILD_SCRIPT_URL,
     devopsProject: opts.devopsProject || azureDevops?.project,
@@ -112,7 +107,7 @@ export const fetchValidateValues = (
     pipelineName:
       opts.pipelineName || getRepositoryName(gitOriginUrl) + "-lifecycle",
     repoName:
-      getRepositoryName(opts.repoUrl) || getRepositoryName(gitOriginUrl),
+      getRepositoryName(repoUrl) || getRepositoryName(gitOriginUrl),
     repoUrl: opts.repoUrl || getRepositoryUrl(gitOriginUrl),
     yamlFileBranch: opts.yamlFileBranch,
   };
@@ -259,17 +254,13 @@ export const execute = async (
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
   try {
-    if (!opts.repoUrl || !opts.pipelineName) {
-      throw buildError(errorStatusCode.VALIDATION_ERR, {
-        errorKey: "project-pipeline-err-missing-values",
-        values: ["repo url and/or pipeline name"],
-      });
-    }
-    const gitUrlType = await isGitHubUrl(opts.repoUrl);
+    const gitOriginUrl = await getOriginUrl();
+    const repoUrl = validateRepoUrl(opts, gitOriginUrl);
+    const gitUrlType = await isGitHubUrl(repoUrl);
     if (gitUrlType) {
       throw buildError(errorStatusCode.VALIDATION_ERR, {
         errorKey: "project-pipeline-err-github-repo",
-        values: [opts.repoUrl],
+        values: [repoUrl],
       });
     }
     if (!projectPath) {
@@ -282,7 +273,6 @@ export const execute = async (
     logger.verbose(`project path: ${projectPath}`);
 
     checkDependencies(projectPath);
-    const gitOriginUrl = await getOriginUrl();
     const values = fetchValidateValues(opts, gitOriginUrl, Config());
 
     const accessOpts: AzureDevOpsOpts = {

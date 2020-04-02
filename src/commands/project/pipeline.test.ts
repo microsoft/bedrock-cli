@@ -97,7 +97,7 @@ describe("test fetchValidateValues function", () => {
       fetchValidateValues(mockMissingValues, gitUrl, {
         azure_devops: {},
       });
-    }).toThrow(`Repo url not defined`);
+    }).toThrow(`project-pipeline-err-invalid-options: Invalid option values`);
   });
   it("SPK Config's azure_devops do not have value and command line does not have values", () => {
     expect(() => {

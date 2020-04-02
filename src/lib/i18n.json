@@ -56,7 +56,6 @@
     "project-pipeline-err-missing-values": "Value for {0} is missing.",
     "project-pipeline-err-init-dependency": "Please run `spk project init` and `spk project cvg` commands before running this command to initialize the project.",
     "project-pipeline-err-cvg": "Please run `spk project cvg` command before running this command to create a variable group.",
-    "project-pipeline-err-repo-url-undefined": "Repo url not defined",
     "project-pipeline-err-spk-config-missing": "SPK Config is missing",
     "project-pipeline-err-invalid-options": "Invalid option values",
     "project-pipeline-err-pipeline-create": "Error occurred during pipeline creation for {0}",
