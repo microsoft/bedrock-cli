@@ -175,11 +175,13 @@
       {
         "arg": "-s, --storage-account-name <storage-account-name>",
         "description": "Azure storage account name",
+        "inherit": "introspection.azure.account_name",
         "required": true
       },
       {
         "arg": "-t, --storage-table-name <storage-table-name>",
         "description": "Azure storage table name",
+        "inherit": "introspection.azure.table_name",
         "required": true
       },
       {
@@ -194,21 +196,25 @@
       {
         "arg": "--service-principal-id <service-principal-id>",
         "description": "Azure service principal id with `contributor` role in Azure Resource Group",
+        "inherit": "introspection.azure.service_principal_id",
         "required": true
       },
       {
         "arg": "--service-principal-password <service-principal-password>",
         "description": "The Azure service principal password",
+        "inherit": "introspection.azure.service_principal_secret",
         "required": true
       },
       {
         "arg": "--tenant-id <tenant-id>",
         "description": "The Azure AD tenant id of service principal",
+        "inherit": "introspection.azure.tenant_id",
         "required": true
       },
       {
         "arg": "--subscription-id <subscription-id>",
         "description": "The Azure subscription id",
+        "inherit": "introspection.azure.subscription_id",
         "required": true
       }
     ],

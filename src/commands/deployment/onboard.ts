@@ -12,6 +12,7 @@ import {
 import {
   build as buildCmd,
   exit as exitCmd,
+  populateInheritValueFromConfig,
   validateForRequiredValues,
 } from "../../lib/commandBuilder";
 import { logger } from "../../logger";
@@ -50,22 +51,7 @@ export interface OnBoardConfig {
  * @param opts values from commander
  */
 export const populateValues = (opts: CommandOptions): CommandOptions => {
-  const config = Config();
-  const azure = config.introspection ? config.introspection.azure : undefined;
-
-  opts.storageAccountName =
-    opts.storageAccountName || azure?.account_name || undefined;
-  opts.storageTableName =
-    opts.storageTableName || azure?.table_name || undefined;
-  opts.servicePrincipalId =
-    opts.servicePrincipalId || azure?.service_principal_id || undefined;
-  opts.servicePrincipalPassword =
-    opts.servicePrincipalPassword ||
-    azure?.service_principal_secret ||
-    undefined;
-  opts.tenantId = opts.tenantId || azure?.tenant_id || undefined;
-  opts.subscriptionId =
-    opts.subscriptionId || azure?.subscription_id || undefined;
+  populateInheritValueFromConfig(decorator, Config(), opts);
   return opts;
 };
 
@@ -75,18 +61,7 @@ export const populateValues = (opts: CommandOptions): CommandOptions => {
  * @param opts values from commander (including populated values from spk config)
  */
 export const validateValues = (opts: CommandOptions): OnBoardConfig => {
-  const errors = validateForRequiredValues(decorator, {
-    servicePrincipalId: opts.servicePrincipalId,
-    servicePrincipalPassword: opts.servicePrincipalPassword,
-    storageAccountName: opts.storageAccountName,
-    storageResourceGroupName: opts.storageResourceGroupName,
-    storageTableName: opts.storageTableName,
-    subscriptionId: opts.subscriptionId,
-    tenantId: opts.tenantId,
-  });
-  if (errors.length > 0) {
-    throw Error("Required values are missing");
-  }
+  validateForRequiredValues(decorator, opts, true);
 
   // validateForRequiredValues already check
   // opts.storageAccountName and opts.storageTableName are not empty string

@@ -4,9 +4,11 @@ import { createLogger } from "winston";
 jest.mock("fs");
 import { logger } from "../logger";
 import {
+  argToVariableName,
   build,
   exit as exitCmd,
   CommandBuildElements,
+  populateInheritValueFromConfig,
   validateForRequiredValues,
 } from "./commandBuilder";
 
@@ -15,6 +17,131 @@ interface CommandOption {
   description: string;
   defaultValue: string | boolean;
 }
+
+describe("test argToVariableName function", () => {
+  it("positive test", () => {
+    const name = argToVariableName({
+      arg: "--test-option",
+      description: "test",
+    });
+    expect(name).toBe("testOption");
+  });
+  it("positive test", () => {
+    expect(() => {
+      argToVariableName({
+        arg: "-test-option",
+        description: "test",
+      });
+    }).toThrow("Could locate option name -test-option");
+  });
+});
+
+describe("test populateInheritValueFromConfig function", () => {
+  it("positive test: value = undefined and no inherit match", () => {
+    const opts = {
+      testOption: undefined,
+    };
+    populateInheritValueFromConfig(
+      {
+        command: "test",
+        alias: "t",
+        description: "description of test",
+        options: [
+          {
+            arg: "--test-option",
+            description: "test",
+            inherit: "introspection.test",
+          },
+        ],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      },
+      {} as any,
+      opts
+    );
+    expect(opts.testOption).toBeUndefined();
+  });
+  it("positive test: value = undefined and inherit match", () => {
+    const opts = {
+      testOption: undefined,
+    };
+    populateInheritValueFromConfig(
+      {
+        command: "test",
+        alias: "t",
+        description: "description of test",
+        options: [
+          {
+            arg: "--test-option",
+            description: "test",
+            inherit: "introspection.test",
+          },
+        ],
+      },
+      {
+        introspection: {
+          test: "test-value",
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
+      opts
+    );
+    expect(opts.testOption).toBe("test-value");
+  });
+  it("negative test: incorrect inherit value", () => {
+    const opts = {
+      testOption: undefined,
+    };
+    populateInheritValueFromConfig(
+      {
+        command: "test",
+        alias: "t",
+        description: "description of test",
+        options: [
+          {
+            arg: "--test-option",
+            description: "test",
+            inherit: "introspection.testx",
+          },
+        ],
+      },
+      {
+        introspection: {
+          test: "test-value",
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
+      opts
+    );
+    expect(opts.testOption).toBeUndefined();
+  });
+  it("negative test: incorrect inherit value: object", () => {
+    const opts = {
+      testOption: undefined,
+    };
+    populateInheritValueFromConfig(
+      {
+        command: "test",
+        alias: "t",
+        description: "description of test",
+        options: [
+          {
+            arg: "--test-option",
+            description: "test",
+            inherit: "introspection",
+          },
+        ],
+      },
+      {
+        introspection: {
+          test: "test-value",
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
+      opts
+    );
+    expect(opts.testOption).toBeUndefined();
+  });
+});
 
 describe("Tests Command Builder's build function", () => {
   it("Declaration with no options", () => {

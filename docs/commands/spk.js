@@ -1,3 +1,4 @@
+/* eslint-disable */
 var data = null;
 var filter = "";
 var converter = new showdown.Converter();
@@ -8,7 +9,9 @@ var sepVersion = "@";
 var template =
   '<p class="cmd-title">@@main-cmd@@</p><p class="cmd-description">@@cmd-description@@</p><p>&nbsp;</p><p>Options:</p>@@options@@<p>&nbsp;</p>';
 var optionTemplate =
-  '<p>@@option@@</p><p class="cmd-description">@@description@@</p><div class="line-space"></div>';
+  '<p>@@option@@</p><p class="cmd-description">@@description@@</p>@@inherit@@<div class="line-space"></div>';
+var inheritTemplate =
+  '<p class="cmd-inherit">inherit @@inherit@@ from spk config.yaml</p>';
 var relTemplate =
   '<li><a class="preserve-view button is-small has-border-none has-inner-focus has-flex-justify-content-start is-full-width has-text-wrap is-text-left">@@value@@</a></li>';
 
@@ -19,18 +22,18 @@ function sanitize(str) {
 function getExistingVersions() {
   $.ajax({
     url: "releases.txt",
-    success: function(result) {
-      result.split("\n").forEach(function(r) {
+    success: function (result) {
+      result.split("\n").forEach(function (r) {
         var rTrim = r.trim();
         if (rTrim && releases.indexOf(rTrim) === -1) {
           releases.push(rTrim);
         }
       });
-      releases.sort(function(a, b) {
+      releases.sort(function (a, b) {
         return a > b ? -1 : 1;
       });
     },
-    async: false
+    async: false,
   });
 }
 
@@ -56,8 +59,8 @@ function populateVersionList() {
       return a + relTemplate.replace("@@value@@", c);
     }, "")
   );
-  oSelect.find("li").each(function(i, elm) {
-    $(elm).on("click", function(evt) {
+  oSelect.find("li").each(function (i, elm) {
+    $(elm).on("click", function (evt) {
       evt.stopPropagation();
       oSelect.css("display", "none");
       var ver = $(this).text();
@@ -91,15 +94,27 @@ function showDetails(key) {
   );
   content = content.replace("@@cmd-description@@", cmd.description);
 
-  var options = (cmd.options || []).reduce(function(a, c) {
-    a += optionTemplate
+  var options = (cmd.options || []).reduce(function (a, c) {
+    var o = optionTemplate
       .replace("@@option@@", sanitize(c.arg))
       .replace("@@description@@", sanitize(c.description));
+
+    if (c.inherit) {
+      o = o.replace(
+        "@@inherit@@",
+        inheritTemplate.replace("@@inherit@@", c.inherit)
+      );
+    } else {
+      o = o.replace("@@inherit@@", "");
+    }
+
+    a += o;
     return a;
   }, "");
   options += optionTemplate
     .replace("@@option@@", "-h, --help")
-    .replace("@@description@@", "output usage information");
+    .replace("@@description@@", "output usage information")
+    .replace("@@inherit@@", "");
 
   content = content.replace("@@options@@", options);
 
@@ -121,11 +136,11 @@ function showDetails(key) {
 function populateListing() {
   var cmdKeys = Object.keys(data);
   if (filter) {
-    cmdKeys = cmdKeys.filter(function(k) {
+    cmdKeys = cmdKeys.filter(function (k) {
       return k.indexOf(filter) !== -1;
     });
   }
-  var listing = cmdKeys.reduce(function(a, c) {
+  var listing = cmdKeys.reduce(function (a, c) {
     a +=
       "<li><a href=\"javascript:showDetails('" +
       c +
@@ -159,15 +174,15 @@ function populateListing() {
   }
 }
 
-var subheaderItems = function() {
-  $("#item_share").click(function(evt) {
+var subheaderItems = function () {
+  $("#item_share").click(function (evt) {
     evt.stopPropagation();
     $("#sharing-menu").css("display", "block");
   });
-  $("body").click(function() {
+  $("body").click(function () {
     $("#sharing-menu").css("display", "none");
   });
-  $("#item_contribute").click(function(evt) {
+  $("#item_contribute").click(function (evt) {
     var win = window.open("https://github.com/CatalystCode/spk", "_blank");
     win.focus();
   });
@@ -175,16 +190,13 @@ var subheaderItems = function() {
 
 function loadCommands() {
   var url = version === "master" ? "./data.json" : "./data" + version + ".json";
-  $.getJSON(url, function(json) {
+  $.getJSON(url, function (json) {
     data = json;
     subheaderItems();
     populateListing();
 
-    $("#commandfilter").on("input", function() {
-      filter = $(this)
-        .val()
-        .trim()
-        .toLowerCase();
+    $("#commandfilter").on("input", function () {
+      filter = $(this).val().trim().toLowerCase();
       populateListing();
     });
   });
@@ -206,15 +218,15 @@ function showReleaseSelector(bShow) {
   }
 }
 
-$(function() {
-  $("#btnSelectRelease").on("click", function(evt) {
+$(function () {
+  $("#btnSelectRelease").on("click", function (evt) {
     evt.stopPropagation();
     showReleaseSelector();
   });
-  $(document.body).on("click", function() {
+  $(document.body).on("click", function () {
     showReleaseSelector(false);
   });
-  $(document).keyup(function(evt) {
+  $(document).keyup(function (evt) {
     if (evt.keyCode === 27) {
       showReleaseSelector(false);
     }

@@ -98,6 +98,10 @@ a:visited {
 .cmd-description {
   margin-left: 16px;
 }
+.cmd-inherit {
+  margin-left: 16px;
+  color: #666;
+}
 .markdown {
   padding: 20px;
   margin-bottom: 20px;
