@@ -1,6 +1,5 @@
 {
   "command": "delete <ring-name>",
   "alias": "d",
-  "description": "Delete a ring from the current working directory project repository. This will affect all services within the project repository. The default ring cannot be deleted.",
-  "disabled": true
+  "description": "Delete a ring from the current working directory project repository. This will affect all services within the project repository. The default ring cannot be deleted."
 }

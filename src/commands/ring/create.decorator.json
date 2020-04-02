@@ -1,6 +1,5 @@
 {
   "command": "create <ring-name>",
   "alias": "c",
-  "description": "Create a new ring for the current working directory project repository. This will affect all services within the project repository.",
-  "disabled": true
+  "description": "Create a new ring for the current working directory project repository. This will affect all services within the project repository."
 }

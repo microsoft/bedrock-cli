@@ -25,7 +25,7 @@ const commandModules = [
   "hld",
   "infra",
   "project",
-  // "ring", // Uncomment when ready to add rings
+  "ring",
   "service",
   "variable-group",
 ];
