@@ -115,25 +115,5 @@ E.g.
 3. All error shall be created with the error builder,
    https://github.com/CatalystCode/spk/blob/master/src/lib/errorBuilder.ts so
    that we can generate the exception chain. In this manner, we can precisely
-   know the root cause of the problem. Error shall be logged at the end of the
-   command like this
-
-```
-export const execute = async (
-  config: ConfigYaml,
-  opts: CommandOptions,
-  exitFn: (status: number) => Promise<void>
-): Promise<void> => {
-  try {
-    ...;
-    await exitFn(0);
-  } catch (err) {
-    logError(
-      buildError(errorStatusCode.CMD_EXE_ERR, "infra-scaffold-cmd-failed", err)
-    );
-    await exitFn(1);
-  }
-};
-```
-
-[Reference](../technical-docs/designs/exceptionHandling.md)
+   know the root cause of the problem. For more information, refer to
+   [error handling](./error-handling.md).
