@@ -109,6 +109,13 @@
     "ring-delete-cmd-failed": "Error occurred while deleting ring: {0}.",
     "ring-set-default-cmd-failed": "Error occurred while setting default ring: {0}",
 
+    "variable-group-create-cmd-failed": "Error occurred while creating variable group.",
+    "variable-group-create-cmd-err-create": "Could not load variable group. The variable group type '{0}' is not supported. Only 'Vsts' and 'AzureKeyVault' are valid types and case sensitive.",
+    "variable-group-create-cmd-err-access-token": "Provide a value for {0}.",
+    "variable-group-create-cmd-err-project-missing": "Provide a value for {0}.",
+    "variable-group-create-cmd-err-org-missing": "Provide a value for {0}.",
+    "variable-group-create-cmd-err-file-missing": "Provide a file with the variable group manifest.",
+
     "validation-err-org-name-missing": "Organization name was missing. Provide it.",
     "validation-err-org-name": "Organization name must start with a letter or number, followed by letters, numbers or hyphens, and must end with a letter or number.",
     "validation-err-password-missing": "Password was missing. Provide it.",
