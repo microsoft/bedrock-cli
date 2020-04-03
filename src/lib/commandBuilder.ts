@@ -120,11 +120,13 @@ export const validateForRequiredValues = (
   const errors = missingItems.map((item) => item.opt.arg);
 
   if (toThrow && errors.length !== 0) {
-    throw `The following arguments are required: ${errors.join("\n ")}`;
+    throw `The following arguments are required:\n ${errors.join("\n ")}`;
   }
 
   if (errors.length !== 0) {
-    logger.error(`the following arguments are required: ${errors.join("\n ")}`);
+    logger.error(
+      `the following arguments are required:\n ${errors.join("\n ")}`
+    );
   }
   return errors;
 };

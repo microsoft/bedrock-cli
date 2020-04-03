@@ -357,7 +357,7 @@ export const validateRepoUrl = (
   opts: CommandOptions,
   gitOriginUrl: string
 ): string => {
-  return opts.repoUrl || getRepositoryUrl(gitOriginUrl)
+  return opts.repoUrl || getRepositoryUrl(gitOriginUrl);
 };
 
 /**

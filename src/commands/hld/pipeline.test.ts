@@ -82,7 +82,7 @@ const orgNameTest = (hasVal: boolean): void => {
     hldUrl: "https://dev.azure.com/mocked/fabrikam/_git/hld",
     manifestUrl: "https://dev.azure.com/mocked/fabrikam/_git/materialized",
     orgName: hasVal ? "org Name" : "",
-    personalAccessToken: "",
+    personalAccessToken: "somesecret",
     pipelineName: "",
     yamlFileBranch: "",
   };
@@ -93,7 +93,8 @@ const orgNameTest = (hasVal: boolean): void => {
     );
   } else {
     expect(() => populateValues(data)).toThrow(
-      "value for -o, --org-name <organization-name> is missing"
+      `The following arguments are required:
+ -o, --org-name <organization-name>`
     );
   }
 };
@@ -107,7 +108,7 @@ const projectNameTest = (hasVal: boolean): void => {
     hldUrl: "https://dev.azure.com/mocked/fabrikam/_git/hld",
     manifestUrl: "https://dev.azure.com/mocked/fabrikam/_git/materialized",
     orgName: "orgName",
-    personalAccessToken: "",
+    personalAccessToken: "somesecret",
     pipelineName: "",
     yamlFileBranch: "",
   };
@@ -118,7 +119,8 @@ const projectNameTest = (hasVal: boolean): void => {
     );
   } else {
     expect(() => populateValues(data)).toThrow(
-      "value for -d, --devops-project <devops-project> is missing"
+      `The following arguments are required:
+ -d, --devops-project <devops-project>`
     );
   }
 };
@@ -176,7 +178,7 @@ describe("test populateValues function", () => {
         hldUrl: "https://github.com/fabrikam/hld",
         manifestUrl: "https://github.com/fabrikam/materialized",
         orgName: "orgName",
-        personalAccessToken: "",
+        personalAccessToken: "somevalue",
         pipelineName: "",
         yamlFileBranch: "",
       })

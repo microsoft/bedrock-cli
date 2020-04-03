@@ -9,7 +9,8 @@ import { validateRepository } from "../../lib/azdoClient";
 import {
   build as buildCmd,
   exit as exitCmd,
-  getOption as getCmdOption,
+  populateInheritValueFromConfig,
+  validateForRequiredValues,
 } from "../../lib/commandBuilder";
 import {
   BUILD_SCRIPT_URL,
@@ -24,13 +25,12 @@ import {
   IAzureRepoPipelineConfig,
   queueBuild,
 } from "../../lib/pipelines/pipelines";
-import { logger } from "../../logger";
-import decorator from "./pipeline.decorator.json";
 import {
-  hasValue,
   validateOrgNameThrowable,
   validateProjectNameThrowable,
 } from "../../lib/validator";
+import { logger } from "../../logger";
+import decorator from "./pipeline.decorator.json";
 
 export interface CommandOptions {
   pipelineName: string;
@@ -57,47 +57,13 @@ const validateRepos = (hldRepoUrl: string, manifestRepoUrl: string): void => {
 };
 
 export const populateValues = (opts: CommandOptions): CommandOptions => {
-  // NOTE: all the values in opts are defaulted to ""
-
   // exception will be thrown if spk's config.yaml is missing
-  const { azure_devops } = Config();
-
-  opts.hldUrl =
-    opts.hldUrl || emptyStringIfUndefined(azure_devops?.hld_repository);
-
-  opts.manifestUrl =
-    opts.manifestUrl ||
-    emptyStringIfUndefined(azure_devops?.manifest_repository);
+  populateInheritValueFromConfig(decorator, Config(), opts);
+  validateForRequiredValues(decorator, opts, true);
+  validateOrgNameThrowable(opts.orgName);
+  validateProjectNameThrowable(opts.devopsProject);
 
   opts.hldName = getRepositoryName(opts.hldUrl);
-
-  opts.orgName = opts.orgName || emptyStringIfUndefined(azure_devops?.org);
-
-  if (hasValue(opts.orgName)) {
-    validateOrgNameThrowable(opts.orgName);
-  } else {
-    throw Error(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      `value for ${getCmdOption(decorator, "org-name")!.arg} is missing`
-    );
-  }
-
-  opts.personalAccessToken =
-    opts.personalAccessToken ||
-    emptyStringIfUndefined(azure_devops?.access_token);
-
-  opts.devopsProject =
-    opts.devopsProject || emptyStringIfUndefined(azure_devops?.project);
-
-  if (hasValue(opts.devopsProject)) {
-    validateProjectNameThrowable(opts.devopsProject);
-  } else {
-    throw Error(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      `value for ${getCmdOption(decorator, "devops-project")!.arg} is missing`
-    );
-  }
-
   opts.pipelineName =
     opts.hldName + "-to-" + getRepositoryName(opts.manifestUrl);
 

@@ -9,11 +9,7 @@ import { isPortNumberString, validatePrereqs } from "../../lib/validator";
 import { logger } from "../../logger";
 import { ConfigYaml } from "../../types";
 import decorator from "./dashboard.decorator.json";
-import {
-  build as buildError,
-  log as logError,
-  build,
-} from "../../lib/errorBuilder";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
 import { errorStatusCode } from "../../lib/errorStatusCode";
 
 export interface IntrospectionManifest {

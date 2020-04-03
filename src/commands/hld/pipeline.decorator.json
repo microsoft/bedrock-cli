@@ -11,27 +11,37 @@
     {
       "arg": "-a, --personal-access-token <personal-access-token>",
       "description": "Personal Access Token",
-      "defaultValue": ""
+      "defaultValue": "",
+      "inherit": "azure_devops.access_token",
+      "required": true
     },
     {
       "arg": "-o, --org-name <organization-name>",
       "description": "Organization Name for Azure DevOps",
-      "defaultValue": ""
+      "defaultValue": "",
+      "inherit": "azure_devops.org",
+      "required": true
     },
     {
       "arg": "-u, --hld-url <hld-url>",
       "description": "HLD Repository URL",
-      "defaultValue": ""
+      "defaultValue": "",
+      "inherit": "azure_devops.hld_repository",
+      "required": true
     },
     {
       "arg": "-m, --manifest-url <manifest-url>",
       "description": "Manifest Repository URL",
-      "defaultValue": ""
+      "defaultValue": "",
+      "inherit": "azure_devops.manifest_repository",
+      "required": true
     },
     {
       "arg": "-d, --devops-project <devops-project>",
       "description": "Azure DevOps Project",
-      "defaultValue": ""
+      "defaultValue": "",
+      "inherit": "azure_devops.project",
+      "required": true
     },
     {
       "arg": "-b, --build-script-url <build-script-url>",
