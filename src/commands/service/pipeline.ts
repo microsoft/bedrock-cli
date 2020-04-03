@@ -18,7 +18,7 @@ import {
   getRepositoryName,
   getRepositoryUrl,
   isGitHubUrl,
-  validateRepoUrl
+  validateRepoUrl,
 } from "../../lib/gitutils";
 import {
   createPipelineForDefinition,
@@ -86,7 +86,6 @@ export const requiredPipelineVariables = (
     },
   };
 };
-
 
 /**
  * Install a pipeline for the service in an azure devops org.

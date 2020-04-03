@@ -1,12 +1,13 @@
 import commander from "commander";
 import * as bedrock from "../../lib/bedrockYaml";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
-import { PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE } from "../../lib/constants";
 import { updateTriggerBranchesForServiceBuildAndUpdatePipeline } from "../../lib/fileutils";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import { BedrockFileInfo } from "../../types";
 import decorator from "./delete.decorator.json";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 /**
  * Check the bedrock.yaml and the target ring exists
@@ -15,7 +16,10 @@ import decorator from "./delete.decorator.json";
 export const checkDependencies = (projectPath: string): void => {
   const fileInfo: BedrockFileInfo = bedrock.fileInfo(projectPath);
   if (fileInfo.exist === false) {
-    throw Error(PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE);
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "ring-delete-cmd-err-dependency"
+    );
   }
 };
 
@@ -60,8 +64,16 @@ export const execute = async (
     logger.info(`Successfully deleted ring: ${ringName} from this project!`);
     await exitFn(0);
   } catch (err) {
-    logger.error(`Error occurred while deleting ring: ${ringName}`);
-    logger.error(err);
+    logError(
+      buildError(
+        errorStatusCode.EXE_FLOW_ERR,
+        {
+          errorKey: "ring-delete-cmd-failed",
+          values: [ringName],
+        },
+        err
+      )
+    );
     await exitFn(1);
   }
 };

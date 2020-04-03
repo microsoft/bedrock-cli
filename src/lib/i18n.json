@@ -100,6 +100,15 @@
     "deployment-table-add-src-to-acr-pipeline": "Could not add source to ACR pipeline information to storage table.",
     "deployment-table-add-acr-to-hld-pipeline": "Could not add ACR to HLD pipeline information to storage table.",
 
+    "ring-create-cmd-failed": "Error occurred while creating ring: {0}",
+    "ring-create-cmd-err-ring-exists": "Could not create ring {0} in project {1} because it already exists. Provide a different name.",
+    "ring-create-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
+    "ring-delete-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
+    "ring-set-default-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
+    "ring-create-cmd-err-name-missing": "No ring name was provided. Provide a ring name",
+    "ring-delete-cmd-failed": "Error occurred while deleting ring: {0}.",
+    "ring-set-default-cmd-failed": "Error occurred while setting default ring: {0}",
+
     "validation-err-org-name-missing": "Organization name was missing. Provide it.",
     "validation-err-org-name": "Organization name must start with a letter or number, followed by letters, numbers or hyphens, and must end with a letter or number.",
     "validation-err-password-missing": "Password was missing. Provide it.",

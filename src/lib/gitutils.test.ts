@@ -586,7 +586,9 @@ describe("Returns an azure devops git repo url if it is defined", () => {
       yamlFileBranch: "master",
     };
     const gitUrl = "https://github.com/CatalystCode/spk.git";
-    expect(validateRepoUrl(mockValues, gitUrl)).toBe("https://dev.azure.com/myOrg/myProject/_git/myRepo");
+    expect(validateRepoUrl(mockValues, gitUrl)).toBe(
+      "https://dev.azure.com/myOrg/myProject/_git/myRepo"
+    );
   });
   it("another positive test", async () => {
     const mockValues: ConfigValues = {
@@ -600,6 +602,8 @@ describe("Returns an azure devops git repo url if it is defined", () => {
       yamlFileBranch: "master",
     };
     const gitUrl = "https://github.com/CatalystCode/spk";
-    expect(validateRepoUrl(mockValues, gitUrl)).toBe("https://github.com/CatalystCode/spk");
+    expect(validateRepoUrl(mockValues, gitUrl)).toBe(
+      "https://github.com/CatalystCode/spk"
+    );
   });
 });

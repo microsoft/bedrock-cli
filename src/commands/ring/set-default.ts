@@ -5,11 +5,12 @@ import {
   setDefaultRing,
 } from "../../lib/bedrockYaml";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
-import { PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE } from "../../lib/constants";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import { BedrockFileInfo } from "../../types";
 import decorator from "./set-default.decorator.json";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 /**
  * Check for bedrock.yaml
@@ -18,7 +19,10 @@ import decorator from "./set-default.decorator.json";
 export const checkDependencies = (projectPath: string): void => {
   const fileInfo: BedrockFileInfo = bedrockFileInfo(projectPath);
   if (fileInfo.exist === false) {
-    throw new Error(PROJECT_INIT_DEPENDENCY_ERROR_MESSAGE);
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "ring-set-default-cmd-err-dependency"
+    );
   }
 };
 
@@ -50,8 +54,16 @@ export const execute = async (
     logger.info(`Successfully set default ring: ${ringName} for this project!`);
     await exitFn(0);
   } catch (err) {
-    logger.error(`Error occurred while setting default ring: ${ringName}`);
-    logger.error(err);
+    logError(
+      buildError(
+        errorStatusCode.EXE_FLOW_ERR,
+        {
+          errorKey: "ring-set-default-cmd-failed",
+          values: [ringName],
+        },
+        err
+      )
+    );
     await exitFn(1);
   }
 };
