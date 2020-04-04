@@ -1,5 +1,17 @@
 # RELEASE NOTES
 
+## [0.6.0] - 2020-04-03
+
+### Added
+
+- Enabled `spk ring` commands
+
+### Changed
+
+- Refactoring for eslint support and exception chaining.
+- Integration test improvements
+- Various bug fixes
+
 ## [0.5.8] - 2020-03-17
 
 ### Added
