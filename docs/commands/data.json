@@ -461,12 +461,14 @@
       {
         "arg": "-a, --personal-access-token <personal-access-token>",
         "description": "Personal Access Token",
-        "required": true
+        "required": true,
+        "inherit": "azureDevops.access_token"
       },
       {
         "arg": "-o, --org-name <organization-name>",
         "description": "Organization Name for Azure DevOps",
-        "required": true
+        "required": true,
+        "inherit": "azureDevops.org"
       },
       {
         "arg": "-u, --repo-url <repo-url>",
@@ -476,7 +478,8 @@
       {
         "arg": "-d, --devops-project <devops-project>",
         "description": "Azure DevOps Project name",
-        "required": true
+        "required": true,
+        "inherit": "azureDevops.project"
       },
       {
         "arg": "-b, --build-script-url <build-script-url>",

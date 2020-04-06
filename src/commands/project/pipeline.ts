@@ -10,6 +10,7 @@ import { fileInfo as bedrockFileInfo } from "../../lib/bedrockYaml";
 import {
   build as buildCmd,
   exit as exitCmd,
+  populateInheritValueFromConfig,
   validateForRequiredValues,
 } from "../../lib/commandBuilder";
 import {
@@ -97,51 +98,34 @@ export const fetchValidateValues = (
       "project-pipeline-err-spk-config-missing"
     );
   }
-  const azureDevops = spkConfig?.azure_devops;
+
   const repoUrl = validateRepoUrl(opts, gitOriginUrl);
-  const values: CommandOptions = {
-    buildScriptUrl: opts.buildScriptUrl || BUILD_SCRIPT_URL,
-    devopsProject: opts.devopsProject || azureDevops?.project,
-    orgName: opts.orgName || azureDevops?.org,
-    personalAccessToken: opts.personalAccessToken || azureDevops?.access_token,
-    pipelineName:
-      opts.pipelineName || getRepositoryName(gitOriginUrl) + "-lifecycle",
-    repoName: getRepositoryName(repoUrl) || getRepositoryName(gitOriginUrl),
-    repoUrl: opts.repoUrl || getRepositoryUrl(gitOriginUrl),
-    yamlFileBranch: opts.yamlFileBranch,
-  };
 
-  const map: { [key: string]: string | undefined } = {};
-  (Object.keys(values) as Array<keyof CommandOptions>).forEach((key) => {
-    const val = values[key];
-    if (key === "personalAccessToken") {
-      logger.debug(`${key}: XXXXXXXXXXXXXXXXX`);
-    } else {
-      logger.debug(`${key}: ${val}`);
-    }
-    map[key] = val;
-  });
+  (opts.pipelineName =
+    opts.pipelineName || getRepositoryName(gitOriginUrl) + "-lifecycle"),
+    (opts.repoName =
+      getRepositoryName(repoUrl) || getRepositoryName(gitOriginUrl)),
+    (opts.repoUrl = opts.repoUrl || getRepositoryUrl(gitOriginUrl));
+  opts.yamlFileBranch = opts.yamlFileBranch || "master";
+  opts.buildScriptUrl = opts.buildScriptUrl || BUILD_SCRIPT_URL;
 
-  const error = validateForRequiredValues(decorator, map);
-  if (error.length > 0) {
-    throw buildError(
-      errorStatusCode.VALIDATION_ERR,
-      "project-pipeline-err-invalid-options"
-    );
-  }
+  populateInheritValueFromConfig(decorator, Config(), opts);
+
+  // error will be thrown if validation fails
+  validateForRequiredValues(decorator, opts, true);
 
   // validateForRequiredValues has validated the following
   // values are validate, adding || "" is just to
   // satisfy the no-non-null-assertion eslint rule
   const configVals: ConfigValues = {
-    orgName: values.orgName || "",
-    buildScriptUrl: values.buildScriptUrl || BUILD_SCRIPT_URL,
-    devopsProject: values.devopsProject || "",
-    repoName: values.repoName,
-    personalAccessToken: values.personalAccessToken || "",
-    pipelineName: values.pipelineName || "",
-    repoUrl: values.repoUrl || "",
-    yamlFileBranch: values.yamlFileBranch,
+    orgName: opts.orgName || "",
+    buildScriptUrl: opts.buildScriptUrl || BUILD_SCRIPT_URL,
+    devopsProject: opts.devopsProject || "",
+    repoName: opts.repoName,
+    personalAccessToken: opts.personalAccessToken || "",
+    pipelineName: opts.pipelineName || "",
+    repoUrl: opts.repoUrl || "",
+    yamlFileBranch: opts.yamlFileBranch,
   };
 
   validateProjectNameThrowable(configVals.devopsProject);

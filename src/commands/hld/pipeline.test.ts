@@ -93,8 +93,8 @@ const orgNameTest = (hasVal: boolean): void => {
     );
   } else {
     expect(() => populateValues(data)).toThrow(
-      `The following arguments are required:
- -o, --org-name <organization-name>`
+      `validation-err-missing-vals: These mandatory options were missing:
+ -o, --org-name <organization-name>. Provide them.`
     );
   }
 };
@@ -119,8 +119,8 @@ const projectNameTest = (hasVal: boolean): void => {
     );
   } else {
     expect(() => populateValues(data)).toThrow(
-      `The following arguments are required:
- -d, --devops-project <devops-project>`
+      `validation-err-missing-vals: These mandatory options were missing:
+ -d, --devops-project <devops-project>. Provide them.`
     );
   }
 };

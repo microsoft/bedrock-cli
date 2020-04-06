@@ -97,8 +97,13 @@ describe("test fetchValidateValues function", () => {
       fetchValidateValues(mockMissingValues, gitUrl, {
         azure_devops: {},
       });
-    }).toThrow(`project-pipeline-err-invalid-options: Invalid option values`);
+    })
+      .toThrow(`validation-err-missing-vals: These mandatory options were missing:
+ -a, --personal-access-token <personal-access-token>
+ -o, --org-name <organization-name>
+ -d, --devops-project <devops-project>. Provide them.`);
   });
+
   it("SPK Config's azure_devops do not have value and command line does not have values", () => {
     expect(() => {
       fetchValidateValues(nullValues, gitUrl, {

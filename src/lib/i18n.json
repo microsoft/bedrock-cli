@@ -69,7 +69,6 @@
     "project-pipeline-err-init-dependency": "Please run `spk project init` and `spk project cvg` commands before running this command to initialize the project.",
     "project-pipeline-err-cvg": "Please run `spk project cvg` command before running this command to create a variable group.",
     "project-pipeline-err-spk-config-missing": "SPK Config is missing",
-    "project-pipeline-err-invalid-options": "Invalid option values",
     "project-pipeline-err-pipeline-create": "Error occurred during pipeline creation for {0}",
     "project-pipeline-err-invalid-build-definition": "Invalid BuildDefinition created, parameter 'id' is missing from {0}",
 
@@ -224,6 +223,7 @@
     "variable-group-create-cmd-err-org-missing": "Provide a value for {0}.",
     "variable-group-create-cmd-err-file-missing": "Provide a file with the variable group manifest.",
 
+    "validation-err-missing-vals": "These mandatory options were missing:\n {0}. Provide them.",
     "validation-err-org-name-missing": "Organization name was missing. Provide it.",
     "validation-err-org-name": "Organization name must start with a letter or number, followed by letters, numbers or hyphens, and must end with a letter or number.",
     "validation-err-password-missing": "Password was missing. Provide it.",

@@ -125,7 +125,10 @@ export const validateForRequiredValues = (
   const errors = missingItems.map((item) => item.opt.arg);
 
   if (toThrow && errors.length !== 0) {
-    throw `The following arguments are required:\n ${errors.join("\n ")}`;
+    throw buildError(errorStatusCode.VALIDATION_ERR, {
+      errorKey: "validation-err-missing-vals",
+      values: [errors.join("\n ")],
+    });
   }
 
   if (errors.length !== 0) {
