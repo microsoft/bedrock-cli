@@ -1,5 +1,7 @@
 import { logger } from "../../logger";
 import { exec } from "../shell";
+import { build as buildError } from "../errorBuilder";
+import { errorStatusCode } from "../errorStatusCode";
 
 export interface ServicePrincipal {
   id: string;
@@ -29,9 +31,7 @@ export const azCLILogin = async (): Promise<SubscriptionData[]> => {
       };
     });
   } catch (err) {
-    logger.error("Unable to execute az login");
-    logger.error(err);
-    throw err;
+    throw buildError(errorStatusCode.AZURE_CLI_ERR, "az-cli-login-err", err);
   }
 };
 
@@ -61,8 +61,10 @@ export const createWithAzCLI = async (
       tenantId: oResult.tenant,
     };
   } catch (err) {
-    logger.error("Unable to create service principal with az command line");
-    logger.error(err);
-    throw err;
+    throw buildError(
+      errorStatusCode.AZURE_CLI_ERR,
+      "az-cli-create-sp-err",
+      err
+    );
   }
 };

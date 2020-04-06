@@ -13,6 +13,9 @@ import { Config } from "../../config";
 import { logger } from "../../logger";
 import { AzureAccessOpts } from "../../types";
 import { getManagementCredentials } from "./azurecredentials";
+import { build as buildError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
+import { hasValue } from "../validator";
 
 // for caching Storage Management Client so it can be reused
 // so we need not have to fetch client every time.
@@ -34,9 +37,11 @@ export const getStorageManagementClient = async (
   }
 
   const creds = await getManagementCredentials(opts);
-
   if (!creds) {
-    throw Error("Could not get managemenet credentials");
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      "storage-client-err-missing-creds"
+    );
   }
 
   // Load config from opts and fallback to spk config
@@ -44,7 +49,10 @@ export const getStorageManagementClient = async (
   const azure = introspection ? introspection.azure : undefined;
   const { subscriptionId = azure && azure.subscription_id } = opts;
   if (!subscriptionId) {
-    throw Error("Subscription Id was missing.");
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      "storage-client-err-missing-sub-id"
+    );
   }
 
   storageManagementClient = new StorageManagementClient(creds, subscriptionId);
@@ -83,19 +91,11 @@ export const getStorageAccountKeys = async (
   resourceGroup: string,
   opts: AzureAccessOpts = {}
 ): Promise<string[]> => {
-  // validate input
-  const errors: string[] = [];
-
-  if (!resourceGroup) {
-    errors.push(`Invalid resourceGroup`);
-  }
-
-  if (!accountName) {
-    errors.push(`Invalid accountName`);
-  }
-
-  if (errors.length !== 0) {
-    throw Error(`\n${errors.join("\n")}`);
+  if (!hasValue(resourceGroup) || !hasValue(accountName)) {
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      "storage-account-keys-err-missing-vals"
+    );
   }
 
   const storageAccountKeys: string[] = [];
@@ -150,13 +150,20 @@ export const validateStorageAccount = async (
       return true;
     }
 
+    // TOFIX: is this an error case?
     logger.error(
       `Storage account ${accountName} access keys is not valid or does not exist.`
     );
     return false;
-  } catch (error) {
-    logger.error(error);
-    throw error;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      {
+        errorKey: "storage-account-validate-azure-err",
+        values: [accountName, resourceGroup],
+      },
+      err
+    );
   }
 };
 
@@ -173,19 +180,11 @@ export const getStorageAccount = async (
   accountName: string,
   opts: AzureAccessOpts = {}
 ): Promise<StorageAccount | undefined> => {
-  // validate input
-  const errors: string[] = [];
-
-  if (!resourceGroup) {
-    errors.push(`Invalid resourceGroup`);
-  }
-
-  if (!accountName) {
-    errors.push(`Invalid accountName`);
-  }
-
-  if (errors.length !== 0) {
-    throw Error(`\n${errors.join("\n")}`);
+  if (!hasValue(resourceGroup) || !hasValue(accountName)) {
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      "storage-account-get-err-missing-vals"
+    );
   }
 
   const message = `Azure storage account ${accountName} in resource group ${resourceGroup}`;
@@ -212,8 +211,14 @@ export const getStorageAccount = async (
     }
     return found;
   } catch (err) {
-    logger.error(`Error occurred while getting ${message} \n ${err}`);
-    throw err;
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      {
+        errorKey: "storage-account-get-azure-err",
+        values: [accountName, resourceGroup],
+      },
+      err
+    );
   }
 };
 
@@ -230,28 +235,25 @@ export const isStorageAccountExist = async (
   accountName: string,
   opts: AzureAccessOpts = {}
 ): Promise<boolean> => {
-  // validate input
-  const errors: string[] = [];
-
-  if (!resourceGroup) {
-    errors.push(`Invalid resourceGroup`);
+  if (!hasValue(resourceGroup) || !hasValue(accountName)) {
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      "storage-account-exist-err-missing-vals"
+    );
   }
 
-  if (!accountName) {
-    errors.push(`Invalid accountName`);
-  }
-
-  if (errors.length !== 0) {
-    throw Error(`\n${errors.join("\n")}`);
-  }
-
-  const message = `Azure storage account ${accountName} in resource group ${resourceGroup}`;
   try {
     const account = await getStorageAccount(resourceGroup, accountName, opts);
     return account !== undefined;
   } catch (err) {
-    logger.error(`Error occurred while finding ${message} \n ${err}`);
-    throw err;
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      {
+        errorKey: "storage-account-exist-azure-err",
+        values: [accountName, resourceGroup],
+      },
+      err
+    );
   }
 };
 
@@ -268,20 +270,15 @@ const validateInputsForCreateAccount = (
   accountName: string,
   location: string
 ): void => {
-  // validate input
-  const errors: string[] = [];
-
-  if (!resourceGroup) {
-    errors.push(`Invalid resourceGroup`);
-  }
-  if (!accountName) {
-    errors.push(`Invalid accountName`);
-  }
-  if (!location) {
-    errors.push(`Invalid location`);
-  }
-  if (errors.length !== 0) {
-    throw Error(`\n${errors.join("\n")}`);
+  if (
+    !hasValue(resourceGroup) ||
+    !hasValue(accountName) ||
+    !hasValue(location)
+  ) {
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      "storage-account-create-err-missing-vals"
+    );
   }
 };
 
@@ -301,10 +298,9 @@ export const createStorageAccount = async (
   opts: AzureAccessOpts = {}
 ): Promise<StorageAccount> => {
   const message = `Azure storage account ${accountName} in resource group ${resourceGroup} in ${location} location.`;
+  validateInputsForCreateAccount(resourceGroup, accountName, location);
 
   try {
-    validateInputsForCreateAccount(resourceGroup, accountName, location);
-
     logger.verbose(`Create storage client object.`);
     const client = await getStorageManagementClient(opts);
     logger.verbose(
@@ -315,9 +311,10 @@ export const createStorageAccount = async (
     );
 
     if (response.nameAvailable === false) {
-      const nameErrorMessage = `Storage account name ${accountName} is not available. Please choose a different name.`;
-      logger.error(nameErrorMessage);
-      throw Error(nameErrorMessage);
+      throw buildError(errorStatusCode.AZURE_STORAGE_OP_ERR, {
+        errorKey: "storage-account-create-err-name-taken",
+        values: [accountName],
+      });
     }
 
     logger.verbose(`Storage account name ${accountName} is available`);
@@ -341,8 +338,14 @@ export const createStorageAccount = async (
     logger.info(`Created ${message}`);
     return resp;
   } catch (err) {
-    logger.error(`Error occurred while creating ${message}. \n ${err}`);
-    throw err;
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      {
+        errorKey: "storage-account-create-azure-err",
+        values: [accountName],
+      },
+      err
+    );
   }
 };
 
@@ -360,19 +363,11 @@ export const getStorageAccountKey = async (
   accountName: string,
   opts: AzureAccessOpts = {}
 ): Promise<string | undefined> => {
-  // validate input
-  const errors: string[] = [];
-
-  if (!resourceGroup) {
-    errors.push(`Invalid resourceGroup`);
-  }
-
-  if (!accountName) {
-    errors.push(`Invalid accountName`);
-  }
-
-  if (errors.length !== 0) {
-    throw Error(`\n${errors.join("\n")}`);
+  if (!hasValue(resourceGroup) || !hasValue(accountName)) {
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      "storage-account-key-missing-vals"
+    );
   }
 
   try {
@@ -396,11 +391,11 @@ export const getStorageAccountKey = async (
     logger.verbose(`Returning key: ${key}`);
     return key;
   } catch (err) {
-    logger.error(
-      `Error occurred while getting the access keys for storage account ${accountName}`
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      "storage-account-key-azure-err",
+      err
     );
-    logger.error(err);
-    throw err;
   }
 };
 
@@ -415,17 +410,11 @@ const validateValuesForCreateStorageTable = (
   accountName: string,
   tableName: string
 ): void => {
-  const errors: string[] = [];
-
-  if (!accountName) {
-    errors.push(`Invalid accountName`);
-  }
-  if (!tableName) {
-    errors.push(`Invalid tableName`);
-  }
-
-  if (errors.length !== 0) {
-    throw Error(`\n${errors.join("\n")}`);
+  if (!hasValue(accountName) || !hasValue(tableName)) {
+    throw buildError(
+      errorStatusCode.AZURE_STORAGE_OP_ERR,
+      "storage-account-table-create-missing-vals"
+    );
   }
 };
 
@@ -451,10 +440,13 @@ export const createTableIfNotExists = (
 
       createTblService.createTableIfNotExists(tableName, (err, result) => {
         if (err) {
-          logger.error(
-            `Unable to create table in storage account ${accountName} \n ${err}`
+          reject(
+            buildError(
+              errorStatusCode.AZURE_STORAGE_OP_ERR,
+              "storage-account-table-create-err",
+              err
+            )
           );
-          reject(err);
         } else {
           logger.debug(`table result: ${JSON.stringify(result)}`);
           resolve(result.created);
@@ -476,19 +468,11 @@ export const createResourceGroupIfNotExists = async (
   name: string,
   location: string
 ): Promise<void> => {
-  // validate input
-  const errors: string[] = [];
-
-  if (!name) {
-    errors.push(`Invalid name`);
-  }
-
-  if (!location) {
-    errors.push(`Invalid location`);
-  }
-
-  if (errors.length !== 0) {
-    throw Error(`\n${errors.join("\n")}`);
+  if (!hasValue(name) || !hasValue(location)) {
+    throw buildError(
+      errorStatusCode.AZURE_RESOURCE_GROUP_ERR,
+      "resource-group-create-err-missing-vals"
+    );
   }
 
   const message = `Azure resource group ${name} in ${location} location`;
@@ -505,7 +489,10 @@ export const createResourceGroupIfNotExists = async (
       logger.info(`Created ${message}`);
     }
   } catch (err) {
-    logger.error(`Error occurred while creating ${message}. \n ${err}`);
-    throw err;
+    throw buildError(
+      errorStatusCode.AZURE_RESOURCE_GROUP_ERR,
+      "resource-group-create-err",
+      err
+    );
   }
 };

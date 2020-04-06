@@ -6,6 +6,8 @@ import {
 import { sleep } from "../../lib/util";
 import { logger } from "../../logger";
 import { RequestContext } from "./constants";
+import { build as buildError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 /**
  * Returns Azure DevOps Project if it exists.
@@ -21,11 +23,17 @@ export const getProject = async (
     return await coreAPI.getProject(name);
   } catch (err) {
     if (err.statusCode === 401) {
-      throw new Error(
-        "Access Token did not have the permission to read project. Grant read project permission to the token"
+      throw buildError(
+        errorStatusCode.AZURE_PROJECT_ERR,
+        "azure-project-get-err-permission",
+        err
       );
     }
-    throw err;
+    throw buildError(
+      errorStatusCode.AZURE_PROJECT_ERR,
+      "azure-project-get-azure-err",
+      err
+    );
   }
 };
 
@@ -69,15 +77,24 @@ export const createProject = async (
       }
     }
     if (!created) {
-      throw new Error(`Project, ${name} was not created within 2 minutes.`);
+      throw buildError(errorStatusCode.AZURE_PROJECT_ERR, {
+        errorKey: "azure-project-create-err-timeout",
+        values: [name],
+      });
     }
   } catch (err) {
     if (err.statusCode === 401) {
-      throw new Error(
-        "Access Token did not have the permission to create project. Grant write to project permission to the token"
+      throw buildError(
+        errorStatusCode.AZURE_PROJECT_ERR,
+        "azure-project-create-err-permission",
+        err
       );
     }
-    throw err;
+    throw buildError(
+      errorStatusCode.AZURE_PROJECT_ERR,
+      "azure-project-create-azure-err",
+      err
+    );
   }
 };
 

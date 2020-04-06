@@ -8,6 +8,8 @@ import { AzureDevOpsOpts } from ".";
 import { Config } from "../../config";
 import { logger } from "../../logger";
 import { azdoUrl } from "../azdoClient";
+import { build as buildError } from "../errorBuilder";
+import { errorStatusCode } from "../errorStatusCode";
 import { getOriginUrl, safeGitUrlForLogging } from "../gitutils";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -26,7 +28,7 @@ let gitApi: IGitApi | undefined; // keep track of the gitApi so it can be reused
  */
 export const GitAPI = async (opts: AzureDevOpsOpts = {}): Promise<IGitApi> => {
   // Load the gitApi if it has not been initialized
-  if (typeof gitApi === "undefined") {
+  if (!gitApi) {
     // Load config from opts and fallback to spk config
     const config = Config();
     const azureDevops = config["azure_devops"];
@@ -37,14 +39,16 @@ export const GitAPI = async (opts: AzureDevOpsOpts = {}): Promise<IGitApi> => {
 
     // PAT and devops URL are required
     if (typeof personalAccessToken === "undefined") {
-      throw Error(
-        `Unable to parse Azure DevOps Personal Access Token (azure_devops.personal_access_token) from spk config`
+      throw buildError(
+        errorStatusCode.GIT_OPS_ERR,
+        "git-azure-git-api-err-missing-access-token"
       );
     }
 
     if (typeof orgName === "undefined") {
-      throw Error(
-        `Unable to parse Azure DevOps Organization URL (azure_devops.devops_org_url) from spk config`
+      throw buildError(
+        errorStatusCode.GIT_OPS_ERR,
+        "git-azure-git-api-err-missing-org"
       );
     }
 
@@ -64,8 +68,11 @@ export const GitAPI = async (opts: AzureDevOpsOpts = {}): Promise<IGitApi> => {
       gitApi = await connection.getGitApi();
       logger.info(`Successfully connected to Azure DevOps Git API!`);
     } catch (err) {
-      logger.error(`Error connecting Azure DevOps Git API`);
-      throw err;
+      throw buildError(
+        errorStatusCode.GIT_OPS_ERR,
+        "git-azure-git-api-err",
+        err
+      );
     }
   }
 
@@ -80,16 +87,22 @@ export const GitAPI = async (opts: AzureDevOpsOpts = {}): Promise<IGitApi> => {
 export const generatePRUrl = async (
   pr: AZGitInterfaces.GitPullRequest
 ): Promise<string> => {
-  if (
-    typeof pr.repository !== "undefined" &&
-    typeof pr.repository.id !== "undefined"
-  ) {
-    const gitAPI = await GitAPI();
-    const parentRepo = await gitAPI.getRepository(pr.repository.id);
-    return `${parentRepo.webUrl}/pullrequest/${pr.pullRequestId}`;
+  if (pr.repository && pr.repository.id) {
+    try {
+      const gitAPI = await GitAPI();
+      const parentRepo = await gitAPI.getRepository(pr.repository.id);
+      return `${parentRepo.webUrl}/pullrequest/${pr.pullRequestId}`;
+    } catch (err) {
+      throw buildError(
+        errorStatusCode.GIT_OPS_ERR,
+        "git-azure-generate-pr-err",
+        err
+      );
+    }
   }
-  throw Error(
-    `Failed to generate PR URL; PR did not contain a valid repository ID`
+  throw buildError(
+    errorStatusCode.GIT_OPS_ERR,
+    "git-azure-generate-pr-err-missing-id"
   );
 };
 
@@ -110,11 +123,11 @@ export const getGitOrigin = async (originPushUrl: string): Promise<string> => {
   try {
     return await getOriginUrl();
   } catch (err) {
-    logger.error(err);
-    logger.error(
-      `Error parsing remote origin from git client, run 'git config --get remote.origin.url' for more information`
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      "git-azure-get-git-origin-err",
+      err
     );
-    throw new Error(`No remote origin found in the current git repository`);
   }
 };
 
@@ -131,20 +144,29 @@ export const getAllRepos = async (
   logger.info(
     `Retrieving repositories associated with Azure PAT '${obfuscatedPAT}'`
   );
-  const allRepos = await gitAPI.getRepositories();
-  if (allRepos.length === 0) {
-    throw new Error(
-      `0 repositories found in Azure DevOps associated with PAT '${obfuscatedPAT}'`
+  try {
+    const allRepos = await gitAPI.getRepositories();
+    if (allRepos.length === 0) {
+      throw buildError(
+        errorStatusCode.GIT_OPS_ERR,
+        "git-azure-get-all-repo-none"
+      );
+    }
+
+    // Search for repos matching the current git origin
+    logger.info(
+      `${allRepos.length} repositor${
+        allRepos.length > 1 ? "ies" : "y"
+      } found; searching for entries matching '${gitOriginUrlForLogging}'`
+    );
+    return allRepos;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      "git-azure-get-all-repo-err",
+      err
     );
   }
-
-  // Search for repos matching the current git origin
-  logger.info(
-    `${allRepos.length} repositor${
-      allRepos.length > 1 ? "ies" : "y"
-    } found; searching for entries matching '${gitOriginUrlForLogging}'`
-  );
-  return allRepos;
 };
 
 export const getMatchingBranch = async (
@@ -164,41 +186,53 @@ export const getMatchingBranch = async (
     } with matching URL '${gitOriginUrlForLogging}'`
   );
 
-  // Search for repos with branches matching those to make the PR against
-  const reposWithMatchingBranches = (
-    await Promise.all(
-      reposWithMatchingOrigin.map(async (repo) => {
-        logger.info(`Retrieving branches for repository '${repo.name}'`);
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const branches = await gitAPI.getBranches(repo.id!);
-        return {
-          branches: branches.filter((branch) => {
-            return branch.name && [sourceRef, targetRef].includes(branch.name);
-          }),
-          repo,
-        };
-      })
+  try {
+    // Search for repos with branches matching those to make the PR against
+    const reposWithMatchingBranches = (
+      await Promise.all(
+        reposWithMatchingOrigin.map(async (repo) => {
+          logger.info(`Retrieving branches for repository '${repo.name}'`);
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const branches = await gitAPI.getBranches(repo.id!);
+          return {
+            branches: branches.filter((branch) => {
+              return (
+                branch.name && [sourceRef, targetRef].includes(branch.name)
+              );
+            }),
+            repo,
+          };
+        })
+      )
     )
-  )
-    .filter((repo) => {
-      // Valid repos must contain both the source and target repo
-      return repo.branches.length >= 2;
-    })
-    .map((repo) => repo.repo);
+      .filter((repo) => {
+        // Valid repos must contain both the source and target repo
+        return repo.branches.length >= 2;
+      })
+      .map((repo) => repo.repo);
 
-  // Only allow one matching repo to be found
-  if (reposWithMatchingBranches.length === 0) {
-    throw new Error(
-      `0 repositories found with remote url '${gitOriginUrlForLogging}' and branches '${sourceRef}' and '${targetRef}'; Ensure both '${sourceRef}' and '${targetRef}' exist on '${gitOriginUrlForLogging}'. Cannot automate pull request`
+    // Only allow one matching repo to be found
+    if (reposWithMatchingBranches.length === 0) {
+      throw buildError(errorStatusCode.GIT_OPS_ERR, {
+        errorKey: "git-azure-get-match-branch-none",
+        values: [gitOriginUrlForLogging, sourceRef, targetRef],
+      });
+    }
+    if (reposWithMatchingBranches.length > 1) {
+      throw buildError(errorStatusCode.GIT_OPS_ERR, {
+        errorKey: "git-azure-get-match-branch-multiple",
+        values: [gitOriginUrlForLogging, sourceRef, targetRef],
+      });
+    }
+
+    return reposWithMatchingBranches[0];
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      "git-azure-get-match-branch-err",
+      err
     );
   }
-  if (reposWithMatchingBranches.length > 1) {
-    throw new Error(
-      `Multiple repositories (${reposWithMatchingBranches.length}) found with branches '${sourceRef}' and '${targetRef}'; Cannot automate pull request`
-    );
-  }
-
-  return reposWithMatchingBranches[0];
 };
 
 const handleErrorForCreatePullRequest = async (
@@ -231,7 +265,11 @@ const handleErrorForCreatePullRequest = async (
       );
     }
   }
-  throw err;
+  throw buildError(
+    errorStatusCode.GIT_OPS_ERR,
+    "git-azure-create-pull-request-err",
+    err
+  );
 };
 
 /**

@@ -11,6 +11,8 @@ import {
   RingConfig,
 } from "../types";
 import { writeVersion, getVersion } from "./fileutils";
+import { build as buildError } from "./errorBuilder";
+import { errorStatusCode } from "./errorStatusCode";
 
 export const YAML_NAME = "bedrock.yaml";
 
@@ -126,7 +128,10 @@ export const setDefaultRing = (
 ): void => {
   const rings = Object.keys(bedrockFile.rings);
   if (!rings.includes(ringName)) {
-    throw new Error(`The ring '${ringName}' is not defined in ${YAML_NAME}`);
+    throw buildError(errorStatusCode.FILE_IO_ERR, {
+      errorKey: "bedrock-yaml-ring-set-default-not-found",
+      values: [ringName, YAML_NAME],
+    });
   }
 
   for (const [name, value] of Object.entries(bedrockFile.rings)) {
@@ -214,15 +219,19 @@ export const removeRing = (
   }));
   const matchingRing = rings.find(({ name }) => name === ringToDelete);
   if (matchingRing === undefined) {
-    throw Error(`Ring ${ringToDelete} not found in bedrock.yaml`);
+    throw buildError(errorStatusCode.FILE_IO_ERR, {
+      errorKey: "bedrock-yaml-ring-remove-not-found",
+      values: [ringToDelete, "bedrock.yaml"],
+    });
   }
 
   // Check if ring is default, if so, warn "Cannot delete default ring
   // set a new default via `spk ring set-default` first." and exit
   if (matchingRing.config.isDefault) {
-    throw Error(
-      `Ring ${matchingRing.name} is currently set to isDefault -- set another default ring with 'spk ring set-default' first before attempting to delete`
-    );
+    throw buildError(errorStatusCode.ENV_SETTING_ERR, {
+      errorKey: "bedrock-yaml-ring-remove-default",
+      values: [matchingRing.name],
+    });
   }
 
   // Remove the ring
@@ -243,10 +252,8 @@ export const removeRing = (
 /**
  * Validates that the rings in `bedrock` are valid and throws an Error if not.
  *
- * Throws when:
- *  - More than one ring is marked `isDefault`
- *
- * @param bedrock file to validate the rings of
+ * @param bedrock file to validate the rings
+ * @throws if more than one ring is marked `isDefault`
  */
 export const validateRings = (bedrock: BedrockFile): void => {
   const rings = Object.entries(bedrock.rings).reduce(
@@ -256,8 +263,9 @@ export const validateRings = (bedrock: BedrockFile): void => {
   const defaultRings = rings.filter((ring) => ring.isDefault);
   if (defaultRings.length > 1) {
     const defaultRingsNames = defaultRings.map((ring) => ring.name).join(", ");
-    throw Error(
-      `only one ring may be set as 'isDefault: true' -- found [${defaultRingsNames}] `
-    );
+    throw buildError(errorStatusCode.ENV_SETTING_ERR, {
+      errorKey: "bedrock-yaml-ring-validation-err-many-rings",
+      values: [defaultRingsNames],
+    });
   }
 };

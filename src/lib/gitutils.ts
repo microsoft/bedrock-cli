@@ -38,9 +38,10 @@ export const getCurrentBranch = async (
     });
     return branch;
   } catch (err) {
-    logger.error(err);
-    throw Error(
-      `Unable to parse current branch from git client. Ensure 'git branch --show-current' returns a proper response`
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      "git-err-show-current-branch",
+      err
     );
   }
 };
@@ -57,12 +58,19 @@ export const checkoutBranch = async (
 ): Promise<void> => {
   try {
     if (createNewBranch) {
-      await exec("git", ["checkout", "-b", `${branchName}`]);
+      await exec("git", ["checkout", "-b", branchName]);
     } else {
-      await exec("git", ["checkout", `${branchName}`]);
+      await exec("git", ["checkout", branchName]);
     }
-  } catch (_) {
-    throw Error(`Unable to checkout git branch ${branchName}: ` + _);
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      {
+        errorKey: "git-err-checkout",
+        values: [branchName],
+      },
+      err
+    );
   }
 };
 
@@ -73,9 +81,16 @@ export const checkoutBranch = async (
  */
 export const deleteBranch = async (branchName: string): Promise<void> => {
   try {
-    await exec("git", ["branch", "-D", `${branchName}`]);
-  } catch (_) {
-    throw Error(`Unable to delete git branch ${branchName}: ` + _);
+    await exec("git", ["branch", "-D", branchName]);
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      {
+        errorKey: "git-err-delete-branch",
+        values: [branchName],
+      },
+      err
+    );
   }
 };
 
@@ -92,11 +107,14 @@ export const commitPath = async (
   try {
     await exec("git", ["add", ...pathspecs]);
     await exec("git", ["commit", "-m", `Adding new service: ${branchName}`]);
-  } catch (_) {
-    throw Error(
-      `Unable to commit changes in ${pathspecs.join(
-        ","
-      )} to git branch ${branchName}: ` + _
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      {
+        errorKey: "git-err-add-commit",
+        values: [pathspecs.join(","), branchName],
+      },
+      err
     );
   }
 };
@@ -110,7 +128,14 @@ export const pushBranch = async (branchName: string): Promise<void> => {
   try {
     await exec("git", ["push", "-u", "origin", `${branchName}`]);
   } catch (err) {
-    throw Error(`Unable to push git branch ${branchName}: ` + err);
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      {
+        errorKey: "git-err-push",
+        values: [branchName],
+      },
+      err
+    );
   }
 };
 
@@ -131,23 +156,30 @@ export const getOriginUrl = async (
     const safeLoggingUrl = safeGitUrlForLogging(originUrl);
     logger.debug(`Got git origin url ${safeLoggingUrl}`);
     return originUrl;
-  } catch (error) {
-    throw Error(`Unable to get git origin URL: ${error}`);
+  } catch (err) {
+    throw buildError(errorStatusCode.GIT_OPS_ERR, "git-err-get-orgin-url", err);
   }
 };
 
 export const getAzdoOriginUrl = async (): Promise<string> => {
   try {
     if (!process.env.APP_REPO_URL) {
-      throw new Error("Not running in a pipeline - no AzDO variables.");
+      throw buildError(
+        errorStatusCode.GIT_OPS_ERR,
+        "git-err-azdo-get-orgin-url-no-pipeline"
+      );
     }
 
     const originUrl = process.env.APP_REPO_URL;
     const safeLoggingUrl = safeGitUrlForLogging(originUrl);
     logger.debug(`Got azdo git origin url ${safeLoggingUrl}`);
     return originUrl;
-  } catch (error) {
-    throw Error(`Unable to get azdo origin URL: ${error}`);
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      "git-err-azdo-get-orgin-url",
+      err
+    );
   }
 };
 
@@ -216,17 +248,16 @@ export const getRepositoryUrl = (originUrl: string): string => {
       case "https":
         return `https://${resource}/${owner}/_git/${name}`;
       default:
-        throw Error(
-          `Invalid protocol found in git remote '${originUrl}'. Expected one of 'ssh' or 'https' found '${protocol}'`
-        );
+        throw buildError(errorStatusCode.GIT_OPS_ERR, {
+          errorKey: "git-err-get-repo-url-unknown-protocol",
+          values: [protocol, originUrl],
+        });
     }
   } else if (resource === "github.com") {
     logger.debug("github repo found.");
     return `https://github.com/${organization}/${name}`;
   } else {
-    throw Error(
-      "Could not determine origin repository, or it is not a supported type."
-    );
+    throw buildError(errorStatusCode.GIT_OPS_ERR, "git-err-get-repo-url");
   }
 };
 
@@ -258,9 +289,10 @@ export const getPullRequestLink = async (
         case "https":
           return `https://${resource}/${owner}/_git/${name}/pullrequestcreate?sourceRef=${newBranch}&targetRef=${baseBranch}`;
         default:
-          throw Error(
-            `Invalid protocol found in git remote '${originUrl}'. Expected one of 'ssh' or 'https' found '${protocol}'`
-          );
+          throw buildError(errorStatusCode.GIT_OPS_ERR, {
+            errorKey: "git-err-get-pull-request-link-unknown-prototype",
+            values: [protocol, originUrl],
+          });
       }
     } else if (resource === "github.com") {
       logger.debug("github repo found.");
@@ -271,9 +303,11 @@ export const getPullRequestLink = async (
       );
       return "Could not determine origin repository, or it is not a supported provider. Please check for the newly pushed branch and open a PR manually.";
     }
-  } catch (_) {
-    throw Error(
-      `"Could not determine git provider, or it is not a supported type.": ` + _
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      "git-err-get-pull-request-link-err",
+      err
     );
   }
 };
@@ -291,52 +325,22 @@ export const checkoutCommitPushCreatePRLink = async (
   ...pathspecs: string[]
 ): Promise<void> => {
   try {
-    const currentBranch = await getCurrentBranch().catch((e) => {
-      throw Error(
-        `Cannot fetch current branch. Changes will have to be manually committed. ${e}`
-      );
-    });
-    await checkoutBranch(newBranchName, true).catch((e) => {
-      throw Error(
-        `Cannot create and checkout new branch ${newBranchName}. Changes will have to be manually committed. ${e}`
-      );
-    });
-    await commitPath(newBranchName, ...pathspecs).catch((e) => {
-      throw Error(
-        `Cannot commit changes in ${pathspecs.join(
-          ", "
-        )} to branch ${newBranchName}. Changes will have to be manually committed. ${e}`
-      );
-    });
-    await pushBranch(newBranchName).catch((e) => {
-      throw Error(
-        `Cannot push branch ${newBranchName}. Changes will have to be manually committed. ${e}`
-      );
-    });
+    const currentBranch = await getCurrentBranch();
+    await checkoutBranch(newBranchName, true);
+    await commitPath(newBranchName, ...pathspecs);
+    await pushBranch(newBranchName);
 
     const originUrl = await getOriginUrl();
     const pullRequestLink = await getPullRequestLink(
       currentBranch,
       newBranchName,
       originUrl
-    ).catch((e) => {
-      throw Error(
-        `Could not create link for Pull Request. It will need to be done manually. ${e}`
-      );
-    });
+    );
     logger.info(`Link to create PR: ${pullRequestLink}`);
 
     // cleanup
-    await checkoutBranch(currentBranch, false).catch((e) => {
-      throw Error(
-        `Cannot checkout original branch ${currentBranch}. Clean up will need to be done manually. ${e}`
-      );
-    });
-    await deleteBranch(newBranchName).catch((e) => {
-      throw Error(
-        `Cannot delete new branch ${newBranchName}. Cleanup will need to be done manually. ${e}`
-      );
-    });
+    await checkoutBranch(currentBranch, false);
+    await deleteBranch(newBranchName);
   } catch (err) {
     throw buildError(
       errorStatusCode.GIT_OPS_ERR,

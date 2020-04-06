@@ -8,6 +8,7 @@ import { Config } from "../../config";
 import { getStorageAccount, validateStorageAccount } from "./storage";
 import * as storage from "./storage";
 import * as azureStorage from "azure-storage";
+import { getErrorMessage } from "../../lib/errorBuilder";
 
 const resourceGroupName = uuid();
 const storageAccountName = uuid();
@@ -141,41 +142,33 @@ describe("get storage account key", () => {
 
 describe("create resource group", () => {
   test("invalid name", async () => {
-    try {
-      await storage.createResourceGroupIfNotExists("", "westus");
-      expect(true).toBe(false);
-    } catch (err) {
-      expect(err.message).toEqual("\nInvalid name");
-    }
+    await expect(
+      storage.createResourceGroupIfNotExists("", "westus")
+    ).rejects.toThrow(
+      getErrorMessage("resource-group-create-err-missing-vals")
+    );
   });
 
   test("invalid location", async () => {
-    try {
-      await storage.createResourceGroupIfNotExists("testResourceGroup", "");
-      expect(true).toBe(false);
-    } catch (err) {
-      expect(err.message).toEqual("\nInvalid location");
-    }
+    await expect(
+      storage.createResourceGroupIfNotExists("testResourceGroup", "")
+    ).rejects.toThrow(
+      getErrorMessage("resource-group-create-err-missing-vals")
+    );
   });
 });
 
 describe("get storage account keys", () => {
   test("invalid account name", async () => {
-    try {
-      await storage.getStorageAccountKeys("", "resourceGroup");
-      expect(true).toBe(false);
-    } catch (err) {
-      expect(err.message).toEqual("\nInvalid accountName");
-    }
+    await expect(
+      storage.getStorageAccountKeys("", "resourceGroup")
+    ).rejects.toThrow(getErrorMessage("storage-account-keys-err-missing-vals"));
   });
 
   test("invalid resource group", async () => {
-    try {
-      await storage.getStorageAccountKeys("accountName", "");
-      expect(true).toBe(false);
-    } catch (err) {
-      expect(err.message).toEqual("\nInvalid resourceGroup");
-    }
+    await expect(
+      storage.getStorageAccountKeys("accountName", "")
+    ).rejects.toThrow(getErrorMessage("storage-account-keys-err-missing-vals"));
   });
 
   test("should get storage account key", async () => {
@@ -223,22 +216,22 @@ describe("storage account exists", () => {
       enableHttpsTrafficOnly: true,
       location: "uswest",
     });
-    try {
-      await storage.isStorageAccountExist("", "testAccountName");
-      expect(true).toBe(false);
-    } catch (err) {
-      expect(err.message).toEqual("\nInvalid resourceGroup");
-    }
+
+    await expect(
+      storage.isStorageAccountExist("", "testAccountName")
+    ).rejects.toThrow(
+      getErrorMessage("storage-account-exist-err-missing-vals")
+    );
   });
 
   test("invalid account name", async () => {
     jest.spyOn(storage, "getStorageAccount").mockResolvedValueOnce(undefined);
-    try {
-      await storage.isStorageAccountExist("testResourceGroup", "");
-      expect(true).toBe(false);
-    } catch (err) {
-      expect(err.message).toEqual("\nInvalid accountName");
-    }
+
+    await expect(
+      storage.isStorageAccountExist("testResourceGroup", "")
+    ).rejects.toThrow(
+      getErrorMessage("storage-account-exist-err-missing-vals")
+    );
   });
 
   test("storage account exists", async () => {
@@ -262,12 +255,12 @@ describe("get storage account", () => {
   test("invalid resource group", async () => {
     await expect(
       storage.getStorageAccount("", "testAccountName")
-    ).rejects.toThrow("\nInvalid resourceGroup");
+    ).rejects.toThrow(getErrorMessage("storage-account-get-err-missing-vals"));
   });
   test("invalid account name", async () => {
     await expect(
       storage.getStorageAccount("testResourceGroup", "")
-    ).rejects.toThrow("\nInvalid accountName");
+    ).rejects.toThrow(getErrorMessage("storage-account-get-err-missing-vals"));
   });
 });
 
@@ -275,12 +268,16 @@ describe("create table if it doesn't exist", () => {
   test("invalid account name", async () => {
     await expect(
       storage.createTableIfNotExists("", "tableName", "accessKey")
-    ).rejects.toThrow("\nInvalid accountName");
+    ).rejects.toThrow(
+      getErrorMessage("storage-account-table-create-missing-vals")
+    );
   });
   test("invalid account name", async () => {
     await expect(
       storage.createTableIfNotExists("testAccountName", "", "accessKey")
-    ).rejects.toThrow("\nInvalid tableName");
+    ).rejects.toThrow(
+      getErrorMessage("storage-account-table-create-missing-vals")
+    );
   });
   test("positive test", async () => {
     jest.spyOn(azureStorage, "createTableService").mockReturnValueOnce({
@@ -298,7 +295,7 @@ describe("create table if it doesn't exist", () => {
       "accessKey"
     );
   });
-  test("negative test", async () => {
+  it("negative test", async () => {
     jest.spyOn(azureStorage, "createTableService").mockReturnValueOnce({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       createTableIfNotExists: (tableName: string, callbackFn: any) => {
@@ -312,7 +309,7 @@ describe("create table if it doesn't exist", () => {
         "tableName",
         "accessKey"
       )
-    ).rejects.toThrow("fake message");
+    ).rejects.toThrow(getErrorMessage("storage-account-table-create-err"));
   });
 });
 

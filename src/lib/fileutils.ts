@@ -453,9 +453,10 @@ export const updateTriggerBranchesForServiceBuildAndUpdatePipeline = (
 
   // Check if build-update-hld-pipeline.yaml already exists; if it doesn't, throw error.
   if (!fs.existsSync(pipelineYamlFullPath)) {
-    throw new Error(
-      `Cannot find ${SERVICE_PIPELINE_FILENAME} for service in path '${pipelineYamlFullPath}'. Will not be able to update ring triggers.`
-    );
+    throw buildError(errorStatusCode.FILE_IO_ERR, {
+      errorKey: "fileutils-update-ring-trigger-svc-file-not-found",
+      values: [SERVICE_PIPELINE_FILENAME, pipelineYamlFullPath],
+    });
   }
 
   logger.info(

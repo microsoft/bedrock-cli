@@ -3,6 +3,8 @@ import { logger } from "../../logger";
 import { addVariableGroup } from "../pipelines/variableGroup";
 import { HLD_REPO, RequestContext, STORAGE_PARTITION_KEY } from "./constants";
 import { getAzureRepoUrl } from "./gitService";
+import { build as buildError } from "../errorBuilder";
+import { errorStatusCode } from "../errorStatusCode";
 
 const validateData = (rc: RequestContext): void => {
   if (!rc.acrName) throw Error("Missing Azure Container Registry Name.");
@@ -23,44 +25,52 @@ const validateData = (rc: RequestContext): void => {
 export const createVariableData = (
   rc: RequestContext
 ): VariableGroupDataVariable => {
-  validateData(rc);
-  return {
-    ACR_NAME: {
-      value: rc.acrName,
-    },
-    HLD_REPO: {
-      value: getAzureRepoUrl(rc.orgName, rc.projectName, HLD_REPO),
-    },
-    PAT: {
-      isSecret: true,
-      value: rc.accessToken,
-    },
-    SP_APP_ID: {
-      isSecret: true,
-      value: rc.servicePrincipalId,
-    },
-    SP_PASS: {
-      isSecret: true,
-      value: rc.servicePrincipalPassword,
-    },
-    SP_TENANT: {
-      isSecret: true,
-      value: rc.servicePrincipalTenantId,
-    },
-    INTROSPECTION_ACCOUNT_KEY: {
-      isSecret: true,
-      value: rc.storageAccountAccessKey,
-    },
-    INTROSPECTION_ACCOUNT_NAME: {
-      value: rc.storageAccountName,
-    },
-    INTROSPECTION_PARTITION_KEY: {
-      value: STORAGE_PARTITION_KEY,
-    },
-    INTROSPECTION_TABLE_NAME: {
-      value: rc.storageTableName,
-    },
-  };
+  try {
+    validateData(rc);
+    return {
+      ACR_NAME: {
+        value: rc.acrName,
+      },
+      HLD_REPO: {
+        value: getAzureRepoUrl(rc.orgName, rc.projectName, HLD_REPO),
+      },
+      PAT: {
+        isSecret: true,
+        value: rc.accessToken,
+      },
+      SP_APP_ID: {
+        isSecret: true,
+        value: rc.servicePrincipalId,
+      },
+      SP_PASS: {
+        isSecret: true,
+        value: rc.servicePrincipalPassword,
+      },
+      SP_TENANT: {
+        isSecret: true,
+        value: rc.servicePrincipalTenantId,
+      },
+      INTROSPECTION_ACCOUNT_KEY: {
+        isSecret: true,
+        value: rc.storageAccountAccessKey,
+      },
+      INTROSPECTION_ACCOUNT_NAME: {
+        value: rc.storageAccountName,
+      },
+      INTROSPECTION_PARTITION_KEY: {
+        value: STORAGE_PARTITION_KEY,
+      },
+      INTROSPECTION_TABLE_NAME: {
+        value: rc.storageTableName,
+      },
+    };
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+      "var-group-create-data-err",
+      err
+    );
+  }
 };
 
 export const create = async (

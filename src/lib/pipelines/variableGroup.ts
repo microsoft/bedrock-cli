@@ -10,6 +10,8 @@ import { VariableGroupData, VariableGroupDataVariable } from "../../types";
 import { getBuildApi, getTaskAgentApi } from "../azdoClient";
 import { AzureDevOpsOpts } from "../git";
 import { createServiceEndpointIfNotExists } from "./serviceEndpoint";
+import { build as buildError } from "../errorBuilder";
+import { errorStatusCode } from "../errorStatusCode";
 
 /**
  * Creates `IVariablesMap` object from variables key/value pairs
@@ -46,8 +48,11 @@ export const authorizeAccessToAllPipelines = async (
 ): Promise<boolean> => {
   const message = `Resource definition for all pipelines to access Variable Group ${variableGroup.name}`;
 
-  if (variableGroup.id === undefined) {
-    throw new Error("variable group id must be defined");
+  if (!variableGroup.id) {
+    throw buildError(
+      errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+      "var-group-authorize-all-pipelines-err-missing-id"
+    );
   }
 
   try {
@@ -87,8 +92,14 @@ export const authorizeAccessToAllPipelines = async (
 
     return true;
   } catch (err) {
-    logger.error(`Failed to create ${message}\n ${err}`);
-    throw err;
+    throw buildError(
+      errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+      {
+        errorKey: "var-group-authorize-all-pipelines-err",
+        values: [variableGroup.name || ""],
+      },
+      err
+    );
   }
 };
 
@@ -109,30 +120,29 @@ export const doAddVariableGroup = async (
   const message = `Variable Group ${variableGroupData.name}`;
   const config = Config();
   const { project = config.azure_devops && config.azure_devops.project } = opts;
+
   if (typeof project !== "string") {
-    throw Error(
-      `Azure DevOps Project not defined; ensure that azure_devops.project is set`
+    // can be just !project
+    throw buildError(
+      errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+      "var-group-add-err-project-missing"
     );
   }
-  try {
-    logger.debug(
-      `Creating new Variable Group ${JSON.stringify(variableGroupData)}`
-    );
-    logger.info(`Attempting to create Variable Group in project '${project}'`);
-    const taskClient = await getTaskAgentApi(opts);
-    const group = await taskClient.addVariableGroup(variableGroupData, project);
-    logger.debug(`Created new Variable Group: ${JSON.stringify(group)}`);
-    logger.info(`Created ${message} with id: ${group.id}`);
 
-    if (accessToAllPipelines) {
-      await authorizeAccessToAllPipelines(group, opts);
-    }
+  logger.debug(
+    `Creating new Variable Group ${JSON.stringify(variableGroupData)}`
+  );
+  logger.info(`Attempting to create Variable Group in project '${project}'`);
+  const taskClient = await getTaskAgentApi(opts);
+  const group = await taskClient.addVariableGroup(variableGroupData, project);
+  logger.debug(`Created new Variable Group: ${JSON.stringify(group)}`);
+  logger.info(`Created ${message} with id: ${group.id}`);
 
-    return group;
-  } catch (err) {
-    logger.error(`Failed to create ${message}\n ${err}`);
-    throw err;
+  if (accessToAllPipelines) {
+    await authorizeAccessToAllPipelines(group, opts);
   }
+
+  return group;
 };
 
 /**
@@ -148,16 +158,16 @@ export const addVariableGroup = async (
   opts: AzureDevOpsOpts = {}
 ): Promise<VariableGroup> => {
   const message = `Variable Group ${variableGroupData.name}`;
+  logger.info(`Creating ${message}`);
+
+  if (!variableGroupData.variables) {
+    throw buildError(
+      errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+      "var-group-add-err-vars-missing"
+    );
+  }
+
   try {
-    logger.info(`Creating ${message}`);
-
-    if (
-      variableGroupData.variables === undefined ||
-      variableGroupData.variables === null
-    ) {
-      throw new Error("Invalid input. Variable are not configured");
-    }
-
     // map variables from configuration
     const variablesMap = buildVariablesMap(variableGroupData.variables);
 
@@ -171,8 +181,14 @@ export const addVariableGroup = async (
 
     return doAddVariableGroup(params, true, opts);
   } catch (err) {
-    logger.error(`Failed to create ${message}\n ${err}`);
-    throw err;
+    throw buildError(
+      errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+      {
+        errorKey: "var-group-add-err",
+        values: [variableGroupData.name || ""],
+      },
+      err
+    );
   }
 };
 
@@ -198,8 +214,9 @@ export const addVariableGroupWithKeyVaultMap = async (
       variableGroupData.key_vault_provider.service_endpoint === undefined ||
       typeof variableGroupData.key_vault_provider.service_endpoint === null
     ) {
-      throw new Error(
-        "Invalid input. Azure KeyVault Provider data is not configured"
+      throw buildError(
+        errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+        "var-group-add-with-key-vault-err-missing-provider"
       );
     }
 
@@ -234,8 +251,14 @@ export const addVariableGroupWithKeyVaultMap = async (
 
     return doAddVariableGroup(params, true, opts);
   } catch (err) {
-    logger.error(`Failed to create ${message}\n ${err}`);
-    throw err;
+    throw buildError(
+      errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+      {
+        errorKey: "var-group-add-with-key-vault-err",
+        values: [variableGroupData.name || ""],
+      },
+      err
+    );
   }
 };
 

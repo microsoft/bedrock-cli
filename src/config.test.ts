@@ -15,6 +15,7 @@ import {
 import { createTempDir } from "./lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "./logger";
 import { BedrockFile } from "./types";
+import { getErrorMessage } from "./lib/errorBuilder";
 import { getVersionMessage } from "./lib/fileutils";
 
 beforeAll(() => {
@@ -40,15 +41,16 @@ describe("Test updateVariableWithLocalEnv function", () => {
     ).toBe("world - world : world1");
   });
   it("negative test", () => {
-    try {
+    expect(() => {
       updateVariableWithLocalEnv(
         "${env:hello2} - ${env:hello} : ${env:hello1}"
       );
-    } catch (e) {
-      expect(e.message).toBe(
-        "Environment variable needs to be defined for hello2 since it's referenced in the config file."
-      );
-    }
+    }).toThrow(
+      getErrorMessage({
+        errorKey: "spk-config-yaml-var-undefined",
+        values: ["hello2"],
+      })
+    );
   });
 });
 
@@ -180,13 +182,9 @@ describe("Initializing a project a config file but no env vars", () => {
 describe("Initializing a project with a non-existent file", () => {
   test("Non-existent file test", () => {
     const filename = path.resolve("./spk-config-test.yaml");
-    try {
+    expect(() => {
       loadConfiguration(filename);
-      // Make sure execution does not get here:
-      expect(true).toBeFalsy();
-    } catch (e) {
-      expect(e.code).toBe("ENOENT");
-    }
+    }).toThrow(getErrorMessage("spk-config-yaml-load-err"));
   });
 });
 

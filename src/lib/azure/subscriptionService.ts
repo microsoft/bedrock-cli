@@ -1,6 +1,8 @@
 import { SubscriptionClient } from "@azure/arm-subscriptions";
 import { loginWithServicePrincipalSecret } from "@azure/ms-rest-nodeauth";
 import { logger } from "../../logger";
+import { build as buildError } from "../errorBuilder";
+import { errorStatusCode } from "../errorStatusCode";
 
 export interface SubscriptionItem {
   id: string;
@@ -25,25 +27,37 @@ export const getSubscriptions = async (
     !servicePrincipalPassword ||
     !servicePrincipalTenantId
   ) {
-    throw Error("Service Principal information was missing.");
+    throw buildError(
+      errorStatusCode.AZURE_SUBSCRIPTION_ERR,
+      "az_subscription_err_get_subscriptions_missing_cred"
+    );
   }
-  const creds = await loginWithServicePrincipalSecret(
-    servicePrincipalId,
-    servicePrincipalPassword,
-    servicePrincipalTenantId
-  );
-  const client = new SubscriptionClient(creds);
-  const subsciptions = await client.subscriptions.list();
-  const result: SubscriptionItem[] = [];
 
-  (subsciptions || []).forEach((s) => {
-    if (s.subscriptionId && s.displayName) {
-      result.push({
-        id: s.subscriptionId,
-        name: s.displayName,
-      });
-    }
-  });
-  logger.info("Successfully acquired subscription list");
-  return result;
+  try {
+    const creds = await loginWithServicePrincipalSecret(
+      servicePrincipalId,
+      servicePrincipalPassword,
+      servicePrincipalTenantId
+    );
+    const client = new SubscriptionClient(creds);
+    const subsciptions = await client.subscriptions.list();
+    const result: SubscriptionItem[] = [];
+
+    (subsciptions || []).forEach((s) => {
+      if (s.subscriptionId && s.displayName) {
+        result.push({
+          id: s.subscriptionId,
+          name: s.displayName,
+        });
+      }
+    });
+    logger.info("Successfully acquired subscription list");
+    return result;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_SUBSCRIPTION_ERR,
+      "az_subscription_err_get_subscriptions",
+      err
+    );
+  }
 };

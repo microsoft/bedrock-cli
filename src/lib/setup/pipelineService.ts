@@ -23,6 +23,8 @@ import {
   MANIFEST_REPO,
 } from "./constants";
 import { getAzureRepoUrl } from "./gitService";
+import { build as buildError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 /**
  * Returns human readable build status.
@@ -79,9 +81,12 @@ export const getPipelineByName = async (
     logger.info(`Finding pipeline ${pipelineName}`);
     const defs = await buildApi.getDefinitions(projectName);
     return defs.find((d) => d.name === pipelineName);
-  } catch (e) {
-    logger.error(`Error in getting pipelines.`);
-    throw e;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.PIPELINE_ERR,
+      "pipeline-get-by-name-err",
+      err
+    );
   }
 };
 
@@ -102,9 +107,8 @@ export const deletePipeline = async (
   try {
     logger.info(`Deleting pipeline ${pipelineName}`);
     await buildApi.deleteDefinition(projectName, pipelineId);
-  } catch (e) {
-    logger.error(`Error in deleting pipeline ${pipelineName}`);
-    throw e;
+  } catch (err) {
+    throw buildError(errorStatusCode.PIPELINE_ERR, "pipeline-del-err", err);
   }
 };
 
@@ -123,9 +127,12 @@ export const getPipelineBuild = async (
   try {
     logger.info(`Getting queue ${pipelineName}`);
     return await buildApi.getLatestBuild(projectName, pipelineName);
-  } catch (e) {
-    logger.error(`Error in getting build ${pipelineName}`);
-    throw e;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.PIPELINE_ERR,
+      "pipeline-get-by-buildid-err",
+      err
+    );
   }
 };
 
@@ -149,7 +156,10 @@ export const pollForPipelineStatus = async (
     pipelineName
   );
   if (!oPipeline) {
-    throw new Error(`${pipelineName} is not found`);
+    throw buildError(errorStatusCode.PIPELINE_ERR, {
+      errorKey: "pipeline-get-status-err-not-found",
+      values: [pipelineName],
+    });
   }
 
   let build: Build;
@@ -212,8 +222,11 @@ export const createHLDtoManifestPipeline = async (
     await pollForPipelineStatus(buildApi, rc.projectName, pipelineName);
     rc.createdHLDtoManifestPipeline = true;
   } catch (err) {
-    logger.error(`An error occurred in create HLD to Manifest Pipeline`);
-    throw err;
+    throw buildError(
+      errorStatusCode.PIPELINE_ERR,
+      "pipeline-hld-manifest-create-err",
+      err
+    );
   }
 };
 
@@ -245,8 +258,11 @@ export const createLifecyclePipeline = async (
     await pollForPipelineStatus(buildApi, rc.projectName, pipelineName);
     rc.createdLifecyclePipeline = true;
   } catch (err) {
-    logger.error(`An error occured in create Lifecycle Pipeline`);
-    throw err;
+    throw buildError(
+      errorStatusCode.PIPELINE_ERR,
+      "pipeline-lifecycle-create-err",
+      err
+    );
   }
 };
 
@@ -282,7 +298,10 @@ export const createBuildPipeline = async (
     await pollForPipelineStatus(buildApi, rc.projectName, pipelineName);
     rc.createdBuildPipeline = true;
   } catch (err) {
-    logger.error(`An error occured in create Build Pipeline`);
-    throw err;
+    throw buildError(
+      errorStatusCode.PIPELINE_ERR,
+      "pipeline-build-create-err",
+      err
+    );
   }
 };

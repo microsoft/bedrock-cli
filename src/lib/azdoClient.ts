@@ -6,6 +6,8 @@ import { RestClient } from "typed-rest-client";
 import { Config } from "../config";
 import { logger } from "../logger";
 import { AzureDevOpsOpts } from "./git";
+import { build as buildError } from "./errorBuilder";
+import { errorStatusCode } from "./errorStatusCode";
 
 // Module state Variables
 let connection: WebApi | undefined;
@@ -41,15 +43,17 @@ export const getWebApi = async (
   } = opts;
 
   // PAT and devops URL are required
-  if (typeof personalAccessToken === "undefined") {
-    throw Error(
-      `Unable to parse Azure DevOps Personal Access Token (azure_devops.access_token) from spk config`
+  if (!personalAccessToken) {
+    throw buildError(
+      errorStatusCode.AZURE_CLIENT,
+      "azure-client-get-web-api-err-missing-access-token"
     );
   }
 
-  if (typeof orgName === "undefined") {
-    throw Error(
-      `Unable to parse Azure DevOps Organization name (azure_devops.org) from spk config`
+  if (!orgName) {
+    throw buildError(
+      errorStatusCode.AZURE_CLIENT,
+      "azure-client-get-web-api-err-missing-org"
     );
   }
 
@@ -61,7 +65,6 @@ export const getWebApi = async (
 
   const authHandler = getPersonalAccessTokenHandler(personalAccessToken);
   connection = new WebApi(orgUrl, authHandler);
-
   return connection;
 };
 
@@ -77,13 +80,21 @@ export const invalidateWebApi = (): void => {
 export const getRestClient = async (
   opts: AzureDevOpsOpts = {}
 ): Promise<RestClient> => {
-  if (typeof restApi !== "undefined") {
+  if (restApi) {
     return restApi;
   }
 
-  const webApi = await getWebApi(opts);
-  restApi = webApi.rest;
-  return restApi;
+  try {
+    const webApi = await getWebApi(opts);
+    restApi = webApi.rest;
+    return restApi;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_CLIENT,
+      "azure-client-get-rest-client-err",
+      err
+    );
+  }
 };
 
 /**
@@ -94,13 +105,21 @@ export const getRestClient = async (
 export const getBuildApi = async (
   opts: AzureDevOpsOpts = {}
 ): Promise<IBuildApi> => {
-  if (typeof buildApi !== "undefined") {
+  if (buildApi) {
     return buildApi;
   }
 
-  const webApi = await getWebApi(opts);
-  buildApi = await webApi.getBuildApi();
-  return buildApi;
+  try {
+    const webApi = await getWebApi(opts);
+    buildApi = await webApi.getBuildApi();
+    return buildApi;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_CLIENT,
+      "azure-client-get-build-client-err",
+      err
+    );
+  }
 };
 
 /**
@@ -112,11 +131,19 @@ export const getBuildApi = async (
 export const getTaskAgentApi = async (
   opts: AzureDevOpsOpts = {}
 ): Promise<ITaskAgentApi> => {
-  if (typeof taskAgentApi !== "undefined") {
+  if (taskAgentApi) {
     return taskAgentApi;
   }
 
-  const webApi = await getWebApi(opts);
-  taskAgentApi = await webApi.getTaskAgentApi();
-  return taskAgentApi;
+  try {
+    const webApi = await getWebApi(opts);
+    taskAgentApi = await webApi.getTaskAgentApi();
+    return taskAgentApi;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_CLIENT,
+      "azure-client-get-task-agent-client-err",
+      err
+    );
+  }
 };

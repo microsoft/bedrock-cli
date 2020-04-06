@@ -17,6 +17,15 @@
   },
   "errors": {
     "setup-cmd-failed": "Setup command was not successfully executed.",
+    "setup-cmd-prompt-err-no-subscriptions": "No subscriptions found.",
+    "setup-cmd-prompt-err-subscription-missing": "Subscription Identifier was missing.",
+    "setup-cmd-prompt-err-input-file-missing": "{0} did not exist or not accessible. Make sure that it is accessible.",
+
+    "spk-config-yaml-err-readyaml": "Could not load file, {0}.",
+    "spk-config-yaml-var-undefined": "Environment variable needs to be defined for {0} since it's referenced in the config file.",
+    "spk-config-yaml-load-err": "Could not load configuration.",
+    "bedrock-config-invalid": "Invalid helm configuration found in {0}.",
+    "config-file-not-defined": "Pipeline yaml file name is undefined.",
 
     "hld-init-cmd-failed": "Hld init command was not successfully executed.",
     "hld-init-cmd-project-path-missing": "Value for project path was not provided. Provide it.",
@@ -64,15 +73,48 @@
     "project-pipeline-err-pipeline-create": "Error occurred during pipeline creation for {0}",
     "project-pipeline-err-invalid-build-definition": "Invalid BuildDefinition created, parameter 'id' is missing from {0}",
 
+    "git-err-show-current-branch": "Could not get the current branch of git. Ensure 'git branch --show-current' returns a proper response.",
+    "git-err-checkout": "Could not checkout git branch, {0}.",
+    "git-err-delete-branch": "Could not delete branch, {0}.",
+    "git-err-add-commit": "Could not commit changes in {0} to branch, {1}.",
+    "git-err-push": "Could not push to branch, {0}.",
+    "git-err-get-orgin-url": "Could not get git origin URL.",
+    "git-err-azdo-get-orgin-url": "Could not get Azure git origin URL.",
+    "git-err-azdo-get-orgin-url-no-pipeline": "Could not get Azure git origin URL because there was not running in a pipeline - no AzDO variables.",
+    "git-err-get-repo-url": "Could not get repo URL because origin repository could not be determine or it is not a supported type.",
+    "git-err-get-repo-url-unknown-protocol": "Could not get repo URL because invalid protocol, {0} found in git remote {1}. Expected one of 'ssh' or 'https'.",
+    "git-err-get-pull-request-link-unknown-prototype": "Could not get pull request URL because invalid protocol, {0} found in git remote {1}. Expected one of 'ssh' or 'https'.",
+    "git-err-get-pull-request-link-err": "Could not get pull request URL",
     "git-err-validating-remote-git": "Could not determine origin repository, or it is not a supported type.",
     "git-err-invalid-repository-url": "Repositiry URL does not begin with http(s).",
+
+    "git-azure-git-api-err-missing-access-token": "Could not get Azure Git API client because personal access token was missing. Provide it.",
+    "git-azure-git-api-err-missing-org": "Could not get Azure Git API client because organization name was missing. Provide it.",
+    "git-azure-git-api-err": "Could not get Azure Git API client.",
+    "git-azure-generate-pr-err": "Could not generate pull request.",
+    "git-azure-generate-pr-err-missing-id": "Could not generate pull request because repository id was missing.",
+    "git-azure-get-git-origin-err": "Could not get remote Git origin in current Git repository. Run 'git config --get remote.origin.url' for more information",
+    "git-azure-get-all-repo-none": "Got none repositories in Azure DevOps associated with the personal access token.",
+    "git-azure-get-all-repo-err": "Could not get repository information from Azure DevOps.",
+
+    "git-azure-get-match-branch-none": "Got none matching repositories in Azure DevOps with remote url '{0}' and branches '{1}' and '{2}'. Ensure both '{1}' and '{2}' exist on '{0}'.",
+    "git-azure-get-match-branch-multiple": "Got more than one matching repositories in Azure DevOps with remote url '{0}' and branches '{1}' and '{2}'.",
+    "git-azure-get-match-branch-err": "Could not get matching branch in Azure DevOps",
+    "git-azure-create-pull-request-err": "Could not create pull request in Azure DevOps",
 
     "fileutils-append-variable-group-to-pipeline-yaml": "Could not append variable group name to manifest-generation.yaml file in HLD repo. Check this is file exist and if it is YAML format.",
     "fileutils-generate-hld-pipeline-yaml": "Could not generate HLD Azure pipeline YAML.",
     "fileutils-generate-default-hld-component-yaml": "Could not generate default HLD component YAML.",
     "fileutils-generate-git-ignore-file": "Could not generate .gitignore file in {0}.",
+    "fileutils-update-ring-trigger-svc-file-not-found": "Could not update ring trigger because {0} was not in path {1}.",
 
     "git-checkout-commit-push-create-PR-link": "Could not checkout, commit, push or create pull request",
+    "git-create-repo-no-permissions": "Could not create git repository due to lack of permissions. Add code write permission to the personal access token",
+    "git-create-repo-err": "Could not create git repository",
+    "git-delete-repo-id-missing": "Could not delete repository because repository id is missing.",
+    "git-get-repo-no-permissions": "Could not get git repository due to lack of permissions. Add code read permission to the personal access token",
+    "git-get-repo-azure-err": "Could not get git repository",
+    "git-commit-Push-to_remote-err": "Could not git commit and push to remote source",
 
     "introspect-create-cmd-failed": "Deployment create command was not successfully executed.",
     "introspect-create-cmd-no-ops": "No action could be performed for specified arguments.",
@@ -95,11 +137,70 @@
     "introspect-dashboard-cmd-launch-pre-req-err": "Requirements to launch dashboard were not met",
     "introspect-dashboard-cmd-launch-err": "Could not launch dashboard docker container.",
 
+    "az-cli-login-err": "Could not login through azure cli.",
+    "az-cli-create-sp-err": "Could not create service principal with azure cli",
+
+    "az_subscription_err_get_subscriptions_missing_cred": "Could not get subscription information because service principal id, password or/and tenant id were missing.",
+    "az_subscription_err_get_subscriptions": "Could not get subscription information",
+
+    "azure-project-get-err-permission": "Could not get Azure project information because access token did not have the permission to read project. Grant read project permission to the token.",
+    "azure-project-get-azure-err": "Could not get Azure project information",
+    "azure-project-create-err-permission": "Could not create Azure project information because access token did not have the permission to create project. Grant write project permission to the token.",
+    "azure-project-create-azure-err": "Could not create Azure project.",
+    "azure-project-create-err-timeout": "Could not create Azure project {0} because it times out after 2 minutes.",
+
     "deployment-table-update-hld-manifest-pipeline-failed": "Could not update HLD to manifest pipeline.",
     "deployment-table-update-manifest-commit-id-failed": "Could not update manifest commit Id.",
     "deployment-table-update-manifest-commit-id-failed-no-generation": "No manifest generation found to update manifest commit {0}.",
     "deployment-table-add-src-to-acr-pipeline": "Could not add source to ACR pipeline information to storage table.",
     "deployment-table-add-acr-to-hld-pipeline": "Could not add ACR to HLD pipeline information to storage table.",
+
+    "storage-client-err-missing-creds": "Could not get storage management client because credential could not be found.",
+    "storage-client-err-missing-sub-id": "Could not get storage management client because subscription id could not be found.",
+
+    "storage-account-cannot-be-created": "Could not create storage account, {0}.",
+    "storage-account-create-err-name-taken": "Could not create storage account because name {0} was not available. Choose a different name.`;",
+    "storage-account-create-azure-err": "Could not create storage account, {0}.",
+    "storage-account-create-err-missing-vals": "Could not create storage account because resource group name, account name or/and location were missing.",
+    "storage-account-validate-azure-err": "Could not validate storage account. {0} in resource group {1}",
+
+    "storage-account-get-err-missing-vals": "Could not get storage account information because resource group name or/and account name were missing.",
+    "storage-account-get-azure-err": "Could not get storage account. {0} in resource group {1}",
+
+    "storage-account-exist-azure-err": "Could not verify if storage account, {0} in resource group, {1} exist.",
+    "storage-account-exist-err-missing-vals": "Could not verify if storage account exist because resource group or/and account name were missing.",
+
+    "storage-account-key-missing-vals": "Could not get storage account key because resource group or/and account name were missing.",
+    "storage-account-key-azure-err": "Could not get storage account key because of azure error",
+    "storage-account-key-err": "Could not get storage account key",
+    "storage-account-keys-err-missing-vals": "Could not get storage account keys because account name or/and resource group were missing.",
+
+    "storage-account-table-create-missing-vals": "Could not create storage table because account name or/and table name were missing.",
+    "storage-account-table-create-err": "Could not create storage table.",
+
+    "resource-group-create-err-missing-vals": "Could not create resource group because name or/and location were missing.",
+    "resource-group-create-err": "Could not create resource group.",
+
+    "pipeline-get-by-name-err": "Could not get pipeline.",
+    "pipeline-del-err": "Could not delete pipeline.",
+    "pipeline-get-by-buildid-err": "Could not get pipeline by build id.",
+    "pipeline-get-status-err-not-found": "Could not get status of pipeline {0} because it was not found.",
+    "pipeline-hld-manifest-create-err": "Could not create HLD to Manifest Pipeline.",
+    "pipeline-lifecycle-create-err": "Could not create Lifecycle Pipeline.",
+    "pipeline-build-create-err": "Could not create Build Pipeline.",
+    "pipeline-queue-build-err": "Could not queue a build in pipeline.",
+    "pipeline-err-create-pipeline-for-defn": "Could not create pipeline for definition.",
+    "pipeline-err-create-def-githib-pipeline": "Could not create definition for Github repository pipeline",
+    "pipeline-err-create-def-azure-repo-pipeline": "Could not create definition for Azure Git repository pipeline",
+
+    "var-group-authorize-all-pipelines-err-missing-id": "Could not enable authorization for all pipelines to access variable group because variable group id was missing.",
+    "var-group-authorize-all-pipelines-err": "Could not enable authorization for all pipelines to access variable group, {0}.",
+    "var-group-add-err-project-missing": "Could not add variable group because Azure DevOps Project not defined. Ensure that azure_devops.project is set in config.yaml",
+    "var-group-add-err": "Could not add variable group, {0}.",
+    "var-group-add-with-key-vault-err": "Could not add variable group, {0} with key vault.",
+    "var-group-add-err-vars-missing": "Could not add variable group because variables were not configured.",
+    "var-group-add-with-key-vault-err-missing-provider": "Could not add variable group with key vault because Azure KeyVault provider data was not configured",
+    "var-group-create-data-err": "Could not create variable group data.",
 
     "ring-create-cmd-failed": "Error occurred while creating ring: {0}",
     "ring-create-cmd-err-ring-exists": "Could not create ring {0} in project {1} because it already exists. Provide a different name.",
@@ -154,6 +255,27 @@
     "validation-err-storage-key-vault-end-char": "Storage Key Vault was invalid as it must end with letter or digit.",
     "validation-err-storage-key-vault-hyphen": "Storage Key Vault was invalid as it cannot contain consecutive hyphens.",
     "validation-err-storage-key-vault-length": "Storage Key Vault was invalid as it has to be between 3 and 24 characters long.",
-    "validation-err-storage-access-key-missing": "Storage Access Key was missing. Provide it."
+    "validation-err-storage-access-key-missing": "Storage Access Key was missing. Provide it.",
+
+    "service-endpoint-err-validation": "Missing mandatory values ({0}) for service endpoint.",
+    "service-endpoint-err-create-params": "Could not create parameters for service endpoint.",
+    "service-endpoint-err-add": "Could not add service endpoint.",
+    "service-endpoint-err-add-endpoint": "Could not add service endpoint.",
+    "service-endpoint-err-get-endpoint-multiple": "Found {0} service endpoints by name {1}.",
+    "service-endpoint-err-create-missing-name": "Could not create service endpoint because name was missing.",
+    "service-endpoint-err-create": "Could not create service endpoint.",
+
+    "azure-client-get-web-api-err-missing-access-token": "Could not get azure web API because personal access token was missing. Provide it.",
+    "azure-client-get-web-api-err-missing-org": "Could not get azure web API because organization name was missing. Provide it.",
+    "azure-client-get-rest-client-err": "Could not get REST client. Check the Azure credential",
+    "azure-client-get-build-client-err": "Could not get build client. Check the Azure DevOps credential",
+    "azure-client-get-task-agent-client-err": "Could not get task agent client. Check the Azure DevOps credential.",
+
+    "bedrock-yaml-ring-set-default-not-found": "Could not set default ring because ring {0} is not defined in {1}.",
+    "bedrock-yaml-ring-remove-not-found": "Could not remove ring because ring {0} is not defined in {1}.",
+    "bedrock-yaml-ring-remove-default": "Could not remove ring because ring {0} was set to isDefault. Set another default ring with 'spk ring set-default' first before attempting to delete",
+    "bedrock-yaml-ring-validation-err-many-rings": "There were one than on rings ({0}) with 'isDefault: true'",
+
+    "commander-err-cannot-locate-opt": "Could locate option name {0}"
   }
 }

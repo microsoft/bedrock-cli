@@ -14,6 +14,8 @@ import {
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import { logger } from "../../logger";
 import { getBuildApi } from "../azdoClient";
+import { build as buildError } from "../errorBuilder";
+import { errorStatusCode } from "../errorStatusCode";
 
 const hostedUbuntuPool = "Hosted Ubuntu 1604";
 const hostedUbuntuPoolId = 224;
@@ -77,50 +79,58 @@ export interface GithubRepoPipelineConfig extends Pipeline {
 export const definitionForAzureRepoPipeline = (
   pipelineConfig: IAzureRepoPipelineConfig
 ): BuildDefinition => {
-  const pipelineDefinition: BuildDefinition = {};
+  try {
+    const pipelineDefinition: BuildDefinition = {};
 
-  pipelineDefinition.badgeEnabled = true;
-  pipelineDefinition.triggers = [
-    {
-      batchChanges: false,
-      branchFilters: pipelineConfig.branchFilters,
-      maxConcurrentBuildsPerBranch: pipelineConfig.maximumConcurrentBuilds,
-      settingsSourceType: 2,
-      triggerType: DefinitionTriggerType.ContinuousIntegration,
-    } as ContinuousIntegrationTrigger,
-  ];
+    pipelineDefinition.badgeEnabled = true;
+    pipelineDefinition.triggers = [
+      {
+        batchChanges: false,
+        branchFilters: pipelineConfig.branchFilters,
+        maxConcurrentBuildsPerBranch: pipelineConfig.maximumConcurrentBuilds,
+        settingsSourceType: 2,
+        triggerType: DefinitionTriggerType.ContinuousIntegration,
+      } as ContinuousIntegrationTrigger,
+    ];
 
-  pipelineDefinition.queue = {
-    name: hostedUbuntuPool,
-    pool: {
-      id: hostedUbuntuPoolId,
+    pipelineDefinition.queue = {
       name: hostedUbuntuPool,
-    },
-  } as AgentPoolQueue;
+      pool: {
+        id: hostedUbuntuPoolId,
+        name: hostedUbuntuPool,
+      },
+    } as AgentPoolQueue;
 
-  pipelineDefinition.queueStatus = DefinitionQueueStatus.Enabled;
+    pipelineDefinition.queueStatus = DefinitionQueueStatus.Enabled;
 
-  pipelineDefinition.name = pipelineConfig.pipelineName;
-  pipelineDefinition.type = DefinitionType.Build;
-  pipelineDefinition.quality = DefinitionQuality.Definition;
+    pipelineDefinition.name = pipelineConfig.pipelineName;
+    pipelineDefinition.type = DefinitionType.Build;
+    pipelineDefinition.quality = DefinitionQuality.Definition;
 
-  pipelineDefinition.repository = {
-    defaultBranch: pipelineConfig.yamlFileBranch,
-    id: pipelineConfig.repositoryName,
-    name: pipelineConfig.repositoryName,
-    type: RepositoryTypes.Azure,
-    url: pipelineConfig.repositoryUrl,
-  } as BuildRepository;
+    pipelineDefinition.repository = {
+      defaultBranch: pipelineConfig.yamlFileBranch,
+      id: pipelineConfig.repositoryName,
+      name: pipelineConfig.repositoryName,
+      type: RepositoryTypes.Azure,
+      url: pipelineConfig.repositoryUrl,
+    } as BuildRepository;
 
-  pipelineDefinition.process = {
-    yamlFilename: pipelineConfig.yamlFilePath,
-  } as YamlProcess;
+    pipelineDefinition.process = {
+      yamlFilename: pipelineConfig.yamlFilePath,
+    } as YamlProcess;
 
-  if (pipelineConfig.variables) {
-    pipelineDefinition.variables = pipelineConfig.variables;
+    if (pipelineConfig.variables) {
+      pipelineDefinition.variables = pipelineConfig.variables;
+    }
+
+    return pipelineDefinition;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.PIPELINE_ERR,
+      "pipeline-err-create-def-azure-repo-pipeline",
+      err
+    );
   }
-
-  return pipelineDefinition;
 };
 
 /**
@@ -131,53 +141,61 @@ export const definitionForAzureRepoPipeline = (
 export const definitionForGithubRepoPipeline = (
   pipelineConfig: GithubRepoPipelineConfig
 ): BuildDefinition => {
-  const pipelineDefinition: BuildDefinition = {} as BuildDefinition;
+  try {
+    const pipelineDefinition: BuildDefinition = {} as BuildDefinition;
 
-  pipelineDefinition.badgeEnabled = true;
-  pipelineDefinition.triggers = [
-    {
-      batchChanges: false,
-      branchFilters: pipelineConfig.branchFilters,
-      maxConcurrentBuildsPerBranch: pipelineConfig.maximumConcurrentBuilds,
-      settingsSourceType: 2,
-      triggerType: DefinitionTriggerType.ContinuousIntegration,
-    } as ContinuousIntegrationTrigger,
-  ];
+    pipelineDefinition.badgeEnabled = true;
+    pipelineDefinition.triggers = [
+      {
+        batchChanges: false,
+        branchFilters: pipelineConfig.branchFilters,
+        maxConcurrentBuildsPerBranch: pipelineConfig.maximumConcurrentBuilds,
+        settingsSourceType: 2,
+        triggerType: DefinitionTriggerType.ContinuousIntegration,
+      } as ContinuousIntegrationTrigger,
+    ];
 
-  pipelineDefinition.queue = {
-    name: hostedUbuntuPool,
-    pool: {
-      id: hostedUbuntuPoolId,
+    pipelineDefinition.queue = {
       name: hostedUbuntuPool,
-    },
-  } as AgentPoolQueue;
+      pool: {
+        id: hostedUbuntuPoolId,
+        name: hostedUbuntuPool,
+      },
+    } as AgentPoolQueue;
 
-  pipelineDefinition.queueStatus = DefinitionQueueStatus.Enabled;
+    pipelineDefinition.queueStatus = DefinitionQueueStatus.Enabled;
 
-  pipelineDefinition.name = pipelineConfig.pipelineName;
-  pipelineDefinition.type = DefinitionType.Build;
-  pipelineDefinition.quality = DefinitionQuality.Definition;
+    pipelineDefinition.name = pipelineConfig.pipelineName;
+    pipelineDefinition.type = DefinitionType.Build;
+    pipelineDefinition.quality = DefinitionQuality.Definition;
 
-  pipelineDefinition.repository = {
-    defaultBranch: pipelineConfig.yamlFileBranch,
-    id: pipelineConfig.repositoryName,
-    name: pipelineConfig.repositoryName,
-    properties: {
-      connectedServiceId: pipelineConfig.serviceConnectionId,
-    },
-    type: RepositoryTypes.Github,
-    url: pipelineConfig.repositoryUrl,
-  } as BuildRepository;
+    pipelineDefinition.repository = {
+      defaultBranch: pipelineConfig.yamlFileBranch,
+      id: pipelineConfig.repositoryName,
+      name: pipelineConfig.repositoryName,
+      properties: {
+        connectedServiceId: pipelineConfig.serviceConnectionId,
+      },
+      type: RepositoryTypes.Github,
+      url: pipelineConfig.repositoryUrl,
+    } as BuildRepository;
 
-  pipelineDefinition.process = {
-    yamlFilename: pipelineConfig.yamlFilePath,
-  } as YamlProcess;
+    pipelineDefinition.process = {
+      yamlFilename: pipelineConfig.yamlFilePath,
+    } as YamlProcess;
 
-  if (pipelineConfig.variables) {
-    pipelineDefinition.variables = pipelineConfig.variables;
+    if (pipelineConfig.variables) {
+      pipelineDefinition.variables = pipelineConfig.variables;
+    }
+
+    return pipelineDefinition;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.PIPELINE_ERR,
+      "pipeline-err-create-def-githib-pipeline",
+      err
+    );
   }
-
-  return pipelineDefinition;
 };
 
 /**
@@ -199,9 +217,12 @@ export const createPipelineForDefinition = async (
       azdoProject
     );
     return createdDefn;
-  } catch (e) {
-    logger.error(e);
-    throw Error("Error creating definition");
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.PIPELINE_ERR,
+      "pipeline-err-create-pipeline-for-defn",
+      err
+    );
   }
 };
 
@@ -225,8 +246,11 @@ export const queueBuild = async (
 
   try {
     return await buildApi.queueBuild(buildReference, azdoProject);
-  } catch (e) {
-    logger.error(e);
-    throw Error("Error queueing build");
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.PIPELINE_ERR,
+      "pipeline-queue-build-err",
+      err
+    );
   }
 };

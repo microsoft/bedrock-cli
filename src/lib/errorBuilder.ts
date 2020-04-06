@@ -38,6 +38,7 @@ export const getErrorMessage = (errorInstance: string | ErrorParam): string => {
   }
   return key;
 };
+
 class ErrorChain extends Error {
   errorCode: number;
   details: string | undefined;

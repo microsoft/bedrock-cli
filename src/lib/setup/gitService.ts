@@ -4,6 +4,8 @@ import { GitRepository } from "azure-devops-node-api/interfaces/TfvcInterfaces";
 import { SimpleGit } from "simple-git/promise";
 import { logger } from "../../logger";
 import { RequestContext, SP_USER_NAME } from "./constants";
+import { build as buildError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 let gitAPI: IGitApi | undefined;
 
@@ -52,11 +54,13 @@ export const createRepo = async (
     return await gitApi.createRepository(createOptions, projectName);
   } catch (err) {
     if (err.statusCode === 401) {
-      throw new Error(
-        `Did not have permissions to create git repo. Add code write permission to the personal access token`
+      throw buildError(
+        errorStatusCode.GIT_OPS_ERR,
+        "git-create-repo-no-permissions",
+        err
       );
     }
-    throw err;
+    throw buildError(errorStatusCode.GIT_OPS_ERR, "git-create-repo-err", err);
   }
 };
 
@@ -77,7 +81,7 @@ export const deleteRepo = async (
     await gitApi.deleteRepository(repo.id, projectName);
     logger.info("Deleted repository " + repo.name);
   } else {
-    throw new Error("Repository Id is undefined, cannot delete repository");
+    throw buildError(errorStatusCode.GIT_OPS_ERR, "git-delete-repo-id-missing");
   }
 };
 
@@ -100,11 +104,17 @@ export const getRepoInAzureOrg = async (
     });
   } catch (err) {
     if (err.statusCode === 401) {
-      throw new Error(
-        `Did not have permissions to get git repo. Add code read permission to the personal access token`
+      throw buildError(
+        errorStatusCode.GIT_OPS_ERR,
+        "git-get-repo-no-permissions",
+        err
       );
     }
-    throw err;
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      "git-get-repo-azure-err",
+      err
+    );
   }
 };
 
@@ -160,22 +170,31 @@ export const commitAndPushToRemote = async (
   repoName: string
 ): Promise<void> => {
   logger.info(`Pushing to ${repoName} repo.`);
-  // Commit and check the local git log
-  await git.commit(`Initial commit for ${repoName} repo`);
 
-  const resultLog = await git.log();
-  logger.info("Log Messages from Git:");
-  resultLog.all.forEach((f) =>
-    logger.info("\t" + f.date + " --> " + f.message)
-  );
+  try {
+    // Commit and check the local git log
+    await git.commit(`Initial commit for ${repoName} repo`);
 
-  // TOFIX: We know AzDO url style so hack it for now instead of discovering via API
-  const remoteURL = `dev.azure.com/${rc.orgName}/${rc.projectName}/_git/${repoName}`;
-  const remote = `https://${SP_USER_NAME}:${rc.accessToken}@${remoteURL}`;
+    const resultLog = await git.log();
+    logger.info("Log Messages from Git:");
+    resultLog.all.forEach((f) =>
+      logger.info("\t" + f.date + " --> " + f.message)
+    );
 
-  if ((await git.getRemotes(false)).length === 0) {
-    await git.addRemote("origin", remote);
+    // TOFIX: We know AzDO url style so hack it for now instead of discovering via API
+    const remoteURL = `dev.azure.com/${rc.orgName}/${rc.projectName}/_git/${repoName}`;
+    const remote = `https://${SP_USER_NAME}:${rc.accessToken}@${remoteURL}`;
+
+    if ((await git.getRemotes(false)).length === 0) {
+      await git.addRemote("origin", remote);
+    }
+    await git.push("origin", "master");
+    logger.info(`Completed pushing to ${repoName} repo.`);
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      "git-commit-Push-to_remote-err",
+      err
+    );
   }
-  await git.push("origin", "master");
-  logger.info(`Completed pushing to ${repoName} repo.`);
 };

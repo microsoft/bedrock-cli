@@ -30,6 +30,8 @@ import {
   getSubscriptions,
   SubscriptionItem,
 } from "../azure/subscriptionService";
+import { build as buildError } from "../errorBuilder";
+import { errorStatusCode } from "../errorStatusCode";
 
 export const promptForSubscriptionId = async (
   subscriptions: SubscriptionItem[] | SubscriptionData[]
@@ -59,14 +61,20 @@ export const getSubscriptionId = async (rc: RequestContext): Promise<void> => {
     rc.servicePrincipalTenantId!
   );
   if (subscriptions.length === 0) {
-    throw Error("no subscriptions found");
+    throw buildError(
+      errorStatusCode.ENV_SETTING_ERR,
+      "setup-cmd-prompt-err-no-subscriptions"
+    );
   }
   if (subscriptions.length === 1) {
     rc.subscriptionId = subscriptions[0].id;
   } else {
     const subId = await promptForSubscriptionId(subscriptions);
     if (!subId) {
-      throw Error("Subscription Identifier is missing.");
+      throw buildError(
+        errorStatusCode.VALIDATION_ERR,
+        "setup-cmd-prompt-err-subscription-missing"
+      );
     }
     rc.subscriptionId = subId;
   }
@@ -124,7 +132,10 @@ export const promptForServicePrincipalCreation = async (
     const subscriptions = await azCLILogin();
     const subscriptionId = await promptForSubscriptionId(subscriptions);
     if (!subscriptionId) {
-      throw Error("Subscription Identifier is missing.");
+      throw buildError(
+        errorStatusCode.VALIDATION_ERR,
+        "setup-cmd-prompt-err-subscription-missing"
+      );
     }
     rc.subscriptionId = subscriptionId;
     const sp = await createWithAzCLI(rc.subscriptionId);
@@ -196,9 +207,14 @@ const parseInformationFromFile = (file: string): { [key: string]: string } => {
   let content = "";
   try {
     content = fs.readFileSync(file, "utf-8");
-  } catch (_) {
-    throw new Error(
-      `${file} did not exist or not accessible. Make sure that it is accessible.`
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.FILE_IO_ERR,
+      {
+        errorKey: "setup-cmd-prompt-err-input-file-missing",
+        values: [file],
+      },
+      err
     );
   }
 

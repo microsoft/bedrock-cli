@@ -3,6 +3,8 @@ import fs from "fs";
 import yaml from "js-yaml";
 import * as os from "os";
 import path from "path";
+import { build as buildError } from "./lib/errorBuilder";
+import { errorStatusCode } from "./lib/errorStatusCode";
 import { writeVersion } from "./lib/fileutils";
 import { logger } from "./logger";
 import {
@@ -32,7 +34,10 @@ export const readYaml = <T>(filepath: string): T => {
     const contents = fs.readFileSync(filepath, "utf8");
     return yaml.safeLoad(contents) as T;
   }
-  throw Error(`Unable to load file '${filepath}'`);
+  throw buildError(errorStatusCode.FILE_IO_ERR, {
+    errorKey: "spk-config-yaml-err-readyaml",
+    values: [filepath],
+  });
 };
 
 /**
@@ -48,10 +53,10 @@ export const updateVariableWithLocalEnv = (value: string): string => {
       if (process.env[matches[1]]) {
         value = value.replace(matches[0], process.env[matches[1]] as string);
       } else {
-        logger.error(`Env variable needs to be defined for ${matches[1]}`);
-        throw Error(
-          `Environment variable needs to be defined for ${matches[1]} since it's referenced in the config file.`
-        );
+        throw buildError(errorStatusCode.ENV_SETTING_ERR, {
+          errorKey: "spk-config-yaml-var-undefined",
+          values: [matches[1]],
+        });
       }
       matches = regexp.exec(value);
     }
@@ -117,8 +122,11 @@ export const loadConfiguration = (
     const data = readYaml<ConfigYaml>(filepath);
     spkConfig = loadConfigurationFromLocalEnv(data || {});
   } catch (err) {
-    logger.verbose(`An error occurred while loading configuration\n ${err}`);
-    throw err;
+    throw buildError(
+      errorStatusCode.FILE_IO_ERR,
+      "spk-config-yaml-load-err",
+      err
+    );
   }
 };
 
@@ -188,7 +196,10 @@ export const Bedrock = (fileDirectory = process.cwd()): BedrockFile => {
     for (const error of helmErrors) {
       logger.error(error);
     }
-    throw Error(`invalid helm configuration found in ${bedrockYamlPath}`);
+    throw buildError(errorStatusCode.ENV_SETTING_ERR, {
+      errorKey: "bedrock-config-invalid",
+      values: [bedrockYamlPath],
+    });
   }
 
   return { ...bedrock };
@@ -248,7 +259,7 @@ export const write = (
   } else {
     // Is azure pipelines yaml file
     if (typeof fileName === "undefined") {
-      throw new Error(`Pipeline yaml file name is undefined`);
+      throw buildError(errorStatusCode.EXE_FLOW_ERR, "config-file-not-defined");
     }
 
     writeVersion(path.join(targetDirectory, fileName));

@@ -1,9 +1,11 @@
 import { generateUuid } from "@azure/core-http";
-import { IRestResponse, RestClient } from "typed-rest-client";
+import { IRestResponse } from "typed-rest-client";
 import { Config } from "../../config";
 import { logger } from "../../logger";
 import { ServiceEndpointData } from "../../types";
 import { azdoUrl, getRestClient } from "../azdoClient";
+import { build as buildError } from "../errorBuilder";
+import { errorStatusCode } from "../errorStatusCode";
 import { AzureDevOpsOpts } from "../git";
 import { ServiceEndpoint, ServiceEndpointParams } from "./azdoInterfaces";
 
@@ -22,32 +24,35 @@ const validateServiceEndpointInput = (
   const errors: string[] = [];
 
   // name is required
-  if (typeof serviceEndpointData.name === "undefined") {
-    errors.push(`Invalid Service end point name.`);
+  if (!serviceEndpointData.name) {
+    errors.push(`service end point name`);
   }
 
-  if (typeof serviceEndpointData.service_principal_id === "undefined") {
-    errors.push(`Invalid service prrincipla id.`);
+  if (!serviceEndpointData.service_principal_id) {
+    errors.push(`service prrincipla id`);
   }
 
-  if (typeof serviceEndpointData.service_principal_secret === "undefined") {
-    errors.push(`Invalid service prrincipla secret.`);
+  if (!serviceEndpointData.service_principal_secret) {
+    errors.push(`service prrincipla secret`);
   }
 
-  if (typeof serviceEndpointData.subscription_id === "undefined") {
-    errors.push(`Invalid subscription id.`);
+  if (!serviceEndpointData.subscription_id) {
+    errors.push(`subscription id`);
   }
 
-  if (typeof serviceEndpointData.subscription_name === "undefined") {
-    errors.push(`Invalid subscription name.`);
+  if (!serviceEndpointData.subscription_name) {
+    errors.push(`subscription name`);
   }
 
-  if (typeof serviceEndpointData.tenant_id === "undefined") {
-    errors.push(`Invalid tenant id.`);
+  if (!serviceEndpointData.tenant_id) {
+    errors.push(`tenant id`);
   }
 
   if (errors.length !== 0) {
-    throw new Error(errors.join(""));
+    throw buildError(errorStatusCode.AZURE_SERVICE_ENDPOINT, {
+      errorKey: "service-endpoint-err-validation",
+      values: [errors.join(", ")],
+    });
   }
 };
 
@@ -60,28 +65,36 @@ const validateServiceEndpointInput = (
 export const createServiceEndPointParams = (
   serviceEndpointData: ServiceEndpointData
 ): ServiceEndpointParams => {
-  validateServiceEndpointInput(serviceEndpointData);
-  const endPointParams: ServiceEndpointParams = {
-    authorization: {
-      parameters: {
-        authenticationType: "spnKey",
-        serviceprincipalid: serviceEndpointData.service_principal_id,
-        serviceprincipalkey: serviceEndpointData.service_principal_secret,
-        tenantid: serviceEndpointData.tenant_id,
+  try {
+    validateServiceEndpointInput(serviceEndpointData);
+    const endPointParams: ServiceEndpointParams = {
+      authorization: {
+        parameters: {
+          authenticationType: "spnKey",
+          serviceprincipalid: serviceEndpointData.service_principal_id,
+          serviceprincipalkey: serviceEndpointData.service_principal_secret,
+          tenantid: serviceEndpointData.tenant_id,
+        },
+        scheme: "ServicePrincipal",
       },
-      scheme: "ServicePrincipal",
-    },
-    data: {
-      subscriptionId: serviceEndpointData.subscription_id,
-      subscriptionName: serviceEndpointData.subscription_name,
-    },
-    id: generateUuid(),
-    isReady: false,
-    name: serviceEndpointData.name,
-    type: "azurerm",
-  };
+      data: {
+        subscriptionId: serviceEndpointData.subscription_id,
+        subscriptionName: serviceEndpointData.subscription_name,
+      },
+      id: generateUuid(),
+      isReady: false,
+      name: serviceEndpointData.name,
+      type: "azurerm",
+    };
 
-  return endPointParams;
+    return endPointParams;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_SERVICE_ENDPOINT,
+      "service-endpoint-err-create-params",
+      err
+    );
+  }
 };
 
 /**
@@ -97,8 +110,6 @@ export const addServiceEndpoint = async (
 ): Promise<ServiceEndpoint> => {
   const message = `service endpoint ${serviceEndpointData.name}`;
   logger.info(`addServiceEndpoint method called with ${message}`);
-
-  let resp: IRestResponse<ServiceEndpoint>;
 
   const config = Config();
   const {
@@ -123,12 +134,16 @@ export const addServiceEndpoint = async (
     const resource = `${orgUrl}/${project}/${apiUrl}?${apiVersion}`;
     logger.debug(` addServiceEndpoint:Resource: ${resource}`);
 
-    resp = await client.create(resource, endPointParams);
+    const resp: IRestResponse<ServiceEndpoint> = await client.create(
+      resource,
+      endPointParams
+    );
 
     if (resp === null || resp.statusCode !== 200 || resp.result === null) {
-      const errMessage = "Creating Service Endpoint failed.";
-      logger.error(`${errMessage}`);
-      throw new Error(`${errMessage}`);
+      throw buildError(
+        errorStatusCode.AZURE_SERVICE_ENDPOINT,
+        "service-endpoint-err-add"
+      );
     }
 
     logger.debug(
@@ -141,8 +156,11 @@ export const addServiceEndpoint = async (
 
     return resp.result;
   } catch (err) {
-    logger.error(err);
-    throw err;
+    throw buildError(
+      errorStatusCode.AZURE_SERVICE_ENDPOINT,
+      "service-endpoint-err-add-endpoint",
+      err
+    );
   }
 };
 
@@ -170,7 +188,7 @@ export const getServiceEndpointByName = async (
   logger.info(`getServiceEndpointByName orgUrl: ${orgUrl}`);
 
   const uriParameter = `?endpointNames=${serviceEndpointName}`;
-  const client: RestClient = await getRestClient(opts);
+  const client = await getRestClient(opts);
   const resource = `${orgUrl}/${project}/${apiUrl}${uriParameter}&${apiVersion}`;
   logger.info(`getServiceEndpointByName:Resource: ${resource}`);
 
@@ -193,8 +211,10 @@ export const getServiceEndpointByName = async (
   }
 
   if (resp.result.count > 1) {
-    const errMessage = `Found ${resp.result.count} service endpoints by name ${serviceEndpointName}`;
-    throw new Error(errMessage);
+    throw buildError(errorStatusCode.AZURE_SERVICE_ENDPOINT, {
+      errorKey: "service-endpoint-err-get-endpoint-multiple",
+      values: [resp.result.count.toString(), serviceEndpointName],
+    });
   }
 
   const endpoints = resp.result.value as ServiceEndpoint[];
@@ -202,7 +222,7 @@ export const getServiceEndpointByName = async (
     `Found Service Endpoint by name ${serviceEndpointName} with a id ${endpoints[0].id}`
   );
 
-  return resp.result.count === 0 ? null : endpoints[0];
+  return endpoints[0];
 };
 
 /**
@@ -217,10 +237,12 @@ export const createServiceEndpointIfNotExists = async (
   opts: AzureDevOpsOpts = {}
 ): Promise<ServiceEndpoint> => {
   const serviceEndpointName = serviceEndpointData.name;
-  const message = `service endpoint ${serviceEndpointName}`;
 
-  if (serviceEndpointName === null || serviceEndpointName === undefined) {
-    throw new Error("Service Endpoint name is null");
+  if (!serviceEndpointName) {
+    throw buildError(
+      errorStatusCode.AZURE_SERVICE_ENDPOINT,
+      "service-endpoint-err-create-missing-name"
+    );
   }
 
   try {
@@ -240,10 +262,11 @@ export const createServiceEndpointIfNotExists = async (
     // it does throw exception
     return serviceEndpoint;
   } catch (err) {
-    logger.error(
-      `Error occurred while checking and creating ${message}\n ${err}`
+    throw buildError(
+      errorStatusCode.AZURE_SERVICE_ENDPOINT,
+      "service-endpoint-err-create",
+      err
     );
-    throw err;
   }
 };
 

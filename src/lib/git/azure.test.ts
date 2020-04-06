@@ -2,6 +2,7 @@ import { WebApi } from "azure-devops-node-api";
 import uuid from "uuid/v4";
 import { Config } from "../../config";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
+import { getErrorMessage } from "../errorBuilder";
 import { AzureDevOpsOpts } from "../git";
 import * as gitutils from "../gitutils";
 import {
@@ -117,20 +118,12 @@ describe("createPullRequest", () => {
     // local mock
     gitApi.getRepositories = async (): Promise<unknown[]> => [];
 
-    let err: Error | undefined;
-    try {
-      await createPullRequest(uuid(), uuid(), uuid(), {
+    await expect(
+      createPullRequest(uuid(), uuid(), uuid(), {
         description: uuid(),
         originPushUrl: uuid(),
-      });
-    } catch (e) {
-      err = e;
-    }
-    expect(err).not.toBeUndefined();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(err!.message).toMatch(
-      /0 repositories found in Azure DevOps associated with PAT/
-    );
+      })
+    ).rejects.toThrow(getErrorMessage("git-azure-get-all-repo-err"));
   });
 
   test("should fail when source ref for PR is not in DevOps instance", async () => {
@@ -138,18 +131,12 @@ describe("createPullRequest", () => {
     const originalBranches = gitApi.getBranches;
     gitApi.getBranches = async (): Promise<unknown> => [{ name: "targetRef" }];
 
-    try {
-      await createPullRequest("random title", "sourceRef", "targetRef", {
+    await expect(
+      createPullRequest("random title", "sourceRef", "targetRef", {
         description: uuid(),
         originPushUrl: "my-git-url",
-      });
-      expect(true).toBe(false);
-    } catch (err) {
-      expect(err).toBeDefined();
-      if (err) {
-        expect(err.message).toMatch(/0 repositories found with remote url/);
-      }
-    }
+      })
+    ).rejects.toThrow(getErrorMessage("git-azure-get-match-branch-err"));
 
     gitApi.getBranches = originalBranches;
   });
