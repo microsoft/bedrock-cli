@@ -7,7 +7,12 @@ import commander from "commander";
 import path from "path";
 import { Config } from "../../config";
 import { validateRepository } from "../../lib/git/azure";
-import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
+import {
+  build as buildCmd,
+  exit as exitCmd,
+  populateInheritValueFromConfig,
+  validateForRequiredValues,
+} from "../../lib/commandBuilder";
 import {
   BUILD_SCRIPT_URL,
   SERVICE_PIPELINE_FILENAME,
@@ -28,12 +33,12 @@ import {
 } from "../../lib/pipelines/pipelines";
 import { logger } from "../../logger";
 import decorator from "./pipeline.decorator.json";
+import { build as buildError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 import {
   validateOrgNameThrowable,
   validateProjectNameThrowable,
 } from "../../lib/validator";
-import { build as buildError } from "../../lib/errorBuilder";
-import { errorStatusCode } from "../../lib/errorStatusCode";
 
 export interface CommandOptions {
   orgName: string;
@@ -51,14 +56,12 @@ export const fetchValues = async (
   serviceName: string,
   opts: CommandOptions
 ): Promise<CommandOptions> => {
-  const { azure_devops } = Config();
   const gitOriginUrl = await getOriginUrl();
   const repoUrl = validateRepoUrl(opts, gitOriginUrl);
 
-  opts.orgName = opts.orgName || azure_devops?.org || "";
-  opts.personalAccessToken =
-    opts.personalAccessToken || azure_devops?.access_token || "";
-  opts.devopsProject = opts.devopsProject || azure_devops?.project || "";
+  populateInheritValueFromConfig(decorator, Config(), opts);
+  validateForRequiredValues(decorator, opts, true);
+
   opts.pipelineName = opts.pipelineName || serviceName + "-pipeline";
   opts.repoName = getRepositoryName(repoUrl);
   opts.repoUrl = opts.repoUrl || getRepositoryUrl(gitOriginUrl);
@@ -66,7 +69,6 @@ export const fetchValues = async (
 
   validateOrgNameThrowable(opts.orgName);
   validateProjectNameThrowable(opts.devopsProject);
-
   return opts;
 };
 
@@ -168,13 +170,15 @@ export const execute = async (
   try {
     const gitOriginUrl = await getOriginUrl();
     const repoUrl = validateRepoUrl(opts, gitOriginUrl);
-    const gitUrlType = await isGitHubUrl(repoUrl);
+    const gitUrlType = isGitHubUrl(repoUrl);
+
     if (gitUrlType) {
       throw buildError(errorStatusCode.VALIDATION_ERR, {
         errorKey: "project-pipeline-err-github-repo",
         values: [repoUrl],
       });
     }
+
     await fetchValues(serviceName, opts);
     const accessOpts: AzureDevOpsOpts = {
       orgName: opts.orgName,
