@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
 import commander from "commander";
 import { join } from "path";
 import { Bedrock, Config } from "../../config";
@@ -26,6 +24,16 @@ export interface CommandOptions {
   remoteUrl: string | undefined;
   personalAccessToken: string | undefined;
   orgName: string | undefined;
+  targetBranch: string | undefined;
+}
+
+export interface CommandValues {
+  sourceBranch: string;
+  title: string | undefined;
+  description: string;
+  remoteUrl: string;
+  personalAccessToken: string;
+  orgName: string;
   targetBranch: string | undefined;
 }
 
@@ -99,21 +107,60 @@ export const getSourceBranch = async (
 /**
  * Creates a pull request from the given source branch
  * @param defaultRings List of default rings
- * @param opts option values
+ * @param values option values
  */
 export const makePullRequest = async (
   defaultRings: string[],
-  opts: CommandOptions
+  values: CommandValues
 ): Promise<void> => {
   for (const ring of defaultRings) {
-    const title = opts.title || `[SPK] ${opts.sourceBranch} => ${ring}`;
-    await createPullRequest(title, opts.sourceBranch!, ring, {
-      description: opts.description!,
-      orgName: opts.orgName!,
-      originPushUrl: opts.remoteUrl!,
-      personalAccessToken: opts.personalAccessToken!,
+    const title = values.title || `[SPK] ${values.sourceBranch} => ${ring}`;
+    await createPullRequest(title, values.sourceBranch, ring, {
+      description: values.description,
+      orgName: values.orgName,
+      originPushUrl: values.remoteUrl,
+      personalAccessToken: values.personalAccessToken,
     });
   }
+};
+
+const populateValues = async (opts: CommandOptions): Promise<CommandValues> => {
+  const { azure_devops } = Config();
+  opts.orgName = opts.orgName || azure_devops?.org;
+  opts.personalAccessToken =
+    opts.personalAccessToken || azure_devops?.access_token;
+
+  // Default the remote to the git origin
+  opts.remoteUrl = await getRemoteUrl(opts.remoteUrl);
+
+  // default pull request source branch to the current branch
+  opts.sourceBranch = await getSourceBranch(opts.sourceBranch);
+
+  const errors = validateForRequiredValues(decorator, {
+    orgName: opts.orgName,
+    personalAccessToken: opts.personalAccessToken,
+    remoteUrl: opts.remoteUrl,
+    sourceBranch: opts.sourceBranch,
+  });
+  if (errors.length > 0) {
+    throw Error("missing required values");
+  }
+
+  return {
+    // validateForRequiredValues confirm that sourceBranch has value
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    sourceBranch: opts.sourceBranch!,
+    title: opts.title,
+    description: opts.description || "This is automated PR generated via SPK",
+    remoteUrl: opts.remoteUrl,
+    // validateForRequiredValues confirm that personalAccessToken has value
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    personalAccessToken: opts.personalAccessToken!,
+    // validateForRequiredValues confirm that orgName has value
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    orgName: opts.orgName!,
+    targetBranch: opts.targetBranch,
+  };
 };
 
 export const execute = async (
@@ -121,48 +168,24 @@ export const execute = async (
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
   try {
-    const { azure_devops } = Config();
-    opts.orgName = opts.orgName || azure_devops?.org;
-    opts.personalAccessToken =
-      opts.personalAccessToken || azure_devops?.access_token!;
-    opts.description =
-      opts.description || "This is automated PR generated via SPK";
+    const values = await populateValues(opts);
 
-    ////////////////////////////////////////////////////////////////////////
-    // Give defaults
-    ////////////////////////////////////////////////////////////////////////
     // default pull request against initial ring
     const bedrockConfig = Bedrock();
     // Default to the --target-branch for creating a revision; if not specified, fallback to default rings in bedrock.yaml
-    const defaultRings = getDefaultRings(opts.targetBranch, bedrockConfig);
-
-    // default pull request source branch to the current branch
-    opts.sourceBranch = await getSourceBranch(opts.sourceBranch);
+    const defaultRings = getDefaultRings(values.targetBranch, bedrockConfig);
 
     // Make sure the user isn't trying to make a PR for a branch against itself
-    if (defaultRings.includes(opts.sourceBranch)) {
+    if (defaultRings.includes(values.sourceBranch)) {
       throw Error(
         `A pull request for a branch cannot be made against itself. Ensure your target branch(es) '${JSON.stringify(
           defaultRings
-        )}' do not include your source branch '${opts.sourceBranch}'`
+        )}' do not include your source branch '${values.sourceBranch}'`
       );
     }
 
-    // Default the remote to the git origin
-    opts.remoteUrl = await getRemoteUrl(opts.remoteUrl);
-    const errors = validateForRequiredValues(decorator, {
-      orgName: opts.orgName,
-      personalAccessToken: opts.personalAccessToken,
-      remoteUrl: opts.remoteUrl,
-      sourceBranch: opts.sourceBranch,
-    });
-
-    if (errors.length > 0) {
-      await exitFn(1);
-    } else {
-      await makePullRequest(defaultRings, opts);
-      await exitFn(0);
-    }
+    await makePullRequest(defaultRings, values);
+    await exitFn(0);
   } catch (err) {
     logger.error(err);
     await exitFn(1);

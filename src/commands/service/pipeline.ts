@@ -138,7 +138,7 @@ export const installBuildUpdatePipeline = async (
     );
   } catch (err) {
     logger.error(err); // caller will catch it and exit
-    throw new Error(
+    throw Error(
       `Error occurred during pipeline creation for ${values.pipelineName}`
     );
   }
