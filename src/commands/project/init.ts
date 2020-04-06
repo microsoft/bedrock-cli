@@ -12,6 +12,8 @@ import { exec } from "../../lib/shell";
 import { logger } from "../../logger";
 import { BedrockFile, MaintainersFile } from "../../types";
 import decorator from "./init.decorator.json";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 // values that we need to pull out from command operator
 interface CommandOptions {
@@ -172,8 +174,9 @@ export const execute = async (
     await initialize(projectPath, { defaultRing });
     await exitFn(0);
   } catch (err) {
-    logger.error(`Error occurred while initializing project ${projectPath}`);
-    logger.error(err);
+    logError(
+      buildError(errorStatusCode.EXE_FLOW_ERR, "project-init-cmd-failed", err)
+    );
     await exitFn(1);
   }
 };

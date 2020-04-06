@@ -223,6 +223,15 @@
     "variable-group-create-cmd-err-org-missing": "Provide a value for {0}.",
     "variable-group-create-cmd-err-file-missing": "Provide a file with the variable group manifest.",
 
+    "project-create-variable-group-cmd-failed": "Create variable group was not successfully executed.",
+    "project-create-variable-group-cmd-err-root-invalid": "Project root path is not valid. Provide a valid root path.",
+    "project-create-variable-group-cmd-err-variable-group-invalid": "Variable group name is not valid. Provide a valid variable group name.",
+    "project-create-variable-group-cmd-err-bedrock-file-missing": "Bedrock file does not exist. Check that the project directory has been initialized.",
+    "project-create-variable-group-cmd-err-file-missing": "The file '{0}' does not exist in project '{1}'.",
+    "project-create-variable-group-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
+    "project-create-variable-group-cmd-err-values-missing": "Required values were missing. Provide values for registry-name, hld-repo-url, service-principal-id, service-principal-password, tenant.",
+    "project-init-cmd-failed": "Project init was not successfully executed.",
+
     "validation-err-missing-vals": "These mandatory options were missing:\n {0}. Provide them.",
     "validation-err-org-name-missing": "Organization name was missing. Provide it.",
     "validation-err-org-name": "Organization name must start with a letter or number, followed by letters, numbers or hyphens, and must end with a letter or number.",

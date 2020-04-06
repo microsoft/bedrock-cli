@@ -37,6 +37,7 @@ import {
 } from "./create-variable-group";
 import * as createVariableGrp from "./create-variable-group";
 import * as fileutils from "../../lib/fileutils";
+import { getErrorMessage } from "../../lib/errorBuilder";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -152,7 +153,9 @@ describe("create", () => {
       await create("", "", "", "", "", "", accessOpts);
       expect(true).toBeFalsy();
     } catch (e) {
-      expect(e.message).toBe("Required values were missing");
+      expect(e.message).toBe(
+        getErrorMessage("project-create-variable-group-cmd-err-values-missing")
+      );
     }
   });
 
