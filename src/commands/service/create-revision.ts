@@ -4,6 +4,7 @@ import { Bedrock, Config } from "../../config";
 import {
   build as buildCmd,
   exit as exitCmd,
+  populateInheritValueFromConfig,
   validateForRequiredValues,
 } from "../../lib/commandBuilder";
 import { createPullRequest } from "../../lib/git/azure";
@@ -125,10 +126,7 @@ export const makePullRequest = async (
 };
 
 const populateValues = async (opts: CommandOptions): Promise<CommandValues> => {
-  const { azure_devops } = Config();
-  opts.orgName = opts.orgName || azure_devops?.org;
-  opts.personalAccessToken =
-    opts.personalAccessToken || azure_devops?.access_token;
+  populateInheritValueFromConfig(decorator, Config(), opts);
 
   // Default the remote to the git origin
   opts.remoteUrl = await getRemoteUrl(opts.remoteUrl);
@@ -136,15 +134,7 @@ const populateValues = async (opts: CommandOptions): Promise<CommandValues> => {
   // default pull request source branch to the current branch
   opts.sourceBranch = await getSourceBranch(opts.sourceBranch);
 
-  const errors = validateForRequiredValues(decorator, {
-    orgName: opts.orgName,
-    personalAccessToken: opts.personalAccessToken,
-    remoteUrl: opts.remoteUrl,
-    sourceBranch: opts.sourceBranch,
-  });
-  if (errors.length > 0) {
-    throw Error("missing required values");
-  }
+  validateForRequiredValues(decorator, opts, true);
 
   return {
     // validateForRequiredValues confirm that sourceBranch has value
