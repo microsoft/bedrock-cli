@@ -5,6 +5,7 @@ import * as AzureDevOpsRepo from "spektate/lib/repository/IAzureDevOpsRepo";
 import * as GitHub from "spektate/lib/repository/IGitHub";
 import { ITag } from "spektate/lib/repository/Tag";
 import { loadConfiguration } from "../../config";
+import { getErrorMessage } from "../../lib/errorBuilder";
 import { deepClone } from "../../lib/util";
 import {
   disableVerboseLogging,
@@ -181,13 +182,14 @@ describe("Test validateValues function", () => {
   it("negative test: valid values with top = -5", () => {
     const mockedValues = getMockedValues();
     mockedValues.top = "-5";
-    try {
+    expect(() => {
       validateValues(mockedValues);
-    } catch (e) {
-      expect(e.message).toBe(
-        "value for top option has to be a positive number"
-      );
-    }
+    }).toThrow(
+      getErrorMessage({
+        errorKey: "introspect-get-cmd-err-validation-top-num",
+        values: ["-5"],
+      })
+    );
   });
 });
 
@@ -251,13 +253,11 @@ describe("Get deployments", () => {
   it("getDeploymentsBasedOnFilters throw error", async () => {
     jest
       .spyOn(Deployment, "getDeploymentsBasedOnFilters")
-      .mockReturnValueOnce(Promise.reject("Error"));
-    try {
-      await getDeployments(initObject, MOCKED_VALUES);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e.message).toBe("Error");
-    }
+      .mockRejectedValueOnce(Error("Error"));
+
+    await expect(getDeployments(initObject, MOCKED_VALUES)).rejects.toThrow(
+      getErrorMessage("introspect-get-cmd-get-deployments-err")
+    );
   });
   it("postive test", async () => {
     jest

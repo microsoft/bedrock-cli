@@ -20,12 +20,14 @@ import {
 import { ITag } from "spektate/lib/repository/Tag";
 import { Config } from "../../config";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 import { isIntegerString } from "../../lib/validator";
 import { logger } from "../../logger";
 import decorator from "./get.decorator.json";
 import { IPullRequest } from "spektate/lib/repository/IPullRequest";
 
-const promises: Promise<IPullRequest | undefined>[] = [];
+const promises: Promise<void>[] = [];
 const pullRequests: { [id: string]: IPullRequest } = {};
 /**
  * Output formats to display service details
@@ -104,7 +106,10 @@ export const validateValues = (opts: CommandOptions): ValidatedOptions => {
     if (isIntegerString(opts.top)) {
       top = parseInt(opts.top, 10);
     } else {
-      throw new Error("value for top option has to be a positive number");
+      throw buildError(errorStatusCode.VALIDATION_ERR, {
+        errorKey: "introspect-get-cmd-err-validation-top-num",
+        values: [opts.top],
+      });
     }
   }
 
@@ -141,8 +146,9 @@ export const initialize = async (): Promise<InitObject> => {
     !config.introspection.azure.partition_key ||
     !config.introspection.azure.key
   ) {
-    throw Error(
-      "You need to run `spk init` and `spk deployment onboard` to configure `spk."
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "introspect-get-cmd-missing-vals"
     );
   }
 
@@ -178,50 +184,42 @@ export const initialize = async (): Promise<InitObject> => {
  * Gets cluster sync statuses
  * @param initObj captures keys and objects during the initialization process
  */
-export const getClusterSyncStatuses = (
+export const getClusterSyncStatuses = async (
   initObj: InitObject
 ): Promise<ITag[] | undefined> => {
-  return new Promise((resolve, reject) => {
-    try {
-      if (initObj.manifestRepo && initObj.manifestRepo.includes("azure.com")) {
-        const manifestUrlSplit = initObj.manifestRepo.split("/");
-        const manifestRepo: IAzureDevOpsRepo = {
-          org: manifestUrlSplit[3],
-          project: manifestUrlSplit[4],
-          repo: manifestUrlSplit[6],
-        };
-        getAzureManifestSyncState(manifestRepo, initObj.accessToken)
-          .then((syncCommits: ITag[]) => {
-            resolve(syncCommits);
-          })
-          .catch((e) => {
-            reject(e);
-          });
-      } else if (
-        initObj.manifestRepo &&
-        initObj.manifestRepo.includes("github.com")
-      ) {
-        const manifestUrlSplit = initObj.manifestRepo.split("/");
-        const manifestRepo: IGitHub = {
-          reponame: manifestUrlSplit[4],
-          username: manifestUrlSplit[3],
-        };
+  try {
+    if (initObj.manifestRepo && initObj.manifestRepo.includes("azure.com")) {
+      const manifestUrlSplit = initObj.manifestRepo.split("/");
+      const manifestRepo: IAzureDevOpsRepo = {
+        org: manifestUrlSplit[3],
+        project: manifestUrlSplit[4],
+        repo: manifestUrlSplit[6],
+      };
+      return await getAzureManifestSyncState(manifestRepo, initObj.accessToken);
+    } else if (
+      initObj.manifestRepo &&
+      initObj.manifestRepo.includes("github.com")
+    ) {
+      const manifestUrlSplit = initObj.manifestRepo.split("/");
+      const manifestRepo: IGitHub = {
+        reponame: manifestUrlSplit[4],
+        username: manifestUrlSplit[3],
+      };
 
-        getGithubManifestSyncState(manifestRepo, initObj.accessToken)
-          .then((syncCommits: ITag[]) => {
-            resolve(syncCommits);
-          })
-          .catch((e) => {
-            reject(e);
-          });
-      } else {
-        resolve();
-      }
-    } catch (err) {
-      logger.error(err);
-      reject(err);
+      return await getGithubManifestSyncState(
+        manifestRepo,
+        initObj.accessToken
+      );
+    } else {
+      return undefined;
     }
-  });
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      "introspect-get-cmd-cluster-sync-stat-err",
+      err
+    );
+  }
 };
 
 /**
@@ -231,22 +229,23 @@ export const getClusterSyncStatuses = (
  * @param deployment deployment for which PR has to be fetched
  * @param initObj initialization object
  */
-export const fetchPRInformation = (
+export const fetchPRInformation = async (
   deployment: IDeployment,
   initObj: InitObject
-): void => {
+): Promise<void> => {
   if (deployment.hldRepo && deployment.pr) {
     const repo = getRepositoryFromURL(deployment.hldRepo);
     const strPr = deployment.pr.toString();
 
     if (repo) {
-      const promise = fetchPR(repo, strPr, initObj.accessToken);
-      promise.then((pr) => {
+      try {
+        const pr = await fetchPR(repo, strPr, initObj.accessToken);
         if (pr) {
           pullRequests[strPr] = pr;
         }
-      });
-      promises.push(promise);
+      } catch (err) {
+        logger.warn(`Could not get PR ${strPr} information: ` + err);
+      }
     }
   }
 };
@@ -261,7 +260,9 @@ export const getPRs = (
   deployments: IDeployment[] | undefined,
   initObj: InitObject
 ): void => {
-  (deployments || []).forEach((d) => fetchPRInformation(d, initObj));
+  (deployments || []).forEach((d) => {
+    promises.push(fetchPRInformation(d, initObj));
+  });
 };
 
 /**
@@ -475,35 +476,24 @@ export const printDeployments = (
  * @param syncStatuses cluster sync statuses,
  * @param initObj initialization object
  */
-export const displayDeployments = (
+export const displayDeployments = async (
   values: ValidatedOptions,
   deployments: IDeployment[] | undefined,
   syncStatuses: ITag[] | undefined,
   initObj: InitObject
 ): Promise<IDeployment[]> => {
-  return new Promise((resolve, reject) => {
-    if (values.outputFormat === OUTPUT_FORMAT.WIDE) {
-      getPRs(deployments, initObj);
-    }
-    if (values.outputFormat === OUTPUT_FORMAT.JSON) {
-      console.log(JSON.stringify(deployments, null, 2));
-      resolve(deployments);
-    } else {
-      Promise.all(promises)
-        .then(() => {
-          printDeployments(
-            deployments,
-            values.outputFormat,
-            values.nTop,
-            syncStatuses
-          );
-          resolve(deployments);
-        })
-        .catch((e) => {
-          reject(e);
-        });
-    }
-  });
+  if (values.outputFormat === OUTPUT_FORMAT.WIDE) {
+    getPRs(deployments, initObj);
+  }
+
+  if (values.outputFormat === OUTPUT_FORMAT.JSON) {
+    console.log(JSON.stringify(deployments, null, 2));
+    return deployments || [];
+  }
+
+  await Promise.all(promises);
+  printDeployments(deployments, values.outputFormat, values.nTop, syncStatuses);
+  return deployments || [];
 };
 
 /**
@@ -511,43 +501,43 @@ export const displayDeployments = (
  * @param initObj captures keys and objects during the initialization process
  * @param values validated command line values
  */
-export const getDeployments = (
+export const getDeployments = async (
   initObj: InitObject,
   values: ValidatedOptions
 ): Promise<IDeployment[]> => {
-  const syncStatusesPromise = getClusterSyncStatuses(initObj);
-  const deploymentsPromise = getDeploymentsBasedOnFilters(
-    initObj.accountName,
-    initObj.key,
-    initObj.tableName,
-    initObj.partitionKey,
-    initObj.srcPipeline,
-    initObj.hldPipeline,
-    initObj.clusterPipeline,
-    values.env,
-    values.imageTag,
-    values.buildId,
-    values.commitId,
-    values.service,
-    values.deploymentId
-  );
-  return new Promise((resolve, reject) => {
-    Promise.all([deploymentsPromise, syncStatusesPromise])
-      .then(async (tuple: [IDeployment[] | undefined, ITag[] | undefined]) => {
-        const deployments: IDeployment[] | undefined = tuple[0];
-        const syncStatuses: ITag[] | undefined = tuple[1];
-        const displayedDeployments = await displayDeployments(
-          values,
-          deployments,
-          syncStatuses,
-          initObj
-        );
-        resolve(displayedDeployments);
-      })
-      .catch((e) => {
-        reject(new Error(e));
-      });
-  });
+  try {
+    const syncStatusesPromise = getClusterSyncStatuses(initObj);
+    const deploymentsPromise = getDeploymentsBasedOnFilters(
+      initObj.accountName,
+      initObj.key,
+      initObj.tableName,
+      initObj.partitionKey,
+      initObj.srcPipeline,
+      initObj.hldPipeline,
+      initObj.clusterPipeline,
+      values.env,
+      values.imageTag,
+      values.buildId,
+      values.commitId,
+      values.service,
+      values.deploymentId
+    );
+
+    const tuple: [
+      IDeployment[] | undefined,
+      ITag[] | undefined
+    ] = await Promise.all([deploymentsPromise, syncStatusesPromise]);
+    const deployments: IDeployment[] | undefined = tuple[0];
+    const syncStatuses: ITag[] | undefined = tuple[1];
+
+    return await displayDeployments(values, deployments, syncStatuses, initObj);
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.EXE_FLOW_ERR,
+      "introspect-get-cmd-get-deployments-err",
+      err
+    );
+  }
 };
 
 /**
@@ -591,8 +581,9 @@ export const execute = async (
       await exitFn(0);
     }
   } catch (err) {
-    logger.error(`Error occurred while getting deployment(s)`);
-    logger.error(err);
+    logError(
+      buildError(errorStatusCode.CMD_EXE_ERR, "introspect-get-cmd-failed", err)
+    );
     await exitFn(1);
   }
 };
