@@ -31,6 +31,7 @@
     "hld-reconcile-err-path": "Could not validate {0} path.",
     "hld-reconcile-err-cmd-failed": "An error occurred executing command: {0}",
     "hld-reconcile-err-cmd-exe": "An error occurred while reconciling HLD.",
+    "hld-reconcile-err-purge-repo-comps": "Could not purge hld repository component {0} in path {1}.",
 
     "infra-scaffold-cmd-failed": "Infra scaffold command was not successfully executed.",
     "infra-scaffold-cmd-src-missing": "Value for source is required because it cannot be constructed with properties in spk-config.yaml. Provide value for source.",

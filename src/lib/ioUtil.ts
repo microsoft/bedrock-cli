@@ -2,6 +2,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import uuid from "uuid/v4";
+import { logger } from "../logger";
 
 /**
  * Creates a random directory in tmp directory.
@@ -67,4 +68,28 @@ export const getMissingFilenames = (
       (f) => !fs.existsSync(f) // keep those files that do not exist
     )
     .map((f) => path.basename(f));
+};
+
+/**
+ * Returns all files/filepaths in this directory and subdirectories.
+ *
+ * @param dir directory to search
+ * @param files list of files
+ * @returns list of files in given directory and subdirectories.
+ */
+export const getAllFilesInDirectory = (
+  dir: string,
+  files: string[] = []
+): string[] => {
+  const filesInDir = fs.readdirSync(dir);
+
+  filesInDir.forEach(function (file) {
+    if (fs.statSync(path.join(dir, file)).isDirectory()) {
+      files = getAllFilesInDirectory(path.join(dir, file), files);
+    } else {
+      files.push(path.join(dir, file));
+    }
+  });
+
+  return files;
 };

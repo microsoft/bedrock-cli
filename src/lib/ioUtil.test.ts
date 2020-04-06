@@ -3,10 +3,25 @@ import path from "path";
 import uuid from "uuid/v4";
 import {
   createTempDir,
+  getAllFilesInDirectory,
   getMissingFilenames,
   isDirEmpty,
   removeDir,
 } from "./ioUtil";
+import mockFs from "mock-fs";
+import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
+
+beforeAll(() => {
+  enableVerboseLogging();
+});
+
+afterAll(() => {
+  disableVerboseLogging();
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 describe("test createTempDir function", () => {
   it("create and existence check", () => {
@@ -108,5 +123,71 @@ describe("test doFilesExist function", () => {
       files.map((f) => `${f}.txt`)
     );
     expect(missing.length).toBe(1);
+  });
+});
+
+describe("test getAllFilesInDirectory function", () => {
+  beforeEach(() => {
+    mockFs({
+      "hld-repo": {
+        config: {
+          "common.yaml": "someconfigfile",
+        },
+        "bedrock-project-repo": {
+          "access.yaml": "someaccessfile",
+          config: {
+            "common.yaml": "someconfigfile",
+          },
+          serviceA: {
+            config: {
+              "common.yaml": "someconfigfile",
+            },
+            master: {
+              config: {
+                "common.yaml": "someconfigfile",
+                "prod.yaml": "someconfigfile",
+                "stage.yaml": "someconfigfile",
+              },
+              static: {
+                "ingressroute.yaml": "ingressroutefile",
+                "middlewares.yaml": "middlewaresfile",
+              },
+              "component.yaml": "somecomponentfile",
+            },
+            "component.yaml": "somecomponentfile",
+          },
+          "component.yaml": "somecomponentfile",
+        },
+        "component.yaml": "somecomponentfile",
+      },
+    });
+  });
+
+  afterEach(() => {
+    mockFs.restore();
+  });
+
+  it("gets all files in a populated directory", () => {
+    const fileList = getAllFilesInDirectory("hld-repo");
+    expect(fileList).toHaveLength(13);
+    expect(fileList).toContain(
+      "hld-repo/bedrock-project-repo/serviceA/master/static/middlewares.yaml"
+    );
+
+    const filesToDelete = fileList.filter(
+      (filePath) =>
+        !filePath.match(/access\.yaml$/) && !filePath.match(/config\/.*\.yaml$/)
+    );
+    logger.info("filestoDelete.length: " + filesToDelete.length);
+    logger.info(filesToDelete);
+  });
+
+  it("returns an empty list when there's no files directory", () => {
+    mockFs({
+      emptyDirectory: {},
+    });
+
+    const fileList = getAllFilesInDirectory("emptyDirectory");
+    expect(fileList).toHaveLength(0);
   });
 });

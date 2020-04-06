@@ -16,11 +16,14 @@ import {
   execute,
   getFullPathPrefix,
   normalizedName,
+  purgeRepositoryComponents,
   ReconcileDependencies,
   reconcileHld,
   testAndGetAbsPath,
   validateInputs,
 } from "./reconcile";
+import mockFs from "mock-fs";
+import fs from "fs";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -166,6 +169,109 @@ describe("createAccessYaml", () => {
 
     expect(getGitOrigin).toBeCalledWith(absBedrockPath);
     expect(writeAccessYaml).toBeCalledWith(absRepoPathInHld, gitUrl);
+  });
+});
+
+describe("purgeRepositoryComponents", () => {
+  const fsSpy = jest.spyOn(fs, "unlink");
+
+  beforeEach(() => {
+    mockFs({
+      "hld-repo": {
+        config: {
+          "common.yaml": "someconfigfile",
+        },
+        "bedrock-project-repo": {
+          "access.yaml": "someaccessfile",
+          config: {
+            "common.yaml": "someconfigfile",
+          },
+          serviceA: {
+            config: {
+              "common.yaml": "someconfigfile",
+            },
+            master: {
+              config: {
+                "common.yaml": "someconfigfile",
+                "prod.yaml": "someconfigfile",
+                "stage.yaml": "someconfigfile",
+              },
+              static: {
+                "ingressroute.yaml": "ingressroutefile",
+                "middlewares.yaml": "middlewaresfile",
+              },
+              "component.yaml": "somecomponentfile",
+            },
+            "component.yaml": "somecomponentfile",
+          },
+          "component.yaml": "somecomponentfile",
+        },
+        "component.yaml": "somecomponentfile",
+      },
+    });
+  });
+
+  afterEach(() => {
+    mockFs.restore();
+    jest.clearAllMocks();
+    fsSpy.mockClear();
+  });
+
+  const hldPath = "hld-repo";
+  const repositoryName = "bedrock-project-repo";
+
+  it("should invoke fs.unlink for each file in project repository except config files and access.yaml", async () => {
+    purgeRepositoryComponents(hldPath, repositoryName);
+
+    expect(fs.unlink).toHaveBeenCalledTimes(5);
+    expect(fs.unlink).toHaveBeenCalledWith(
+      path.join(hldPath, repositoryName, "component.yaml"),
+      expect.any(Function)
+    );
+    expect(fs.unlink).toHaveBeenCalledWith(
+      path.join(hldPath, repositoryName, "serviceA", "component.yaml"),
+      expect.any(Function)
+    );
+    expect(fs.unlink).toHaveBeenCalledWith(
+      path.join(
+        hldPath,
+        repositoryName,
+        "serviceA",
+        "master",
+        "component.yaml"
+      ),
+      expect.any(Function)
+    );
+    expect(fs.unlink).toHaveBeenCalledWith(
+      path.join(
+        hldPath,
+        repositoryName,
+        "serviceA",
+        "master",
+        "static",
+        "middlewares.yaml"
+      ),
+      expect.any(Function)
+    );
+    expect(fs.unlink).toHaveBeenCalledWith(
+      path.join(
+        hldPath,
+        repositoryName,
+        "serviceA",
+        "master",
+        "static",
+        "ingressroute.yaml"
+      ),
+      expect.any(Function)
+    );
+  });
+
+  it("should throw an error if fs fails", async () => {
+    fsSpy.mockImplementationOnce(() => {
+      throw Error("some error");
+    });
+
+    expect(() => purgeRepositoryComponents(hldPath, repositoryName)).toThrow();
   });
 });
 
@@ -446,6 +552,7 @@ describe("reconcile tests", () => {
       exec: jest.fn().mockReturnValue(Promise.resolve({})),
       generateAccessYaml: jest.fn(),
       getGitOrigin: jest.fn(),
+      purgeRepositoryComponents: jest.fn(),
       writeFile: jest.fn(),
     };
 
@@ -494,6 +601,7 @@ describe("reconcile tests", () => {
     expect(dependencies.createMiddlewareForRing).toHaveBeenCalledTimes(2);
     expect(dependencies.createIngressRouteForRing).toHaveBeenCalledTimes(2);
     expect(dependencies.generateAccessYaml).toHaveBeenCalledTimes(1);
+    expect(dependencies.purgeRepositoryComponents).toHaveBeenCalledTimes(1);
     expect(dependencies.generateAccessYaml).toBeCalledWith(
       "path/to/hld/service",
       git,
