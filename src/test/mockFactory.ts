@@ -318,6 +318,9 @@ export const createTestHldLifecyclePipelineYaml = (
       branches: {
         include: ["master"],
       },
+      paths: {
+        include: ["bedrock.yaml"],
+      },
     },
     variables: [],
     pool: {
