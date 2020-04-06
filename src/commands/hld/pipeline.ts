@@ -5,7 +5,7 @@ import {
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
 import { Config } from "../../config";
-import { validateRepository } from "../../lib/azdoClient";
+import { validateRepository } from "../../lib/git/azure";
 import {
   build as buildCmd,
   exit as exitCmd,

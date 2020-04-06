@@ -5,7 +5,7 @@ import {
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
 import { Config } from "../../config";
-import { validateRepository } from "../../lib/azdoClient";
+import { validateRepository } from "../../lib/git/azure";
 import { fileInfo as bedrockFileInfo } from "../../lib/bedrockYaml";
 import {
   build as buildCmd,

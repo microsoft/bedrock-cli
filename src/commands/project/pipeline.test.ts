@@ -1,4 +1,4 @@
-import * as azdo from "../../lib/azdoClient";
+import * as azdoGit from "../../lib/git/azure";
 import { create as createBedrockYaml } from "../../lib/bedrockYaml";
 import { createTempDir } from "../../lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
@@ -41,7 +41,7 @@ const mockValues: ConfigValues = {
   yamlFileBranch: "master",
 };
 
-jest.spyOn(azdo, "validateRepository").mockResolvedValue();
+jest.spyOn(azdoGit, "validateRepository").mockResolvedValue();
 
 const mockMissingValues: CommandOptions = {
   buildScriptUrl: undefined,

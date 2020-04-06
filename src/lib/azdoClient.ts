@@ -6,7 +6,6 @@ import { RestClient } from "typed-rest-client";
 import { Config } from "../config";
 import { logger } from "../logger";
 import { AzureDevOpsOpts } from "./git";
-import { GitAPI } from "./git/azure";
 
 // Module state Variables
 let connection: WebApi | undefined;
@@ -120,67 +119,4 @@ export const getTaskAgentApi = async (
   const webApi = await getWebApi(opts);
   taskAgentApi = await webApi.getTaskAgentApi();
   return taskAgentApi;
-};
-
-/**
- * Checks if the repository has a given file.
- * @param fileName The name of the file
- * @param branch The branch name
- * @param repoName The name of the repository
- * @accessOpts The Azure DevOps access options to the repository
- */
-export const repositoryHasFile = async (
-  fileName: string,
-  branch: string,
-  repoName: string,
-  accessOpts: AzureDevOpsOpts
-): Promise<void> => {
-  const gitApi = await GitAPI(accessOpts);
-  const versionDescriptor = { version: branch }; // change to branch
-  const gitItem = await gitApi.getItem(
-    repoName,
-    fileName, // Add path to service
-    accessOpts.project,
-    "",
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    versionDescriptor
-  );
-
-  if (gitItem === null) {
-    throw Error(
-      "Error installing build pipeline. Repository does not have a " +
-        fileName +
-        " file."
-    );
-  }
-};
-
-/**
- * Validates if a repository exists and if it contains the given file
- * @param project  The Azure DevOps project name
- * @param fileName The name of the file
- * @param branch The branch name
- * @param repoName The name of the repository
- * @param accessOpts The Azure DevOps access options to the repository
- */
-export const validateRepository = async (
-  project: string,
-  fileName: string,
-  branch: string,
-  repoName: string,
-  accessOpts: AzureDevOpsOpts
-): Promise<void> => {
-  const gitApi = await GitAPI(accessOpts);
-  const repo = await gitApi.getRepository(repoName, project);
-
-  if (!repo) {
-    throw Error(
-      `Project '${project}' does not contain repository '${repoName}'.`
-    );
-  }
-
-  await repositoryHasFile(fileName, branch, repoName, accessOpts);
 };
