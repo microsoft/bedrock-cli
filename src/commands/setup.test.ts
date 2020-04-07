@@ -4,6 +4,7 @@ import * as config from "../config";
 import * as azdoClient from "../lib/azdoClient";
 import * as azureContainerRegistryService from "../lib/azure/containerRegistryService";
 import * as resourceService from "../lib/azure/resourceService";
+import { getErrorMessage as errorMessage } from "../lib/errorBuilder";
 import { createTempDir } from "../lib/ioUtil";
 import { RequestContext, WORKSPACE } from "../lib/setup/constants";
 import * as fsUtil from "../lib/setup/fsUtil";
@@ -20,6 +21,7 @@ import {
   createAppRepoTasks,
   createSPKConfig,
   execute,
+  getAPIClients,
   getErrorMessage,
 } from "./setup";
 import * as setup from "./setup";
@@ -388,5 +390,42 @@ describe("test createAppRepoTasks function", () => {
   it("positive test", async () => {
     await testCreateAppRepoTasks();
     await testCreateAppRepoTasks(false);
+  });
+});
+
+describe("test getAPIClients function", () => {
+  it("negative test: getGitAPI failed", async () => {
+    jest.spyOn(azdoClient, "getWebApi").mockResolvedValueOnce({
+      getCoreApi: async () => {
+        return {};
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    jest
+      .spyOn(gitService, "getGitApi")
+      .mockRejectedValueOnce(new Error("fake"));
+
+    await expect(getAPIClients()).rejects.toThrow(
+      errorMessage("setup-cmd-git-api-err")
+    );
+  });
+  it("negative test: getGitAPI failed", async () => {
+    jest.spyOn(azdoClient, "getWebApi").mockResolvedValueOnce({
+      getCoreApi: async () => {
+        return {};
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    jest.spyOn(gitService, "getGitApi").mockResolvedValueOnce({} as any);
+
+    jest
+      .spyOn(azdoClient, "getBuildApi")
+      .mockRejectedValueOnce(new Error("fake"));
+
+    await expect(getAPIClients()).rejects.toThrow(
+      errorMessage("setup-cmd-build-api-err")
+    );
   });
 });

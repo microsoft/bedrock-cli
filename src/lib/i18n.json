@@ -20,6 +20,9 @@
     "setup-cmd-prompt-err-no-subscriptions": "No subscriptions found.",
     "setup-cmd-prompt-err-subscription-missing": "Subscription Identifier was missing.",
     "setup-cmd-prompt-err-input-file-missing": "{0} did not exist or not accessible. Make sure that it is accessible.",
+    "setup-cmd-core-api-err": "Could not get Core API client. Check the Azure credential.",
+    "setup-cmd-git-api-err": "Could not get Git API client. Check the Azure DevOps credential.",
+    "setup-cmd-build-api-err": "Could not get Build API client. Check the Azure DevOps credential.",
 
     "spk-config-yaml-err-readyaml": "Could not load file, {0}.",
     "spk-config-yaml-var-undefined": "Environment variable needs to be defined for {0} since it's referenced in the config file.",
