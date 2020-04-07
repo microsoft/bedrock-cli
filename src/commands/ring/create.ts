@@ -79,8 +79,8 @@ export const execute = async (
     const newRings = Object.entries(bedrockFile.rings).map(([ring]) => ring);
     logger.info(`Updated project rings: ${newRings}`);
 
-    const servicePathDirectories = Object.entries(bedrockFile.services).map(
-      ([serviceRelativeDir]) => serviceRelativeDir
+    const servicePathDirectories = bedrockFile.services.map(
+      (service) => service.path
     );
 
     servicePathDirectories.forEach((s) => {

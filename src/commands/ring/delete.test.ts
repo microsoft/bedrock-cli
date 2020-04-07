@@ -56,17 +56,17 @@ describe("test execute function and logic", () => {
 
     // updateTriggerBranchesForServiceBuildAndUpdatePipeline should be called
     // once per service
-    const numberOfServices = Object.keys(bedrockConfig.services).length;
+    const numberOfServices = bedrockConfig.services.length;
     const updatedRingList = Object.keys(
       bedrock.removeRing(bedrockConfig, ringToDelete).rings
     );
     expect(
       fileUtils.updateTriggerBranchesForServiceBuildAndUpdatePipeline
     ).toBeCalledTimes(numberOfServices);
-    for (const serviceName of Object.keys(bedrockConfig.services)) {
+    for (const { path: servicePath } of bedrockConfig.services) {
       expect(
         fileUtils.updateTriggerBranchesForServiceBuildAndUpdatePipeline
-      ).toBeCalledWith(updatedRingList, serviceName);
+      ).toBeCalledWith(updatedRingList, servicePath);
     }
     expect(exitFn.mock.calls).toEqual([[0]]);
   });

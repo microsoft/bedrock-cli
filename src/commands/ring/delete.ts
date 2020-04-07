@@ -54,7 +54,7 @@ export const execute = async (
 
     // Delete ring from all linked service build pipelines' branch triggers
     const ringBranches = Object.keys(bedrockWithoutRing.rings);
-    for (const servicePath of Object.keys(bedrockConfig.services)) {
+    for (const { path: servicePath } of bedrockConfig.services) {
       updateTriggerBranchesForServiceBuildAndUpdatePipeline(
         ringBranches,
         servicePath
