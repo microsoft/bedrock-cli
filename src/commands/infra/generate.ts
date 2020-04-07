@@ -22,6 +22,7 @@ import {
 import { copyTfTemplate } from "./scaffold";
 import { build as buildError, log as logError } from "../../lib/errorBuilder";
 import { errorStatusCode } from "../../lib/errorStatusCode";
+import { exec } from "../../lib/shell";
 
 interface CommandOptions {
   project: string | undefined;
@@ -146,14 +147,22 @@ export const createGenerated = (projectPath: string): void => {
   logger.info(`Created generated directory: ${projectPath}`);
 };
 
-export const gitFetchPull = async (
+export const gitPull = async (
   sourcePath: string,
   safeLoggingUrl: string
 ): Promise<void> => {
   // Make sure we have the latest version of all releases cached locally
-  await simpleGit(sourcePath).fetch("all");
-  await simpleGit(sourcePath).pull("origin", "master");
-  logger.info(`${safeLoggingUrl} already cloned. Performing 'git pull'...`);
+  try {
+    await exec("git", ["symbolic-ref", "HEAD"], { cwd: sourcePath });
+    logger.info(
+      `${safeLoggingUrl} already cloned and a git branch is currently checked out. Performing 'git pull'...`
+    );
+    await simpleGit(sourcePath).pull();
+  } catch (err) {
+    logger.info(
+      `A git tag is currently checked out. Skipping 'git pull' operation.`
+    );
+  }
 };
 
 export const gitCheckout = async (
@@ -203,7 +212,7 @@ export const checkRemoteGitExist = async (
 };
 
 /**
- * Creates "generated" directory if it does not already exists
+ * Attempts to remove cloned repo in ~/.spk/template directory
  *
  * @param source remote URL for cloning to cache
  * @param sourcePath Path to the template folder cache
@@ -222,9 +231,9 @@ export const retryRemoteValidate = async (
   createGenerated(sourcePath);
   const git = simpleGit();
   await gitClone(git, source, sourcePath);
-  await gitFetchPull(sourcePath, safeLoggingUrl);
   logger.info(`Checking out template version: ${version}`);
   await gitCheckout(sourcePath, version);
+  await gitPull(sourcePath, safeLoggingUrl);
   logger.info(`Successfully re-cloned repo`);
 };
 
@@ -263,15 +272,15 @@ export const validateRemoteSource = async (
   );
   try {
     // Check if .git folder exists in ${sourcePath}, if not, then clone
-    // if already cloned, 'git pull'
     if (fs.existsSync(path.join(sourcePath, ".git"))) {
-      await gitFetchPull(sourcePath, safeLoggingUrl);
+      logger.info(`${source} already cloned. Proceeding with 'git checkout'.`);
     } else {
       const git = simpleGit();
       await gitClone(git, source, sourcePath);
     }
     // Checkout tagged version
     await gitCheckout(sourcePath, version);
+    await gitPull(sourcePath, safeLoggingUrl);
   } catch (err) {
     if (err instanceof Error) {
       let retry = false;

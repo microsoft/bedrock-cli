@@ -18,7 +18,7 @@ import {
   getParentGeneratedFolder,
   gitCheckout,
   gitClone,
-  gitFetchPull,
+  gitPull,
   retryRemoteValidate,
   validateDefinition,
   validateRemoteSource,
@@ -130,23 +130,23 @@ describe("test checkRemoteGitExist function", () => {
   });
 });
 
-const testGitFetchPull = async (positive: boolean): Promise<void> => {
+const testGitPull = async (positive: boolean): Promise<void> => {
   const { safeLoggingUrl, sourcePath } = await getMockedDataForGitTests(
     positive
   );
   if (!positive || fs.existsSync(path.join(sourcePath, ".git"))) {
-    await gitFetchPull(sourcePath, safeLoggingUrl);
+    await gitPull(sourcePath, safeLoggingUrl);
   }
 };
 
-describe("test gitFetchPull function", () => {
+describe("test gitPull function", () => {
   it("postive Test", async () => {
-    await testGitFetchPull(true);
+    await testGitPull(true);
     // no exception thrown
   });
   it("negative Test", async () => {
     try {
-      await testGitFetchPull(false);
+      await testGitPull(false);
       expect(true).toBe(false);
     } catch (e) {
       expect(e).toBeDefined();
@@ -198,7 +198,7 @@ describe("test gitClone function", () => {
 describe("Validate remote git source", () => {
   test("Validating that a git source is cloned to .spk/templates", async () => {
     jest.spyOn(generate, "checkRemoteGitExist").mockResolvedValueOnce();
-    jest.spyOn(generate, "gitFetchPull").mockResolvedValueOnce();
+    jest.spyOn(generate, "gitPull").mockResolvedValueOnce();
     jest.spyOn(generate, "gitCheckout").mockResolvedValueOnce();
 
     const mockParentPath = "src/commands/infra/mocks/discovery-service";
@@ -393,7 +393,7 @@ describe("test retryRemoteValidate function", () => {
   it("positive test", async () => {
     jest.spyOn(fsExtra, "removeSync").mockReturnValueOnce();
     jest.spyOn(generate, "gitClone").mockResolvedValueOnce();
-    jest.spyOn(generate, "gitFetchPull").mockResolvedValueOnce();
+    jest.spyOn(generate, "gitPull").mockResolvedValueOnce();
     jest.spyOn(generate, "gitCheckout").mockResolvedValueOnce();
     await retryRemoteValidate("source", "sourcePath", "safeLoggingUrl", "0.1");
   });
