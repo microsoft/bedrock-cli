@@ -360,13 +360,11 @@ pipeline1id=$(az pipelines build list --definition-ids $pipeline_id --organizati
 # App Mono Repo create ring
 ##################################
 echo "Create ring in mono repo"
-verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name 400 15 2
-echo "Finding pull request that $lifecycle_pipeline_name pipeline created..."
-approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "Reconciling HLD"
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name 400 15 1
 
 # Wait for fabrikam-hld-to-fabrikam-manifests pipeline to finish
 echo "Wait for fabrikam-hld-to-fabrikam-manifests pipeline"
-verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 500 15 4
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 500 15 3
 ring_name=qa-ring
 
 cd $TEST_WORKSPACE
@@ -381,12 +379,12 @@ git commit -m "Adding test ring"
 git push -u origin --all
 
 # Wait for the lifecycle pipeline to finish and approve the pull request
-verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name 300 15 3
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name 300 15 2
 echo "Finding pull request that $lifecycle_pipeline_name pipeline created..."
 approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "Reconciling HLD"
 
 # Wait for fabrikam-hld-to-fabrikam-manifests pipeline to finish
-verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 300 15 5
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 300 15 4
 
 # Verify the file was added in the manifest repository
 cd $TEST_WORKSPACE
@@ -428,7 +426,7 @@ approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "Updating fabrikam.acme.fronten
 
 # Wait for fabrikam-hld-to-fabrikam-manifests pipeline to finish
 echo "Wait for hld to fabrikam manifests"
-verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 400 15 6
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 400 15 5
 
 echo "Validating ring image tag in manifest repo"
 cd $TEST_WORKSPACE/$hld_dir
@@ -436,6 +434,7 @@ git pull
 cd $mono_repo_dir/$FrontEndCompliant/$ring_name/config
 image_repository=$(grep -A3 'image:' common.yaml | tail -n3 | awk '{print $2}' | head -n1 )
 image_tag=$(grep -A3 'image:' common.yaml | tail -n2 | awk '{print $2}' | head -n 1)
+echo "Image Repo and Tag: $image_repository:$image_tag"
 cd $TEST_WORKSPACE/$manifests_dir
 git pull
 validate_commit $image_tag
@@ -452,7 +451,7 @@ echo "Successfully reached the end of the service validations scripts."
 
 # Verify hld to manifest pipeline run was successful, to verify the full end-end capture of
 # introspection data
-verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 300 15 6
+verify_pipeline_with_poll $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 300 15 5
 
 cd $TEST_WORKSPACE
 cd ..
