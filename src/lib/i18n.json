@@ -124,6 +124,10 @@
     "introspect-create-cmd-p1-missing-values": "Values for image-tag, commit-id and service options were missing. They are required for updating the details of source pipeline. Provide them.",
     "introspect-create-cmd-p2-missing-values": "Values for p2, hld-commit-id, image-tag and env options were missing. They are required For updating the details of image tag release pipeline. Provide them.",
 
+    "introspect-onboard-cmd-failed": "Deployment onboard command was not successfully executed.",
+    "introspect-onboard-cmd-location-missing": "Value for --storage-location was missing. Provide it.",
+    "introspect-onboard-cmd-get-storage-access-key-err": "Could not get storage access key for account, {0} in resource group {1}.",
+
     "introspect-validate-cmd-failed": "Deployment validate command was not successfully executed.",
     "introspect-validate-cmd-valid-err": "Validation failed. Missing configuration: {0}",
     "introspect-validate-cmd-missing-vals": "Configuration for introspection storage account and DevOps pipeline to execute this command were missing. Initialize the spk tool with the right configuration",

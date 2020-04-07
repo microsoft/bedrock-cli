@@ -315,7 +315,7 @@ describe("onboard", () => {
       expect(true).toBe(false);
     } catch (err) {
       expect(err.message).toBe(
-        "the following argument is required: \n -l / --storage-location"
+        getErrorMessage("introspect-onboard-cmd-location-missing")
       );
     }
   });
@@ -334,7 +334,10 @@ describe("onboard", () => {
       expect(true).toBe(false);
     } catch (err) {
       expect(err.message).toBe(
-        "Storage account testaccount access keys in resource group testResourceGroup is not defined"
+        getErrorMessage({
+          errorKey: "introspect-onboard-cmd-get-storage-access-key-err",
+          values: ["testaccount", "testResourceGroup"],
+        })
       );
     }
   });

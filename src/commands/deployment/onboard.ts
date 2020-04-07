@@ -15,6 +15,8 @@ import {
   populateInheritValueFromConfig,
   validateForRequiredValues,
 } from "../../lib/commandBuilder";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 import { logger } from "../../logger";
 import { AzureAccessOpts, ConfigYaml } from "../../types";
 import decorator from "./onboard.decorator.json";
@@ -109,6 +111,7 @@ export const setConfiguration = (
     fs.writeFileSync(defaultConfigFile(), jsonData);
     return true;
   } catch (err) {
+    // TOFIX: write some comments on why this error can be ignore
     logger.error(
       `Unable to set storage account and table names in configuration file. \n ${err}`
     );
@@ -135,8 +138,9 @@ export const validateAndCreateStorageAccount = async (
   // Storage account does not exist so create it.
   if (isExist === false) {
     if (!values.storageLocation) {
-      throw new Error(
-        "the following argument is required: \n -l / --storage-location"
+      throw buildError(
+        errorStatusCode.VALIDATION_ERR,
+        "introspect-onboard-cmd-location-missing"
       );
     }
     const storageAccount = await createStorageAccount(
@@ -169,9 +173,10 @@ export const getStorageAccessKey = async (
   );
 
   if (accessKey === undefined) {
-    throw new Error(
-      `Storage account ${values.storageAccountName} access keys in resource group ${values.storageResourceGroupName} is not defined`
-    );
+    throw buildError(errorStatusCode.ENV_SETTING_ERR, {
+      errorKey: "introspect-onboard-cmd-get-storage-access-key-err",
+      values: [values.storageAccountName, values.storageResourceGroupName],
+    });
   }
   return accessKey;
 };
@@ -248,7 +253,13 @@ export const execute = async (
     );
     await exitFn(0);
   } catch (err) {
-    logger.error(err);
+    logError(
+      buildError(
+        errorStatusCode.CMD_EXE_ERR,
+        "introspect-onboard-cmd-failed",
+        err
+      )
+    );
     await exitFn(1);
   }
 };
