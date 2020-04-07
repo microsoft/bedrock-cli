@@ -236,7 +236,8 @@
   "hld append-variable-group": {
     "command": "append-variable-group <variable-group-name>",
     "alias": "avg",
-    "description": "Appends the name of an existing variable group to the current manifest-generation.yaml file."
+    "description": "Appends the name of an existing variable group to the current manifest-generation.yaml file.",
+    "markdown": "## Description\n\nAppend a variable group name to the current `manifest-generation.yaml` of an\ninitialized hld repository.\n\n## Example\n\nWhen an HLD repository is first initialized with `spk hld init`, the top portion\nof the `manifest-generation.yaml` looks like this:\n\n```yaml\n# GENERATED WITH SPK VERSION 0.5.8\ntrigger:\n  branches:\n    include:\n      - master\nvariables: []\npool:\n  vmImage: ubuntu-latest\nsteps:\n.\n.\n.\n```\n\nrunning `spk hld append-variable-group my-vg` with a variable group name, in\nthis case `my-vg`, will add it under the `variables` section if it does not\nalready exist:\n\n```yaml\n# GENERATED WITH SPK VERSION 0.5.8\ntrigger:\n  branches:\n    include:\n      - master\nvariables:\n  - group: my-variable-group\npool:\n  vmImage: ubuntu-latest\nsteps:\n.\n.\n.\n```\n"
   },
   "hld init": {
     "command": "init",
