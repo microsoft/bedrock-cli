@@ -213,6 +213,9 @@ export const getEnvVars = async (
       }
     }
 
+    envVars.push("-e");
+    envVars.push(`REACT_APP_DOCKER_VERSION=${config.image}`);
+
     return envVars;
   } catch (err) {
     throw buildError(
