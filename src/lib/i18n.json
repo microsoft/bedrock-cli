@@ -16,6 +16,11 @@
     "storageKeVaultName": "Enter key vault name (have the value as empty and hit enter key to skip)"
   },
   "errors": {
+    "init_cmd_failed": "Init command was not successfully executed.",
+    "init_cmd_unable_validate_pat": "Could not validate personal access token because organization, project or access token information were missing. Provide them in config.yaml.",
+    "init_cmd_missing_opts": "Could not execute this command because file that stores configuration was not provided and interactive mode was not set. Provide file name or enable interactive mode.",
+    "init_cmd_both_opts_err": "Could not execute this command because file that stores configuration was provided and interactive mode was set. Provide file name or enable interactive mode.",
+
     "setup-cmd-failed": "Setup command was not successfully executed.",
     "setup-cmd-prompt-err-no-subscriptions": "No subscriptions found.",
     "setup-cmd-prompt-err-subscription-missing": "Subscription Identifier was missing.",

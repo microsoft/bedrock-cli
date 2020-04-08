@@ -10,6 +10,8 @@ import {
   saveConfiguration,
 } from "../config";
 import { build as buildCmd, exit as exitCmd } from "../lib/commandBuilder";
+import { build as buildError, log as logError } from "../lib/errorBuilder";
+import { errorStatusCode } from "../lib/errorStatusCode";
 import * as promptBuilder from "../lib/promptBuilder";
 import { deepClone } from "../lib/util";
 import { hasValue } from "../lib/validator";
@@ -93,8 +95,9 @@ export const validatePersonalAccessToken = async (
   azure: ConfigYaml["azure_devops"]
 ): Promise<boolean> => {
   if (!azure || !azure.org || !azure.project || !azure.access_token) {
-    throw Error(
-      "Unable to validate personal access token because organization, project or access token information were missing"
+    throw buildError(
+      errorStatusCode.ENV_SETTING_ERR,
+      "init_cmd_unable_validate_pat"
     );
   }
   try {
@@ -109,6 +112,7 @@ export const validatePersonalAccessToken = async (
     );
     return res.status === 200;
   } catch (_) {
+    // command does not terminate if pat cannot be verified.
     return false;
   }
 };
@@ -194,13 +198,12 @@ export const execute = async (
 ): Promise<void> => {
   try {
     if (!hasValue(opts.file) && !opts.interactive) {
-      throw new Error(
-        "File that stores configuration is not provided and interactive mode is not turn on"
-      );
+      throw buildError(errorStatusCode.VALIDATION_ERR, "init_cmd_missing_opts");
     }
     if (hasValue(opts.file) && opts.interactive) {
-      throw new Error(
-        "Not supported option while configuration file is provided and interactive mode is turn on"
+      throw buildError(
+        errorStatusCode.VALIDATION_ERR,
+        "init_cmd_both_opts_err"
       );
     }
 
@@ -212,8 +215,7 @@ export const execute = async (
 
     await exitFn(0);
   } catch (err) {
-    logger.error(`Error occurred while initializing`);
-    logger.error(err);
+    logError(buildError(errorStatusCode.CMD_EXE_ERR, "init_cmd_failed", err));
     await exitFn(1);
   }
 };
