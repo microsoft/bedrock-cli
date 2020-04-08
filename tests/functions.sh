@@ -301,6 +301,55 @@ function verify_pipeline_with_poll () {
     fi
 }
 
+function verify_pipeline_with_poll_and_source_version () {
+    local pipeline_name=$3
+    poll_timeout=$4
+    poll_interval=$5
+    source_version=$6
+    end=$((SECONDS+$poll_timeout))
+    loop_result="unknown"
+
+    echo "Attempting to verify that the pipeline build for $pipeline_name is successful..."
+    pipeline_result=$(az pipelines build definition show --name $pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
+    pipeline_id=$(tr '"\""' '"\\"' <<< "$pipeline_result" | jq .id)
+    echo "$pipeline_name has pipeline id of $pipeline_id"
+
+    build_run_exists=$(az pipelines build list --definition-ids $pipeline_id --org $AZDO_ORG_URL --p $AZDO_PROJECT | jq -r --arg source_version "$source_version" '.[].sourceVersion | select(. == $source_version) != null')
+
+    if [ "$build_run_exists" != "true" ]; then
+        echo "Commit ID $source_version was not found in pipeline run $pipeline_name."
+        exit 1
+    fi
+
+    while [ $SECONDS -lt $end ]; do
+        pipeline_builds=$(az pipelines build list --definition-ids $pipeline_id --org $1 --p $2)
+
+        # We use grep because of string matching issues
+        echo "Get the build status for build..."
+        pipeline_status=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq .[0].status)
+        echo "pipeline: $pipeline_name-$pipeline_id:"
+        echo "pipeline_status this iteration --> $pipeline_status"
+        if [ "$(echo $pipeline_status | grep 'completed')" != "" ]; then
+            pipeline_result=$(tr '"\""' '"\\"' <<< "$pipeline_builds" | jq .[0].result)
+            if [ "$(echo $pipeline_result | grep 'succeeded')" != "" ]; then
+                echo "Successful build for pipeline: $pipeline_name-$pipeline_id!"
+                loop_result=$pipeline_result
+                break
+            else
+                echo "Expected successful build for pipeline: $pipeline_name-$pipeline_id but result is $pipeline_result"
+                exit 1
+            fi
+        else
+        echo "pipeline: $pipeline_name-$pipeline_id status is $pipeline_status. Sleeping for $poll_interval seconds"
+        sleep $poll_interval
+        fi
+    done
+    if [ "$loop_result" = "unknown" ]; then
+        echo "Polling pipeline: $pipeline_name-$pipeline_id timed out after $poll_timeout seconds!"
+        exit 1
+    fi
+}
+
 function validate_file () {
     echo "Validating file $1"
     if grep -q "$2" "$1";
