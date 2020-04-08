@@ -30,7 +30,7 @@
     "bedrock-config-invalid": "Invalid helm configuration found in {0}.",
     "config-file-not-defined": "Pipeline yaml file name is undefined.",
 
-    "hld-init-cmd-failed": "Hld init command was not successfully executed.",
+    "hld-init-cmd-failed": "hld init command was not successfully executed.",
     "hld-init-cmd-project-path-missing": "Value for project path was not provided. Provide it.",
 
     "hld-reconcile-err-repo-create": "Error creating repository component '{0}' in path '{1}'.",
@@ -44,6 +44,9 @@
     "hld-reconcile-err-cmd-failed": "An error occurred executing command: {0}",
     "hld-reconcile-err-cmd-exe": "An error occurred while reconciling HLD.",
     "hld-reconcile-err-purge-repo-comps": "Could not purge hld repository component {0} in path {1}.",
+
+    "hld-install-manifest-pipeline-cmd-failed": "hld install-manifest-pipeline command was not successfully executed.",
+    "hld-install-manifest-pipeline-cmd-validate-repo-err": "Could not validate repositories. {0} and/or {1} may not be supported.",
 
     "infra-scaffold-cmd-failed": "Infra scaffold command was not successfully executed.",
     "infra-scaffold-cmd-src-missing": "Value for source is required because it cannot be constructed with properties in spk-config.yaml. Provide value for source.",

@@ -16,6 +16,8 @@ import {
   BUILD_SCRIPT_URL,
   RENDER_HLD_PIPELINE_FILENAME,
 } from "../../lib/constants";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 import { AzureDevOpsOpts } from "../../lib/git";
 import { getRepositoryName, isGitHubUrl } from "../../lib/gitutils";
 import {
@@ -52,7 +54,10 @@ const validateRepos = (hldRepoUrl: string, manifestRepoUrl: string): void => {
   const hldGitUrlType = isGitHubUrl(hldRepoUrl);
   const manifestGitUrlType = isGitHubUrl(manifestRepoUrl);
   if (hldGitUrlType || manifestGitUrlType) {
-    throw Error(`GitHub repos are not supported`);
+    throw buildError(errorStatusCode.GIT_OPS_ERR, {
+      errorKey: "hld-install-manifest-pipeline-cmd-validate-repo-err",
+      values: [hldRepoUrl, manifestRepoUrl],
+    });
   }
 };
 
@@ -122,8 +127,6 @@ export const requiredPipelineVariables = (
 export const installHldToManifestPipeline = async (
   values: CommandOptions
 ): Promise<void> => {
-  let builtDefinition;
-
   const devopsClient = await getBuildApiClient(
     values.orgName,
     values.personalAccessToken
@@ -149,34 +152,22 @@ export const installHldToManifestPipeline = async (
     `Attempting to create new pipeline: ${values.pipelineName} defined in repository:${values.hldUrl}, branch: ${values.yamlFileBranch}, filePath: ${RENDER_HLD_PIPELINE_FILENAME}`
   );
 
-  try {
-    builtDefinition = await createPipelineForDefinition(
-      devopsClient as IBuildApi,
-      values.devopsProject,
-      definition
-    );
-  } catch (err) {
-    logger.error(
-      `Error occurred during pipeline creation for ${values.pipelineName}`
-    );
-    throw err; // caller will catch and exit
-  }
+  // createPipelineForDefinition is already throwing error code.
+  const builtDefinition = await createPipelineForDefinition(
+    devopsClient as IBuildApi,
+    values.devopsProject,
+    definition
+  );
 
   logger.info(`Created pipeline for ${values.pipelineName}`);
   logger.info(`Pipeline ID: ${(builtDefinition as BuildDefinition).id}`);
 
-  try {
-    await queueBuild(
-      devopsClient as IBuildApi,
-      values.devopsProject,
-      builtDefinition.id as number
-    );
-  } catch (err) {
-    logger.error(
-      `Error occurred when queueing build for ${values.pipelineName}`
-    );
-    throw err; // caller will catch and exit
-  }
+  // queueBuild is already throwing error code.
+  await queueBuild(
+    devopsClient as IBuildApi,
+    values.devopsProject,
+    builtDefinition.id as number
+  );
 };
 
 export const execute = async (
@@ -202,9 +193,7 @@ export const execute = async (
     await installHldToManifestPipeline(opts);
     await exitFn(0);
   } catch (err) {
-    logger.error(
-      `Error occurred installing pipeline for HLD to Manifest pipeline`
-    );
+    logError(buildError(errorStatusCode.CMD_EXE_ERR, "", err));
     logger.error(err);
     await exitFn(1);
   }

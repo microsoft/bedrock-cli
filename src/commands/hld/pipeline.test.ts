@@ -182,7 +182,15 @@ describe("test populateValues function", () => {
         pipelineName: "",
         yamlFileBranch: "",
       })
-    ).toThrow(`GitHub repos are not supported`);
+    ).toThrow(
+      getErrorMessage({
+        errorKey: "hld-install-manifest-pipeline-cmd-validate-repo-err",
+        values: [
+          "https://github.com/fabrikam/hld",
+          "https://github.com/fabrikam/materialized",
+        ],
+      })
+    );
   });
   it("negative tests: missing and invalid org name", () => {
     orgNameTest(false);
