@@ -37,12 +37,14 @@ export const execute = async (
   projectPath: string,
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
-  if (!hasValue(ringName)) {
-    await exitFn(1);
-    return;
-  }
-
   try {
+    if (!hasValue(ringName)) {
+      throw buildError(
+        errorStatusCode.VALIDATION_ERR,
+        "ring-set-default-cmd-err-name-missing"
+      );
+    }
+
     logger.info(`Project path: ${projectPath}`);
 
     checkDependencies(projectPath);
@@ -55,12 +57,10 @@ export const execute = async (
     await exitFn(0);
   } catch (err) {
     logError(
+      // cannot include ring name in error message because it may not be defined.
       buildError(
         errorStatusCode.EXE_FLOW_ERR,
-        {
-          errorKey: "ring-set-default-cmd-failed",
-          values: [ringName],
-        },
+        "ring-set-default-cmd-failed",
         err
       )
     );

@@ -34,12 +34,14 @@ export const execute = async (
   projectPath: string,
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
-  if (!hasValue(ringName)) {
-    await exitFn(1);
-    return;
-  }
-
   try {
+    if (!hasValue(ringName)) {
+      throw buildError(
+        errorStatusCode.VALIDATION_ERR,
+        "ring-delete-cmd-err-name-missing"
+      );
+    }
+
     logger.info(`Project path: ${projectPath}`);
 
     // Check if bedrock config exists, if not, warn and exit
@@ -65,14 +67,8 @@ export const execute = async (
     await exitFn(0);
   } catch (err) {
     logError(
-      buildError(
-        errorStatusCode.EXE_FLOW_ERR,
-        {
-          errorKey: "ring-delete-cmd-failed",
-          values: [ringName],
-        },
-        err
-      )
+      // cannot include ring name in error message because it may not be defined.
+      buildError(errorStatusCode.EXE_FLOW_ERR, "ring-delete-cmd-failed", err)
     );
     await exitFn(1);
   }

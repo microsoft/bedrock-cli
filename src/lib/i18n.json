@@ -222,16 +222,20 @@
     "var-group-add-with-key-vault-err-missing-provider": "Could not add variable group with key vault because Azure KeyVault provider data was not configured",
     "var-group-create-data-err": "Could not create variable group data.",
 
-    "ring-create-cmd-failed": "Error occurred while creating ring: {0}",
+    "ring-create-cmd-failed": "Could not create ring: {0}.",
+    "ring-create-cmd-err-name-missing": "Could not execute this command because ring name was not provided. Provide a ring name.",
     "ring-create-cmd-err-ring-exists": "Could not create ring {0} in project {1} because it already exists. Provide a different name.",
-    "ring-create-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
-    "ring-delete-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
-    "ring-set-default-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
-    "ring-create-cmd-err-name-missing": "No ring name was provided. Provide a ring name",
-    "ring-delete-cmd-failed": "Error occurred while deleting ring: {0}.",
-    "ring-set-default-cmd-failed": "Error occurred while setting default ring: {0}",
+    "ring-create-cmd-err-dependency": "Configuration information was missing. Run `spk project init` command to initialize them.",
 
-    "variable-group-create-cmd-failed": "Error occurred while creating variable group.",
+    "ring-set-default-cmd-failed": "Could not set default ring: {0}.",
+    "ring-set-default-cmd-err-name-missing": "Could not execute this command because ring name was not provided. Provide a ring name.",
+    "ring-set-default-cmd-err-dependency": "Configuration information was missing. Run `spk project init` command to initialize them.",
+
+    "ring-delete-cmd-failed": "Could not delete ring: {0}.",
+    "ring-delete-cmd-err-name-missing": "Could not execute this command because ring name was not provided. Provide a ring name.",
+    "ring-delete-cmd-err-dependency": "Configuration information was missing. Run `spk project init` command to initialize them.",
+
+    "variable-group-create-cmd-failed": "Could not create variable group.",
     "variable-group-create-cmd-err-create": "Could not load variable group. The variable group type '{0}' is not supported. Only 'Vsts' and 'AzureKeyVault' are valid types and case sensitive.",
     "variable-group-create-cmd-err-access-token": "Provide a value for {0}.",
     "variable-group-create-cmd-err-project-missing": "Provide a value for {0}.",

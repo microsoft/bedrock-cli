@@ -34,6 +34,13 @@ describe("checkDependencies", () => {
 });
 
 describe("test execute function and logic", () => {
+  it("test execute function: missing ring input", async () => {
+    const exitFn = jest.fn();
+    await execute("", "someprojectpath", exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
+
   it("test execute function: missing project path", async () => {
     const exitFn = jest.fn();
     await execute("ring", "", exitFn);

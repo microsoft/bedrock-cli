@@ -54,18 +54,14 @@ export const execute = async (
   projectPath: string,
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
-  if (!hasValue(ringName)) {
-    logError(
-      buildError(
+  try {
+    if (!hasValue(ringName)) {
+      throw buildError(
         errorStatusCode.VALIDATION_ERR,
         "ring-create-cmd-err-name-missing"
-      )
-    );
-    await exitFn(1);
-    return;
-  }
+      );
+    }
 
-  try {
     logger.info(`Project path: ${projectPath}`);
 
     dns.assertIsValid("<ring-name>", ringName);
@@ -91,14 +87,8 @@ export const execute = async (
     await exitFn(0);
   } catch (err) {
     logError(
-      buildError(
-        errorStatusCode.CMD_EXE_ERR,
-        {
-          errorKey: "ring-create-cmd-failed",
-          values: [ringName],
-        },
-        err
-      )
+      // cannot include ring name in error message because it may not be defined.
+      buildError(errorStatusCode.CMD_EXE_ERR, "ring-create-cmd-failed", err)
     );
     await exitFn(1);
   }
