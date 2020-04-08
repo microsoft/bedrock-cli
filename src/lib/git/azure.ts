@@ -366,11 +366,10 @@ export const repositoryHasFile = async (
   );
 
   if (gitItem === null) {
-    throw Error(
-      "Error installing build pipeline. Repository does not have a " +
-        fileName +
-        " file."
-    );
+    throw buildError(errorStatusCode.GIT_OPS_ERR, {
+      errorKey: "git-azure-file-no-exist-in-repo",
+      values: [fileName, branch, repoName],
+    });
   }
 };
 
@@ -393,9 +392,10 @@ export const validateRepository = async (
   const repo = await gitApi.getRepository(repoName, project);
 
   if (!repo) {
-    throw Error(
-      `Project '${project}' does not contain repository '${repoName}'.`
-    );
+    throw buildError(errorStatusCode.GIT_OPS_ERR, {
+      errorKey: "git-azure-repo-no-exist",
+      values: [repoName, project],
+    });
   }
 
   await repositoryHasFile(fileName, branch, repoName, accessOpts);

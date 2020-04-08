@@ -111,6 +111,8 @@
     "git-azure-get-match-branch-multiple": "Got more than one matching repositories in Azure DevOps with remote url '{0}' and branches '{1}' and '{2}'.",
     "git-azure-get-match-branch-err": "Could not get matching branch in Azure DevOps",
     "git-azure-create-pull-request-err": "Could not create pull request in Azure DevOps",
+    "git-azure-repo-no-exist": "Repository {0} did not exist in project {1}.",
+    "git-azure-file-no-exist-in-repo": "File {0} did not exist in {1} branch in repository {2}.",
 
     "fileutils-append-variable-group-to-pipeline-yaml": "Could not append variable group name to manifest-generation.yaml file in HLD repo. Check this is file exist and if it is YAML format.",
     "fileutils-generate-hld-pipeline-yaml": "Could not generate HLD Azure pipeline YAML.",
