@@ -8,6 +8,12 @@ corresponding to all tracked services. When the service has been merged into
 created by `spk project init`) runs `spk hld reconcile` to add any _new_
 services tracked in `bedrock.yaml` to the HLD.
 
+As of version v0.6.0 and the addition of `spk ring` commands,
+`spk hld reconcile` will add rings to the corresponding application repository
+directory in the HLD repository. Additionally, as of v0.6.1, the reconcile
+command will also remove rings from the corresponding application repository
+directory in the HLD repository.
+
 This command is _intended_ to be run in a pipeline (see the generated
 `hld-lifecycle.yaml` created from `spk project init`), but can be run by the
 user in a CLI for verification.

@@ -173,7 +173,7 @@ describe("createAccessYaml", () => {
 });
 
 describe("purgeRepositoryComponents", () => {
-  const fsSpy = jest.spyOn(fs, "unlink");
+  const fsUnlinkSpy = jest.spyOn(fs, "unlink");
 
   beforeEach(() => {
     mockFs({
@@ -214,11 +214,25 @@ describe("purgeRepositoryComponents", () => {
   afterEach(() => {
     mockFs.restore();
     jest.clearAllMocks();
-    fsSpy.mockClear();
+    fsUnlinkSpy.mockClear();
   });
 
   const hldPath = "hld-repo";
   const repositoryName = "bedrock-project-repo";
+
+  it("should return immediately if the repository directory does not exist in the hld", async () => {
+    mockFs({
+      "hld-repo": {
+        config: {
+          "common.yaml": "someconfigfile",
+        },
+        "component.yaml": "somecomponentfile",
+      },
+    });
+    purgeRepositoryComponents(hldPath, repositoryName);
+
+    expect(fs.unlink).not.toHaveBeenCalled();
+  });
 
   it("should invoke fs.unlink for each file in project repository except config files and access.yaml", async () => {
     purgeRepositoryComponents(hldPath, repositoryName);
@@ -267,7 +281,7 @@ describe("purgeRepositoryComponents", () => {
   });
 
   it("should throw an error if fs fails", async () => {
-    fsSpy.mockImplementationOnce(() => {
+    fsUnlinkSpy.mockImplementationOnce(() => {
       throw Error("some error");
     });
 

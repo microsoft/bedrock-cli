@@ -115,6 +115,13 @@ export const purgeRepositoryComponents = (
   assertIsStringWithContent(absHldPath, "hld-path");
   assertIsStringWithContent(repositoryName, "repository-name");
 
+  // On very first run of the lifecycle for this repository, the repository directory will not exist. No need to purge.
+  if (!fs.existsSync(path.join(absHldPath, repositoryName))) {
+    logger.info(
+      `repository: ${repositoryName} not found in ${absHldPath}. Will skip deletion step of reconcile.`
+    );
+    return;
+  }
   const filesToDelete = getAllFilesInDirectory(
     path.join(absHldPath, repositoryName)
   ).filter(
