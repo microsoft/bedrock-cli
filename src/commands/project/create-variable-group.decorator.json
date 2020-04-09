@@ -10,7 +10,7 @@
     },
     {
       "arg": "-U, --hld-repo-url <hld-repo-url>",
-      "description": "The high level definition (HLD) git repo url; falls back to azure_devops.org in spk config.",
+      "description": "The high level definition (HLD) git repo url; falls back to azure_devops.hld_repository in spk config.",
       "required": true,
       "inherit": "azure_devops.hld_repository"
     },
