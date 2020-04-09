@@ -1,15 +1,19 @@
+import child_process from "child_process";
 jest.mock("open");
 import open from "open";
 jest.mock("../../config");
 import { Config } from "../../config";
 import { exec } from "../../lib/shell";
+import * as shell from "../../lib/shell";
 import { validatePrereqs } from "../../lib/validator";
+import * as validator from "../../lib/validator";
 import {
   disableVerboseLogging,
   enableVerboseLogging,
   logger,
 } from "../../logger";
 import {
+  cleanDashboardContainers,
   DashboardConfig,
   execute,
   extractManifestRepositoryInformation,
@@ -21,6 +25,7 @@ import * as dashboard from "./dashboard";
 
 import uuid from "uuid/v4";
 import { deepClone } from "../../lib/util";
+import { getErrorMessage } from "../../lib/errorBuilder";
 
 const dashboardConf: DashboardConfig = {
   port: 2020,
@@ -112,9 +117,7 @@ describe("Test execute function", () => {
   it("positive test", async () => {
     mockConfig();
     const exitFn = jest.fn();
-    jest
-      .spyOn(dashboard, "launchDashboard")
-      .mockReturnValueOnce(Promise.resolve(uuid()));
+    jest.spyOn(dashboard, "launchDashboard").mockResolvedValueOnce(uuid());
     jest.spyOn(dashboard, "validateValues").mockReturnValueOnce(dashboardConf);
     (open as jest.Mock).mockReturnValueOnce(Promise.resolve());
     await execute(
@@ -196,19 +199,61 @@ describe("Validate dashboard clean up", () => {
 });
 
 describe("Fallback to azure devops access token", () => {
-  test("Has repo_access_token specified", async () => {
-    const envVars = (await getEnvVars(dashboardConf)).toString();
-    logger.info(
-      `spin: ${envVars}, act: ${mockedConf.introspection.azure.source_repo_access_token}`
-    );
-    const expectedSubstring = "REACT_APP_SOURCE_REPO_ACCESS_TOKEN=test_token";
-    expect(envVars.includes(expectedSubstring)).toBeTruthy();
-  });
+  test("with repo_access_token and without sourceRepoAccessToken", async () => {
+    const conf = deepClone(dashboardConf);
+    delete conf.sourceRepoAccessToken;
+    const envVars = getEnvVars(conf).toString();
 
-  it("No repo_access_token was specified", async () => {
-    const envVars = (await getEnvVars(dashboardConf)).toString();
-    const expectedSubstring = `REACT_APP_SOURCE_REPO_ACCESS_TOKEN=${dashboardConf.sourceRepoAccessToken}`;
-    expect(envVars.includes(expectedSubstring)).toBeTruthy();
+    expect(
+      envVars.includes(`REACT_APP_PIPELINE_ACCESS_TOKEN=${conf.accessToken}`)
+    ).toBeTruthy();
+    expect(
+      envVars.includes(`REACT_APP_SOURCE_REPO_ACCESS_TOKEN=${conf.accessToken}`)
+    ).toBeTruthy();
+    expect(
+      envVars.includes(`REACT_APP_MANIFEST_ACCESS_TOKEN=${conf.accessToken}`)
+    ).toBeTruthy();
+  });
+  test("without repo_access_token and with sourceRepoAccessToken", async () => {
+    const conf = deepClone(dashboardConf);
+    delete conf.accessToken;
+    const envVars = getEnvVars(conf).toString();
+
+    expect(envVars.includes("REACT_APP_PIPELINE_ACCESS_TOKEN")).toBeFalsy();
+    expect(
+      envVars.includes(
+        `REACT_APP_SOURCE_REPO_ACCESS_TOKEN=${dashboardConf.sourceRepoAccessToken}`
+      )
+    ).toBeTruthy();
+    expect(
+      envVars.includes(
+        `REACT_APP_MANIFEST_ACCESS_TOKEN=${dashboardConf.sourceRepoAccessToken}`
+      )
+    ).toBeTruthy();
+  });
+  test("with manifest repository information", async () => {
+    jest
+      .spyOn(dashboard, "extractManifestRepositoryInformation")
+      .mockReturnValueOnce({
+        manifestRepoName: "mName",
+        githubUsername: "gitUser",
+      });
+    const envVars = getEnvVars(dashboardConf).toString();
+
+    expect(envVars.includes("REACT_APP_MANIFEST=mName")).toBeTruthy();
+    expect(
+      envVars.includes("REACT_APP_GITHUB_MANIFEST_USERNAME=gitUser")
+    ).toBeTruthy();
+  });
+  test("negative test", async () => {
+    jest
+      .spyOn(dashboard, "extractManifestRepositoryInformation")
+      .mockImplementationOnce(() => {
+        throw Error("fake");
+      });
+    expect(() => {
+      getEnvVars(dashboardConf);
+    }).toThrow(getErrorMessage("introspect-dashboard-cmd-get-env"));
   });
 });
 
@@ -236,5 +281,71 @@ describe("Extract manifest repository information", () => {
     }
 
     logger.info("Verified that manifest repository extraction works");
+  });
+});
+
+describe("test cleanDashboardContainers function", () => {
+  it("positive test", async () => {
+    const containerIds = ["f5ad0bff2448", "f5ad0bff2449"];
+    jest.spyOn(shell, "exec").mockResolvedValueOnce(containerIds.join("\n"));
+
+    jest.spyOn(shell, "exec").mockImplementationOnce(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      async (
+        cmd: string,
+        args?: string[],
+        opts?: child_process.SpawnOptions
+      ): Promise<string> => {
+        expect(args).toStrictEqual(["kill", ...containerIds]);
+        return "";
+      }
+    );
+    await cleanDashboardContainers({
+      image: "fake",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+  });
+  it("negative test: cannot get docker image ids", async () => {
+    jest.spyOn(shell, "exec").mockRejectedValueOnce(Error("fake"));
+
+    await expect(
+      cleanDashboardContainers({
+        image: "fake",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
+    ).rejects.toThrow(
+      getErrorMessage("introspect-dashboard-cmd-kill-docker-container")
+    );
+  });
+  it("negative test: cannot kill images", async () => {
+    const containerIds = ["f5ad0bff2448", "f5ad0bff2449"];
+    jest.spyOn(shell, "exec").mockResolvedValueOnce(containerIds.join("\n"));
+
+    jest.spyOn(shell, "exec").mockRejectedValueOnce(Error("fake"));
+    await expect(
+      cleanDashboardContainers({
+        image: "fake",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
+    ).rejects.toThrow(
+      getErrorMessage("introspect-dashboard-cmd-kill-docker-container")
+    );
+  });
+});
+
+describe("test launchDashboard function", () => {
+  it("postive test", async () => {
+    jest.spyOn(validator, "validatePrereqs").mockReturnValueOnce(true);
+    jest.spyOn(dashboard, "cleanDashboardContainers").mockResolvedValueOnce();
+    jest.spyOn(shell, "exec").mockResolvedValueOnce("ok");
+    jest.spyOn(shell, "exec").mockResolvedValueOnce("container-identifier");
+    const res = await launchDashboard(dashboardConf, true);
+    expect(res).toBe("container-identifier");
+  });
+  it("negative test", async () => {
+    jest.spyOn(validator, "validatePrereqs").mockReturnValueOnce(false);
+    await expect(launchDashboard(dashboardConf, true)).rejects.toThrow(
+      getErrorMessage("introspect-dashboard-cmd-launch-err")
+    );
   });
 });

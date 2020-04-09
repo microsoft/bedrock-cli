@@ -154,9 +154,7 @@ export const extractManifestRepositoryInformation = (
  * Creates and returns an array of env vars that need to be passed into the
  * docker run command
  */
-export const getEnvVars = async (
-  config: DashboardConfig
-): Promise<string[]> => {
+export const getEnvVars = (config: DashboardConfig): string[] => {
   try {
     const envVars = [
       "-e",
@@ -256,7 +254,7 @@ export const launchDashboard = async (
       "run",
       "-d",
       "--rm",
-      ...(await getEnvVars(config)),
+      ...getEnvVars(config),
       "-p",
       `${config.port}:5000`,
       dockerRepository,
