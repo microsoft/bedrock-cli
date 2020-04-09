@@ -345,6 +345,15 @@ git pull
 validate_commit $image_tag
 validate_file "$TEST_WORKSPACE/$manifests_dir/prod/$mono_repo_dir/$FrontEndCompliant/master/chart.yaml" "image: $image_repository:$image_tag"
 
+# --------------------------------
+# Validate ingress routes
+# - Should generate two ingress routes: one with Ring header and one without (because 'master' isDefault)
+# --------------------------------
+echo "Validating IngressRoutes => Ringed and isDefault"
+validate_file "$TEST_WORKSPACE/$manifests_dir/prod/$mono_repo_dir/$FrontEndCompliant/master/static.yaml" "'PathPrefix(\`/$FrontEndCompliant\`) && Headers(\`Ring\`, \`master\`)'"
+validate_file "$TEST_WORKSPACE/$manifests_dir/prod/$mono_repo_dir/$FrontEndCompliant/master/static.yaml" "PathPrefix(\`/$FrontEndCompliant\`)$"
+
+
 # ##################################
 # TODO
 # Fix issues where image tag update not reflected in manifest yaml
