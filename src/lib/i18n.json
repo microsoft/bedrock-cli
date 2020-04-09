@@ -254,7 +254,7 @@
     "project-create-variable-group-cmd-err-bedrock-file-missing": "Bedrock file does not exist. Check that the project directory has been initialized.",
     "project-create-variable-group-cmd-err-file-missing": "The file '{0}' does not exist in project '{1}'.",
     "project-create-variable-group-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
-    "project-create-variable-group-cmd-err-values-missing": "Required values were missing. Provide values for registry-name, hld-repo-url, service-principal-id, service-principal-password, tenant.",
+
     "project-init-cmd-failed": "Project init was not successfully executed.",
 
     "service-create-revision-cmd-failed": "Service create revision was not successfully executed.",

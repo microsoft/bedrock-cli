@@ -400,7 +400,8 @@
       {
         "arg": "-U, --hld-repo-url <hld-repo-url>",
         "description": "The high level definition (HLD) git repo url; falls back to azure_devops.org in spk config.",
-        "required": true
+        "required": true,
+        "inherit": "azure_devops.hld_repository"
       },
       {
         "arg": "-u, --service-principal-id <service-principal-id>",
@@ -420,17 +421,20 @@
       {
         "arg": "-o, --org-name <organization-name>",
         "description": "Azure DevOps organization name; falls back to azure_devops.org in spk config.",
-        "required": true
+        "required": true,
+        "inherit": "azure_devops.org"
       },
       {
         "arg": "-d, --devops-project <project>",
         "description": "Azure DevOps project name; falls back to azure_devops.project in spk config.",
-        "required": true
+        "required": true,
+        "inherit": "azure_devops.project"
       },
       {
         "arg": "-a, --personal-access-token <personal-access-token>",
         "description": "Azure DevOps Personal access token; falls back to azure_devops.access_token in spk config.",
-        "required": true
+        "required": true,
+        "inherit": "azure_devops.access_token"
       }
     ],
     "markdown": "## Description\n\nCreate new variable group in Azure DevOps project\n\n## Command Prerequisites\n\nIn addition to an existing\n[Azure DevOps project](https://azure.microsoft.com/en-us/services/devops/), to\nlink secrets from an Azure key vault as variables in Variable Group, you will\nneed an existing key vault containing your secrets and the Service Principal for\nauthorization with Azure Key Vault.\n\n1. Use existng or\n   [create a service principal either in Azure Portal](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal)\n   or\n   [with Azure CLI](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli?view=azure-cli-latest).\n2. Use existing or\n   [create a Azure Container Registry in Azure Portal](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-portal)\n   or\n   [with Azure CLI](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli).\n"

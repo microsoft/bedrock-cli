@@ -11,7 +11,6 @@ import {
   PROJECT_PIPELINE_FILENAME,
   VERSION_MESSAGE,
 } from "../../lib/constants";
-import { AzureDevOpsOpts } from "../../lib/git";
 import { createTempDir } from "../../lib/ioUtil";
 import * as pipelineVariableGroup from "../../lib/pipelines/variableGroup";
 import {
@@ -25,6 +24,7 @@ import {
 } from "../../test/mockFactory";
 import { AzurePipelinesYaml, BedrockFile } from "../../types";
 import {
+  CommandOptions,
   create,
   execute,
   setVariableGroupInBedrockFile,
@@ -33,7 +33,7 @@ import {
 } from "./create-variable-group";
 import * as createVariableGrp from "./create-variable-group";
 import * as fileutils from "../../lib/fileutils";
-import { getErrorMessage } from "../../lib/errorBuilder";
+import { deepClone } from "../../lib/util";
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -137,24 +137,6 @@ describe("test execute function", () => {
 });
 
 describe("create", () => {
-  it("Should fail with empty variable group arguments", async () => {
-    const accessOpts: AzureDevOpsOpts = {
-      orgName,
-      personalAccessToken,
-      project: devopsProject,
-    };
-
-    // for some reasons, cannot get the await expect(...).rejects.toThrow() to work
-    try {
-      await create("", "", "", "", "", "", accessOpts);
-      expect(true).toBeFalsy();
-    } catch (e) {
-      expect(e.message).toBe(
-        getErrorMessage("project-create-variable-group-cmd-err-values-missing")
-      );
-    }
-  });
-
   test("Should pass with variable group arguments", async () => {
     // mock the function that calls the Azdo project's Task API
     // because unit test is unable to reach this API.
@@ -168,23 +150,18 @@ describe("create", () => {
       return Promise.resolve({});
     });
 
-    const accessOpts: AzureDevOpsOpts = {
-      orgName,
-      personalAccessToken,
-      project: devopsProject,
-    };
-
     try {
       logger.info("calling create");
-      await create(
-        variableGroupName,
+      await create(variableGroupName, {
         registryName,
         hldRepoUrl,
         servicePrincipalId,
         servicePrincipalPassword,
         tenant,
-        accessOpts
-      );
+        orgName,
+        devopsProject,
+        personalAccessToken,
+      });
     } catch (err) {
       // should not reach here
       expect(true).toBe(false);
@@ -396,18 +373,34 @@ describe("updateLifeCyclePipeline", () => {
   });
 });
 
+const mockConfigValues: CommandOptions = {
+  hldRepoUrl,
+  orgName,
+  personalAccessToken,
+  devopsProject,
+  registryName,
+  servicePrincipalId,
+  servicePrincipalPassword,
+  tenant,
+};
+
 describe("test validateValues function", () => {
   it("valid org and project name", () => {
-    validateValues(devopsProject, orgName);
+    const data = deepClone(mockConfigValues);
+    validateValues(data);
   });
   it("invalid project name", () => {
+    const data = deepClone(mockConfigValues);
+    data.devopsProject = "project\\abc";
     expect(() => {
-      validateValues("project\\abc", orgName);
+      validateValues(data);
     }).toThrow();
   });
   it("invalid org name", () => {
+    const data = deepClone(mockConfigValues);
+    data.orgName = "org name";
     expect(() => {
-      validateValues(devopsProject, "org name");
+      validateValues(data);
     }).toThrow();
   });
 });
