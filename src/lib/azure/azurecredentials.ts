@@ -3,6 +3,8 @@ import * as msRestNodeAuth from "@azure/ms-rest-nodeauth";
 import { Config } from "../../config";
 import { logger } from "../../logger";
 import { AzureAccessOpts } from "../../types";
+import { build as buildError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../errorStatusCode";
 
 const verifyConfigDefined = (
   servicePrincipalId?: string,
@@ -85,13 +87,21 @@ export const getManagementCredentials = async (
     return undefined;
   }
 
-  // verifyConfigDefined has confirmed that these values are defined.
-  return msRestNodeAuth.loginWithServicePrincipalSecret(
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    servicePrincipalId!,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    servicePrincipalPassword!,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    tenantId!
-  );
+  try {
+    // verifyConfigDefined has confirmed that these values are defined.
+    return await msRestNodeAuth.loginWithServicePrincipalSecret(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      servicePrincipalId!,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      servicePrincipalPassword!,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      tenantId!
+    );
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_CLIENT,
+      "azure-client-auth-sp-err",
+      err
+    );
+  }
 };

@@ -2,10 +2,16 @@ jest.mock("@azure/arm-storage");
 jest.mock("azure-storage");
 jest.mock("../../config");
 
+import * as msRestNodeAuth from "@azure/ms-rest-nodeauth";
 import uuid from "uuid/v4";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { Config } from "../../config";
-import { getStorageAccount, validateStorageAccount } from "./storage";
+import * as config from "../../config";
+import {
+  getStorageAccount,
+  getStorageManagementClient,
+  validateStorageAccount,
+} from "./storage";
 import * as storage from "./storage";
 import * as azureStorage from "azure-storage";
 import { getErrorMessage } from "../../lib/errorBuilder";
@@ -13,6 +19,17 @@ import { getErrorMessage } from "../../lib/errorBuilder";
 const resourceGroupName = uuid();
 const storageAccountName = uuid();
 const location = uuid();
+
+jest.mock("@azure/arm-storage", () => {
+  class MockClient {
+    constructor() {
+      return {};
+    }
+  }
+  return {
+    StorageManagementClient: MockClient,
+  };
+});
 
 (Config as jest.Mock).mockReturnValue({
   introspection: {
@@ -371,5 +388,73 @@ describe("test validateStorageAccount function", () => {
       "testkey"
     );
     expect(res).toBe(true);
+  });
+});
+
+describe("test getStorageManagementClient function", () => {
+  it("negative test: missing credential", async () => {
+    jest.spyOn(config, "Config").mockReturnValueOnce({});
+    await expect(getStorageManagementClient({})).rejects.toThrow(
+      getErrorMessage("storage-client-err-missing-creds")
+    );
+  });
+  it("negative test: incorrect credential", async () => {
+    jest.spyOn(config, "Config").mockReturnValueOnce({});
+    await expect(
+      getStorageManagementClient({
+        servicePrincipalId: "servicePrincipalId",
+        servicePrincipalPassword: "servicePrincipalPassword",
+        tenantId: "tenantId",
+      })
+    ).rejects.toThrow(getErrorMessage("azure-client-auth-sp-err"));
+  });
+  it("negative test: authentication to management client failed", async () => {
+    jest.spyOn(config, "Config").mockReturnValueOnce({});
+    jest
+      .spyOn(msRestNodeAuth, "loginWithServicePrincipalSecret")
+      .mockResolvedValueOnce(null as never);
+    await expect(
+      getStorageManagementClient({
+        servicePrincipalId: "servicePrincipalId",
+        servicePrincipalPassword: "servicePrincipalPassword",
+        tenantId: "tenantId",
+      })
+    ).rejects.toThrow(getErrorMessage("storage-client-err-missing-creds"));
+  });
+  it("negative test: missing storage cred.", async () => {
+    jest.spyOn(config, "Config").mockReturnValueOnce({});
+    jest.spyOn(config, "Config").mockReturnValueOnce({});
+    jest
+      .spyOn(msRestNodeAuth, "loginWithServicePrincipalSecret")
+      .mockResolvedValueOnce({} as never);
+    await expect(
+      getStorageManagementClient({
+        servicePrincipalId: "servicePrincipalId",
+        servicePrincipalPassword: "servicePrincipalPassword",
+        tenantId: "tenantId",
+      })
+    ).rejects.toThrow(getErrorMessage("storage-client-err-missing-sub-id"));
+  });
+  it("positive test: missing storage cred.", async () => {
+    jest.spyOn(config, "Config").mockReturnValueOnce({});
+    jest.spyOn(config, "Config").mockReturnValueOnce({
+      introspection: {
+        azure: {
+          subscription_id: "something",
+        },
+      },
+    });
+    jest
+      .spyOn(msRestNodeAuth, "loginWithServicePrincipalSecret")
+      .mockResolvedValueOnce({} as never);
+    await getStorageManagementClient({
+      servicePrincipalId: "servicePrincipalId",
+      servicePrincipalPassword: "servicePrincipalPassword",
+      tenantId: "tenantId",
+    });
+  });
+  it("positive test: client should be cached.", async () => {
+    const client = await getStorageManagementClient(); // cached copy will be returned
+    expect(client).toBeDefined();
   });
 });

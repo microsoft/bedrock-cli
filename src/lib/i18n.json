@@ -310,6 +310,7 @@
     "service-endpoint-err-create-missing-name": "Could not create service endpoint because name was missing.",
     "service-endpoint-err-create": "Could not create service endpoint.",
 
+    "azure-client-auth-sp-err": "Could not authenticate with service principal credential.",
     "azure-client-get-web-api-err-missing-access-token": "Could not get azure web API because personal access token was missing. Provide it.",
     "azure-client-get-web-api-err-missing-org": "Could not get azure web API because organization name was missing. Provide it.",
     "azure-client-get-rest-client-err": "Could not get REST client. Check the Azure credential",
