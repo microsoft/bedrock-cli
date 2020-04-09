@@ -2,10 +2,7 @@ import uuid from "uuid/v4";
 import * as deploymenttable from "../../lib/azure/deploymenttable";
 import {
   DeploymentTable,
-  RowACRToHLDPipeline,
-  RowHLDToManifestPipeline,
-  RowManifest,
-  RowSrcToACRPipeline,
+  DeploymentEntry,
 } from "../../lib/azure/deploymenttable";
 import * as storage from "../../lib/azure/storage";
 import { deepClone } from "../../lib/util";
@@ -69,16 +66,11 @@ jest.spyOn(storage, "isStorageAccountNameAvailable").mockImplementation(
   }
 );
 
-let mockedDB: Array<
-  | RowSrcToACRPipeline
-  | RowACRToHLDPipeline
-  | RowHLDToManifestPipeline
-  | RowManifest
-> = [];
+let mockedDB: Array<DeploymentEntry> = [];
 
 jest.spyOn(deploymenttable, "findMatchingDeployments").mockImplementation(
-  (): Promise<RowSrcToACRPipeline[]> => {
-    const array: RowSrcToACRPipeline[] = [];
+  (): Promise<DeploymentEntry[]> => {
+    const array: DeploymentEntry[] = [];
     return new Promise((resolve) => {
       mockedDB.forEach((row) => {
         if (row.p1 === "500") {
@@ -93,13 +85,7 @@ jest.spyOn(deploymenttable, "findMatchingDeployments").mockImplementation(
 jest
   .spyOn(deploymenttable, "insertToTable")
   .mockImplementation(
-    (
-      tableInfo: deploymenttable.DeploymentTable,
-      entry:
-        | RowSrcToACRPipeline
-        | RowACRToHLDPipeline
-        | RowHLDToManifestPipeline
-    ) => {
+    (tableInfo: deploymenttable.DeploymentTable, entry: DeploymentEntry) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return new Promise<any>((resolve) => {
         mockedDB.push(entry);
@@ -120,26 +106,17 @@ jest.spyOn(deploymenttable, "deleteFromTable").mockImplementation(async () => {
 
 jest
   .spyOn(deploymenttable, "updateEntryInTable")
-  .mockImplementation(
-    (
-      tableInfo: DeploymentTable,
-      entry:
-        | RowSrcToACRPipeline
-        | RowACRToHLDPipeline
-        | RowHLDToManifestPipeline
-        | RowManifest
-    ) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return new Promise<any>((resolve) => {
-        mockedDB.forEach((row, index: number) => {
-          if (row.RowKey === entry.RowKey) {
-            mockedDB[index] = entry;
-            resolve(entry);
-          }
-        }, mockedDB);
-      });
-    }
-  );
+  .mockImplementation((tableInfo: DeploymentTable, entry: DeploymentEntry) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return new Promise<any>((resolve) => {
+      mockedDB.forEach((row, index: number) => {
+        if (row.RowKey === entry.RowKey) {
+          mockedDB[index] = entry;
+          resolve(entry);
+        }
+      }, mockedDB);
+    });
+  });
 
 jest.spyOn(Math, "random").mockImplementation((): number => {
   return 0.5;

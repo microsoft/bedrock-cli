@@ -5,7 +5,7 @@ import {
   deleteFromTable,
   findMatchingDeployments,
   DeploymentTable,
-  EntrySRCToACRPipeline,
+  DeploymentEntry,
   updateACRToHLDPipeline,
 } from "../../lib/azure/deploymenttable";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
@@ -176,10 +176,10 @@ export const deleteSelfTestData = async (
   ).then(async (results) => {
     logger.info("Deleting test data...");
     let foundEntry = false;
-    const entries = results as EntrySRCToACRPipeline[];
+    const entries = results as DeploymentEntry[];
     try {
       for (const entry of entries) {
-        if (entry.p1 && entry.p1._ === buildId) {
+        if (entry.p1 && entry.p1 === buildId) {
           foundEntry = true;
         }
         await deleteFromTable(tableInfo, entry);

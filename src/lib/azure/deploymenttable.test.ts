@@ -2,26 +2,22 @@ import uuid from "uuid";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import * as deploymenttable from "./deploymenttable";
 import {
-  addNewRowToArcToHLDPipelines,
+  addNewRowToACRToHLDPipelines,
   addNewRowToHLDtoManifestPipeline,
   addSrcToACRPipeline,
   deleteFromTable,
   findMatchingDeployments,
   getTableService,
   DeploymentTable,
-  EntryACRToHLDPipeline,
+  DeploymentEntry,
   insertToTable,
-  RowHLDToManifestPipeline,
-  RowManifest,
   updateACRToHLDPipeline,
   updateEntryInTable,
   updateHLDtoManifestEntry,
   updateHLDtoManifestHelper,
   updateHLDToManifestPipeline,
-  updateLastHLDtoManifestEntry,
-  updateLastRowOfArcToHLDPipelines,
   updateManifestCommitId,
-  updateMatchingArcToHLDPipelineEntry,
+  updateMatchingACRToHLDPipelineEntry,
 } from "./deploymenttable";
 
 const mockedTableInfo: DeploymentTable = {
@@ -40,58 +36,43 @@ const mockedHldCommitId = uuid();
 const mockedEnv = uuid();
 const mockedPr = uuid();
 const mockedManifestCommitId = uuid();
+const mockedRepository = uuid();
 
-const mockedEntryACRPipeline: deploymenttable.EntrySRCToACRPipeline = {
+const mockedEntryACRPipeline: DeploymentEntry = {
   PartitionKey: uuid(),
   RowKey: uuid(),
   commitId: mockedCommitId,
-  env: {
-    _: mockedEnv,
-  },
-  imageTag: mockedImageTag,
-  p1: {
-    _: mockedPipelineId,
-  },
-  service: mockedServiceName,
-};
-
-const mockedEntryACRToHLDPipeline = {
-  PartitionKey: uuid(),
-  RowKey: uuid(),
-  commitId: mockedCommitId,
-  env: {
-    _: mockedEnv,
-  },
-  hldCommitId: {
-    _: mockedHldCommitId,
-  },
+  env: mockedEnv,
   imageTag: mockedImageTag,
   p1: mockedPipelineId,
-  p2: {
-    _: mockedPipelineId,
-  },
   service: mockedServiceName,
 };
 
-const mockedNonMatchEntryACRToHLDPipeline = {
+const mockedEntryACRToHLDPipeline: DeploymentEntry = {
   PartitionKey: uuid(),
   RowKey: uuid(),
   commitId: mockedCommitId,
-  env: {
-    _: mockedEnv,
-  },
-  hldCommitId: {
-    _: mockedHldCommitId,
-  },
+  env: mockedEnv,
+  hldCommitId: mockedHldCommitId,
   imageTag: mockedImageTag,
   p1: mockedPipelineId,
-  p2: {
-    _: uuid(),
-  },
+  p2: mockedPipelineId,
   service: mockedServiceName,
 };
 
-const mockedRowACRToHLDPipeline = {
+const mockedNonMatchEntryACRToHLDPipeline: DeploymentEntry = {
+  PartitionKey: uuid(),
+  RowKey: uuid(),
+  commitId: mockedCommitId,
+  env: mockedEnv,
+  hldCommitId: mockedHldCommitId,
+  imageTag: mockedImageTag,
+  p1: mockedPipelineId,
+  p2: uuid(),
+  service: mockedServiceName,
+};
+
+const mockedRowACRToHLDPipeline: DeploymentEntry = {
   PartitionKey: uuid(),
   RowKey: uuid(),
   commitId: mockedCommitId,
@@ -110,27 +91,23 @@ const mockedRowHLDToManifestPipeline = Object.assign(
     p3: mockedPipelineId3,
   },
   mockedRowACRToHLDPipeline
-) as RowHLDToManifestPipeline;
+) as DeploymentEntry;
 
-const mockedEntryHLDToManifestPipeline = {
+const mockedEntryHLDToManifestPipeline: DeploymentEntry = {
   PartitionKey: uuid(),
   RowKey: uuid(),
   commitId: mockedCommitId,
   env: mockedEnv,
   hldCommitId: mockedHldCommitId,
   imageTag: mockedImageTag,
-  manifestCommitId: {
-    _: mockedManifestCommitId,
-  },
+  manifestCommitId: mockedManifestCommitId,
   p1: mockedPipelineId,
   p2: mockedPipelineId2,
-  p3: {
-    _: mockedPipelineId3,
-  },
+  p3: mockedPipelineId3,
   service: mockedServiceName,
 };
 
-const mockedManifestRow: RowManifest = Object.assign(
+const mockedManifestRow: DeploymentEntry = Object.assign(
   {
     manifestCommitId: uuid(),
   },
@@ -186,7 +163,8 @@ describe("test addSrcToACRPipeline function", () => {
       mockedPipelineId,
       mockedImageTag,
       mockedServiceName,
-      mockedCommitId
+      mockedCommitId,
+      mockedRepository
     );
     expect(entry.commitId).toBe(mockedCommitId);
     expect(entry.p1).toBe(mockedPipelineId);
@@ -211,33 +189,35 @@ describe("test addSrcToACRPipeline function", () => {
   });
 });
 
-describe("test updateMatchingArcToHLDPipelineEntry function", () => {
+describe("test updateMatchingACRToHLDPipelineEntry function", () => {
   it("positive test: matching entry", async (done) => {
     jest
       .spyOn(deploymenttable, "updateEntryInTable")
       .mockReturnValueOnce(Promise.resolve());
-    const entries: EntryACRToHLDPipeline[] = [mockedEntryACRToHLDPipeline];
-    const result = await updateMatchingArcToHLDPipelineEntry(
+    const entries: DeploymentEntry[] = [mockedEntryACRToHLDPipeline];
+    const result = await updateMatchingACRToHLDPipelineEntry(
       entries,
       mockedTableInfo,
       mockedPipelineId,
       mockedImageTag,
       mockedHldCommitId,
       mockedEnv,
-      mockedPr
+      mockedPr,
+      mockedRepository
     );
     expect(result).toBeDefined();
     done();
   });
   it("positive test: no matching entries", async (done) => {
-    const result = await updateMatchingArcToHLDPipelineEntry(
+    const result = await updateMatchingACRToHLDPipelineEntry(
       [],
       mockedTableInfo,
       mockedPipelineId,
       mockedImageTag,
       mockedHldCommitId,
       mockedEnv,
-      mockedPr
+      mockedPr,
+      mockedRepository
     );
     expect(result).toBeNull();
     done();
@@ -256,40 +236,43 @@ const mockInsertIntoTable = (positive = true): void => {
   }
 };
 
-const testUpdateLastRowOfArcToHLDPipelines = async (
+const testAddNewRowToACRToHLDPipelinesWithSimilarEntry = async (
   positive = true
-): Promise<deploymenttable.RowACRToHLDPipeline> => {
+): Promise<deploymenttable.DeploymentEntry> => {
   mockInsertIntoTable(positive);
-  const entries: EntryACRToHLDPipeline[] = [mockedEntryACRToHLDPipeline];
-  return await updateLastRowOfArcToHLDPipelines(
-    entries,
+  const entries: DeploymentEntry[] = [mockedEntryACRToHLDPipeline];
+  return await addNewRowToACRToHLDPipelines(
     mockedTableInfo,
     mockedPipelineId,
     mockedImageTag,
     mockedHldCommitId,
     mockedEnv,
-    mockedPr
+    mockedPr,
+    mockedRepository,
+    entries[entries.length - 1]
   );
 };
 
-describe("test updateLastRowOfArcToHLDPipelines function", () => {
+describe("test addNewRowToACRToHLDPipelines function with similar", () => {
   it("positive test", async (done) => {
-    const result = await testUpdateLastRowOfArcToHLDPipelines();
+    const result = await testAddNewRowToACRToHLDPipelinesWithSimilarEntry();
     expect(result).toBeDefined();
     done();
   });
   it("negative test", async (done) => {
-    await expect(testUpdateLastRowOfArcToHLDPipelines(false)).rejects.toThrow();
+    await expect(
+      testAddNewRowToACRToHLDPipelinesWithSimilarEntry(false)
+    ).rejects.toThrow();
     done();
   });
 });
 
-const testAddNewRowToArcToHLDPipelines = async (
+const testAddNewRowToACRToHLDPipelines = async (
   positive = true
-): Promise<deploymenttable.RowACRToHLDPipeline> => {
+): Promise<deploymenttable.DeploymentEntry> => {
   mockInsertIntoTable(positive);
 
-  return await addNewRowToArcToHLDPipelines(
+  return await addNewRowToACRToHLDPipelines(
     mockedTableInfo,
     mockedPipelineId,
     mockedImageTag,
@@ -299,14 +282,14 @@ const testAddNewRowToArcToHLDPipelines = async (
   );
 };
 
-describe("test addNewRowToArcToHLDPipelines function", () => {
+describe("test addNewRowToACRToHLDPipelines function", () => {
   it("positive test", async (done) => {
-    const result = await testAddNewRowToArcToHLDPipelines();
+    const result = await testAddNewRowToACRToHLDPipelines();
     expect(result).toBeDefined();
     done();
   });
   it("negative test", async (done) => {
-    await expect(testAddNewRowToArcToHLDPipelines(false)).rejects.toThrow();
+    await expect(testAddNewRowToACRToHLDPipelines(false)).rejects.toThrow();
     done();
   });
 });
@@ -317,13 +300,9 @@ const testUpdateACRToHLDPipeline = async (
 ): Promise<void> => {
   const fnUpdateFound = jest.spyOn(
     deploymenttable,
-    "updateMatchingArcToHLDPipelineEntry"
+    "updateMatchingACRToHLDPipelineEntry"
   );
-  const fnUpdateLastEntry = jest.spyOn(
-    deploymenttable,
-    "updateLastRowOfArcToHLDPipelines"
-  );
-  const addNewRow = jest.spyOn(deploymenttable, "addNewRowToArcToHLDPipelines");
+  const addNewRow = jest.spyOn(deploymenttable, "addNewRowToACRToHLDPipelines");
 
   if (noEntry) {
     jest
@@ -345,9 +324,6 @@ const testUpdateACRToHLDPipeline = async (
           Promise.resolve([mockedNonMatchEntryACRToHLDPipeline])
         );
       fnUpdateFound.mockReturnValueOnce(Promise.resolve(null));
-      fnUpdateLastEntry.mockReturnValueOnce(
-        Promise.resolve(mockedRowACRToHLDPipeline)
-      );
     }
   }
 
@@ -357,26 +333,24 @@ const testUpdateACRToHLDPipeline = async (
     mockedImageTag,
     mockedHldCommitId,
     mockedEnv,
-    mockedPr
+    mockedPr,
+    mockedRepository
   );
 
   if (noEntry) {
     expect(fnUpdateFound).toBeCalledTimes(0);
-    expect(fnUpdateLastEntry).toBeCalledTimes(0);
     expect(addNewRow).toBeCalledTimes(1);
   } else {
     expect(fnUpdateFound).toBeCalledTimes(1);
-    expect(addNewRow).toBeCalledTimes(0);
 
     if (matched) {
-      expect(fnUpdateLastEntry).toBeCalledTimes(0);
+      expect(addNewRow).toBeCalledTimes(0);
     } else {
-      expect(fnUpdateLastEntry).toBeCalledTimes(1);
+      expect(addNewRow).toBeCalledTimes(1);
     }
   }
 
   fnUpdateFound.mockReset();
-  fnUpdateLastEntry.mockReset();
   addNewRow.mockReset();
 };
 
@@ -452,7 +426,8 @@ describe("test updateHLDtoManifestEntry function", () => {
       mockedHldCommitId,
       mockedPipelineId3,
       mockedManifestCommitId,
-      mockedPr
+      mockedPr,
+      mockedRepository
     );
     expect(res).toBeDefined();
     done();
@@ -464,7 +439,8 @@ describe("test updateHLDtoManifestEntry function", () => {
       mockedHldCommitId,
       mockedPipelineId2,
       mockedManifestCommitId,
-      mockedPr
+      mockedPr,
+      mockedRepository
     );
     expect(res).toBeNull();
     done();
@@ -480,26 +456,28 @@ describe("test updateHLDtoManifestEntry function", () => {
         mockedHldCommitId,
         mockedPipelineId3,
         mockedManifestCommitId,
-        mockedPr
+        mockedPr,
+        mockedRepository
       )
     ).rejects.toThrow();
     done();
   });
 });
 
-describe("test updateLastHLDtoManifestEntry function", () => {
+describe("test addNewRowToHLDtoManifestPipeline function with similar entry", () => {
   it("positive test", async (done) => {
     jest
       .spyOn(deploymenttable, "insertToTable")
       .mockReturnValueOnce(Promise.resolve());
 
-    const res = await updateLastHLDtoManifestEntry(
-      [mockedEntryHLDToManifestPipeline],
+    const res = await addNewRowToHLDtoManifestPipeline(
       mockedTableInfo,
       mockedHldCommitId,
       mockedPipelineId3,
       mockedManifestCommitId,
-      mockedPr
+      mockedPr,
+      mockedRepository,
+      mockedEntryHLDToManifestPipeline
     );
     expect(res).toBeDefined();
     done();
@@ -510,13 +488,14 @@ describe("test updateLastHLDtoManifestEntry function", () => {
       .mockReturnValueOnce(Promise.reject(new Error("Fake")));
 
     await expect(
-      updateLastHLDtoManifestEntry(
-        [mockedEntryHLDToManifestPipeline],
+      addNewRowToHLDtoManifestPipeline(
         mockedTableInfo,
         mockedHldCommitId,
         mockedPipelineId3,
         mockedManifestCommitId,
-        mockedPr
+        mockedPr,
+        mockedRepository,
+        mockedEntryHLDToManifestPipeline
       )
     ).rejects.toThrow();
     done();
@@ -560,10 +539,6 @@ const testUpdateHLDtoManifestHelper = async (
   match: boolean
 ): Promise<void> => {
   const updateFn = jest.spyOn(deploymenttable, "updateHLDtoManifestEntry");
-  const updateLastFn = jest.spyOn(
-    deploymenttable,
-    "updateLastHLDtoManifestEntry"
-  );
   const addFn = jest.spyOn(deploymenttable, "addNewRowToHLDtoManifestPipeline");
 
   if (empty) {
@@ -575,7 +550,7 @@ const testUpdateHLDtoManifestHelper = async (
       );
     } else {
       updateFn.mockReturnValueOnce(Promise.resolve(null));
-      updateLastFn.mockReturnValueOnce(
+      addFn.mockReturnValueOnce(
         Promise.resolve(mockedRowHLDToManifestPipeline)
       );
     }
@@ -594,20 +569,17 @@ const testUpdateHLDtoManifestHelper = async (
 
   if (empty) {
     expect(updateFn).toBeCalledTimes(0);
-    expect(updateLastFn).toBeCalledTimes(0);
     expect(addFn).toBeCalledTimes(1);
   } else {
     expect(updateFn).toBeCalledTimes(1);
-    expect(addFn).toBeCalledTimes(0);
     if (match) {
-      expect(updateLastFn).toBeCalledTimes(0);
+      expect(addFn).toBeCalledTimes(0);
     } else {
-      expect(updateLastFn).toBeCalledTimes(1);
+      expect(addFn).toBeCalledTimes(1);
     }
   }
 
   updateFn.mockReset();
-  updateLastFn.mockReset();
   addFn.mockReset();
 };
 
@@ -637,7 +609,8 @@ describe("test updateManifestCommitId function", () => {
     const res = await updateManifestCommitId(
       mockedTableInfo,
       mockedPipelineId3,
-      mockedManifestCommitId
+      mockedManifestCommitId,
+      mockedRepository
     );
     expect(res).toBeDefined();
     done();
@@ -650,7 +623,8 @@ describe("test updateManifestCommitId function", () => {
       updateManifestCommitId(
         mockedTableInfo,
         mockedPipelineId3,
-        mockedManifestCommitId
+        mockedManifestCommitId,
+        mockedRepository
       )
     ).rejects.toThrow();
     done();
