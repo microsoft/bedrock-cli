@@ -1,6 +1,8 @@
 import { SecretClient } from "@azure/keyvault-secrets";
 import { logger } from "../../logger";
 import { AzureAccessOpts } from "../../types";
+import { build as buildError } from "../errorBuilder";
+import { errorStatusCode } from "../errorStatusCode";
 import { getCredentials } from "./azurecredentials";
 
 export const validateValues = (
@@ -8,18 +10,23 @@ export const validateValues = (
   secretName: string,
   secretValue?: string
 ): void => {
-  const errors: string[] = [];
   if (!keyVaultName) {
-    errors.push(`Invalid keyVaultName`);
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "azure-key-vault-missing-name"
+    );
   }
   if (!secretName) {
-    errors.push(`Invalid secretName`);
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "azure-key-vault-missing-secret-name"
+    );
   }
   if (secretValue !== undefined && !secretValue) {
-    errors.push(`Invalid secretValue`);
-  }
-  if (errors.length !== 0) {
-    throw Error(`\n${errors.join("\n")}`);
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "azure-key-vault-missing-secret-value"
+    );
   }
 };
 
@@ -27,10 +34,18 @@ export const getClient = async (
   keyVaultName: string,
   opts: AzureAccessOpts
 ): Promise<SecretClient> => {
-  const url = `https://${keyVaultName}.vault.azure.net`;
-  const credentials = await getCredentials(opts);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return new SecretClient(url, credentials!);
+  try {
+    const url = `https://${keyVaultName}.vault.azure.net`;
+    const credentials = await getCredentials(opts);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return new SecretClient(url, credentials!);
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_KEY_VAULT_ERR,
+      "azure-key-vault-client-err",
+      err
+    );
+  }
 };
 
 /**
@@ -48,17 +63,20 @@ export const setSecret = async (
   secretValue: string,
   opts: AzureAccessOpts = {}
 ): Promise<void> => {
-  validateValues(keyVaultName, secretName, secretValue);
-  const messageWithNoValue = `secret ${secretName} in key vault ${keyVaultName}`;
-
   try {
+    validateValues(keyVaultName, secretName, secretValue);
+    const messageWithNoValue = `secret ${secretName} in key vault ${keyVaultName}`;
+
     const client = await getClient(keyVaultName, opts);
     logger.debug(`Setting ${messageWithNoValue}`);
     await client.setSecret(secretName, secretValue);
     logger.debug(`Setting ${messageWithNoValue} is complete`);
   } catch (err) {
-    logger.error(`Unable to set ${messageWithNoValue}. \n ${err}`);
-    throw err;
+    throw buildError(
+      errorStatusCode.AZURE_KEY_VAULT_ERR,
+      "azure-key-vault-set-secret-err",
+      err
+    );
   }
 };
 
@@ -75,10 +93,10 @@ export const getSecret = async (
   secretName: string,
   opts: AzureAccessOpts = {}
 ): Promise<string | undefined> => {
-  validateValues(keyVaultName, secretName);
-
-  const message = `secret ${secretName} from key vault ${keyVaultName}`;
   try {
+    validateValues(keyVaultName, secretName);
+    const message = `secret ${secretName} from key vault ${keyVaultName}`;
+
     const client = await getClient(keyVaultName, opts);
     logger.debug(`Getting ${message}`);
     const latestSecret = await client.getSecret(secretName);
@@ -88,7 +106,10 @@ export const getSecret = async (
     if (err.code === "SecretNotFound" && err.statusCode === 404) {
       return undefined;
     }
-    logger.error(`Unable to read ${message}. \n ${err}`);
-    throw err;
+    throw buildError(
+      errorStatusCode.AZURE_KEY_VAULT_ERR,
+      "azure-key-vault-get-secret-err",
+      err
+    );
   }
 };

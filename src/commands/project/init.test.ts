@@ -119,7 +119,7 @@ describe("Test execute function", () => {
 
   it("negative test", async () => {
     jest.spyOn(init, "initialize").mockImplementation(() => {
-      throw new Error();
+      throw Error();
     });
     const exitFn = jest.fn();
     const randomDir = createTempDir();

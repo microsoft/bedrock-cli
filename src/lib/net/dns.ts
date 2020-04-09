@@ -5,6 +5,9 @@
 // segments.
 ////////////////////////////////////////////////////////////////////////////////
 
+import { build as buildError } from "../errorBuilder";
+import { errorStatusCode } from "../errorStatusCode";
+
 export const validDnsRegex = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/;
 
 /**
@@ -54,8 +57,9 @@ export function assertIsValid(
   dns: string
 ): asserts dns is string {
   if (!isValid(dns)) {
-    throw Error(
-      `Invalid ${fieldName} '${dns}' provided. Must be RFC1123 compliant and match regex: ${validDnsRegex}`
-    );
+    throw buildError(errorStatusCode.VALIDATION_ERR, {
+      errorKey: "validation-err-rfc1123-compliant",
+      values: [fieldName, dns, validDnsRegex.toString()],
+    });
   }
 }

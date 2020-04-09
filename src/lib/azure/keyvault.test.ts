@@ -1,15 +1,30 @@
+import { PipelineOptions } from "@azure/core-http";
 import { KeyVaultSecret } from "@azure/keyvault-secrets";
 import uuid from "uuid/v4";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
-import { getSecret, setSecret } from "./keyvault";
+import { getErrorMessage } from "../errorBuilder";
+import * as azurecredentials from "./azurecredentials";
+import { getClient, getSecret, setSecret } from "./keyvault";
 import * as keyvault from "./keyvault";
+import { TokenCredential } from "azure-storage";
 
 const keyVaultName = uuid();
 const mockedName = uuid();
 const secretValue = uuid();
 
-jest.spyOn(keyvault, "getClient").mockReturnValue(
-  Promise.resolve({
+jest.mock("@azure/keyvault-secrets", () => {
+  class MockClient {
+    constructor() {
+      return {};
+    }
+  }
+  return {
+    SecretClient: MockClient,
+  };
+});
+
+const mockGetClient = (): void => {
+  jest.spyOn(keyvault, "getClient").mockResolvedValueOnce({
     getSecret: async (): Promise<KeyVaultSecret> => {
       return {
         name: "test",
@@ -30,8 +45,8 @@ jest.spyOn(keyvault, "getClient").mockReturnValue(
       };
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any)
-);
+  } as any);
+};
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -42,64 +57,64 @@ afterAll(() => {
 });
 
 describe("set secret", () => {
-  test("should fail when all arguments are not specified", async () => {
-    await expect(setSecret("", "", "")).rejects.toThrow();
-  });
-  test("should create storage account", async () => {
-    try {
-      await setSecret(keyVaultName, mockedName, secretValue);
-    } catch (_) {
-      expect(true).toBe(false);
-    }
-  });
-  test("negative test", async () => {
-    jest.spyOn(keyvault, "getClient").mockReturnValueOnce(
-      Promise.resolve({
-        setSecret: (): Promise<KeyVaultSecret> => {
-          throw new Error("fake error");
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
+  test("negative test: missing values for name, key name and value.", async () => {
+    await expect(setSecret("", "", "")).rejects.toThrow(
+      getErrorMessage("azure-key-vault-set-secret-err")
     );
-    try {
-      await setSecret(keyVaultName, mockedName, secretValue);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e).toBeDefined();
-    }
+  });
+  test("negative test: missing values for key name and value.", async () => {
+    await expect(setSecret("vault-name", "", "")).rejects.toThrow(
+      getErrorMessage("azure-key-vault-set-secret-err")
+    );
+  });
+  test("negative test: missing key value.", async () => {
+    await expect(setSecret("vault-name", "key-name", "")).rejects.toThrow(
+      getErrorMessage("azure-key-vault-set-secret-err")
+    );
+  });
+
+  test("positive test: should create storage account", async () => {
+    mockGetClient();
+    await setSecret(keyVaultName, mockedName, secretValue);
+  });
+  test("negative test: getclient failed", async () => {
+    jest.spyOn(keyvault, "getClient").mockResolvedValueOnce({
+      setSecret: (): Promise<KeyVaultSecret> => {
+        throw Error("fake error");
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    await expect(
+      setSecret(keyVaultName, mockedName, secretValue)
+    ).rejects.toThrow(getErrorMessage("azure-key-vault-set-secret-err"));
   });
 });
 
 describe("get secret", () => {
-  test("should fail getting storage account key when arguments are not specified", async () => {
-    await expect(getSecret("", "")).rejects.toThrow();
+  test("negative test: missing values for name and key name.", async () => {
+    await expect(getSecret("", "")).rejects.toThrow(
+      getErrorMessage("azure-key-vault-get-secret-err")
+    );
   });
-  it("should get storage account key", async () => {
-    try {
-      const val = await getSecret(keyVaultName, mockedName);
-      expect(val).toBe("secretValue");
-    } catch (err) {
-      expect(true).toBe(false);
-    }
+  it("positive test: should get storage account key", async () => {
+    mockGetClient();
+    const val = await getSecret(keyVaultName, mockedName);
+    expect(val).toBe("secretValue");
   });
   it("negative test: secret not found", async () => {
-    jest.spyOn(keyvault, "getClient").mockReturnValueOnce(
-      Promise.resolve({
-        getSecret: (): Promise<KeyVaultSecret> => {
-          throw {
-            code: "SecretNotFound",
-            statusCode: 404,
-          };
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
-    );
-    try {
-      const val = await getSecret(keyVaultName, mockedName);
-      expect(val).toBe(undefined);
-    } catch (err) {
-      expect(true).toBe(false);
-    }
+    jest.spyOn(keyvault, "getClient").mockResolvedValueOnce({
+      getSecret: (): Promise<KeyVaultSecret> => {
+        throw {
+          code: "SecretNotFound",
+          statusCode: 404,
+        };
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    const val = await getSecret(keyVaultName, mockedName);
+    expect(val).toBe(undefined);
   });
   it("negative test: other errors", async () => {
     jest.spyOn(keyvault, "getClient").mockReturnValueOnce(
@@ -113,11 +128,27 @@ describe("get secret", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
     );
-    try {
-      await getSecret(keyVaultName, mockedName);
-      expect(true).toBe(false);
-    } catch (err) {
-      expect(err).toBeDefined();
-    }
+
+    await expect(getSecret(keyVaultName, mockedName)).rejects.toThrow(
+      getErrorMessage("azure-key-vault-get-secret-err")
+    );
+  });
+});
+
+describe("test getClient function", () => {
+  it("negative test: missing credential", async () => {
+    jest
+      .spyOn(azurecredentials, "getCredentials")
+      .mockRejectedValueOnce(new Error());
+    await expect(getClient(keyVaultName, {})).rejects.toThrow(
+      getErrorMessage("azure-key-vault-client-err")
+    );
+  });
+  it("positive test", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    jest
+      .spyOn(azurecredentials, "getCredentials")
+      .mockResolvedValueOnce({} as any);
+    await getClient(keyVaultName, {});
   });
 });
