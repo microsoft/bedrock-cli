@@ -1,6 +1,11 @@
 import { Command } from "../command";
 
-const subfolders = ["create", "create-revision", "pipeline"];
+const subfolders = [
+  "create",
+  "create-revision",
+  "pipeline",
+  "get-display-name",
+];
 
 export const commandDecorator = Command(
   "service",

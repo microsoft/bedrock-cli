@@ -1,0 +1,12 @@
+{
+  "command": "get-display-name",
+  "alias": "gdn",
+  "description": "Gets display name for a service",
+  "options": [
+    {
+      "arg": "-p, --path <path>",
+      "description": "Path to the service folder for which display name is to be extracted",
+      "required": true
+    }
+  ]
+}

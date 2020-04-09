@@ -639,6 +639,19 @@
     ],
     "markdown": "## Description\n\nAdd a new service into this initialized spk project repository.\n\n## Example\n\n```bash\nspk service create my-service . \\\n  --display-name $app_name \\\n  --helm-config-path $path_to_chart_in_repo \\\n  --helm-config-git $helm_repo_url \\ # Needs to start with https and not contain user name\n  --helm-config-branch master \\\n  --helm-chart-access-token-variable $ENV_VAR_NAME\n```\n\n## Note\n\n- `--helm-chart-*` and `--helm-config-*` settings are mutually-exclusive. **You\n  may only use one.**\n  - If the git repository referenced in `--helm-config-git` is a private\n    repository, you can specify an environment variable in your\n    HLD-to-Materialized pipeline containing your a PAT to authenticate with via\n    the `--helm-chart-access-token-variable` option.\n- `--middlewares`, `--k8s-backend-port`, `--path-prefix`,\n  `--path-prefix-major-version`, and `--k8s-backend` are all used to configure\n  the generated Traefik2 IngressRoutes. i.e.\n\n  ```sh\n  spk service create my-example-documents-service path/to/my/service \\\n    --middlewares middleware \\\n    --k8s-backend-port 3001 \\\n    --k8s-backend docs-service \\\n    --path-prefix documents \\\n    --path-prefix-major-version v2\n  ```\n\n  will result in an IngressRoute that looks like:\n\n  ```yaml\n  apiVersion: traefik.containo.us/v1alpha1\n  kind: IngressRoute\n  metadata:\n    name: my-example-documents-service-master\n  spec:\n    routes:\n      - kind: Rule\n        match: \"PathPrefix(`/v2/documents`) && Headers(`Ring`, `master`)\"\n        middlewares:\n          - name: my-example-documents-service-master\n          - name: middlewareA\n        services:\n          - name: docs-service\n            port: 3001\n  ```\n"
   },
+  "service get-display-name": {
+    "command": "get-display-name",
+    "alias": "gdn",
+    "description": "Gets display name for a service",
+    "options": [
+      {
+        "arg": "-p, --path <path>",
+        "description": "Path to the service folder for which display name is to be extracted",
+        "required": true
+      }
+    ],
+    "markdown": "## Description\n\nGets display name of a service based on the provided path by extracting this\ninformation from bedrock.yaml. This command tries to locate bedrock.yaml in the\ncurrent directory.\n\nIf bedrock.yaml is not found in current directory, the command will fail to\nextract display name.\n\nIf the specified path is not found in any services listed in bedrock.yaml, the\ndisplay name will not be extracted. Make sure that specified path matches the\npath in bedrock.yaml exactly.\n"
+  },
   "service install-build-pipeline": {
     "command": "install-build-pipeline <service-name>",
     "alias": "p",
