@@ -19,29 +19,41 @@ describe("get display name", () => {
     const defaultBedrockFileObject = createTestBedrockYaml(
       false
     ) as BedrockFile;
-    jest.spyOn(fs, "existsSync").mockReturnValue(true);
-    jest.spyOn(bedrockYaml, "read").mockReturnValue(defaultBedrockFileObject);
-    jest.spyOn(process, "cwd").mockReturnValue("bedrock.yaml/");
+    jest.spyOn(fs, "existsSync").mockReturnValueOnce(true);
+    jest
+      .spyOn(bedrockYaml, "read")
+      .mockReturnValueOnce(defaultBedrockFileObject);
+    jest.spyOn(process, "cwd").mockReturnValueOnce("bedrock.yaml/");
     const consoleSpy = jest.spyOn(console, "log");
-    execute({ path: "./packages/service1" }, exitFn);
+    await execute({ path: "./packages/service1" }, exitFn);
     expect(consoleSpy).toHaveBeenCalledWith("service1");
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn).toBeCalledWith(0);
   });
-  it("negative test", async () => {
+  it("negative test: path missing", async () => {
     const exitFn = jest.fn();
-    execute({ path: "" }, exitFn);
+    await execute({ path: "" }, exitFn);
     expect(exitFn).toBeCalledTimes(1);
-    execute({ path: undefined }, exitFn);
     expect(exitFn).toBeCalledWith(1);
+  });
+  it("negative test: path as undefined", async () => {
+    const exitFn = jest.fn();
+    await execute({ path: undefined }, exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn).toBeCalledWith(1);
+  });
+  it("negative test: service not found", async () => {
+    const exitFn = jest.fn();
     const defaultBedrockFileObject = createTestBedrockYaml(
       false
     ) as BedrockFile;
-    jest.spyOn(fs, "existsSync").mockReturnValue(true);
-    jest.spyOn(bedrockYaml, "read").mockReturnValue(defaultBedrockFileObject);
-    jest.spyOn(process, "cwd").mockReturnValue("bedrock.yaml/");
-    execute({ path: "./packages/service" }, exitFn); // should not exist
-    expect(exitFn).toBeCalledTimes(3);
+    jest.spyOn(fs, "existsSync").mockReturnValueOnce(true);
+    jest
+      .spyOn(bedrockYaml, "read")
+      .mockReturnValueOnce(defaultBedrockFileObject);
+    jest.spyOn(process, "cwd").mockReturnValueOnce("bedrock.yaml/");
+    await execute({ path: "./packages/service" }, exitFn); // should not exist
+    expect(exitFn).toBeCalledTimes(1);
     expect(exitFn).toBeCalledWith(1);
   });
 });

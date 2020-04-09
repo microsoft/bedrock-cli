@@ -159,10 +159,10 @@
     "introspect-dashboard-cmd-launch-pre-req-err": "Requirements to launch dashboard were not met.",
     "introspect-dashboard-cmd-launch-err": "Could not launch dashboard docker container.",
 
-    "service-get-display-name-path-missing-param-err": "Value for path parameter was missing. This is required for running get-display-command. Provide it.",
-    "service-get-display-name-bedrock-yaml-missing-err": "Could not find bedrock.yaml in current directory. Make sure to run this from a directory that contains bedrock.yaml.",
-    "service-get-display-name-err": "Could not find a service for path {0}. Make sure that the specified path is valid.",
-    "service-get-display-name-generic-err": "Error occurred while getting display name.",
+    "service-get-display-name-cmd-failed": "Service get display name command was not successfully executed.",
+    "service-get-display-name-cmd-path-missing-param-err": "Value for path parameter was missing. This is required for running get-display-command. Provide it.",
+    "service-get-display-name-cmd-service-name-not-found-err": "Could not find a service for path {0}. Make sure that the specified path is valid.",
+
     "az-cli-login-err": "Could not login through azure cli.",
     "az-cli-create-sp-err": "Could not create service principal with azure cli",
 

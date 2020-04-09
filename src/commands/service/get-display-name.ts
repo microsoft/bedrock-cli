@@ -26,35 +26,33 @@ export const execute = async (
     if (!opts.path) {
       throw buildError(
         errorStatusCode.VALIDATION_ERR,
-        "service-get-display-name-path-missing-param-err"
-      );
-    }
-    const bedrockFile = readBedrockYaml(process.cwd());
-    if (!bedrockFile) {
-      throw buildError(
-        errorStatusCode.FILE_IO_ERR,
-        "service-get-display-name-bedrock-yaml-missing-err"
+        "service-get-display-name-cmd-path-missing-param-err"
       );
     }
 
-    const serviceIndex = Object.keys(bedrockFile.services).find(
-      (index) => opts.path === bedrockFile.services[+index].path
+    // bedrockFile will always be return
+    // it cannot be null or undefined.
+    const bedrockFile = readBedrockYaml(process.cwd());
+
+    // bedrockFile.services is an array
+    const serviceConfig = bedrockFile.services.find(
+      (config) => opts.path === config.path
     );
 
-    if (serviceIndex) {
-      console.log(bedrockFile.services[+serviceIndex].displayName);
+    if (serviceConfig) {
+      console.log(serviceConfig.displayName);
       await exitFn(0);
+    } else {
+      throw buildError(errorStatusCode.ENV_SETTING_ERR, {
+        errorKey: "service-get-display-name-cmd-service-name-not-found-err",
+        values: [opts.path],
+      });
     }
-
-    throw buildError(errorStatusCode.ENV_SETTING_ERR, {
-      errorKey: "service-get-display-name-err",
-      values: [opts.path],
-    });
   } catch (err) {
     logError(
       buildError(
         errorStatusCode.VALIDATION_ERR,
-        "service-get-display-name-generic-err",
+        "service-get-display-name-cmd-failed",
         err
       )
     );
