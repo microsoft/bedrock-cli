@@ -1,4 +1,3 @@
-import { write } from "../../config";
 import * as config from "../../config";
 import * as bedrockYaml from "../../lib/bedrockYaml";
 import * as azure from "../../lib/git/azure";

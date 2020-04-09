@@ -257,6 +257,11 @@
     "project-create-variable-group-cmd-err-values-missing": "Required values were missing. Provide values for registry-name, hld-repo-url, service-principal-id, service-principal-password, tenant.",
     "project-init-cmd-failed": "Project init was not successfully executed.",
 
+    "service-create-revision-cmd-failed": "Service create revision was not successfully executed.",
+    "service-create-revision-cmd-err-pr-source-branch": "A pull request for a branch cannot be made against itself. Ensure your target branch(es) '{0}' do not include your source branch '{1}'",
+    "service-create-revision-cmd-err-default-branch-missing": "Default branch/ring was not found. Specify the default branch/ring in {0} or provide it via --target-branch",
+    "service-create-revision-cmd-err-source-branch-missing": "A source branch was not provided.",
+
     "validation-err-missing-vals": "These mandatory options were missing:\n {0}. Provide them.",
     "validation-err-org-name-missing": "Organization name was missing. Provide it.",
     "validation-err-org-name": "Organization name must start with a letter or number, followed by letters, numbers or hyphens, and must end with a letter or number.",

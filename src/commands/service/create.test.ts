@@ -27,7 +27,7 @@ import {
   CommandValues,
   validateGitUrl,
 } from "./create";
-import { BedrockServiceConfig, HelmConfig } from "../../types";
+import { BedrockServiceConfig } from "../../types";
 
 jest.mock("../../lib/gitutils");
 

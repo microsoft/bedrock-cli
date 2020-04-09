@@ -17,6 +17,8 @@ import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import { BedrockFile } from "../../types";
 import decorator from "./create-revision.decorator.json";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 export interface CommandOptions {
   sourceBranch: string | undefined;
@@ -69,12 +71,10 @@ export const getDefaultRings = (
         .filter((ring) => !!ring.isDefault)
         .map((ring) => ring.branch);
   if (defaultRings.length === 0) {
-    throw Error(
-      `Default branches/rings must either be specified in ${join(
-        __dirname,
-        "bedrock.yaml"
-      )} or provided via --target-branch`
-    );
+    throw buildError(errorStatusCode.VALIDATION_ERR, {
+      errorKey: "service-create-revision-cmd-err-default-branch-missing",
+      values: [join(__dirname, "bedrock.yaml")],
+    });
   }
   logger.info(
     `Creating pull request against branches: ${defaultRings.join(", ")}`
@@ -97,8 +97,9 @@ export const getSourceBranch = async (
     );
     sourceBranch = await getCurrentBranch();
     if (sourceBranch.length === 0) {
-      throw Error(
-        `Zero length branch string parsed from git client; cannot automate PR`
+      throw buildError(
+        errorStatusCode.VALIDATION_ERR,
+        "service-create-revision-cmd-err-source-branch-missing"
       );
     }
   }
@@ -167,17 +168,22 @@ export const execute = async (
 
     // Make sure the user isn't trying to make a PR for a branch against itself
     if (defaultRings.includes(values.sourceBranch)) {
-      throw Error(
-        `A pull request for a branch cannot be made against itself. Ensure your target branch(es) '${JSON.stringify(
-          defaultRings
-        )}' do not include your source branch '${values.sourceBranch}'`
-      );
+      throw buildError(errorStatusCode.VALIDATION_ERR, {
+        errorKey: "service-create-revision-cmd-err-pr-source-branch",
+        values: [JSON.stringify(defaultRings), values.sourceBranch],
+      });
     }
 
     await makePullRequest(defaultRings, values);
     await exitFn(0);
   } catch (err) {
-    logger.error(err);
+    logError(
+      buildError(
+        errorStatusCode.CMD_EXE_ERR,
+        "service-create-revision-cmd-failed",
+        err
+      )
+    );
     await exitFn(1);
   }
 };

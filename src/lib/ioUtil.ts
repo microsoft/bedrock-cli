@@ -2,7 +2,6 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import uuid from "uuid/v4";
-import { logger } from "../logger";
 
 /**
  * Creates a random directory in tmp directory.
