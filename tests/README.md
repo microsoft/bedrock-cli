@@ -33,7 +33,8 @@ data, set up a Logic App to delete it. You can use the template
 for this. Edit the values in `parameters` and fill in your `<subscription id>`
 and `resource group` where the storage account is.
 
-To check existing Logic Apps in your subscription, go to the [portal.azure.com](http://portal.azure.com) and search for Logic Apps.
+To check existing Logic Apps in your subscription, go to the
+[portal.azure.com](http://portal.azure.com) and search for Logic Apps.
 
 # Scenarios Exercised So Far
 
@@ -84,11 +85,11 @@ To check existing Logic Apps in your subscription, go to the [portal.azure.com](
 
 | Command                  | Coverage |
 | ------------------------ | -------- |
-| spk deployment get       | 🚫       |
+| spk deployment get       | ✅       |
 | spk deployment onboard   | ✅       |
 | spk deployment validate  | 🚫       |
 | spk deployment dashboard | 🚫       |
-| spk deployment create    | 🚫       |
+| spk deployment create    | ✅       |
 
 ## Infrastructure Management
 
