@@ -578,7 +578,7 @@ const manifestGenerationPipelineYaml = (): string => {
         displayName:
           "If configured, update manifest pipeline details in Spektate db before manifest generation",
         condition:
-          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''), ne(variables[''Build.Reason''], ''PullRequest''))",
+          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''), ne(variables['Build.Reason'], 'PullRequest'))",
       },
       {
         task: "ShellScript@2",
@@ -620,7 +620,7 @@ const manifestGenerationPipelineYaml = (): string => {
         displayName:
           "If configured, update manifest pipeline details in Spektate db after manifest generation",
         condition:
-          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''), ne(variables[''Build.Reason''], ''PullRequest''))",
+          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''), ne(variables['Build.Reason'], 'PullRequest'))",
       },
     ],
   };
