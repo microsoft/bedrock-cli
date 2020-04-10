@@ -1,0 +1,3906 @@
+.text-input {
+  font-size: 16px;
+  color: #3e3d4d;
+  border: 2px solid #dedede;
+  line-height: 1.4;
+  padding: 5px;
+  width: 100%;
+}
+
+.wa-previewTag {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 40%;
+  top: -1.5em;
+}
+
+.wa-loader {
+  background: url(/cvt-dc534547e38a0e85eb09c7e5e0da759d5844013bd89af811032012357a972f3b/less/images/spinner-rainbow.gif)
+    0 0 no-repeat;
+  display: block;
+  height: 134px;
+  margin: 0 auto;
+  width: 129px;
+}
+
+.wa-conditionalDisplay {
+  display: none !important;
+}
+
+tr.active.wa-conditionalDisplay {
+  display: table-row !important;
+}
+
+td.active.wa-conditionalDisplay,
+th.active.wa-conditionalDisplay {
+  display: table-cell !important;
+}
+
+.wa-conditionalDisplay.active {
+  display: block !important;
+}
+
+.wa-conditionalDisplay.active[data-display-mode="inline"] {
+  display: inline !important;
+}
+
+.wa-conditionalDisplay.active[data-display-mode="inline-block"] {
+  display: inline-block !important;
+}
+
+.wa-text .text-input {
+  background-color: #fff;
+  border: 1px solid #505055;
+  color: #4c4c51;
+  padding: 8px 1%;
+  width: 100%;
+}
+
+.wa-text .text-input::-ms-clear {
+  display: none;
+}
+
+.wa-textFilter .clear,
+.wa-textSearch .clear {
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  color: #1a1a1f;
+  cursor: pointer;
+  display: block;
+  position: absolute;
+  width: auto;
+}
+
+.wa-textFilter {
+  position: relative;
+}
+
+.wa-textFilter .text-input {
+  background-image: url(/cvt-06d28b0b1b09b69f857f2187193e3dfb2b1f054a59949e673927e34ab6a0b579/less/images/filter-search-spyglass.png);
+  background-position: 98% 50%;
+  background-repeat: no-repeat;
+  background-size: 20px;
+  padding-right: 36px;
+}
+
+.wa-textFilter .clear {
+  font-size: 22px;
+  height: 18px;
+  line-height: 13px;
+  right: 41px;
+  top: 12px;
+  width: 18px;
+}
+
+.wa-textSearch {
+  position: relative;
+}
+
+.wa-textSearch input {
+  line-height: 1.4;
+}
+
+.wa-textSearch #term,
+.wa-textSearch input {
+  padding-right: 36px;
+}
+
+.wa-textSearch .search-button {
+  color: #1a1a1f;
+  background: url(/cvt-06d28b0b1b09b69f857f2187193e3dfb2b1f054a59949e673927e34ab6a0b579/less/images/filter-search-spyglass.png);
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  background-size: 60%;
+  border: 0;
+  width: 35px;
+  height: 35px;
+  padding: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.wa-textSearch .clear {
+  font-size: 22px;
+  line-height: 12px;
+  right: 36px;
+  top: 12px;
+  border: 0;
+  background-color: transparent;
+  padding: 0 3px 0 0;
+}
+
+.wa-text-light .text-input {
+  border: 0;
+}
+
+@media only screen and (min-width: 48em) {
+  .wa-textFilter .text-input {
+    background-size: 3.5%;
+    background-position: 98% 50%;
+  }
+}
+
+@media only screen and (min-width: 60em) {
+  .wa-textFilter .text-input {
+    background-size: 2%;
+    background-position: 98.75% 50%;
+  }
+}
+
+input.text-input.filter {
+  padding-right: 60px;
+}
+
+.wa-loading-progress-container {
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  overflow: hidden;
+  z-index: 100000;
+  display: none;
+}
+
+.wa-loading-progress div {
+  width: 5px;
+  height: 5px;
+  position: absolute;
+  left: -20px;
+  top: 0;
+  z-index: 100000;
+  background-color: #50e6ff;
+  border-radius: 50%;
+  animation: move 4s infinite cubic-bezier(0.2, 0.64, 0.81, 0.23);
+}
+
+.wa-loading-progress div:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.wa-loading-progress div:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+.wa-loading-progress div:nth-child(4) {
+  animation-delay: 450ms;
+}
+
+@keyframes move {
+  0% {
+    left: 0;
+  }
+  75% {
+    left: 100%;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    -ms-transform: scale(0.5);
+    -o-transform: scale(0.5);
+    -webkit-transform: scale(0.5);
+    transform: scale(0.5);
+    opacity: 0;
+    visibility: hidden;
+  }
+  to {
+    -ms-transform: scale(1);
+    -o-transform: scale(1);
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+@keyframes collapsed-to-full {
+  0% {
+    -ms-transform: scale(0.5);
+    -o-transform: scale(0.5);
+    -webkit-transform: scale(0.5);
+    transform: scale(0.5);
+    height: 0;
+    opacity: 0;
+    visibility: hidden;
+  }
+  to {
+    -ms-transform: scale(1);
+    -o-transform: scale(1);
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    height: 46px;
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+html.azure-header-static .azure-header {
+  position: relative !important;
+}
+
+html.azure-header-static .azure-header .sign-in,
+html.azure-header-static .azure-header .my-account,
+html.azure-header-static .azure-header .mobile-navigation-my-account-container,
+html.azure-header-static .azure-header .authenticated,
+html.azure-header-static .azure-header .authenticated-menu {
+  display: none !important;
+}
+
+html.azure-header-with-subnav-static .azure-header {
+  position: relative !important;
+}
+
+html.azure-header-no-cta #header-main-cta,
+html.azure-header-no-cta .header-button-primary-container {
+  display: none !important;
+}
+
+html.azure-header-no-cta #navigation-overview {
+  border-top: 1px solid #6a6a6a;
+}
+
+.azure-header {
+  background-color: #1a1a1f;
+  color: #f8f9fa;
+  font-size: 15px;
+  overflow: visible !important;
+  position: relative;
+  z-index: 9999;
+}
+
+.azure-header a,
+.azure-header a:active,
+.azure-header a:focus,
+.azure-header a:hover {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-transition: color 0.25s ease-in-out;
+  transition: color 0.25s ease-in-out;
+  background-color: transparent;
+  color: #f8f9fa;
+  text-decoration: none;
+}
+
+.azure-header button {
+  background-color: transparent;
+  border: 0;
+  color: #f8f9fa;
+  cursor: pointer;
+  margin: 0;
+  overflow: visible;
+  padding: 0;
+  text-align: left;
+  text-transform: none;
+  width: 100%;
+}
+
+.azure-header .subnav-toggle-button {
+  display: none;
+  height: 100%;
+  left: 177px;
+  padding-left: 12px;
+  position: absolute;
+  width: 100%;
+}
+
+.azure-header .subnav-toggle-button:after {
+  content: "\e70d";
+  font-family: "BAPIMDL2";
+  border-left: 1px solid #78787d;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 0 4px 12px;
+  position: relative;
+  top: 2px;
+}
+
+.azure-header ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.azure-header ul li {
+  margin: 0;
+  padding: 0;
+}
+
+.azure-header .icon {
+  display: inline-block;
+  line-height: 0;
+  max-width: 100%;
+  vertical-align: bottom;
+}
+
+.azure-header .icon svg {
+  height: 100%;
+  width: 100%;
+}
+
+.azure-header svg {
+  fill: inherit;
+  height: auto;
+  max-width: 100%;
+  pointer-events: none;
+  stroke: inherit;
+  width: auto;
+}
+
+.azure-header svg:not(:root) {
+  overflow: hidden;
+}
+
+.azure-header input[type="text"] {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  color: #1a1a1f;
+  outline: 0;
+}
+
+.azure-header input[type="text"]:active,
+.azure-header input[type="text"]:focus {
+  border: 2px solid #0078d4;
+}
+
+.azure-header nav {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.azure-header .text-center {
+  text-align: center;
+}
+
+.azure-header #header-main-cta,
+.azure-header #mobile-navigation-free-account {
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  background-color: #89c402;
+  color: #000;
+  font-size: 24px;
+  font-weight: 300;
+  padding: 5px 20px 8px;
+  text-align: center;
+}
+
+.azure-header #header-main-cta:active,
+.azure-header #mobile-navigation-free-account:active,
+.azure-header #header-main-cta:focus,
+.azure-header #mobile-navigation-free-account:focus,
+.azure-header #header-main-cta:hover,
+.azure-header #mobile-navigation-free-account:hover {
+  background-color: #befd2f;
+  color: #000;
+}
+
+.azure-header .mobile-only {
+  display: block;
+  text-align: center;
+}
+
+.azure-header .mobile-only .header-button-primary-container {
+  clear: both;
+}
+
+.azure-header .no-chevron:after {
+  display: none !important;
+}
+
+.azure-header .authenticated-menu,
+.azure-header .category-see-more,
+.azure-header .category-see-more-tablet,
+.azure-header .menu-pop-heading,
+.azure-header .menu-pop-subheading,
+.azure-header .tablet-desktop-only {
+  display: none;
+}
+
+.azure-header .logo-container {
+  display: flex;
+  left: 15px;
+  position: absolute;
+  top: 12px;
+}
+
+.azure-header .logo-container a {
+  display: inline-block;
+}
+
+.azure-header .logo-container svg {
+  display: block;
+  height: 23px;
+  width: 162px;
+}
+
+.azure-header .skip-nav-container {
+  width: 100%;
+  position: absolute;
+  top: -20em;
+  z-index: 1001;
+}
+
+.azure-header .skip-nav-container a {
+  background: #fff;
+  background: rgba(255, 255, 255, 0.9);
+  color: #323237;
+  padding: 10px;
+  left: 0;
+  right: 0;
+  font-weight: 600;
+  text-align: center;
+  position: absolute;
+}
+
+.azure-header .skip-nav-container a:focus {
+  box-shadow: 3px 3px 5px #323237;
+  top: 0;
+  position: fixed;
+  text-decoration: underline;
+}
+
+.azure-header .nav-basic {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  display: block;
+  height: 46px;
+  padding: 0 12px;
+}
+
+.azure-header .nav-basic .nav-basic-links {
+  float: right;
+  height: 46px;
+  width: calc(100% - 200px);
+}
+
+.azure-header .nav-basic .nav-basic-links .mobile-hamburger {
+  float: right;
+  height: 46px;
+  width: 24px;
+}
+
+.azure-header .nav-basic .nav-basic-links .mobile-hamburger button {
+  height: 46px;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .mobile-hamburger
+  button:active
+  .icon-hamburger,
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .mobile-hamburger
+  button:focus
+  .icon-hamburger,
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .mobile-hamburger
+  button:hover
+  .icon-hamburger {
+  border-color: #0078d4;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .mobile-hamburger
+  button
+  .icon-hamburger {
+  -moz-box-sizing: initial;
+  box-sizing: initial;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  border-bottom: 10px double #fff;
+  border-top: 3px solid #fff;
+  display: block;
+  font-size: 0;
+  height: 4px;
+  width: 25px;
+}
+
+.azure-header .nav-basic .nav-basic-links .mobile-search {
+  float: right;
+  padding: 0;
+}
+
+.azure-header .nav-basic .nav-basic-links .mobile-search button {
+  height: 46px;
+  margin-right: 12px;
+  padding: 12px;
+}
+
+.azure-header .nav-basic .nav-basic-links .mobile-search button:active .icon,
+.azure-header .nav-basic .nav-basic-links .mobile-search button:focus .icon,
+.azure-header .nav-basic .nav-basic-links .mobile-search button:hover .icon {
+  -ms-transform: scale(1.15);
+  -o-transform: scale(1.15);
+  -webkit-transform: scale(1.15);
+  transform: scale(1.15);
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .mobile-search
+  button:active
+  .icon
+  svg,
+.azure-header .nav-basic .nav-basic-links .mobile-search button:focus .icon svg,
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .mobile-search
+  button:hover
+  .icon
+  svg {
+  stroke: #0078d4;
+}
+
+.azure-header .nav-basic .nav-basic-links .mobile-search button .icon {
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  display: block;
+  height: 16px;
+  width: 16px;
+}
+
+.azure-header .nav-basic .nav-basic-links .mobile-search button .icon svg {
+  stroke: #fff;
+}
+
+.azure-header .nav-basic .nav-basic-links .close-mobile-search {
+  float: right;
+  padding: 0;
+}
+
+.azure-header .nav-basic .nav-basic-links .close-mobile-search button {
+  color: #969696;
+  font-size: 12px;
+  font-weight: 300;
+  height: 46px;
+  margin-right: 24px;
+}
+
+.azure-header .nav-basic .nav-basic-links .close-mobile-search button:active,
+.azure-header .nav-basic .nav-basic-links .close-mobile-search button:focus,
+.azure-header .nav-basic .nav-basic-links .close-mobile-search button:hover {
+  color: #0078d4;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .close-mobile-search
+  button:active
+  .icon,
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .close-mobile-search
+  button:focus
+  .icon,
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .close-mobile-search
+  button:hover
+  .icon {
+  -ms-transform: scale(1.15);
+  -o-transform: scale(1.15);
+  -webkit-transform: scale(1.15);
+  transform: scale(1.15);
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .close-mobile-search
+  button:active
+  .icon
+  svg,
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .close-mobile-search
+  button:focus
+  .icon
+  svg,
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .close-mobile-search
+  button:hover
+  .icon
+  svg {
+  fill: #0078d4;
+}
+
+.azure-header .nav-basic .nav-basic-links .close-mobile-search button .text {
+  display: none;
+}
+
+.azure-header .nav-basic .nav-basic-links .close-mobile-search button .icon {
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  height: 15px;
+  margin-left: 6px;
+  width: 15px;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .close-mobile-search
+  button
+  .icon
+  svg {
+  fill: #fff;
+}
+
+.azure-header .nav-basic .nav-basic-links .close-mobile-search,
+.azure-header .nav-basic .nav-basic-links .contact-sales,
+.azure-header .nav-basic .nav-basic-links .my-account,
+.azure-header .nav-basic .nav-basic-links .portal,
+.azure-header .nav-basic .nav-basic-links .search,
+.azure-header .nav-basic .nav-basic-links .sign-in {
+  display: none;
+}
+
+.azure-header .nav-basic .nav-basic-links .nav-site-search {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  background-color: #e9e9e9;
+  display: none;
+  left: 0;
+  padding: 10px;
+  position: absolute;
+  top: 46px;
+  width: 100%;
+}
+
+.azure-header .nav-basic .nav-basic-links .nav-site-search.open {
+  display: block;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > input[type="text"] {
+  display: inline-block;
+  padding: 6px;
+  width: 76%;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > input[type="text"]::-ms-clear {
+  display: none;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > button[type="submit"] {
+  background-color: #0078d4;
+  border: 1px solid #0078d4;
+  color: #fff;
+  display: inline-block;
+  font-size: 15px;
+  padding: 6px;
+  text-align: center;
+  width: 22%;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > button[type="submit"]:active,
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > button[type="submit"]:focus,
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > button[type="submit"]:hover {
+  background-color: #0894ff;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > button[type="submit"]:focus {
+  border: 1px dotted #fff;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > button[type="submit"]
+  > .text {
+  display: inline;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > button[type="submit"]
+  > .icon {
+  display: none;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > .clear-button-container {
+  position: absolute;
+  top: 13px;
+  width: 24px;
+  right: 27%;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > .clear-button-container
+  > button[type="reset"] {
+  text-align: right;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > .clear-button-container
+  > button[type="reset"]:active
+  .icon,
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > .clear-button-container
+  > button[type="reset"]:focus
+  .icon,
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > .clear-button-container
+  > button[type="reset"]:hover
+  .icon {
+  -ms-transform: scale(1.15);
+  -o-transform: scale(1.15);
+  -webkit-transform: scale(1.15);
+  transform: scale(1.15);
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > .clear-button-container
+  > button[type="reset"]:active
+  .icon
+  svg,
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > .clear-button-container
+  > button[type="reset"]:focus
+  .icon
+  svg,
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > .clear-button-container
+  > button[type="reset"]:hover
+  .icon
+  svg {
+  fill: #0078d4;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > .clear-button-container
+  > button[type="reset"]
+  .icon {
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  height: 15px;
+  width: 15px;
+}
+
+.azure-header
+  .nav-basic
+  .nav-basic-links
+  .nav-site-search
+  > .clear-button-container
+  > button[type="reset"]
+  .icon
+  svg {
+  fill: #323237;
+}
+
+.azure-header .nav-main {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  display: none;
+}
+
+.azure-header .nav-main.open {
+  display: block;
+}
+
+.azure-header .nav-main .nav-main-links .sub {
+  display: none;
+}
+
+.azure-header .nav-main .nav-main-links > li {
+  background-color: #3e3d4d;
+  border-top: 1px solid #6a6a6a;
+}
+
+.azure-header .nav-main .nav-main-links > li.no-border {
+  border: 0;
+}
+
+.azure-header .nav-main .nav-main-links > li.azure-products .menu-pop a {
+  padding-left: 50px;
+}
+
+.azure-header .nav-main .nav-main-links > li.azure-products .menu-pop a:after {
+  display: none;
+}
+
+.azure-header .nav-main .nav-main-links > li.azure-products .menu-pop a.active {
+  color: #0078d4;
+}
+
+.azure-header .nav-main .nav-main-links > li.mobile-nested-link > span {
+  display: block;
+  padding: 12px;
+  text-align: center;
+}
+
+.azure-header .nav-main .nav-main-links > li.mobile-nested-link > span.sign-in {
+  display: inline;
+  padding: 0;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  > span.sign-in
+  a {
+  display: block;
+  padding: 12px;
+  text-align: center;
+}
+
+.azure-header .nav-main .nav-main-links > li.mobile-nested-link a,
+.azure-header .nav-main .nav-main-links > li.mobile-nested-link a span,
+.azure-header .nav-main .nav-main-links > li.mobile-nested-link .arrowLink {
+  font-size: 14px;
+  display: inline;
+  padding: 0;
+}
+
+.azure-header .nav-main .nav-main-links > li.mobile-nested-link .arrowLink {
+  position: relative;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .arrowLink:after {
+  content: "\e76c";
+  font-family: "BAPIMDL2";
+  display: inline-block;
+  font-size: 0.9em;
+  line-height: 2em;
+  margin-left: 0.3em;
+  position: absolute;
+  top: -1px;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .arrowLink:after {
+  margin-left: 0.1em;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .authenticated
+  button.btn-profile {
+  display: none;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .authenticated
+  .authenticated-menu {
+  background-color: #605f6d;
+  color: #fff;
+  display: block;
+  height: 70px;
+  position: relative;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .authenticated
+  .authenticated-menu
+  > li:first-child {
+  float: left;
+  height: 70px;
+  width: 75%;
+  padding: 10px 0 10px 10px;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .authenticated
+  .authenticated-menu
+  > li:first-child
+  .menu-avatar-large {
+  float: left;
+  height: 50px;
+  margin-right: 10px;
+  width: 50px;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .authenticated
+  .authenticated-menu
+  > li:first-child
+  .menu-avatar-large
+  svg {
+  height: 100%;
+  width: 100%;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .authenticated
+  .authenticated-menu
+  > li:first-child
+  .menu-avatar-large
+  svg
+  path {
+  fill: #fff;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .authenticated
+  .authenticated-menu
+  > li:first-child
+  .menu-avatar-large
+  svg
+  rect {
+  fill: #3e3d4d;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .authenticated
+  .authenticated-menu
+  > li:first-child
+  .email,
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .authenticated
+  .authenticated-menu
+  > li:first-child
+  .identity-provider {
+  float: left;
+  line-height: 1;
+  overflow: hidden;
+  text-align: left;
+  width: calc(100% - 60px);
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .authenticated
+  .authenticated-menu
+  > li:first-child
+  .full-name {
+  float: left;
+  line-height: 1;
+  overflow: hidden;
+  text-align: left;
+  font-size: 15px;
+  height: 23px;
+  margin-top: -4px;
+  width: 100%;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .authenticated
+  .authenticated-menu
+  > li:first-child
+  .email {
+  font-size: 12px;
+  height: 17px;
+  margin-top: -3px;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .authenticated
+  .authenticated-menu
+  > li:first-child
+  .identity-provider {
+  font-size: 11px;
+  height: 15px;
+  margin-top: 5px;
+  text-transform: uppercase;
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li.mobile-nested-link
+  .authenticated
+  .authenticated-menu
+  > li.sign-out {
+  align-items: center;
+  display: flex;
+  float: left;
+  height: 70px;
+  justify-content: center;
+  width: 25%;
+  text-align: center;
+  text-decoration: underline;
+}
+
+.azure-header .nav-main .nav-main-links > li a,
+.azure-header .nav-main .nav-main-links > li button {
+  display: block;
+  font-size: 15px;
+  padding: 10px;
+  position: relative;
+  width: 100%;
+}
+
+.azure-header .nav-main .nav-main-links > li a:active,
+.azure-header .nav-main .nav-main-links > li button:active,
+.azure-header .nav-main .nav-main-links > li a:focus,
+.azure-header .nav-main .nav-main-links > li button:focus,
+.azure-header .nav-main .nav-main-links > li a:hover,
+.azure-header .nav-main .nav-main-links > li button:hover,
+.azure-header .nav-main .nav-main-links > li a.active,
+.azure-header .nav-main .nav-main-links > li button.active {
+  color: #0078d4;
+}
+
+.azure-header .nav-main .nav-main-links > li a.expand-menu-link:after,
+.azure-header .nav-main .nav-main-links > li button.expand-menu-link:after {
+  -webkit-transition: all 0.25s 0s;
+  transition: all 0.25s 0s;
+  margin-top: -9px;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  content: "\e70d";
+  font-family: "BAPIMDL2";
+}
+
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li
+  a.expand-menu-link:active
+  .icon
+  > svg,
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li
+  button.expand-menu-link:active
+  .icon
+  > svg,
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li
+  a.expand-menu-link:focus
+  .icon
+  > svg,
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li
+  button.expand-menu-link:focus
+  .icon
+  > svg,
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li
+  a.expand-menu-link:hover
+  .icon
+  > svg,
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li
+  button.expand-menu-link:hover
+  .icon
+  > svg,
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li
+  a.expand-menu-link.active
+  .icon
+  > svg,
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li
+  button.expand-menu-link.active
+  .icon
+  > svg {
+  fill: #0078d4;
+  stroke: #0078d4;
+}
+
+.azure-header .nav-main .nav-main-links > li a.expand-menu-link.active:after,
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li
+  button.expand-menu-link.active:after {
+  -webkit-transition: all 0.25s 0s;
+  transition: all 0.25s 0s;
+  margin-top: -9px;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  content: "\e70d";
+  font-family: "BAPIMDL2";
+  -ms-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  -webkit-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.azure-header .nav-main .nav-main-links > li a.expand-menu-link .icon,
+.azure-header .nav-main .nav-main-links > li button.expand-menu-link .icon {
+  height: 15px;
+  left: 10px;
+  position: absolute;
+  top: 14px;
+  width: 15px;
+}
+
+.azure-header .nav-main .nav-main-links > li a.expand-menu-link .icon > svg,
+.azure-header
+  .nav-main
+  .nav-main-links
+  > li
+  button.expand-menu-link
+  .icon
+  > svg {
+  fill: #969696;
+  stroke: #969696;
+}
+
+.azure-header .nav-main .nav-main-links > li nav {
+  display: none;
+}
+
+.azure-header .nav-main .nav-main-links > li nav.open {
+  display: block;
+}
+
+.azure-header .nav-main .nav-main-links > li nav .menu-drop li {
+  background-color: #504f64;
+  border-top: 1px solid #6a6a6a;
+}
+
+.azure-header .nav-main .nav-main-links > li nav .menu-drop li:first-child {
+  border: 0;
+}
+
+.azure-header .nav-main .nav-main-links > li nav .menu-drop li a,
+.azure-header .nav-main .nav-main-links > li nav .menu-drop li button {
+  display: block;
+  font-size: 15px;
+  padding: 10px 10px 10px 30px;
+  width: 100%;
+}
+
+.azure-header .nav-main .nav-main-links > li nav .menu-drop li > a .icon {
+  display: none;
+}
+
+.azure-header .nav-main .nav-collapsed-links {
+  display: none;
+}
+
+.azure-header .authenticated {
+  display: none;
+}
+
+#header-main-cta {
+  display: none;
+}
+
+@media only screen and (min-width: 33.75em) {
+  .azure-header button {
+    width: auto;
+  }
+  .azure-header .nav-basic .nav-basic-links .close-mobile-search button .text {
+    display: inline;
+    font-size: 15px;
+  }
+  .azure-header .nav-basic .nav-basic-links .close-mobile-search button .icon {
+    position: relative;
+    top: 0;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.mobile-nested-link
+    .authenticated
+    .authenticated-menu
+    > li:first-child
+    .menu-avatar-large {
+    margin-right: 20px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.mobile-nested-link
+    .authenticated
+    .authenticated-menu
+    > li:first-child
+    .email,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.mobile-nested-link
+    .authenticated
+    .authenticated-menu
+    > li:first-child
+    .identity-provider {
+    width: calc(100% - 70px);
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.mobile-nested-link
+    .authenticated
+    .authenticated-menu
+    > li:first-child
+    .full-name {
+    width: 100%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.mobile-nested-link
+    .authenticated
+    .authenticated-menu
+    > li.sign-out
+    a {
+    font-size: 15px;
+  }
+  html.azure-header-with-subnav .nav-basic-links,
+  html.azure-header-with-subnav .nav-main {
+    display: none !important;
+  }
+  html.azure-header-with-subnav .azure-header {
+    height: 46px;
+    position: fixed;
+    width: 100%;
+  }
+  html.azure-header-with-subnav .azure-header .subnav-toggle-button {
+    display: inline-block;
+  }
+}
+
+@media only screen and (min-width: 48em) {
+  html.azure-header-minimum .nav-basic-links,
+  html.azure-header-minimum .nav-main {
+    display: none !important;
+  }
+  html.azure-header-minimum .azure-header {
+    height: 46px;
+  }
+  html.azure-header-no-cta #navigation-overview {
+    border-top: none;
+  }
+  #header-main-cta {
+    display: inline-block;
+  }
+  #navigation-overview {
+    padding-left: 12px;
+  }
+  .split-column > nav {
+    min-width: 48em;
+  }
+  .split-column > nav .menu-drop li {
+    float: left;
+    margin-right: 1%;
+    width: 49.5%;
+  }
+  .split-column > nav .menu-drop li:nth-child(even) {
+    margin-right: 0;
+  }
+  .split-column > nav .menu-drop li a {
+    height: 80px;
+  }
+  .overflow {
+    display: none;
+  }
+  .azure-header {
+    background-color: #1a1a1f;
+    height: 88px;
+    margin: 0;
+    padding: 0;
+    position: fixed;
+    width: 100%;
+  }
+  .azure-header.collapsed {
+    height: 42px;
+    top: 0;
+  }
+  .azure-header.collapsed .nav-basic {
+    height: 0;
+    visibility: hidden;
+  }
+  .azure-header.collapsed .nav-main .nav-main-links > li nav {
+    top: 42px;
+  }
+  .azure-header.collapsed .nav-main .nav-collapsed-links {
+    background-color: #1a1a1f;
+    display: block;
+    height: 42px;
+  }
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li {
+    float: right;
+    font-size: 14px;
+    padding: 7px 16px 9px;
+  }
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li.portal {
+    margin-top: 3px;
+  }
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li.portal:active,
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li.portal:focus,
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li.portal:hover {
+    -webkit-transition: background-color 0.25s;
+    transition: background-color 0.25s;
+    background-color: #0078d4;
+  }
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li.portal,
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li a .icon,
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li button .icon {
+    -webkit-animation: pop-in 0.5s;
+    -moz-animation: pop-in 0.5s;
+    -o-animation: pop-in 0.5s;
+    animation: pop-in 0.5s;
+  }
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li a:active .icon,
+  .azure-header.collapsed
+    .nav-main
+    .nav-collapsed-links
+    > li
+    button:active
+    .icon,
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li a:focus .icon,
+  .azure-header.collapsed
+    .nav-main
+    .nav-collapsed-links
+    > li
+    button:focus
+    .icon,
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li a:hover .icon,
+  .azure-header.collapsed
+    .nav-main
+    .nav-collapsed-links
+    > li
+    button:hover
+    .icon {
+    -ms-transform: scale(1.15);
+    -o-transform: scale(1.15);
+    -webkit-transform: scale(1.15);
+    transform: scale(1.15);
+  }
+  .azure-header.collapsed
+    .nav-main
+    .nav-collapsed-links
+    > li
+    a:active
+    .icon
+    svg,
+  .azure-header.collapsed
+    .nav-main
+    .nav-collapsed-links
+    > li
+    button:active
+    .icon
+    svg,
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li a:focus .icon svg,
+  .azure-header.collapsed
+    .nav-main
+    .nav-collapsed-links
+    > li
+    button:focus
+    .icon
+    svg,
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li a:hover .icon svg,
+  .azure-header.collapsed
+    .nav-main
+    .nav-collapsed-links
+    > li
+    button:hover
+    .icon
+    svg {
+    fill: #0078d4;
+    stroke: #0078d4;
+  }
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li a .icon,
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li button .icon {
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s;
+    height: 18px;
+    width: 18px;
+  }
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li a .icon > svg,
+  .azure-header.collapsed
+    .nav-main
+    .nav-collapsed-links
+    > li
+    button
+    .icon
+    > svg {
+    fill: #fff;
+    stroke: #fff;
+  }
+  .azure-header #header-main-cta,
+  .azure-header #mobile-navigation-free-account {
+    position: relative;
+    background-color: transparent;
+    color: #89c402;
+    float: right;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 24px;
+    padding: 9px 24px 0 12px;
+  }
+  .azure-header #header-main-cta:after,
+  .azure-header #mobile-navigation-free-account:after {
+    content: "\e76c";
+    font-family: "BAPIMDL2";
+    display: inline-block;
+    font-size: 0.9em;
+    line-height: 2em;
+    margin-left: 0.3em;
+    position: absolute;
+    top: -1px;
+  }
+  .azure-header #header-main-cta:active,
+  .azure-header #mobile-navigation-free-account:active,
+  .azure-header #header-main-cta:focus,
+  .azure-header #mobile-navigation-free-account:focus,
+  .azure-header #header-main-cta:hover,
+  .azure-header #mobile-navigation-free-account:hover {
+    background-color: transparent;
+    color: #acf603;
+  }
+  .azure-header #header-main-cta:after,
+  .azure-header #mobile-navigation-free-account:after {
+    font-size: 0.7em;
+    right: 9px;
+    top: 13px;
+  }
+  .azure-header .mobile-hamburger,
+  .azure-header .mobile-only,
+  .azure-header .mobile-search {
+    display: none !important;
+  }
+  .azure-header .tablet-desktop-only {
+    display: block !important;
+  }
+  .azure-header .nav-basic {
+    height: 46px;
+    padding: 0;
+    position: relative;
+    visibility: visible;
+  }
+  .azure-header .nav-basic .animate {
+    -webkit-animation: collapsed-to-full 0.25s !important;
+    -moz-animation: collapsed-to-full 0.25s !important;
+    -o-animation: collapsed-to-full 0.25s !important;
+    animation: collapsed-to-full 0.25s !important;
+  }
+  .azure-header .nav-basic .nav-basic-links {
+    height: 46px;
+    overflow: visible;
+    position: absolute;
+    right: 3px;
+    text-align: right;
+    top: 0;
+  }
+  .azure-header .nav-basic .nav-basic-links .contact-sales,
+  .azure-header .nav-basic .nav-basic-links .my-account,
+  .azure-header .nav-basic .nav-basic-links .portal,
+  .azure-header .nav-basic .nav-basic-links .search,
+  .azure-header .nav-basic .nav-basic-links .sign-in {
+    display: inline;
+  }
+  .azure-header .nav-basic .nav-basic-links .portal {
+    margin-right: 0;
+  }
+  .azure-header .nav-basic .nav-basic-links .contact-sales a,
+  .azure-header .nav-basic .nav-basic-links .search a,
+  .azure-header .nav-basic .nav-basic-links .contact-sales button,
+  .azure-header .nav-basic .nav-basic-links .search button {
+    color: #969696;
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 300;
+    height: 46px;
+    padding: 12px;
+    position: relative;
+    z-index: 1;
+  }
+  .azure-header .nav-basic .nav-basic-links .contact-sales a:active,
+  .azure-header .nav-basic .nav-basic-links .search a:active,
+  .azure-header .nav-basic .nav-basic-links .contact-sales button:active,
+  .azure-header .nav-basic .nav-basic-links .search button:active,
+  .azure-header .nav-basic .nav-basic-links .contact-sales a:focus,
+  .azure-header .nav-basic .nav-basic-links .search a:focus,
+  .azure-header .nav-basic .nav-basic-links .contact-sales button:focus,
+  .azure-header .nav-basic .nav-basic-links .search button:focus,
+  .azure-header .nav-basic .nav-basic-links .contact-sales a:hover,
+  .azure-header .nav-basic .nav-basic-links .search a:hover,
+  .azure-header .nav-basic .nav-basic-links .contact-sales button:hover,
+  .azure-header .nav-basic .nav-basic-links .search button:hover {
+    background-color: #000;
+  }
+  .azure-header .nav-basic .nav-basic-links .contact-sales a:active .icon,
+  .azure-header .nav-basic .nav-basic-links .search a:active .icon,
+  .azure-header .nav-basic .nav-basic-links .contact-sales button:active .icon,
+  .azure-header .nav-basic .nav-basic-links .search button:active .icon,
+  .azure-header .nav-basic .nav-basic-links .contact-sales a:focus .icon,
+  .azure-header .nav-basic .nav-basic-links .search a:focus .icon,
+  .azure-header .nav-basic .nav-basic-links .contact-sales button:focus .icon,
+  .azure-header .nav-basic .nav-basic-links .search button:focus .icon,
+  .azure-header .nav-basic .nav-basic-links .contact-sales a:hover .icon,
+  .azure-header .nav-basic .nav-basic-links .search a:hover .icon,
+  .azure-header .nav-basic .nav-basic-links .contact-sales button:hover .icon,
+  .azure-header .nav-basic .nav-basic-links .search button:hover .icon {
+    -ms-transform: scale(1.15);
+    -o-transform: scale(1.15);
+    -webkit-transform: scale(1.15);
+    transform: scale(1.15);
+  }
+  .azure-header .nav-basic .nav-basic-links .contact-sales a .icon,
+  .azure-header .nav-basic .nav-basic-links .search a .icon,
+  .azure-header .nav-basic .nav-basic-links .contact-sales button .icon,
+  .azure-header .nav-basic .nav-basic-links .search button .icon {
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s;
+    height: 18px;
+    margin-left: 6px;
+    width: 18px;
+  }
+  .azure-header .nav-basic .nav-basic-links .contact-sales a .icon svg,
+  .azure-header .nav-basic .nav-basic-links .search a .icon svg,
+  .azure-header .nav-basic .nav-basic-links .contact-sales button .icon svg,
+  .azure-header .nav-basic .nav-basic-links .search button .icon svg {
+    fill: #fff;
+    stroke: #fff;
+  }
+  .azure-header .nav-basic .nav-basic-links .my-account > a,
+  .azure-header .nav-basic .nav-basic-links .portal > a,
+  .azure-header .nav-basic .nav-basic-links .sign-in > a {
+    -webkit-transition: background-color 0.25s;
+    transition: background-color 0.25s;
+    display: inline-block;
+    font-size: 14px;
+    height: 46px;
+    padding: 12px;
+  }
+  .azure-header .nav-basic .nav-basic-links .my-account > a:active,
+  .azure-header .nav-basic .nav-basic-links .portal > a:active,
+  .azure-header .nav-basic .nav-basic-links .sign-in > a:active,
+  .azure-header .nav-basic .nav-basic-links .my-account > a:focus,
+  .azure-header .nav-basic .nav-basic-links .portal > a:focus,
+  .azure-header .nav-basic .nav-basic-links .sign-in > a:focus,
+  .azure-header .nav-basic .nav-basic-links .my-account > a:hover,
+  .azure-header .nav-basic .nav-basic-links .portal > a:hover,
+  .azure-header .nav-basic .nav-basic-links .sign-in > a:hover {
+    background-color: #0078d4;
+  }
+  .azure-header .nav-basic .nav-basic-links .nav-site-search {
+    background-color: transparent;
+    padding: 0;
+    position: relative;
+    top: 0;
+    width: auto;
+  }
+  .azure-header .nav-basic .nav-basic-links .nav-site-search.open {
+    display: inline;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > input[type="text"] {
+    background-color: #f4f4f4;
+    border: 0;
+    font-size: 13px;
+    padding: 6px;
+    width: 15em;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > input[type="text"]::-ms-clear {
+    display: none;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"] {
+    background-color: transparent;
+    border: 2px solid transparent;
+    bottom: 2px;
+    display: inline-block;
+    height: 31px;
+    line-height: 1.5;
+    padding: 2px 8px 6px;
+    position: absolute;
+    right: 28px;
+    top: -3px;
+    width: auto;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"]:active,
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"]:focus,
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"]:hover {
+    background-color: inherit;
+    outline: 0;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"]:active
+    > .icon,
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"]:focus
+    > .icon,
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"]:hover
+    > .icon {
+    -ms-transform: scale(1.15);
+    -o-transform: scale(1.15);
+    -webkit-transform: scale(1.15);
+    transform: scale(1.15);
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"]:active
+    > .icon
+    > svg,
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"]:focus
+    > .icon
+    > svg,
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"]:hover
+    > .icon
+    > svg {
+    fill: #0078d4;
+    stroke: #0078d4;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"]:focus {
+    border: 2px solid #323237;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"]
+    > .icon {
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s;
+    display: inline-block;
+    height: 15px;
+    position: relative;
+    top: -3px;
+    width: 15px;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"]
+    > .icon
+    > svg {
+    fill: #969696;
+    stroke: #969696;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > button[type="submit"]
+    .text {
+    display: none;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container {
+    display: inline-block;
+    height: 29px;
+    right: 4px;
+    top: -4px;
+    z-index: 9999;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container
+    > button[type="reset"] {
+    border: 2px solid transparent;
+    height: 30px;
+    left: -3px;
+    line-height: 1;
+    padding: 6px;
+    position: relative;
+    top: 1px;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container
+    > button[type="reset"]:active,
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container
+    > button[type="reset"]:focus,
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container
+    > button[type="reset"]:hover {
+    outline: 0;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container
+    > button[type="reset"]:active
+    .icon,
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container
+    > button[type="reset"]:focus
+    .icon,
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container
+    > button[type="reset"]:hover
+    .icon {
+    border: 0;
+    -ms-transform: scale(1.15);
+    -o-transform: scale(1.15);
+    -webkit-transform: scale(1.15);
+    transform: scale(1.15);
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container
+    > button[type="reset"]:active
+    .icon
+    > svg,
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container
+    > button[type="reset"]:focus
+    .icon
+    > svg,
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container
+    > button[type="reset"]:hover
+    .icon
+    > svg {
+    fill: #0078d4;
+    stroke: #0078d4;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container
+    > button[type="reset"]:focus {
+    border-color: #323237;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container
+    > button[type="reset"]
+    .icon {
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s;
+    height: 12px;
+    margin-top: 1px;
+    vertical-align: baseline;
+    width: 12px;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > .clear-button-container
+    > button[type="reset"]
+    .icon
+    > svg {
+    fill: #969696;
+    stroke: #969696;
+  }
+  .azure-header .nav-main {
+    clear: both;
+    display: block;
+    height: 42px;
+    padding: 0 3px;
+    position: relative;
+  }
+  .azure-header .nav-main .nav-main-links > li {
+    background-color: #1a1a1f;
+    border: 0;
+    float: left;
+    height: 42px;
+    line-height: 1;
+    position: relative;
+  }
+  .azure-header .nav-main .nav-main-links > li.azure-products > nav {
+    background-color: #e9e9e9;
+    min-height: 500px;
+    min-width: 24em;
+  }
+  .azure-header .nav-main .nav-main-links > li.azure-products > nav .menu-drop {
+    position: relative;
+    width: 33%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column {
+    background-color: #e9e9e9;
+    float: left;
+    margin: 0;
+    width: 50%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li {
+    display: block;
+    font-size: 13px;
+    margin: 0 1% 0 0;
+    overflow: hidden;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li:last-child {
+    margin-bottom: 2px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > a,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > button {
+    -webkit-transition: background-color 0.25s;
+    transition: background-color 0.25s;
+    background-color: #e9e9e9;
+    color: #1a1a1f;
+    height: 42px;
+    line-height: 1.1;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > a.active,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > button.active,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > a:active,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > button:active,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > a:focus,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > button:focus,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > a:hover,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > button:hover {
+    background-color: #fff;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > a.active
+    .icon
+    > svg,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > button.active
+    .icon
+    > svg,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > a:active
+    .icon
+    > svg,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > button:active
+    .icon
+    > svg,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > a:focus
+    .icon
+    > svg,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > button:focus
+    .icon
+    > svg,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > a:hover
+    .icon
+    > svg,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > button:hover
+    .icon
+    > svg {
+    fill: #323237;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > a:after,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > button:after {
+    display: none;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > a
+    .icon,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > button
+    .icon {
+    left: 0;
+    position: relative;
+    top: 0;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > a {
+    border: 0;
+    padding: 10px 4px 0 10px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > button {
+    padding: 6px 4px 6px 10px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.category-column
+    > ul
+    > li
+    > button.active {
+    color: #323237;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search {
+    background-color: #e9e9e9;
+    padding-top: 6px;
+    clear: both;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form {
+    float: left;
+    height: 40px;
+    position: relative;
+    width: 75%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > input[type="text"] {
+    background-color: transparent;
+    border: 1px solid #969696;
+    float: left;
+    height: 38px;
+    line-height: 2;
+    padding: 0 0 0 36px;
+    width: 100%;
+    font-size: 13px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > input[type="text"]:active,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > input[type="text"]:focus {
+    border-color: #0078d4;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > input[type="text"]::-ms-clear {
+    display: none;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="submit"] {
+    background-color: transparent;
+    border: 0;
+    height: 38px;
+    left: 1px;
+    padding: 6px 8px;
+    position: absolute;
+    top: 1px;
+    width: auto;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="submit"]:active
+    .icon,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="submit"]:focus
+    .icon,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="submit"]:hover
+    .icon {
+    -ms-transform: scale(1.15);
+    -o-transform: scale(1.15);
+    -webkit-transform: scale(1.15);
+    transform: scale(1.15);
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="submit"]:active
+    .icon
+    > svg,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="submit"]:focus
+    .icon
+    > svg,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="submit"]:hover
+    .icon
+    > svg {
+    stroke: #0078d4;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="submit"]
+    .icon {
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s;
+    height: 15px;
+    position: relative;
+    top: -2px;
+    width: 15px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="submit"]
+    .icon
+    > svg {
+    stroke: #969696;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="reset"] {
+    display: none;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    a.see-all-products {
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s;
+    color: #0062ad;
+    align-items: center;
+    border: 0;
+    display: flex;
+    height: 36px;
+    justify-content: center;
+    padding: 0 6px;
+    text-align: center;
+    width: 25%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    a.see-all-products:active,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    a.see-all-products:focus,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    a.see-all-products:hover {
+    color: #007fe0;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    a.see-all-products:active,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    a.see-all-products:focus,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    a.see-all-products:hover {
+    background-color: transparent;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav {
+    background-color: #fff;
+    left: 100%;
+    height: 548px;
+    padding: 12px 6px;
+    position: absolute;
+    top: 0;
+    width: 204%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop-heading,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop-subheading {
+    color: #1a1a1f;
+    display: block;
+    margin-left: 8px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop-heading
+    > a,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop-subheading
+    > a {
+    display: inline;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop-heading,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop-heading
+    > a {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop-heading-searchresults-query {
+    color: #0078d4;
+    font-weight: 300;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop-subheading {
+    font-size: 12px;
+    height: 36px;
+    margin-bottom: 6px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    p {
+    color: #1a1a1f;
+    line-height: 1.3;
+    padding: 0 10px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    a {
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s;
+    color: #0078d4;
+    padding: 0;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    a:active,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    a:focus,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    a:hover {
+    color: #0894ff;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li {
+    display: none;
+    float: left;
+    padding: 0;
+    width: 100%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li:nth-child(-n + 5),
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li:last-child {
+    display: block;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li.category-see-more-tablet {
+    display: block;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li.category-see-more-tablet
+    a {
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s;
+    color: #0078d4;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li.category-see-more-tablet
+    a:active,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li.category-see-more-tablet
+    a:focus,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li.category-see-more-tablet
+    a:hover {
+    color: #0894ff;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li.category-see-more-tablet
+    a:after {
+    display: inline-block;
+    top: 10px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a {
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s;
+    background-color: #fff;
+    border: 2px solid #fff;
+    height: 72px;
+    padding: 3px 3px 4px 6px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a:active,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a:focus,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a:hover {
+    border: 2px solid #0062ad;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a:active
+    .label,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a:focus
+    .label,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a:hover
+    .label {
+    color: #0894ff;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a.no-description {
+    position: relative;
+    font-weight: 600;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a.no-description:after {
+    content: "\e76c";
+    font-family: "BAPIMDL2";
+    display: inline-block;
+    font-size: 0.9em;
+    line-height: 2em;
+    margin-left: 0.3em;
+    position: absolute;
+    top: -1px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a[data-event-property="see-all"]
+    > span {
+    position: relative;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a[data-event-property="see-all"]
+    > span:after {
+    content: "\e76c";
+    font-family: "BAPIMDL2";
+    display: inline-block;
+    font-size: 0.9em;
+    line-height: 2em;
+    margin-left: 0.3em;
+    position: absolute;
+    top: -1px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a[data-event-property="see-all"]
+    > span:after {
+    top: -4px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a
+    .label {
+    color: #0078d4;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-search-noresults {
+    float: left;
+    margin-top: 12px;
+    width: 100%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-search-noresults
+    p {
+    color: #6a6a6a;
+    font-size: 18px;
+    margin-top: 24px;
+  }
+  .azure-header .nav-main .nav-main-links > li #menu-search-loader-container {
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 10px;
+  }
+  .azure-header .nav-main .nav-main-links > li > a,
+  .azure-header .nav-main .nav-main-links > li > button {
+    font-size: 14px;
+    color: #dedede;
+    line-height: 1;
+    padding: 14px 6px;
+    width: auto;
+  }
+  .azure-header .nav-main .nav-main-links > li > a.expand-menu-link,
+  .azure-header .nav-main .nav-main-links > li > button.expand-menu-link {
+    padding-right: 20px;
+  }
+  .azure-header .nav-main .nav-main-links > li > a.expand-menu-link:after,
+  .azure-header .nav-main .nav-main-links > li > button.expand-menu-link:after,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li
+    > a.expand-menu-link.active:after,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li
+    > button.expand-menu-link.active:after {
+    font-size: 10px;
+    margin-top: -4px;
+    right: 6px;
+  }
+  .azure-header .nav-main .nav-main-links > li > a.active-by-url,
+  .azure-header .nav-main .nav-main-links > li > button.active-by-url,
+  .azure-header .nav-main .nav-main-links > li > a.active,
+  .azure-header .nav-main .nav-main-links > li > button.active,
+  .azure-header .nav-main .nav-main-links > li > a:active,
+  .azure-header .nav-main .nav-main-links > li > button:active,
+  .azure-header .nav-main .nav-main-links > li > a:focus,
+  .azure-header .nav-main .nav-main-links > li > button:focus,
+  .azure-header .nav-main .nav-main-links > li > a:hover,
+  .azure-header .nav-main .nav-main-links > li > button:hover {
+    -webkit-transition: background-color 0.25s;
+    transition: background-color 0.25s;
+    background-color: #000;
+    color: #fff;
+    text-decoration: underline;
+    z-index: 1;
+  }
+  .azure-header .nav-main .nav-main-links > li nav {
+    background-color: #e9e9e9;
+    left: 0;
+    padding: 12px;
+    position: absolute;
+    top: 42px;
+    width: 400px;
+    z-index: 9999;
+  }
+  .azure-header .nav-main .nav-main-links > li nav.nav-centered {
+    left: -50%;
+  }
+  .azure-header .nav-main .nav-main-links > li nav .menu-drop li {
+    background-color: #fff;
+    border: 0;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .azure-header .nav-main .nav-main-links > li nav .menu-drop li:last-child {
+    margin-bottom: 0;
+  }
+  .azure-header .nav-main .nav-main-links > li nav .menu-drop li > a {
+    -webkit-transition: border 0.25s;
+    transition: border 0.25s;
+    border: 2px solid #fff;
+    padding: 12px 16px;
+  }
+  .azure-header .nav-main .nav-main-links > li nav .menu-drop li > a:active,
+  .azure-header .nav-main .nav-main-links > li nav .menu-drop li > a:focus,
+  .azure-header .nav-main .nav-main-links > li nav .menu-drop li > a:hover {
+    border-color: #0062ad;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li
+    nav
+    .menu-drop
+    li
+    > a.has-icon:after {
+    clear: both;
+    content: "";
+    display: table;
+  }
+  .azure-header .nav-main .nav-main-links > li nav .menu-drop li > a .label {
+    color: #0078d4;
+    display: block;
+    margin-bottom: 2px;
+    font-weight: 600;
+  }
+  .azure-header .nav-main .nav-main-links > li nav .menu-drop li > a .sub {
+    color: #6a6a6a;
+    display: block;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.3;
+    margin-top: 2px;
+    max-height: 2.7em;
+    overflow: hidden;
+    padding-bottom: 1px;
+  }
+  .azure-header .nav-main .nav-main-links > li nav .menu-drop li > a .icon {
+    display: block;
+    float: left;
+    text-align: center;
+    width: 40px;
+  }
+  .azure-header .nav-main .nav-main-links > li nav .menu-drop li > a .icon img {
+    height: auto;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li
+    nav
+    .menu-drop
+    li
+    > a
+    .link-text {
+    display: block;
+    float: left;
+    padding-top: 3px;
+    padding-left: 25px;
+    width: calc(100% - 40px);
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li
+    nav
+    .menu-drop
+    li
+    > a
+    .link-text
+    .sub {
+    margin-top: 8px;
+  }
+  .azure-header .auth {
+    display: inline-block;
+    max-width: 105px;
+  }
+  .azure-header .auth .authenticated {
+    display: block;
+    position: relative;
+    overflow: visible;
+  }
+  .azure-header .auth .authenticated button.btn-profile {
+    border-right: 1px solid #1a1a1f;
+    font-size: 13px;
+    font-weight: 600;
+    height: 46px;
+    line-height: 1.15;
+    max-width: 105px;
+    overflow: hidden;
+    padding: 10px;
+    text-align: center;
+  }
+  .azure-header .auth .authenticated button.btn-profile:focus {
+    background-color: #0078d4;
+  }
+  .azure-header .auth .authenticated button.btn-profile:hover {
+    color: #f8f9fa;
+    background-color: #000;
+  }
+  .azure-header .auth .authenticated button.btn-profile.active {
+    background-color: #fff;
+    color: #505055;
+  }
+  .azure-header .auth .authenticated button.btn-profile .menu-avatar-small {
+    display: none;
+  }
+  .azure-header .auth .authenticated .authenticated-menu {
+    border-bottom: 1px solid #1a1a1f;
+    border-left: 1px solid #1a1a1f;
+    border-right: 1px solid #1a1a1f;
+    position: absolute;
+    right: 0;
+    top: 40px;
+    width: 260px;
+    z-index: 1;
+  }
+  .azure-header .auth .authenticated .authenticated-menu.active {
+    display: block;
+  }
+  .azure-header .auth .authenticated .authenticated-menu > li {
+    background-color: #fff;
+    height: 70px;
+    line-height: 1;
+    padding: 10px;
+    text-align: left;
+  }
+  .azure-header .auth .authenticated .authenticated-menu > li.sign-out {
+    height: 50px;
+    padding: 0;
+  }
+  .azure-header .auth .authenticated .authenticated-menu > li.sign-out > a {
+    background-color: #0078d4;
+    color: #fff;
+    display: block;
+    font-size: 12px;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+  }
+  .azure-header
+    .auth
+    .authenticated
+    .authenticated-menu
+    > li.sign-out
+    > a:active,
+  .azure-header
+    .auth
+    .authenticated
+    .authenticated-menu
+    > li.sign-out
+    > a:focus,
+  .azure-header
+    .auth
+    .authenticated
+    .authenticated-menu
+    > li.sign-out
+    > a:hover {
+    color: #e6e6e6;
+    text-decoration: underline;
+  }
+  .azure-header
+    .auth
+    .authenticated
+    .authenticated-menu
+    > li
+    .menu-avatar-large {
+    background-color: #f4f4f4;
+    float: left;
+    height: 50px;
+    margin-right: 10px;
+    margin-top: 0;
+    width: 50px;
+  }
+  .azure-header
+    .auth
+    .authenticated
+    .authenticated-menu
+    > li
+    .menu-avatar-large
+    svg {
+    height: 100%;
+    width: 100%;
+  }
+  .azure-header
+    .auth
+    .authenticated
+    .authenticated-menu
+    > li
+    .menu-avatar-large
+    svg
+    path {
+    fill: #0078d4;
+  }
+  .azure-header
+    .auth
+    .authenticated
+    .authenticated-menu
+    > li
+    .menu-avatar-large
+    svg
+    rect {
+    fill: #f4f4f4;
+  }
+  .azure-header .auth .authenticated .authenticated-menu > li .email,
+  .azure-header .auth .authenticated .authenticated-menu > li .full-name,
+  .azure-header
+    .auth
+    .authenticated
+    .authenticated-menu
+    > li
+    .identity-provider {
+    float: left;
+    max-width: 170px;
+    overflow: hidden;
+  }
+  .azure-header .auth .authenticated .authenticated-menu > li .full-name {
+    color: #1a1a1f;
+    font-size: 15px;
+    font-weight: 700;
+    height: 18px;
+    margin-top: -1px;
+    width: 100%;
+  }
+  .azure-header .auth .authenticated .authenticated-menu > li .email {
+    color: #6a6a6a;
+    font-size: 12px;
+    height: 14px;
+    margin-top: 1px;
+  }
+  .azure-header
+    .auth
+    .authenticated
+    .authenticated-menu
+    > li
+    .identity-provider {
+    color: #6a6a6a;
+    font-size: 11px;
+    height: 12px;
+    margin-top: 7px;
+    text-transform: uppercase;
+  }
+}
+
+@media only screen and (min-width: 60em) {
+  .azure-header.collapsed {
+    height: 46px;
+  }
+  .azure-header.collapsed .nav-main {
+    top: 2px;
+  }
+  .azure-header.collapsed .nav-main .nav-main-links > li nav {
+    top: 43.5px;
+  }
+  .azure-header .nav-main .nav-main-links > li.azure-products > nav {
+    min-height: 532px;
+    min-width: 36em;
+    padding-bottom: 0;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav {
+    height: 547px;
+    padding: 24px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    p {
+    font-size: 15px;
+    line-height: 1.4;
+    max-width: 90%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    p
+    a {
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s;
+    color: #0078d4;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    p
+    a:active,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    p
+    a:focus,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    p
+    a:hover {
+    color: #0894ff;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li {
+    width: 50%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li:nth-child(-n + 10) {
+    display: block;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li.category-see-more-tablet {
+    display: none;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a {
+    height: 84px;
+    padding-top: 6px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a.no-description {
+    padding-top: 24px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a.no-description:after {
+    top: 20px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li
+    nav
+    .menu-pop
+    > li
+    a[data-event-property="see-all"] {
+    padding-top: 24px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > input[type="text"] {
+    padding-right: 30px;
+    width: 100%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="reset"] {
+    height: 38px;
+    padding: 8px;
+    position: absolute;
+    right: 0;
+    top: 1px;
+    width: auto;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="reset"]:active
+    .icon,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="reset"]:focus
+    .icon,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="reset"]:hover
+    .icon {
+    -ms-transform: scale(1.15);
+    -o-transform: scale(1.15);
+    -webkit-transform: scale(1.15);
+    transform: scale(1.15);
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="reset"]:active
+    .icon
+    > svg,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="reset"]:focus
+    .icon
+    > svg,
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="reset"]:hover
+    .icon
+    > svg {
+    fill: #0078d4;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="reset"]
+    .icon {
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s;
+    height: 13px;
+    position: relative;
+    top: -3px;
+    width: 13px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    > li.menu-search
+    > form
+    > button[type="reset"]
+    .icon
+    > svg {
+    fill: #969696;
+  }
+  .azure-header .auth {
+    max-width: 180px;
+  }
+  .azure-header .auth .authenticated button.btn-profile {
+    max-width: 180px;
+  }
+  .azure-header .auth .authenticated button.btn-profile .menu-avatar-small {
+    display: block;
+    float: right;
+    height: 14px;
+    margin-left: 12px;
+    width: 14px;
+  }
+  .azure-header .auth .authenticated button.btn-profile .menu-avatar-small svg {
+    height: 100%;
+    width: 100%;
+  }
+  .azure-header .auth .authenticated .authenticated-menu {
+    width: 270px;
+  }
+  .azure-header .auth .authenticated .authenticated-menu > li .email,
+  .azure-header .auth .authenticated .authenticated-menu > li .full-name,
+  .azure-header
+    .auth
+    .authenticated
+    .authenticated-menu
+    > li
+    .identity-provider {
+    max-width: 180px;
+  }
+}
+
+@media only screen and (min-width: 1310px) {
+  .azure-header #header-main-cta {
+    font-size: 15px;
+    padding-top: 8px;
+  }
+  .azure-header #header-main-cta:after {
+    right: 8px;
+    top: 11px;
+  }
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li {
+    font-size: 15px;
+  }
+  .azure-header.collapsed .nav-main .nav-collapsed-links > li.portal {
+    margin-top: 2px;
+  }
+  .azure-header .nav-basic {
+    padding-top: 12px;
+  }
+  .azure-header .nav-basic .nav-basic-links .my-account > a,
+  .azure-header .nav-basic .nav-basic-links .portal > a,
+  .azure-header .nav-basic .nav-basic-links .sign-in > a {
+    font-size: 15px;
+  }
+  .azure-header
+    .nav-basic
+    .nav-basic-links
+    .nav-site-search
+    > input[type="text"] {
+    font-size: 14px;
+    width: 20em;
+  }
+  .azure-header .nav-main {
+    left: 50%;
+    margin-left: -655px;
+    max-width: 1310px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    li {
+    font-size: 15px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    li.menu-search
+    > form {
+    width: 65%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    li.menu-search
+    a.see-all-products {
+    width: 35%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    li
+    nav
+    p {
+    line-height: 1.5;
+    max-width: 80%;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    li
+    nav
+    .menu-pop-subheading {
+    font-size: 14px;
+  }
+  .azure-header
+    .nav-main
+    .nav-main-links
+    > li.azure-products
+    > nav
+    .menu-drop
+    li
+    nav
+    .menu-pop
+    > li
+    > a {
+    padding-top: 8px;
+  }
+  .azure-header .nav-main .nav-main-links > li > a,
+  .azure-header .nav-main .nav-main-links > li > button {
+    font-size: 15px;
+    margin-top: -1px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .azure-header .nav-main .nav-main-links > li > a.expand-menu-link,
+  .azure-header .nav-main .nav-main-links > li > button.expand-menu-link {
+    padding-right: 24px;
+  }
+  .azure-header .nav-main .nav-main-links > li > a.expand-menu-link:after,
+  .azure-header .nav-main .nav-main-links > li > button.expand-menu-link:after {
+    right: 9px;
+  }
+  .azure-header .auth {
+    max-width: 300px;
+  }
+  .azure-header .auth .authenticated button.btn-profile {
+    max-width: 300px;
+  }
+  .azure-header .auth .authenticated button.btn-profile .menu-avatar-small {
+    margin-left: 12px;
+  }
+  .azure-header .auth .authenticated .authenticated-menu {
+    width: 280px;
+  }
+}
+
+@media (-ms-high-contrast: active) {
+  .logo-container a {
+    background: #1a1a1f;
+  }
+}
+
+.skip-nav {
+  display: none;
+}
+
+@media only screen and (min-width: 60em) {
+  .skip-nav {
+    display: block;
+    float: left;
+    text-indent: -1000em;
+  }
+  .skip-nav:focus {
+    text-indent: 0;
+  }
+}

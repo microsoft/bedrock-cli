@@ -5,10 +5,12 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles/feb02e3b.site-ltr.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="styles/ms.css ">
   <link rel="stylesheet" href="styles/spk.css ">
   <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js" integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
   <script src="./spk.js"></script>
+  <script src="./change-rels.js"></script>
   <title>SPK Commands</title>
 </head>
 <body>
@@ -36,8 +38,24 @@
 	</div>
   <div id="header">
     <div class="header-left-text">
-      <div><img width="30px" src="images/mslogo.png"></div>
-      <div class="header-text">SPK</div>
+      <header id="azure-header" class="azure-header">
+        <div class="logo-container">
+          <div><img width="30px" src="images/mslogo.png"></div>
+          <div class="header-text">SPK</div>
+        </div>
+  
+        <nav class="nav-main" aria-label="Site navigation"></nav>
+        <nav class="nav-basic" aria-label="Utility navigation">
+          <ul id="nav-main-links" class="nav-main-links">    
+            <li id="navigation-overview">
+              <a href="javascript:showCommandView();">Command</a>
+            </li>
+            <li>
+              <a href="javascript:showChangesView();">Changes</a>
+            </li>
+          </ul>
+        </nav>
+      </header>
     </div>
   </div>
   <div id="subheader">
@@ -50,11 +68,10 @@
       <span class="tinyfont">Share</span>
     </div>
   </div>
-  <div id="content">
+  <div id="content" class="page">
     <div class="content-left">
     <div class="title">SPK Commands</div>
     <div>
-      
       <div class="moniker-picker2" data-bi-name="moniker-picker" style="width:90%;margin-left:4px">
         <div class="dropdown has-margin-bottom-small">
           <button id="btnSelectRelease" class="dropdown-trigger has-flex-justify-content-start is-full-width button is-small has-border has-inner-focus" aria-expanded="false" aria-controls="ax-3">
@@ -84,6 +101,11 @@
     
     <div id="spk-details" class="content-right"></div>
   </div>
-  
+
+  <div id="changes" class="page" style="display: none">
+    <div class="title">Changes over releases</div>
+
+  </div>
+
 </body>
 </html>

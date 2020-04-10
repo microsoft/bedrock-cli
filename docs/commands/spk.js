@@ -15,8 +15,20 @@ var inheritTemplate =
 var relTemplate =
   '<li><a class="preserve-view button is-small has-border-none has-inner-focus has-flex-justify-content-start is-full-width has-text-wrap is-text-left">@@value@@</a></li>';
 
+var dataCache = {};
+
+function showChangesView() {
+  $("#content").css("display", "none");
+  $("#changes").css("display", "flex");
+}
+
+function showCommandView() {
+  $("#content").css("display", "flex");
+  $("#changes").css("display", "none");
+}
+
 function sanitize(str) {
-  return str.replace("<", "&lt;").replace(">", "&gt;");
+  return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function getExistingVersions() {
@@ -159,15 +171,20 @@ function populateListing() {
   }
   if (window.location.hash) {
     var hashTag = window.location.hash.substring(1); // remove #
-    var idx = hashTag.indexOf(sepVersion);
-    if (idx !== -1) {
-      hashTag = hashTag.substring(idx + 1);
-    }
-    var key = hashTag.replace(/_/g, " ");
-    if (cmdKeys.indexOf(key) !== -1) {
-      showDetails(key);
+
+    if (hashTag.startsWith("change_rel_")) {
+      showChangesView();
     } else {
-      showDetails(cmdKeys[0]);
+      var idx = hashTag.indexOf(sepVersion);
+      if (idx !== -1) {
+        hashTag = hashTag.substring(idx + 1);
+      }
+      var key = hashTag.replace(/_/g, " ");
+      if (cmdKeys.indexOf(key) !== -1) {
+        showDetails(key);
+      } else {
+        showDetails(cmdKeys[0]);
+      }
     }
   } else {
     showDetails(cmdKeys[0]);
@@ -188,9 +205,38 @@ var subheaderItems = function () {
   });
 };
 
+function fetchData(version, fn) {
+  if (version in dataCache) {
+    fn(dataCache[version]);
+  } else {
+    var url =
+      version === "master" ? "./data.json" : "./data" + version + ".json";
+
+    $.getJSON(url, function (json) {
+      dataCache[version] = json;
+      fn(json);
+    });
+  }
+}
+
+function fetchAllData() {
+  var cached = Object.keys(dataCache);
+  var missings = releases.filter(function (r) {
+    return cached.indexOf(r) === -1;
+  });
+  var cnt = missings.length;
+  missings.forEach(function (miss) {
+    fetchData(miss, function () {
+      cnt--;
+      if (cnt === 0) {
+        compareVersions();
+      }
+    });
+  });
+}
+
 function loadCommands() {
-  var url = version === "master" ? "./data.json" : "./data" + version + ".json";
-  $.getJSON(url, function (json) {
+  fetchData(version, function (json) {
     data = json;
     subheaderItems();
     populateListing();
@@ -199,6 +245,7 @@ function loadCommands() {
       filter = $(this).val().trim().toLowerCase();
       populateListing();
     });
+    fetchAllData();
   });
 }
 

@@ -29,17 +29,15 @@ a:visited {
 .line-space {
   height: 10px;
 }
-#content {
-  height: calc(100% - 70px);
+.page {
+  height: calc(100% - 120px);
   display: flex;
   margin: 8px;
   flex-direction: row;
   overflow: hidden;
 }
 #header {
-  height: 40px;
-  background-color: black;
-  padding: 4px;
+  height: 90px;
   display: flex;
   align-items: center;
 }
@@ -66,6 +64,8 @@ a:visited {
 }
 .header-text {
   font-weight: 600;
+  font-size: 1.25rem;
+  margin-left: 8px;
 }
 .header-left-text > div {
   margin: 4px;
@@ -127,4 +127,63 @@ a:visited {
 #releases {
   margin-left: 4px !important;
   width: 90% !important;
+}
+
+.nav-main-links li {
+  display: inline;
+  color: white;
+  margin-left: 12px !important;
+}
+
+.nav-main-links li > a:visited {
+  color: white;
+}
+
+#changes {
+  flex-direction: column;
+  width: 100%;
+  margin-top: 8px;
+  margin-left: 8px;
+  overflow: auto;
+}
+
+#changes > DIV {
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.change-header {
+  border-bottom: 1px dotted rgb(0, 101, 179);
+  color: rgb(0, 101, 179);
+  width: 95%;
+  height: 30px;
+  cursor: pointer;
+}
+
+.change-item-header {
+  font-size: 1rem;
+  color: rgb(0, 101, 179);
+}
+
+.change-option-header {
+  font-size: 0.875rem;
+  color: #333;
+}
+
+ul.change-list {
+  margin-top: -20px;
+  margin-bottom: 4px;
+  padding: 24px;
+  list-style: disc;
+}
+
+ul.change-list > li {
+  font-size: 0.875rem;
+}
+
+.option-change {
+  margin-left: 20px;
+}
+.option-change-tile {
+  color: rgb(0, 101, 179);
 }
