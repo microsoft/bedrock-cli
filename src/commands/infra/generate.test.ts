@@ -3,11 +3,13 @@ import * as fsExtra from "fs-extra";
 import path from "path";
 import simpleGit from "simple-git/promise";
 import { loadConfigurationFromLocalEnv, readYaml } from "../../config";
+import { getErrorMessage } from "../../lib/errorBuilder";
 import { safeGitUrlForLogging } from "../../lib/gitutils";
-import { removeDir } from "../../lib/ioUtil";
+import { createTempDir, removeDir } from "../../lib/ioUtil";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { InfraConfigYaml } from "../../types";
 import {
+  checkModuleSource,
   checkRemoteGitExist,
   createGenerated,
   DefinitionYAMLExistence,
@@ -19,6 +21,8 @@ import {
   gitCheckout,
   gitClone,
   gitPull,
+  inspectGeneratedSources,
+  moduleSourceModify,
   retryRemoteValidate,
   validateDefinition,
   validateRemoteSource,
@@ -41,6 +45,25 @@ interface GitTestData {
   sourcePath: string;
   safeLoggingUrl: string;
 }
+
+const mockTFData = `"aks-gitops" {
+  source = "../../azure/aks-gitops"
+  acr_enabled              = var.acr_enabled
+  agent_vm_count           = var.agent_vm_count
+};`;
+
+const mockSourceInfo = {
+  source: "https://github.com/microsoft/bedrock.git",
+  template: "cluster/environments/azure-single-keyvault",
+  version: "v0.0.1",
+};
+
+const modifedSourceModuleData = `"aks-gitops" {
+  source = "github.com/microsoft/bedrock.git?ref=v0.0.1//cluster/azure/aks-gitops/"
+  acr_enabled              = var.acr_enabled
+  agent_vm_count           = var.agent_vm_count
+};
+`;
 
 beforeAll(() => {
   enableVerboseLogging();
@@ -776,5 +799,81 @@ describe("Validate backend.tfvars file", () => {
     expect(backendTfvarsObject).toContain(
       'storage_account_name = "storage-account-name"'
     );
+  });
+});
+
+describe("test checkModuleSource function", () => {
+  it("positive test", () => {
+    let res = checkModuleSource(`source="../../azure/aks-gitops"`);
+    expect(res).toBeTruthy();
+    res = checkModuleSource(`source='../../azure/aks-gitops'`);
+    expect(res).toBeTruthy();
+    res = checkModuleSource(`source= '../../azure/aks-gitops'`);
+    expect(res).toBeTruthy();
+    res = checkModuleSource(` source = '../../azure/aks-gitops'`);
+    expect(res).toBeTruthy();
+    res = checkModuleSource(` source ='../../azure/aks-gitops'`);
+    expect(res).toBeTruthy();
+  });
+  it("negative test", () => {
+    const res = checkModuleSource(`source="/azure/aks-gitops"`);
+    expect(res).toBeFalsy();
+  });
+});
+
+describe("test moduleSourceModify function", () => {
+  it("positive test", async () => {
+    jest
+      .spyOn(generate, "revparse")
+      .mockResolvedValueOnce("cluster/azure/aks-gitops/");
+
+    const result = await moduleSourceModify(mockSourceInfo, mockTFData);
+    expect(result).toBe(modifedSourceModuleData);
+  });
+  it("negative test", async () => {
+    jest.spyOn(generate, "revparse").mockRejectedValueOnce(Error());
+
+    await expect(
+      moduleSourceModify(mockSourceInfo, mockTFData)
+    ).rejects.toThrow(getErrorMessage("infra-module-source-modify-err"));
+  });
+});
+
+describe("test inspectGeneratedSources function", () => {
+  it("positive test", async () => {
+    const folderName = createTempDir();
+    const fileName = path.join(folderName, "main.tf");
+    fs.writeFileSync(fileName, mockTFData, "utf-8");
+    jest
+      .spyOn(generate, "moduleSourceModify")
+      .mockResolvedValueOnce(modifedSourceModuleData);
+
+    await inspectGeneratedSources(folderName, mockSourceInfo);
+
+    const result = fs.readFileSync(fileName, "utf-8");
+    expect(result).toBe(modifedSourceModuleData);
+  });
+  it("positive test: there are no files", async () => {
+    const folderName = createTempDir();
+    await inspectGeneratedSources(folderName, mockSourceInfo);
+  });
+  it("positive test: file content is not modified if it does not have .tf extension", async () => {
+    const folderName = createTempDir();
+    const fileName = path.join(folderName, "main.txt");
+    fs.writeFileSync(fileName, mockTFData, "utf-8");
+
+    await inspectGeneratedSources(folderName, mockSourceInfo);
+    const result = fs.readFileSync(fileName, "utf-8");
+    expect(result).toBe(mockTFData);
+  });
+  it("negative test", async () => {
+    const folderName = createTempDir();
+    const fileName = path.join(folderName, "main.tf");
+    fs.writeFileSync(fileName, mockTFData, "utf-8");
+    jest.spyOn(generate, "moduleSourceModify").mockRejectedValueOnce(Error());
+
+    await expect(
+      inspectGeneratedSources(folderName, mockSourceInfo)
+    ).rejects.toThrow(getErrorMessage("infra-inspect-generated-sources-err"));
   });
 });

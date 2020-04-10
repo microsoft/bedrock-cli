@@ -40,6 +40,8 @@ export enum DefinitionYAMLExistence {
   PARENT_ONLY,
 }
 
+const regexSource = /^\s*source\s*=\s*["'](\.\.?\/[^"']*)["']$/gm;
+
 /**
  * Checks if definition.yaml is present locally to provided project path
  *
@@ -502,6 +504,117 @@ export const singleDefinitionGeneration = async (
 };
 
 /**
+ * Checks to see if module sources are local
+ *
+ * @param tfFile path to the terraform file in child directory
+ */
+export const checkModuleSource = (tfData: string): boolean => {
+  // Check if the file string matches an instance of a module source value as a local path
+  const matches = tfData.match(regexSource);
+  return matches !== null;
+};
+
+export const revparse = async (sPath: string): Promise<string> => {
+  return await simpleGit(sPath).revparse(["--show-prefix"]);
+};
+
+/**
+ * Checks to see if module sources are local
+ *
+ * @param sourceConfig Array of source configuration
+ */
+export const moduleSourceModify = async (
+  fileSource: SourceInformation,
+  tfData: string
+): Promise<string> => {
+  try {
+    let result = "";
+    const sourceFolder = getSourceFolderNameFromURL(fileSource.source);
+    const sourcePath = path.join(spkTemplatesPath, sourceFolder);
+
+    // Split data by line and iterate
+    for (let line of tfData.split(/\r?\n/)) {
+      // Match line to expected module source format
+      if (line.match(regexSource) !== null) {
+        // Split the line into segments, the third element is the source value
+        const splitLine = line.split(/\s+/);
+        // Filter on module source value
+        const moduleSource = new RegExp(
+          splitLine[3].replace(/['"]+/g, ""),
+          "g"
+        );
+        // Get relative path of terraform module local to the repo
+        const repoModulePath = await revparse(
+          path.join(
+            sourcePath,
+            fileSource.template,
+            splitLine[3].replace(/["']/g, "")
+          )
+        );
+        // Concatenate the Git URL with munged data
+        const gitSource = fileSource.source
+          .replace(/(^\w+:|^)\/\//g, "")
+          .concat("?ref=", fileSource.version, "//", repoModulePath);
+        // Replace the line
+        line = line.replace(moduleSource, gitSource);
+      }
+      result += line + "\n";
+    }
+    return result;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.EXE_FLOW_ERR,
+      "infra-module-source-modify-err",
+      err
+    );
+  }
+};
+
+/**
+ * Checks to see if module sources are local
+ *
+ * @param sourceConfig Array of source configuration
+ */
+export const inspectGeneratedSources = async (
+  childDirectory: string,
+  sourceConfig: SourceInformation
+): Promise<void> => {
+  try {
+    // Support for local source paths, check template directory .tf files to generate git paths for terraform modules
+    const files = fsExtra.readdirSync(childDirectory, "utf-8");
+    for (const file of files) {
+      if (path.extname(file) === ".tf") {
+        const tfData = fsExtra.readFileSync(
+          path.join(childDirectory, file),
+          "utf8"
+        );
+        const containsLocalSource = checkModuleSource(tfData);
+        if (containsLocalSource) {
+          logger.info(
+            `Local relative paths for module source values detected in terraform file: ${file}`
+          );
+          const mungeData = await moduleSourceModify(sourceConfig, tfData);
+          logger.info(
+            `Terraform File: ${file} local module source values successfully converted to git source paths`
+          );
+          fsExtra.writeFileSync(
+            path.join(childDirectory, file),
+            mungeData,
+            "utf8"
+          );
+        }
+      }
+    }
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.EXE_FLOW_ERR,
+      "infra-inspect-generated-sources-err",
+      err
+    );
+  }
+};
+
+/**
  * Creates "generated" directory if it does not already exists
  *
  * @param parentPath Path to the parent definition.yaml file
@@ -543,7 +656,6 @@ export const generateConfig = async (
       createGenerated(parentDirectory);
       createGenerated(childDirectory);
     }
-
     combineVariable(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       parentInfraConfig.variables!,
@@ -576,6 +688,8 @@ export const generateConfig = async (
       templatePath
     );
   }
+  // Modify generated TF files if it contains local sources
+  await inspectGeneratedSources(childDirectory, sourceConfig);
 };
 
 export const execute = async (

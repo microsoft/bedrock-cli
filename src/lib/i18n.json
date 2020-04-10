@@ -58,6 +58,8 @@
     "infra-scaffold-cmd-values-missing": "Values for name, version and/or 'template were missing. Provide value for values for them.",
 
     "infra-generate-cmd-failed": "Infra generate command was not successfully executed.",
+    "infra-module-source-modify-err": "Could not modify source module.",
+    "infra-inspect-generated-sources-err": "Could not generated sources.",
 
     "infra-defn-yaml-not-found": "{0} was not found in {1}",
     "infra-defn-yaml-invalid": "The {0} file is invalid. There are missing fields. template: {1} source: {2} version: {3}.",
