@@ -1,5 +1,16 @@
 # RELEASE NOTES
 
+## [0.6.1] - 2020-04-10
+
+### Added
+
+- Specific error codes to various CLI operations
+
+### Changed
+
+- Various bug fixes
+- Integration test improvements
+
 ## [0.6.0] - 2020-04-03
 
 ### Added
