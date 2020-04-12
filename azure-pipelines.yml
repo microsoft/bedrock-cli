@@ -16,7 +16,7 @@ pool:
   vmImage: "ubuntu-latest"
 
 variables:
-- group: 'spk-vg'
+- group: 'bedrock-cli-vg'
 
 steps:
   - task: NodeTool@0
