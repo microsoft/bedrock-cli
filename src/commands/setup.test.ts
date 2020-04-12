@@ -341,7 +341,7 @@ describe("test getErrorMessage function", () => {
   });
 });
 
-const testCreateAppRepoTasks = async (prApproved = true): Promise<void> => {
+const testCreateAppRepoTasks = async (): Promise<void> => {
   const mockRc: RequestContext = {
     orgName: "org",
     projectName: "project",
@@ -366,15 +366,10 @@ const testCreateAppRepoTasks = async (prApproved = true): Promise<void> => {
   jest
     .spyOn(pipelineService, "createLifecyclePipeline")
     .mockResolvedValueOnce();
-  jest
-    .spyOn(promptInstance, "promptForApprovingHLDPullRequest")
-    .mockResolvedValueOnce(prApproved);
-  if (prApproved) {
-    jest.spyOn(pipelineService, "createBuildPipeline").mockResolvedValueOnce();
-    jest
-      .spyOn(promptInstance, "promptForApprovingHLDPullRequest")
-      .mockResolvedValueOnce(prApproved);
-  }
+  jest.spyOn(gitService, "completePullRequest").mockResolvedValueOnce();
+
+  jest.spyOn(pipelineService, "createBuildPipeline").mockResolvedValueOnce();
+  jest.spyOn(gitService, "completePullRequest").mockResolvedValueOnce();
 
   const res = await createAppRepoTasks(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -383,13 +378,12 @@ const testCreateAppRepoTasks = async (prApproved = true): Promise<void> => {
     {} as any, // buildAPI
     mockRc
   );
-  expect(res).toBe(prApproved);
+  expect(res).toBe(true);
 };
 
 describe("test createAppRepoTasks function", () => {
   it("positive test", async () => {
     await testCreateAppRepoTasks();
-    await testCreateAppRepoTasks(false);
   });
 });
 
