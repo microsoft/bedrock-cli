@@ -106,8 +106,8 @@ If you wish to run these tests locally, skip ahead to
 ## Requirements
 
 1. Azure DevOps Organization and Project
-2. Create variable group named `spk-vg`. Inside the variable group have the
-   following key/values:
+2. Create variable group named `bedrock-cli-vg`. Inside the variable group have
+   the following key/values:
 
    - AZDO_PROJECT (e.g. `bedrock`)
    - AZDO_ORG (e.g. `epicstuff`)
