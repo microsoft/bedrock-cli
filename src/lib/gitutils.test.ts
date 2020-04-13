@@ -362,14 +362,14 @@ describe("getRepositoryName", () => {
     const originUrl = "https://github.com/microsoft/bedrock-cli.git";
     const repositoryName = getRepositoryName(originUrl);
 
-    expect(repositoryName).toEqual(`spk`);
+    expect(repositoryName).toEqual(`bedrock-cli`);
   });
 
   it("returns the repository name for a GitHub SSH origin url.", () => {
     const originUrl = "git@github.com:microsoft/bedrock-cli.git";
     const repositoryName = getRepositoryName(originUrl);
 
-    expect(repositoryName).toEqual(`spk`);
+    expect(repositoryName).toEqual(`bedrock-cli`);
   });
 
   it("Returns a help message for unknown or unsupported git providers.", () => {
