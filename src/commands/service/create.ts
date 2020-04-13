@@ -286,50 +286,39 @@ export const execute = async (
   opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
-  if (!serviceName) {
-    logError(
-      buildError(
+  try {
+    if (!serviceName) {
+      throw buildError(
         errorStatusCode.CMD_EXE_ERR,
         "service-create-cmd-service-name-missing-err"
-      )
-    );
-    await exitFn(1);
-    return;
-  }
+      );
+    }
 
-  if (!servicePath) {
-    logError(
-      buildError(
+    if (!servicePath) {
+      throw buildError(
         errorStatusCode.CMD_EXE_ERR,
         "service-create-cmd-service-path-missing-err"
-      )
-    );
-    await exitFn(1);
-    return;
-  }
+      );
+    }
 
-  // validate user inputs are DNS compliant
-  try {
-    dns.assertIsValid("<service-name>", serviceName);
-    assertValidDnsInputs(opts);
-  } catch (err) {
-    logError(
-      buildError(
+    // validate user inputs are DNS compliant
+    try {
+      dns.assertIsValid("<service-name>", serviceName);
+      assertValidDnsInputs(opts);
+    } catch (err) {
+      throw buildError(
         errorStatusCode.CMD_EXE_ERR,
         "service-create-cmd-service-name-dns-invalid-err",
         err
-      )
-    );
-    await exitFn(1);
-  }
+      );
+    }
 
-  // Sanity checking the specified Helm URLs
-  await validateGitUrl(opts.helmConfigGit, exitFn);
+    // Sanity checking the specified Helm URLs
+    await validateGitUrl(opts.helmConfigGit, exitFn);
 
-  const projectPath = process.cwd();
-  logger.verbose(`project path: ${projectPath}`);
+    const projectPath = process.cwd();
+    logger.verbose(`project path: ${projectPath}`);
 
-  try {
     checkDependencies(projectPath);
     const values = fetchValues(opts);
     await createService(projectPath, serviceName, servicePath, values);
