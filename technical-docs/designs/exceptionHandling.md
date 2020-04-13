@@ -166,4 +166,4 @@ We have to be careful so we do not expose secrets/passwords in logs.
 ## 7. Documentations
 
 A formal document to be created and posted under
-https://github.com/CatalystCode/spk/tree/master/guides
+https://github.com/microsoft/bedrock-cli/tree/master/guides

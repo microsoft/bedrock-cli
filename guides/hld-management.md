@@ -35,9 +35,9 @@ spk hld [command] [options]
 
 ## Commands:
 
-- [init](https://catalystcode.github.io/spk/commands/index.html#hld_init)
-- [install-manifest-pipeline](https://catalystcode.github.io/spk/commands/index.html#hld_install-manifest-pipeline)
-- [reconcile](https://catalystcode.github.io/spk/commands/index.html#hld_reconcile)
+- [init](https://microsoft.github.io/bedrock-cli/commands/index.html#hld_init)
+- [install-manifest-pipeline](https://microsoft.github.io/bedrock-cli/commands/index.html#hld_install-manifest-pipeline)
+- [reconcile](https://microsoft.github.io/bedrock-cli/commands/index.html#hld_reconcile)
 
 ## Global options:
 

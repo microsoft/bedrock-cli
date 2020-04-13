@@ -256,7 +256,7 @@ export const createTestBedrockYaml = (
   const service1HelmConfig: HelmConfig = {
     chart: {
       branch: "master",
-      git: "https://github.com/catalystcode/spk-demo-repo.git",
+      git: "https://github.com/microsoft/bedrock-cli-demo-repo.git",
       path: "",
     },
   };
@@ -264,7 +264,7 @@ export const createTestBedrockYaml = (
   const service2HelmConfig: HelmConfig = {
     chart: {
       branch: "master",
-      git: "https://github.com/catalystcode/spk-demo-repo.git",
+      git: "https://github.com/microsoft/bedrock-cli-demo-repo.git",
       path: "/service1",
     },
   };

@@ -31,7 +31,7 @@ PATCH version when you make backwards compatible bug fixes
 ### 3.1 What is included in a release
 
 All releases will have a git tag in the
-[releases](https://github.com/CatalystCode/spk/releases) section of the Bedrock
+[releases](https://github.com/microsoft/bedrock-cli/releases) section of the Bedrock
 CLI repository. Each release will mention:
 
 - What has been added

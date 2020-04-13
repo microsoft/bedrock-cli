@@ -12,8 +12,8 @@ spk infra [command] [options]
 
 ## Commands
 
-- [scaffold](#https://catalystcode.github.io/spk/commands/index.html#infra_generate)
-- [generate](#https://catalystcode.github.io/spk/commands/index.html#infra_scaffold)
+- [scaffold](#https://microsoft.github.io/bedrock-cli/commands/index.html#infra_generate)
+- [generate](#https://microsoft.github.io/bedrock-cli/commands/index.html#infra_scaffold)
 
 ## Handling Secrets
 

@@ -130,4 +130,4 @@ log with `logError` function.
 
 ## Reference
 
-1. https://github.com/CatalystCode/spk/blob/master/technical-docs/designs/exceptionHandling.md
+1. https://github.com/microsoft/bedrock-cli/blob/master/technical-docs/designs/exceptionHandling.md

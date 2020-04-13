@@ -113,7 +113,7 @@ E.g.
    > You did not enter value for organization name. Please provide value for it.
 
 3. All error shall be created with the error builder,
-   https://github.com/CatalystCode/spk/blob/master/src/lib/errorBuilder.ts so
+   https://github.com/microsoft/bedrock-cli/blob/master/src/lib/errorBuilder.ts so
    that we can generate the exception chain. In this manner, we can precisely
    know the root cause of the problem. For more information, refer to
    [error handling](./error-handling.md).

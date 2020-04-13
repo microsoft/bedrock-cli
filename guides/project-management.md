@@ -17,9 +17,9 @@ Initialize and manage your Bedrock project.
 
 ## Commands
 
-- [init](https://catalystcode.github.io/spk/commands/index.html#project_init)
-- [create-variable-group](https://catalystcode.github.io/spk/commands/index.html#project_create-variable-group)
-- [install-lifecycle-pipeline](https://catalystcode.github.io/spk/commands/index.html#project_install-lifecycle-pipeline)
+- [init](https://microsoft.github.io/bedrock-cli/commands/index.html#project_init)
+- [create-variable-group](https://microsoft.github.io/bedrock-cli/commands/index.html#project_create-variable-group)
+- [install-lifecycle-pipeline](https://microsoft.github.io/bedrock-cli/commands/index.html#project_install-lifecycle-pipeline)
 
 **Please note all project management commands must run in the order as listed
 above.**

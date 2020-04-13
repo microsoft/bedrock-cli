@@ -9,4 +9,4 @@ created. Otherwise, the storage access key will need to be specified in
 environment variables manually.
 
 See
-[Prerequisites](https://github.com/CatalystCode/spk/blob/master/guides/service-introspection.md#prerequisites)
+[Prerequisites](https://github.com/microsoft/bedrock-cli/blob/master/guides/service-introspection.md#prerequisites)

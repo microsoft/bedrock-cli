@@ -200,7 +200,7 @@ var subheaderItems = function () {
     $("#sharing-menu").css("display", "none");
   });
   $("#item_contribute").click(function (evt) {
-    var win = window.open("https://github.com/CatalystCode/spk", "_blank");
+    var win = window.open("https://github.com/microsoft/bedrock-cli", "_blank");
     win.focus();
   });
 };

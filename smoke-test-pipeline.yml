@@ -16,7 +16,7 @@ stages:
     jobs:
       - job: introspection_onboard_integration_test
         variables:
-          - group: "spk-vg"
+          - group: "bedrock-cli-vg"
         pool:
           vmImage: "Ubuntu 16.04"
         steps:
@@ -89,7 +89,7 @@ stages:
             timeoutInMinutes: 15
       - job: rings_integration_tests
         variables:
-          - group: "spk-vg"
+          - group: "bedrock-cli-vg"
         pool:
           vmImage: "Ubuntu 16.04"
         steps:
@@ -169,7 +169,7 @@ stages:
             condition: always()
       - job: infra_integration_tests
         variables:
-          - group: "spk-vg-testing"
+          - group: "bedrock-cli-vg-infra"
         pool:
           vmImage: "Ubuntu 16.04"
         steps:
