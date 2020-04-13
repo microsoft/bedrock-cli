@@ -29,7 +29,7 @@ $ spk init ./spk-config.yaml
 ```
 
 This takes the configuration file, which he created
-[following this pattern](https://github.com/CatalystCode/spk/blob/master/spk-config.yaml),
+[following this pattern](https://github.com/microsoft/bedrock-cli/blob/master/spk-config.yaml),
 that contains configuration details like Azure access tokens, validates that the
 prerequisite tools that `spk` relies on (like `git`, `az`, etc.) are installed,
 inventories their versions, validates that the version being run is compatible
