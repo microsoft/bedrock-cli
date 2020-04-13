@@ -259,6 +259,11 @@
 
     "project-init-cmd-failed": "Project init was not successfully executed.",
 
+    "service-install-build-pipeline-cmd-failed": "Service install build pipeline was not successfully executed.",
+    "service-install-build-pipeline-cmd-pipeline-creation-err": "Error occurred when creating pipeline '{0}'. See the error details.",
+    "service-install-build-pipeline-cmd-id-missing-err": "Parameter 'id' was not found in '{0}'. Specify a value for 'id'.",
+    "service-install-build-pipeline-cmd-queue-build-err": "Error occurred queueing build for '{0}'. See error details.",
+
     "service-create-revision-cmd-failed": "Service create revision was not successfully executed.",
     "service-create-revision-cmd-err-pr-source-branch": "A pull request for a branch cannot be made against itself. Ensure your target branch(es) '{0}' do not include your source branch '{1}'",
     "service-create-revision-cmd-err-default-branch-missing": "Default branch/ring was not found. Specify the default branch/ring in {0} or provide it via --target-branch",
