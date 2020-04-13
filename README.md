@@ -1,7 +1,7 @@
 # SPK
 
-[![Build Status](https://dev.azure.com/epicstuff/bedrock/_apis/build/status/CatalystCode.spk?branchName=master)](https://dev.azure.com/epicstuff/bedrock/_build/latest?definitionId=128&branchName=master)
-![Azure DevOps coverage](https://img.shields.io/azure-devops/coverage/epicstuff/bedrock/128/master)
+[![Build Status](https://dev.azure.com/epicstuff/bedrock/_apis/build/status/CatalystCode.spk?branchName=master)](https://dev.azure.com/epicstuff/bedrock/_build/latest?definitionId=2328&branchName=master)
+![Azure DevOps coverage](https://img.shields.io/azure-devops/coverage/epicstuff/bedrock/2328/master)
 
 `spk` helps you automate, manage, and observe Kubernetes deployment operations
 based on [Bedrock](http://aka.ms/bedrock) patterns and principles.
@@ -85,7 +85,7 @@ You will find several guides to help you get started on each of the areas at
 
 ## CLI Command Reference
 
-> https://catalystcode.github.io/spk/commands/
+> https://microsoft.github.io/bedrock-cli/commands/
 
 ## Contributing
 
