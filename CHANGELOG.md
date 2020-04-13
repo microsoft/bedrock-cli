@@ -1,5 +1,11 @@
 # RELEASE NOTES
 
+## [0.6.2] - 2020-04-12
+
+### Changed
+
+- Various build fixes
+
 ## [0.6.1] - 2020-04-10
 
 ### Added
