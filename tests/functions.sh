@@ -531,7 +531,6 @@ function approve_pull_request () {
     all_prs="${all_prs//\\n/}" #Escape the JSON result
 
     pr_exists=$(echo $all_prs | sed 's/\\r\\n//g' | jq -r --arg pr_title "$pr_title" '.[].title | select(startswith($pr_title)) != null')
-    echo "pr_exists=$pr_exists"
     if [ "$pr_exists" != "true" ]; then
         if [ $pr_exists != *"true"* ]; then
             echo "PR for '$pr_title' not found"
