@@ -531,12 +531,15 @@ function approve_pull_request () {
     all_prs="${all_prs//\\n/}" #Escape the JSON result
 
     pr_exists=$(echo $all_prs | sed 's/\\r\\n//g' | jq -r --arg pr_title "$pr_title" '.[].title | select(startswith($pr_title)) != null')
+    echo "pr_exists=$pr_exists"
     if [ "$pr_exists" != "true" ]; then
-        echo "PR for '$pr_title' not found"
-        exit 1
+        if [ $pr_exists != *"true"* ]; then
+            echo "PR for '$pr_title' not found"
+            exit 1
+        fi
     fi
     real_title=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[].title | startswith($pr_title)) | .[].title' | head -n 1)
-    pull_request_id=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[].title | startswith($pr_title)) | .[0].pullRequestId')
+    pull_request_id=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[0].title | startswith($pr_title)) | .[0].pullRequestId')
     echo "Found pull request starting with phrase '$pr_title'"
     echo "Pull request id $pull_request_id is '$real_title'"
 
