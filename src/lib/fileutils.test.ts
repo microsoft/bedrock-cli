@@ -191,6 +191,8 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
       [],
       "my-service",
       path.join(targetDirectory, serviceDirectory),
+      [],
+      [],
       []
     );
     expect(writeSpy).not.toBeCalled();
@@ -205,6 +207,8 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
       [],
       "my-service",
       path.join(targetDirectory, serviceDirectory),
+      [],
+      [],
       []
     );
 
@@ -746,7 +750,9 @@ describe("serviceBuildUpdatePipeline", () => {
         ringBranches,
         serviceReference.serviceName,
         serviceReference.servicePath,
-        variableGroups
+        variableGroups,
+        [],
+        []
       );
 
       // file should exist

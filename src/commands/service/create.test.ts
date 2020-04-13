@@ -63,6 +63,10 @@ const mockValues: CommandValues = {
   pathPrefixMajorVersion: "",
   ringNames: [],
   variableGroups: [],
+  serviceBuildVg: "",
+  serviceVgArray: [],
+  serviceBuildVariables: "",
+  serviceVariablesArray: [],
 };
 
 const getMockValues = (): CommandValues => {

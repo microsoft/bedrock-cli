@@ -76,7 +76,9 @@ describe("Adding a new service to a Bedrock file", () => {
       k8sBackendPort,
       k8sBackend,
       pathPrefix,
-      pathPrefixMajorVersion
+      pathPrefixMajorVersion,
+      [],
+      []
     );
 
     const expected: BedrockFile = {

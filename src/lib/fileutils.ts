@@ -138,12 +138,16 @@ export const serviceBuildAndUpdatePipeline = (
   serviceName: string,
   relServicePath: string,
   ringBranches: string[],
-  variableGroups?: string[]
+  variableGroups?: string[],
+  serviceBuildVg?: string[],
+  serviceBuildVariables?: string[]
 ): AzurePipelinesYaml => {
   const relativeServicePathFormatted = sanitizeTriggerPath(relServicePath);
   const relativeServiceForDockerfile = relServicePath.startsWith("./")
     ? relServicePath
     : "./" + relServicePath;
+  const test = (serviceBuildVariables ?? []).map((group) => ({ group }));
+  logger.info(`${test}`);
 
   const pipelineYaml: AzurePipelinesYaml = {
     trigger: {
@@ -157,7 +161,10 @@ export const serviceBuildAndUpdatePipeline = (
             },
           }),
     },
-    variables: [...(variableGroups ?? []).map((group) => ({ group }))],
+    variables: [
+      ...(variableGroups ?? []).map((group) => ({ group })),
+      ...(serviceBuildVg ?? []).map((group) => ({ group })),
+    ],
     stages: [
       {
         // Build stage
@@ -195,16 +202,17 @@ export const serviceBuildAndUpdatePipeline = (
               },
               {
                 script: generateYamlScript([
-                  `. ./build.sh --source-only`,
-                  `get_spk_version`,
-                  `download_spk`,
                   `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
                   `tag_name="$BUILD_REPO_NAME:${IMAGE_TAG}"`,
                   `commitId=$(Build.SourceVersion)`,
                   `commitId=$(echo "\${commitId:0:7}")`,
-                  `service=$(./spk/spk service get-display-name -p ${relativeServiceForDockerfile})`,
+                  `service=$(Build.Repository.Name)`,
+                  `service=\${service##*/}`,
                   `url=$(git remote --verbose | grep origin | grep fetch | cut -f2 | cut -d' ' -f1)`,
                   `repourl=\${url##*@}`,
+                  `. ./build.sh --source-only`,
+                  `get_spk_version`,
+                  `download_spk`,
                   `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p1 $(Build.BuildId) --image-tag $tag_name --commit-id $commitId --service $service --repository $repourl`,
                 ]),
                 displayName:
@@ -214,6 +222,12 @@ export const serviceBuildAndUpdatePipeline = (
               },
               {
                 script: generateYamlScript([
+                  // Iterate through serviceBuildVariables, export each variable, then append as build argument
+                  `ACR_BUILD_BASE_COMMAND='az acr build -r $(ACR_NAME) --image $IMAGE_NAME .'`,
+                  `SERVICE_BUILD_VARIABLES=$(echo ${serviceBuildVariables} | tr "," " " )`,
+                  `echo "Service Variables: $SERVICE_BUILD_VARIABLES`,
+                  `VARIABLES_ARRAY=(echo $SERVICE_BUILD_VARIABLES)`,
+                  `for i in \${VARIABLES_ARRAY[@]}; do export $i=\${i} ; ACR_BUILD_BASE_COMMAND+=" --build-arg $i=\${i}" ; done`,
                   `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
                   `export IMAGE_TAG=${IMAGE_TAG}`,
                   `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
@@ -393,7 +407,9 @@ export const generateServiceBuildAndUpdatePipelineYaml = (
   ringBranches: string[],
   serviceName: string,
   servicePath: string,
-  variableGroups: string[]
+  variableGroups: string[],
+  serviceVgArray: string[],
+  serviceVariablesArray: string[]
 ): void => {
   const absProjectRoot = path.resolve(projectRoot);
   const absServicePath = path.resolve(servicePath);
@@ -422,7 +438,9 @@ export const generateServiceBuildAndUpdatePipelineYaml = (
     serviceName,
     path.relative(absProjectRoot, absServicePath),
     ringBranches,
-    variableGroups
+    variableGroups,
+    serviceVgArray,
+    serviceVariablesArray
   );
 
   writeVersion(pipelineYamlFullPath);
@@ -577,7 +595,7 @@ const manifestGenerationPipelineYaml = (): string => {
         displayName:
           "If configured, update manifest pipeline details in Spektate db before manifest generation",
         condition:
-          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''), ne(variables['Build.Reason'], 'PullRequest'))",
+          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''))",
       },
       {
         task: "ShellScript@2",
@@ -619,7 +637,7 @@ const manifestGenerationPipelineYaml = (): string => {
         displayName:
           "If configured, update manifest pipeline details in Spektate db after manifest generation",
         condition:
-          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''), ne(variables['Build.Reason'], 'PullRequest'))",
+          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''))",
       },
     ],
   };
