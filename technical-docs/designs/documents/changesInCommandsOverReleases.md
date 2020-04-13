@@ -23,14 +23,14 @@ document to show changes between releases.
 This design shall only target making user experience better by providing
 information on changes in commands between releases based on the artifacts that
 we generated for each releases. that's all the `data*.json` files in
-https://github.com/CatalystCode/spk/tree/master/docs/commands
+https://github.com/microsoft/bedrock-cli/tree/master/docs/commands
 
 ## 3. Design Details
 
 ### 3.1 Data set
 
 We have a `txt` file that contains all the release numbers and master branch.
-https://github.com/CatalystCode/spk/blob/master/docs/commands/releases.txt. We
+https://github.com/microsoft/bedrock-cli/blob/master/docs/commands/releases.txt. We
 know the releases to compare by sorting them in descending order. e.g.
 
 ```

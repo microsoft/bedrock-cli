@@ -239,7 +239,7 @@ describe("Validate Git URLs", () => {
 
   it("Should not error when providing a valid github https url", () => {
     const exitFn = jest.fn();
-    const helmConfigPath = "https://github.com/CatalystCode/spk.git";
+    const helmConfigPath = "https://github.com/microsoft/bedrock-cli.git";
 
     validateGitUrl(helmConfigPath, exitFn);
     expect(exitFn).toBeCalledTimes(0);
@@ -264,7 +264,7 @@ describe("Validate Git URLs", () => {
 
   it("Should not error when providing a valid github git+ssh url", () => {
     const exitFn = jest.fn();
-    const helmConfigPath = "git@github.com:CatalystCode/spk.git";
+    const helmConfigPath = "git@github.com:microsoft/bedrock-cli.git";
 
     validateGitUrl(helmConfigPath, exitFn);
     expect(exitFn).toBeCalledTimes(0);

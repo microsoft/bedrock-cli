@@ -2,7 +2,7 @@
 
 This document describes the workflow for deploying a set of services
 [Bedrock](https://github.com/microsoft/bedrock/) workflows via the
-[spk](https://github.com/catalystcode/spk) CLI tool.
+[spk](https://github.com/microsoft/bedrock-cli) CLI tool.
 
 ## High Level Overview
 
@@ -44,7 +44,7 @@ This guide assumes a few things as requirements to use this automation:
    [Azure Container Registry](https://azure.microsoft.com/en-us/services/container-registry/)
 3. The user running `spk` has full access to the above resources.
 4. The user is running the latest `spk`
-   [release](https://github.com/catalystcode/spk/releases).
+   [release](https://github.com/microsoft/bedrock-cli/releases).
 5. The user has
    [Azure CLI installed](https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest).
 6. The user is running [git](http://git-scm.org) version
@@ -62,7 +62,7 @@ operating Kubernetes clusters with Bedrock principles.
 ### Setup SPK
 
 Download the latest version of `spk` from the
-[releases](https://github.com/catalystcode/spk/releases) page and add it to your
+[releases](https://github.com/microsoft/bedrock-cli/releases) page and add it to your
 PATH.
 
 To setup a local configuration:

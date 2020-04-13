@@ -63,7 +63,7 @@ With this new property, we have the opportunities to
 ### 3.2 Add inheritance information in operation help document
 
 In the
-[spk.js](https://github.com/CatalystCode/spk/blob/master/docs/commands/spk.js)
+[spk.js](https://github.com/microsoft/bedrock-cli/blob/master/docs/commands/spk.js)
 javascript, we can add code to insert inheritance information like this.
 
 <p style="text-align:center">

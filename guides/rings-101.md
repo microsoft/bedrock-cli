@@ -63,7 +63,7 @@ Traefik2 to the correct _Ringed Service_ based on the service requested and the
 
 ### Prerequisites
 
-[SPK](https://github.com/CatalystCode/spk) is command line tool meant to ease
+[SPK](https://github.com/microsoft/bedrock-cli) is command line tool meant to ease
 the adoption of [Bedrock](https://github.com/microsoft/bedrock/) methodologies
 and patterns. With SPK, rings are first class citizens and are managed/tracked
 alongside your services, enabling quick scaffolding and deployment of your

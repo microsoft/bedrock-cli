@@ -139,7 +139,7 @@ If you wish to run these tests locally, skip ahead to
 ## How to find Definition and Project Ids
 
 Navigate to your SPK build pipeline in Azure DevOps. Pay attention to the URL in
-the browser. The example below is for the CatalystCode.spk pipeline. The
+the browser. The example below is for the microsoft.bedrock-cli pipeline. The
 definition id is 128. ![definitionid](./images/definitionid.png)
 
 You can find the project id but navigating tot

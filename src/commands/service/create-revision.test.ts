@@ -255,7 +255,7 @@ describe("test getRemoteUrl function", () => {
     expect(getRemoteUrl(undefined)).resolves.toMatch(/(.*?)\/spk/i);
   });
   it("sanity test", () => {
-    const url = "https://github.com/CatalystCode/spk1";
+    const url = "https://github.com/microsoft/bedrock-cli1";
     expect(getRemoteUrl(url)).resolves.toBe(url);
   });
 });

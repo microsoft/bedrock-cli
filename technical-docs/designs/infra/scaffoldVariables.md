@@ -107,7 +107,7 @@ special case of this file.
 ## 6. Documentation
 
 Documentation should be done in the
-[`md` file](https://github.com/CatalystCode/spk/blob/master/src/commands/infra/scaffold.md)
+[`md` file](https://github.com/microsoft/bedrock-cli/blob/master/src/commands/infra/scaffold.md)
 that are associated with `spk infra scaffold` command.
 
 \- end -

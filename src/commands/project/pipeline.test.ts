@@ -28,7 +28,7 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
-const gitUrl = "https://github.com/CatalystCode/spk.git";
+const gitUrl = "https://github.com/microsoft/bedrock-cli.git";
 
 const mockValues: ConfigValues = {
   buildScriptUrl: "buildScriptUrl",
