@@ -34,7 +34,7 @@ it or use an existing one.
 **Option 1:**
 
 Use the
-[`spk deployment onboard`](https://catalystcode.github.io/spk/commands/#master@deployment_onboard)
+[`spk deployment onboard`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_onboard)
 command.
 
 **Option 2:**
@@ -231,10 +231,10 @@ After completing the steps in this guide, you should be able to:
 
 - Validate and verify the `spk-config.yaml` settings and the service
   introspection storage using
-  [`spk deployment validate`](https://catalystcode.github.io/spk/commands/#master@deployment_validate)
+  [`spk deployment validate`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_validate)
 
 - Get information about your deployment using
-  [`spk deployment get`](https://catalystcode.github.io/spk/commands/#master@deployment_get)
+  [`spk deployment get`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_get)
 
 - Launch the dashboard to visualize the data using
-  [`spk deployment dashboard`](https://catalystcode.github.io/spk/commands/#master@deployment_dashboard)
+  [`spk deployment dashboard`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_dashboard)

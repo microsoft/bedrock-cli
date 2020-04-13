@@ -20,10 +20,10 @@ spk deployment [command] [options]
 
 Commands:
 
-- [validate](https://catalystcode.github.io/spk/commands/index.html#deployment_validate)
-- [get](https://catalystcode.github.io/spk/commands/index.html#deployment_get)
-- [onboard](https://catalystcode.github.io/spk/commands/index.html#deployment_onboard)
-- [dashboard](https://catalystcode.github.io/spk/commands/index.html#deployment_dashboard)
+- [validate](https://microsoft.github.io/bedrock-cli/commands/index.html#deployment_validate)
+- [get](https://microsoft.github.io/bedrock-cli/commands/index.html#deployment_get)
+- [onboard](https://microsoft.github.io/bedrock-cli/commands/index.html#deployment_onboard)
+- [dashboard](https://microsoft.github.io/bedrock-cli/commands/index.html#deployment_dashboard)
 
 Global options:
 

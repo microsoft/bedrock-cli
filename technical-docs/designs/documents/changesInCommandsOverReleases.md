@@ -11,12 +11,12 @@ Andre Briggs, Dennis Seah
 ## 1. Overview
 
 We have a set of document for each command at
-https://catalystcode.github.io/spk/commands. Our users/customers can use this as
-a reference for all commands supported in each release. They also need to know
-the changes in between releases so that they adapt to these changes (if needed)
-accordingly. They can eye-ball for the changes by comparing the document between
-releases; and it is tedious. In this document, we discuss how to generate
-document to show changes between releases.
+https://microsoft.github.io/bedrock-cli/commands. Our users/customers can use
+this as a reference for all commands supported in each release. They also need
+to know the changes in between releases so that they adapt to these changes (if
+needed) accordingly. They can eye-ball for the changes by comparing the document
+between releases; and it is tedious. In this document, we discuss how to
+generate document to show changes between releases.
 
 ## 2. Out of Scope
 
@@ -30,8 +30,8 @@ https://github.com/microsoft/bedrock-cli/tree/master/docs/commands
 ### 3.1 Data set
 
 We have a `txt` file that contains all the release numbers and master branch.
-https://github.com/microsoft/bedrock-cli/blob/master/docs/commands/releases.txt. We
-know the releases to compare by sorting them in descending order. e.g.
+https://github.com/microsoft/bedrock-cli/blob/master/docs/commands/releases.txt.
+We know the releases to compare by sorting them in descending order. e.g.
 
 ```
 master

@@ -63,11 +63,11 @@ Traefik2 to the correct _Ringed Service_ based on the service requested and the
 
 ### Prerequisites
 
-[SPK](https://github.com/microsoft/bedrock-cli) is command line tool meant to ease
-the adoption of [Bedrock](https://github.com/microsoft/bedrock/) methodologies
-and patterns. With SPK, rings are first class citizens and are managed/tracked
-alongside your services, enabling quick scaffolding and deployment of your
-services to your rings.
+[SPK](https://github.com/microsoft/bedrock-cli) is command line tool meant to
+ease the adoption of [Bedrock](https://github.com/microsoft/bedrock/)
+methodologies and patterns. With SPK, rings are first class citizens and are
+managed/tracked alongside your services, enabling quick scaffolding and
+deployment of your services to your rings.
 
 ### Creating/Adding a Ring
 
@@ -193,7 +193,7 @@ spec:
 
 In addition this property is used by the `spk service create-revision` command.
 Details can be found
-[here.](https://catalystcode.github.io/spk/commands/index.html#service_create-revision)
+[here.](https://microsoft.github.io/bedrock-cli/commands/index.html#service_create-revision)
 
 Note: there can only be 1 (one) ringed marked as `isDefault`.
 
