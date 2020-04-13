@@ -33,7 +33,7 @@ import {
 } from "../../lib/pipelines/pipelines";
 import { logger } from "../../logger";
 import decorator from "./pipeline.decorator.json";
-import { build as buildError } from "../../lib/errorBuilder";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
 import { errorStatusCode } from "../../lib/errorStatusCode";
 import {
   validateOrgNameThrowable,
@@ -139,26 +139,35 @@ export const installBuildUpdatePipeline = async (
       definition
     );
   } catch (err) {
-    logger.error(err); // caller will catch it and exit
-    throw Error(
-      `Error occurred during pipeline creation for ${values.pipelineName}`
+    throw buildError(
+      errorStatusCode.CMD_EXE_ERR,
+      {
+        errorKey: "service-install-build-pipeline-cmd-pipeline-creation-err",
+        values: [values.pipelineName],
+      },
+      err
     );
   }
   if (typeof builtDefinition.id === "undefined") {
     const builtDefnString = JSON.stringify(builtDefinition);
-    throw Error(
-      `Invalid BuildDefinition created, parameter 'id' is missing from ${builtDefnString}`
-    );
+    throw buildError(errorStatusCode.VALIDATION_ERR, {
+      errorKey: "service-create-revision-cmd-err-source-branch-missing",
+      values: [builtDefnString],
+    });
   }
   logger.info(`Created pipeline for ${values.pipelineName}`);
   logger.info(`Pipeline ID: ${builtDefinition.id}`);
   try {
     await queueBuild(devopsClient, values.devopsProject, builtDefinition.id);
   } catch (err) {
-    logger.error(
-      `Error occurred when queueing build for ${values.pipelineName}`
+    throw buildError(
+      errorStatusCode.CMD_EXE_ERR,
+      {
+        errorKey: "service-install-build-pipeline-cmd-queue-build-err",
+        values: [values.pipelineName],
+      },
+      err
     );
-    throw err; // caller will catch it and exit
   }
 };
 
@@ -204,7 +213,14 @@ export const execute = async (
     await installBuildUpdatePipeline(pipelinesYamlPath, opts);
     await exitFn(0);
   } catch (err) {
-    logger.error(err);
+    logError(
+      buildError(
+        errorStatusCode.CMD_EXE_ERR,
+        "service-install-build-pipeline-cmd-failed",
+        err
+      )
+    );
+
     await exitFn(1);
   }
 };
