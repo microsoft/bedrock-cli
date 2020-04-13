@@ -1,6 +1,6 @@
 # SPK
 
-[![Build Status](https://dev.azure.com/epicstuff/bedrock/_apis/build/status/CatalystCode.spk?branchName=master)](https://dev.azure.com/epicstuff/bedrock/_build/latest?definitionId=2328&branchName=master)
+[![Build Status](https://dev.azure.com/epicstuff/bedrock/_apis/build/status/microsoft.bedrock-cli?branchName=master)](https://dev.azure.com/epicstuff/bedrock/_build/latest?definitionId=2328&branchName=master)
 ![Azure DevOps coverage](https://img.shields.io/azure-devops/coverage/epicstuff/bedrock/2328/master)
 
 `spk` helps you automate, manage, and observe Kubernetes deployment operations
@@ -21,7 +21,7 @@ Key features:
 ## Install
 
 Download pre-compiled binaries of SPK on the
-[release](https://github.com/CatalystCode/spk/releases) page.
+[release](https://github.com/microsoft/bedrock-cli/releases) page.
 
 ## CLI
 

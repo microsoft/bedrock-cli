@@ -359,17 +359,17 @@ describe("getRepositoryName", () => {
   });
 
   it("returns the repository name for a GitHub HTTPS origin url.", () => {
-    const originUrl = "https://github.com/CatalystCode/spk.git";
+    const originUrl = "https://github.com/microsoft/bedrock-cli.git";
     const repositoryName = getRepositoryName(originUrl);
 
-    expect(repositoryName).toEqual(`spk`);
+    expect(repositoryName).toEqual(`bedrock-cli`);
   });
 
   it("returns the repository name for a GitHub SSH origin url.", () => {
-    const originUrl = "git@github.com:CatalystCode/spk.git";
+    const originUrl = "git@github.com:microsoft/bedrock-cli.git";
     const repositoryName = getRepositoryName(originUrl);
 
-    expect(repositoryName).toEqual(`spk`);
+    expect(repositoryName).toEqual(`bedrock-cli`);
   });
 
   it("Returns a help message for unknown or unsupported git providers.", () => {
@@ -426,17 +426,17 @@ describe("getRepositoryUrl", () => {
   });
 
   it("return a proper repo url for a GitHub HTTP origin url.", () => {
-    const originUrl = "https://github.com/CatalystCode/spk.git";
+    const originUrl = "https://github.com/microsoft/bedrock-cli.git";
     const repositoryUrl = getRepositoryUrl(originUrl);
 
-    expect(repositoryUrl).toEqual(`https://github.com/CatalystCode/spk`);
+    expect(repositoryUrl).toEqual(`https://github.com/microsoft/bedrock-cli`);
   });
 
   it("return a proper repo url for a GitHub SSH origin url.", () => {
-    const originUrl = "git@github.com:CatalystCode/spk.git";
+    const originUrl = "git@github.com:microsoft/bedrock-cli.git";
     const repositoryUrl = getRepositoryUrl(originUrl);
 
-    expect(repositoryUrl).toEqual(`https://github.com/CatalystCode/spk`);
+    expect(repositoryUrl).toEqual(`https://github.com/microsoft/bedrock-cli`);
   });
 
   it("Returns a help message for unknown or unsupported git providers.", () => {
@@ -517,7 +517,7 @@ describe("getPullRequestLink", () => {
   });
 
   it("return a proper PR url for a GitHub HTTP origin url.", async () => {
-    const originUrl = "https://github.com/CatalystCode/spk.git";
+    const originUrl = "https://github.com/microsoft/bedrock-cli.git";
     const branchName = "oldbranchname";
     const newBranchName = "newbranchname";
     const pullRequestUrl = await getPullRequestLink(
@@ -527,12 +527,12 @@ describe("getPullRequestLink", () => {
     );
 
     expect(pullRequestUrl).toEqual(
-      `https://github.com/CatalystCode/spk/compare/${branchName}...${newBranchName}?expand=1`
+      `https://github.com/microsoft/bedrock-cli/compare/${branchName}...${newBranchName}?expand=1`
     );
   });
 
   it("return a proper PR url for a GitHub SSH origin url.", async () => {
-    const originUrl = "git@github.com:CatalystCode/spk.git";
+    const originUrl = "git@github.com:microsoft/bedrock-cli.git";
     const branchName = "oldbranchname";
     const newBranchName = "newbranchname";
     const pullRequestUrl = await getPullRequestLink(
@@ -542,7 +542,7 @@ describe("getPullRequestLink", () => {
     );
 
     expect(pullRequestUrl).toEqual(
-      `https://github.com/CatalystCode/spk/compare/${branchName}...${newBranchName}?expand=1`
+      `https://github.com/microsoft/bedrock-cli/compare/${branchName}...${newBranchName}?expand=1`
     );
   });
 
@@ -585,7 +585,7 @@ describe("Returns an azure devops git repo url if it is defined", () => {
       repoUrl: "https://dev.azure.com/myOrg/myProject/_git/myRepo",
       yamlFileBranch: "master",
     };
-    const gitUrl = "https://github.com/CatalystCode/spk.git";
+    const gitUrl = "https://github.com/microsoft/bedrock-cli.git";
     expect(validateRepoUrl(mockValues, gitUrl)).toBe(
       "https://dev.azure.com/myOrg/myProject/_git/myRepo"
     );
@@ -601,9 +601,9 @@ describe("Returns an azure devops git repo url if it is defined", () => {
       repoUrl: "",
       yamlFileBranch: "master",
     };
-    const gitUrl = "https://github.com/CatalystCode/spk";
+    const gitUrl = "https://github.com/microsoft/bedrock-cli";
     expect(validateRepoUrl(mockValues, gitUrl)).toBe(
-      "https://github.com/CatalystCode/spk"
+      "https://github.com/microsoft/bedrock-cli"
     );
   });
 });

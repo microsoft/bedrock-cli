@@ -100,7 +100,7 @@ describe("test execute function and logic", () => {
           helm: {
             chart: {
               branch: "master",
-              git: "https://github.com/catalystcode/spk-demo-repo.git",
+              git: "https://github.com/microsoft/bedrock-cli-demo-repo.git",
               path: "my-service",
             },
           },

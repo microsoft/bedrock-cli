@@ -1,9 +1,9 @@
 ## Description
 
 This command validates the
-[requirements](https://github.com/CatalystCode/spk/blob/master/guides/service-introspection.md#requirements)
+[requirements](https://github.com/microsoft/bedrock-cli/blob/master/guides/service-introspection.md#requirements)
 and the onboard
-[prerequisites](https://github.com/CatalystCode/spk/blob/master/guides/service-introspection.md#prerequisites)
+[prerequisites](https://github.com/microsoft/bedrock-cli/blob/master/guides/service-introspection.md#prerequisites)
 
 ## Note
 

@@ -13,9 +13,9 @@ spk service [command] [options]
 
 ## Commands
 
-- [create](https://catalystcode.github.io/spk/commands/index.html#service_create)
-- [install-build-pipeline](https://catalystcode.github.io/spk/commands/index.html#service_install-build-pipeline)
-- [create-revision](https://catalystcode.github.io/spk/commands/index.html#service_create-revision)
+- [create](https://microsoft.github.io/bedrock-cli/commands/index.html#service_create)
+- [install-build-pipeline](https://microsoft.github.io/bedrock-cli/commands/index.html#service_install-build-pipeline)
+- [create-revision](https://microsoft.github.io/bedrock-cli/commands/index.html#service_create-revision)
 
 ## Global options
 

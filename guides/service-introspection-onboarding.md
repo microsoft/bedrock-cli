@@ -34,7 +34,7 @@ it or use an existing one.
 **Option 1:**
 
 Use the
-[`spk deployment onboard`](https://catalystcode.github.io/spk/commands/#master@deployment_onboard)
+[`spk deployment onboard`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_onboard)
 command.
 
 **Option 2:**
@@ -225,16 +225,16 @@ Paste the following task in the `azure-pipelines.yml` file **after** the
 After completing the steps in this guide, you should be able to:
 
 - Fill out the `azure_devops` and `introspection` settings in
-  [`spk-config.yaml`](https://github.com/CatalystCode/spk/blob/master/spk-config.yaml)
+  [`spk-config.yaml`](https://github.com/microsoft/bedrock-cli/blob/master/spk-config.yaml)
   so that you can use service introspection. More information about `spk` config
-  can be found on the [main page](https://github.com/catalystcode/spk).
+  can be found on the [main page](https://github.com/microsoft/bedrock-cli).
 
 - Validate and verify the `spk-config.yaml` settings and the service
   introspection storage using
-  [`spk deployment validate`](https://catalystcode.github.io/spk/commands/#master@deployment_validate)
+  [`spk deployment validate`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_validate)
 
 - Get information about your deployment using
-  [`spk deployment get`](https://catalystcode.github.io/spk/commands/#master@deployment_get)
+  [`spk deployment get`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_get)
 
 - Launch the dashboard to visualize the data using
-  [`spk deployment dashboard`](https://catalystcode.github.io/spk/commands/#master@deployment_dashboard)
+  [`spk deployment dashboard`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_dashboard)

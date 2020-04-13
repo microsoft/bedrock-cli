@@ -30,7 +30,7 @@ number of steps in scaffolding.
 ### 3.1 New option --file
 
 In the current release (0.5.6),
-[`spk infra scaffold`](https://catalystcode.github.io/spk/commands/index.html#0.5.6@infra_scaffold)
+[`spk infra scaffold`](https://microsoft.github.io/bedrock-cli/commands/index.html#0.5.6@infra_scaffold)
 has 4 options (`--name`, `--source`, `--version` and `--template`). We shall
 introduce a new option `-f`, `--file` which allows user to specify a file that
 contains values for these variables.
@@ -107,7 +107,7 @@ special case of this file.
 ## 6. Documentation
 
 Documentation should be done in the
-[`md` file](https://github.com/CatalystCode/spk/blob/master/src/commands/infra/scaffold.md)
+[`md` file](https://github.com/microsoft/bedrock-cli/blob/master/src/commands/infra/scaffold.md)
 that are associated with `spk infra scaffold` command.
 
 \- end -

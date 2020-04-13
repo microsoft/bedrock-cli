@@ -218,7 +218,7 @@
         "required": true
       }
     ],
-    "markdown": "## Description\n\nPrepare storage for the service introspection tool. This will create a storage\naccount if it does not already exist in your subscription in the given\n`resource-group`. The storage table will also be created in a newly created or\nin an existing storage account if it does not exist already. When the Azure Key\nVault argument is specified, a secret with Azure storage access key will be\ncreated. Otherwise, the storage access key will need to be specified in\nenvironment variables manually.\n\nSee\n[Prerequisites](https://github.com/CatalystCode/spk/blob/master/guides/service-introspection.md#prerequisites)\n"
+    "markdown": "## Description\n\nPrepare storage for the service introspection tool. This will create a storage\naccount if it does not already exist in your subscription in the given\n`resource-group`. The storage table will also be created in a newly created or\nin an existing storage account if it does not exist already. When the Azure Key\nVault argument is specified, a secret with Azure storage access key will be\ncreated. Otherwise, the storage access key will need to be specified in\nenvironment variables manually.\n\nSee\n[Prerequisites](https://github.com/microsoft/bedrock-cli/blob/master/guides/service-introspection.md#prerequisites)\n"
   },
   "deployment validate": {
     "command": "validate",
@@ -231,7 +231,7 @@
         "defaultValue": false
       }
     ],
-    "markdown": "## Description\n\nThis command validates the\n[requirements](https://github.com/CatalystCode/spk/blob/master/guides/service-introspection.md#requirements)\nand the onboard\n[prerequisites](https://github.com/CatalystCode/spk/blob/master/guides/service-introspection.md#prerequisites)\n\n## Note\n\nThe purpose of `--self-test` option is to make sure that `spk` is able to write\ndata to the provided storage account. Once the test ends, it will remove the\ntest data that was added.\n"
+    "markdown": "## Description\n\nThis command validates the\n[requirements](https://github.com/microsoft/bedrock-cli/blob/master/guides/service-introspection.md#requirements)\nand the onboard\n[prerequisites](https://github.com/microsoft/bedrock-cli/blob/master/guides/service-introspection.md#prerequisites)\n\n## Note\n\nThe purpose of `--self-test` option is to make sure that `spk` is able to write\ndata to the provided storage account. Once the test ends, it will remove the\ntest data that was added.\n"
   },
   "hld append-variable-group": {
     "command": "append-variable-group <variable-group-name>",
