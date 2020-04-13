@@ -78,12 +78,12 @@
 
     "project-pipeline-cmd-failed": "Project install lifecycle pipeline was not successfully executed.",
     "project-pipeline-err-github-repo": "GitHub repos are not supported. Repo url: {0} is invalid",
-    "project-pipeline-err-missing-values": "Value for {0} is missing.",
+    "project-pipeline-err-missing-values": "Value for {0} was missing.",
     "project-pipeline-err-init-dependency": "Run `spk project init` and `spk project cvg` commands before running this command to initialize the project.",
     "project-pipeline-err-cvg": "Run `spk project cvg` command before running this command to create a variable group.",
-    "project-pipeline-err-spk-config-missing": "SPK Config is missing",
+    "project-pipeline-err-spk-config-missing": "SPK Config was missing",
     "project-pipeline-err-pipeline-create": "Error occurred during pipeline creation for {0}",
-    "project-pipeline-err-invalid-build-definition": "Invalid BuildDefinition created, parameter 'id' is missing from {0}",
+    "project-pipeline-err-invalid-build-definition": "Invalid BuildDefinition created, parameter 'id' was missing from {0}",
 
     "git-err-show-current-branch": "Could not get the current branch of git. Ensure 'git branch --show-current' returns a proper response.",
     "git-err-checkout": "Could not checkout git branch, {0}.",
@@ -125,7 +125,7 @@
     "git-checkout-commit-push-create-PR-link": "Could not checkout, commit, push or create pull request",
     "git-create-repo-no-permissions": "Could not create git repository due to lack of permissions. Add code write permission to the personal access token",
     "git-create-repo-err": "Could not create git repository",
-    "git-delete-repo-id-missing": "Could not delete repository because repository id is missing.",
+    "git-delete-repo-id-missing": "Could not delete repository because repository id was missing.",
     "git-get-repo-no-permissions": "Could not get git repository due to lack of permissions. Add code read permission to the personal access token",
     "git-get-repo-azure-err": "Could not get git repository",
     "git-commit-Push-to_remote-err": "Could not git commit and push to remote source",
@@ -172,7 +172,7 @@
     "service-create-cmd-failed": "Service create command was not successfully executed. Error occurred adding service '{0}' to project '{1}'.",
     "service-create-cmd-port-invalid-err": "The value for --k8s-service-port was not a valid port number. Provide a valid port number",
     "service-create-cmd-init-dependency-err": "Could not locate file information in bedrock.yaml. Run `spk project init` before running this command to initialize the project.",
-    "service-create-cmd-init-cvg-dependency-err": "Value for 'hasVariableGroups' in bedrock.yaml is missing. Run `spk project init` and `spk project cvg` commands before running this command to initialize the project.",
+    "service-create-cmd-init-cvg-dependency-err": "Value for 'hasVariableGroups' in bedrock.yaml was missing. Run `spk project init` and `spk project cvg` commands before running this command to initialize the project.",
 
     "az-cli-login-err": "Could not login through azure cli.",
     "az-cli-create-sp-err": "Could not create service principal with azure cli",
