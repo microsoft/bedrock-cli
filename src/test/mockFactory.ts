@@ -108,7 +108,7 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
                   `cd ${relativeServiceForDockerfile}`,
                   //`echo "az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
                   //`az acr build -r $(ACR_NAME) --image $IMAGE_NAME .`,
-                  `echo $ACR_BUILD_BASE_COMMAND`,
+                  `echo "ACR BUILD COMMAND: $ACR_BUILD_BASE_COMMAND"`,
                   `"\${ACR_BUILD_BASE_COMMAND[@]}"`,
                 ]),
                 displayName: "ACR Build and Publish",
