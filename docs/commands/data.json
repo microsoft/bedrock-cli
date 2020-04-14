@@ -94,7 +94,8 @@
         "arg": "--repository <repository>",
         "description": "URL of the repository (SRC, HLD, Manifest)"
       }
-    ]
+    ],
+    "markdown": "## Description\n\nThis command inserts data about pipeline runs into Azure Table storage.\n\n## Example\n\nThe following command has parameters for Azure Table storage credential and\nvarious pipelines run details.\n\n```\nspk deployment create  -n $AZURE_STORAGE_ACCOUNT_NAME \\\n    -k $AZURE_ACCOUNT_KEY \\\n    -t $AZURE_TABLE_NAME  \\\n    -p $AZURE_TABLE_PARTITION_KEY \\\n    --p2 $(Build.BuildId) \\\n    --hld-commit-id $latest_commit \\\n    --env $(Build.SourceBranchName) \\\n    --image-tag $tag_name \\\n    --pr $pr_id \\\n    --repository $repourl\n```\n"
   },
   "deployment dashboard": {
     "command": "dashboard",
@@ -237,7 +238,7 @@
     "command": "append-variable-group <variable-group-name>",
     "alias": "avg",
     "description": "Appends the name of an existing variable group to the current manifest-generation.yaml file.",
-    "markdown": "## Description\n\nAppend a variable group name to the current `manifest-generation.yaml` of an\ninitialized hld repository.\n\n## Example\n\nWhen an HLD repository is first initialized with `spk hld init`, the top portion\nof the `manifest-generation.yaml` looks like this:\n\n```yaml\n# GENERATED WITH SPK VERSION 0.5.8\ntrigger:\n  branches:\n    include:\n      - master\nvariables: []\npool:\n  vmImage: ubuntu-latest\nsteps:\n.\n.\n.\n```\n\nrunning `spk hld append-variable-group my-vg` with a variable group name, in\nthis case `my-vg`, will add it under the `variables` section if it does not\nalready exist:\n\n```yaml\n# GENERATED WITH SPK VERSION 0.5.8\ntrigger:\n  branches:\n    include:\n      - master\nvariables:\n  - group: my-variable-group\npool:\n  vmImage: ubuntu-latest\nsteps:\n.\n.\n.\n```\n"
+    "markdown": "## Description\n\nAppend a variable group name to the current `manifest-generation.yaml` of an\ninitialized hld repository.\n\n## Example\n\nWhen an HLD repository is first initialized with `spk hld init`, the top portion\nof the `manifest-generation.yaml` looks like this:\n\n```yaml\ntrigger:\n  branches:\n    include:\n      - master\nvariables: []\npool:\n  vmImage: ubuntu-latest\nsteps:\n.\n.\n.\n```\n\nrunning `spk hld append-variable-group my-vg` with a variable group name, in\nthis case `my-vg`, will add it under the `variables` section if it does not\nalready exist:\n\n```yaml\ntrigger:\n  branches:\n    include:\n      - master\nvariables:\n  - group: my-variable-group\npool:\n  vmImage: ubuntu-latest\nsteps:\n.\n.\n.\n```\n"
   },
   "hld init": {
     "command": "init",
