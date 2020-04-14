@@ -269,7 +269,7 @@ lifecycle_pipeline_name="$mono_repo_dir-lifecycle"
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name
 
 # Deploy lifecycle pipeline and verify it runs.
-spk project install-lifecycle-pipeline --org-name $AZDO_ORG --devops-project $AZDO_PROJECT --repo-url "https://$repo_url" --pipeline-name $lifecycle_pipeline_name --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
+spk project install-lifecycle-pipeline --org-name $AZDO_ORG --devops-project $AZDO_PROJECT --repo-url "https://$repo_url" --pipeline-name $lifecycle_pipeline_name --personal-access-token $ACCESS_TOKEN_SECRET >> $TEST_WORKSPACE/log.txt
 
 # TODO: Verify the lifecycle pipeline sucessfully runs
 # Verify lifecycle pipeline was created
@@ -388,7 +388,7 @@ git checkout master
 git pull origin master
 spk ring create $ring_name
 git add -A
-git commit -m "Adding test ring"
+git commit -m "Adding test ring: $ring_name"
 git push -u origin --all
 
 # Wait for the lifecycle pipeline to finish and approve the pull request
@@ -403,7 +403,7 @@ git pull
 hld_repo_commit_id=$(git log --format="%H" -n 1)
 verify_pipeline_with_poll_and_source_version $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 300 15 $hld_repo_commit_id
 
-# Verify the file was added in the manifest repository
+# Verify the ring directory with static components was added in the manifest repository
 cd $TEST_WORKSPACE
 cd $manifests_dir
 
@@ -419,7 +419,7 @@ echo "Validating ingress routes"
 
 validate_file "$ring_dir/static.yaml" "'PathPrefix(\`/fabrikam-acme-frontend\`) && Headers(\`Ring\`, \`qa-ring\`)'"
 
-echo "Successfully created a ring."
+echo "Successfully created ring: $ring_name."
 
 ##################################
 # App Mono Repo update ring
@@ -464,6 +464,56 @@ validate_file "$TEST_WORKSPACE/$manifests_dir/prod/$mono_repo_dir/$FrontEndCompl
 echo "Successfully updated a ring."
 # --------------------------------
 
+##################################
+# App Mono Repo delete ring
+##################################
+echo "Deleting ring in mono repo"
+
+# Wait for fabrikam-hld-to-fabrikam-manifests pipeline to finish
+echo "Wait for fabrikam-hld-to-fabrikam-manifests pipeline"
+cd $TEST_WORKSPACE/$hld_dir
+git pull
+hld_repo_commit_id=$(git log --format="%H" -n 1)
+verify_pipeline_with_poll_and_source_version $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 500 15 $hld_repo_commit_id
+
+cd $TEST_WORKSPACE
+cd $mono_repo_dir
+
+echo "Delete ring"
+git checkout master
+git pull origin master
+spk ring delete $ring_name
+git add -A
+git commit -m "Deleting test ring: $ring_name"
+git push -u origin --all
+
+# Wait for the lifecycle pipeline to finish and approve the pull request
+mono_repo_commit_id=$(git log --format="%H" -n 1)
+verify_pipeline_with_poll_and_source_version $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name 300 15 $mono_repo_commit_id
+echo "Finding pull request that $lifecycle_pipeline_name pipeline created..."
+approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "Reconciling HLD"
+
+# Wait for fabrikam-hld-to-fabrikam-manifests pipeline to finish
+cd $TEST_WORKSPACE/$hld_dir
+git pull
+hld_repo_commit_id=$(git log --format="%H" -n 1)
+verify_pipeline_with_poll_and_source_version $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 300 15 $hld_repo_commit_id
+
+# Verify the ring directory was removed in the manifest repository
+cd $TEST_WORKSPACE
+cd $manifests_dir
+
+git pull origin master
+
+ring_dir="prod/$mono_repo_dir/fabrikam-acme-frontend/$ring_name"
+if [ -d "$ring_dir" ]; then
+  echo "Directory '$ring_dir' exists, but it should not exist."
+  exit 1
+fi
+
+echo "Successfully deleted ring: $ring_name."
+
+
 echo "Successfully reached the end of the service validations scripts."
 
 ##################################
@@ -507,5 +557,9 @@ else
   cat file.json
   exit 1
 fi
+
+##################################
+# All Tests Completed.
+##################################
 
 echo "Successfully reached the end of spk deployment get tests."
