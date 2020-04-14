@@ -59,7 +59,7 @@ const mockSourceInfo = {
 };
 
 const modifedSourceModuleData = `"aks-gitops" {
-  source = "github.com/microsoft/bedrock.git?ref=v0.0.1//cluster/azure/aks-gitops/"
+  source = "git::https://github.com/microsoft/bedrock.git//cluster/azure/aks-gitops/?ref=v0.0.1"
   acr_enabled              = var.acr_enabled
   agent_vm_count           = var.agent_vm_count
 };

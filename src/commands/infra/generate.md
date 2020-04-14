@@ -17,6 +17,8 @@ It will do the following:
 - Create a "generated" directory for Terrform deployments (alongside the
   scaffolded project directory)
 - Copy the appropriate Terraform templates to the "generated" directory
+- Check the Terraform module source values and convert them into a generic git
+  url based on the `definition.yaml`'s `source`, `version` and `template` path.
 - Create a `spk.tfvars` in the generated directory based on the variables
   provided in `definition.yaml` files of the parent and leaf directories.
 
