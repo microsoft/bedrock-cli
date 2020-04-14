@@ -292,7 +292,6 @@ describe("Introspect deployments", () => {
       const dep = deployment as IDeployment;
 
       // Make sure the basic fields are defined
-      // expect(dep.deploymentId).not.toBe("");
       expect(dep.service).not.toBe("");
       expect(duration(dep)).not.toBe("");
       expect(status(dep)).not.toBe("");
