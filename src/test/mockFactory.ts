@@ -102,7 +102,7 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
                   `echo "Image Name: $IMAGE_NAME"`,
                   `ACR_BUILD_BASE_COMMAND=("az acr build -r $(ACR_NAME) --image $IMAGE_NAME .")`,
                   `echo "Service Build Variables: $SERVICE_BUILD_VARS"`,
-                  `if [ -z "$SERVICE_BUILD_VARS" ]; then echo "No build arguments found."; else SERVICE_BUILD_VARIABLES=$(echo $SERVICE_BUILD_VARS | tr "," " " ) ; VARIABLES_ARRAY=(echo \${SERVICE_BUILD_VARIABLES}) ; for i in \${VARIABLES_ARRAY[@]}; do export $i=\${i} ; ACR_BUILD_BASE_COMMAND+=" --build-arg $i=\${i}" ; done ; fi`,
+                  `if [ -z "$SERVICE_BUILD_VARS" ]; then echo "No build arguments found."; else SERVICE_BUILD_VARIABLES=$(echo $SERVICE_BUILD_VARS | tr "," " " ) ; VARIABLES_ARRAY=($SERVICE_BUILD_VARIABLES) ; for i in \${VARIABLES_ARRAY[@]}; do export $i=\${i} ; ACR_BUILD_BASE_COMMAND+=" --build-arg $i=$(i)" ; done ; fi`,
                   `cd ${relativeServiceForDockerfile}`,
                   `echo "ACR BUILD COMMAND: $ACR_BUILD_BASE_COMMAND"`,
                   `\${ACR_BUILD_BASE_COMMAND[@]}`,
