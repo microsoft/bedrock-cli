@@ -75,8 +75,9 @@ The followings shall be created
 
 ## Pre-requisite
 
-azure cli needs to be installed so that pull request can be automatically
+1. azure cli needs to be installed so that pull request can be automatically
 approved. type `az version` to check if you have version 2.0.x installed.
+2. install `azure-devops` extension. To check if you have the extension, type `az extension list`
 
 ## Setup log
 
