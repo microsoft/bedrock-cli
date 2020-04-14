@@ -551,10 +551,15 @@ export const moduleSourceModify = async (
             splitLine[3].replace(/["']/g, "")
           )
         );
-        // Concatenate the Git URL with munged data
-        const gitSource = fileSource.source
-          .replace(/(^\w+:|^)\/\//g, "")
-          .concat("?ref=", fileSource.version, "//", repoModulePath);
+        // Concatenate the Git URL with munged data using a generic git repository format
+        const gitSource =
+          "git::" +
+          fileSource.source.concat(
+            "//",
+            repoModulePath,
+            "?ref=",
+            fileSource.version
+          );
         // Replace the line
         line = line.replace(moduleSource, gitSource);
       }
