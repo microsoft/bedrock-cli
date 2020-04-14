@@ -18,6 +18,7 @@ import {
   installLifecyclePipeline,
   CommandOptions,
 } from "./pipeline";
+import { getErrorMessage } from "../../lib/errorBuilder";
 import { deepClone } from "../../lib/util";
 
 beforeAll(() => {
@@ -233,7 +234,10 @@ describe("installLifecyclePipeline and execute tests", () => {
       expect(e).toBeDefined();
       const builtDefnString = JSON.stringify({ fakeProperty: "temp" });
       expect(e.message).toBe(
-        `project-pipeline-err-invalid-build-definition: Invalid BuildDefinition created, parameter 'id' is missing from ${builtDefnString}`
+        getErrorMessage({
+          errorKey: "project-pipeline-err-invalid-build-definition",
+          values: [builtDefnString],
+        })
       );
     }
   });
