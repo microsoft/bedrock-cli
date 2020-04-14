@@ -222,16 +222,16 @@ export const serviceBuildAndUpdatePipeline = (
               {
                 script: generateYamlScript([
                   // Iterate through serviceBuildVariables, export each variable, then append as build argument
+                  `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
+                  `export IMAGE_TAG=${IMAGE_TAG}`,
+                  `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
+                  `echo "Image Name: $IMAGE_NAME"`,
                   `ACR_BUILD_BASE_COMMAND=("az acr build -r $(ACR_NAME) --image $IMAGE_NAME .")`,
                   `if [ -z "\${serviceBuildVariables}" ]; then echo "No build arguments found."; else SERVICE_BUILD_VARIABLES=$(echo \${serviceBuildVariables} | tr "," " " ) ; VARIABLES_ARRAY=(echo \${SERVICE_BUILD_VARIABLES}) ; for i in \${VARIABLES_ARRAY[@]}; do export $i=\${i} ; ACR_BUILD_BASE_COMMAND+=" --build-arg $i=\${i}" ; done ; fi`,
                   //`SERVICE_BUILD_VARIABLES=$(echo ${serviceBuildVariables} | tr "," " " )`,
                   //`echo "Service Variables: $SERVICE_BUILD_VARIABLES`,
                   //`VARIABLES_ARRAY=(echo $SERVICE_BUILD_VARIABLES)`,
                   //`for i in \${VARIABLES_ARRAY[@]}; do export $i=\${i} ; ACR_BUILD_BASE_COMMAND+=" --build-arg $i=\${i}" ; done`,
-                  `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
-                  `export IMAGE_TAG=${IMAGE_TAG}`,
-                  `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
-                  `echo "Image Name: $IMAGE_NAME"`,
                   `cd ${relativeServiceForDockerfile}`,
                   //`echo "az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
                   //`az acr build -r $(ACR_NAME) --image $IMAGE_NAME .`,
