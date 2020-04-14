@@ -227,6 +227,7 @@ export const serviceBuildAndUpdatePipeline = (
                   `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
                   `echo "Image Name: $IMAGE_NAME"`,
                   `ACR_BUILD_BASE_COMMAND=("az acr build -r $(ACR_NAME) --image $IMAGE_NAME .")`,
+                  `echo "Service Build Variables: \${serviceBuildVariables}"`,
                   `if [ -z "\${serviceBuildVariables}" ]; then echo "No build arguments found."; else SERVICE_BUILD_VARIABLES=$(echo \${serviceBuildVariables} | tr "," " " ) ; VARIABLES_ARRAY=(echo \${SERVICE_BUILD_VARIABLES}) ; for i in \${VARIABLES_ARRAY[@]}; do export $i=\${i} ; ACR_BUILD_BASE_COMMAND+=" --build-arg $i=\${i}" ; done ; fi`,
                   `cd ${relativeServiceForDockerfile}`,
                   `echo "ACR BUILD COMMAND: $ACR_BUILD_BASE_COMMAND"`,
