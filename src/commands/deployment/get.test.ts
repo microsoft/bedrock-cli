@@ -336,6 +336,7 @@ describe("Print deployments", () => {
     expect(table).toBeDefined();
 
     if (table) {
+      //Use date (index 0) as matching filter
       const matchItems = table.filter((field) => field[0] === deployment[0]);
       expect(matchItems).toHaveLength(1); // one matching row
 
