@@ -146,8 +146,8 @@ export const serviceBuildAndUpdatePipeline = (
   const relativeServiceForDockerfile = relServicePath.startsWith("./")
     ? relServicePath
     : "./" + relServicePath;
-  const test = (serviceBuildVariables ?? []).map((group) => ({ group }));
-  logger.info(`${test}`);
+  // const test = (serviceBuildVariables ?? []).map((group) => ({ group }));
+  // logger.info(`${test}`);
 
   const pipelineYaml: AzurePipelinesYaml = {
     trigger: {
@@ -225,10 +225,11 @@ export const serviceBuildAndUpdatePipeline = (
                   `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
                   `export IMAGE_TAG=${IMAGE_TAG}`,
                   `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
+                  `export SERVICE_BUILD_VARS=${serviceBuildVariables}`,
                   `echo "Image Name: $IMAGE_NAME"`,
                   `ACR_BUILD_BASE_COMMAND=("az acr build -r $(ACR_NAME) --image $IMAGE_NAME .")`,
-                  `echo "Service Build Variables: \${serviceBuildVariables}"`,
-                  `if [ -z "\${serviceBuildVariables}" ]; then echo "No build arguments found."; else SERVICE_BUILD_VARIABLES=$(echo \${serviceBuildVariables} | tr "," " " ) ; VARIABLES_ARRAY=(echo \${SERVICE_BUILD_VARIABLES}) ; for i in \${VARIABLES_ARRAY[@]}; do export $i=\${i} ; ACR_BUILD_BASE_COMMAND+=" --build-arg $i=\${i}" ; done ; fi`,
+                  `echo "Service Build Variables: $SERVICE_BUILD_VARS"`,
+                  `if [ -z "$SERVICE_BUILD_VARS" ]; then echo "No build arguments found."; else SERVICE_BUILD_VARIABLES=$(echo $SERVICE_BUILD_VARS | tr "," " " ) ; VARIABLES_ARRAY=(echo \${SERVICE_BUILD_VARIABLES}) ; for i in \${VARIABLES_ARRAY[@]}; do export $i=\${i} ; ACR_BUILD_BASE_COMMAND+=" --build-arg $i=\${i}" ; done ; fi`,
                   `cd ${relativeServiceForDockerfile}`,
                   `echo "ACR BUILD COMMAND: $ACR_BUILD_BASE_COMMAND"`,
                   `\${ACR_BUILD_BASE_COMMAND[@]}`,
