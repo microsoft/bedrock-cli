@@ -218,7 +218,7 @@ cluster.
 [top-level configuration](#top-level-configuration)
 
 `serviceName`: This configuration is overriden by the values form the
-[ring-level-configuration](#ring-level-configuration) file
+[ring-level-configuration](#ring-level-configuration) file.
 
 `image.repository`: This configuration is a special configuration, that can
 _only_ configured by a pipeline variable, `ACR_NAME`. `ACR_NAME` must be
@@ -256,6 +256,34 @@ that contains two pieces of rendered metadata, both propagated to the `Service`
 from [ring level configuration](#ring-level-configuration) originally generated
 from the `hld-lifecycle` pipeline. The `selector` in this `service` targets a
 Kubernetes `Deployment` that maintains the same label.
+
+##### A note on Service Types
+
+The Kubernetes Service scaffolded by the
+[provided helm chart](./sample-helm-chart) _explicitly_ does not specify a
+service type. By default, Kubernetes services are created as `ClusterIP`,
+meaning that the Kubernetes Service is bound to a cluster _internal_ IP address,
+preventing external users from accessing the service. While a user can choose to
+utilize an opposing Kubernetes Service type, `LoadBalancer` within their Helm
+Charts, it is inadvisible - as this binds an _external_ and _public_ IP address
+to the Kubernetes Service, allowing external users to access the Kubernetes
+Service. For more information on service types, and their routing implications,
+refer to the Kubernetes Documentation
+[here](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types).
+
+To allow external traffic (ie ingress traffic) to be routed to Services hosted
+on the cluster, `spk` utilizes the `traefik2` ingress controller and associated
+`IngressRoute` rules to allow external traffic to be routed into your cluster
+from a single endpoint. An Ingress Controller can be be configured to handle all
+kinds of scenarios that you may want to handle when running services in
+produciton, such as circuit breaking or traffic throttling - please refer to the
+`traefik2`
+[configuration introduction](https://docs.traefik.io/v2.0/getting-started/configuration-overview/)
+for more details. Further, assuming a correctly configured helm chart with all
+the [requsitite values](#mandatory-helm-chart-configuration), `spk` builds and
+scaffolds an `IngressRoute` for a service and its associated rings
+automatically. Refer to [static configuration](#static-configuration) for more
+details.
 
 #### Kubernetes Deployment
 
