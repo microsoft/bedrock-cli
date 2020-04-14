@@ -414,6 +414,14 @@ export const validateRepository = async (
   await repositoryHasFile(fileName, branch, repoName, accessOpts);
 };
 
+/**
+ * Returns active pull requests.
+ *
+ * @param gitAPI Git Api client.
+ * @param repoName Name of repository
+ * @param projectName Project name
+ * @param targetRef target git reference (default is master)
+ */
 export const getActivePullRequests = async (
   gitAPI: IGitApi,
   repoName: string,
