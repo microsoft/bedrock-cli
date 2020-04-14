@@ -94,7 +94,13 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
               },
               {
                 script: generateYamlScript([
-                  `export BUILD_REPO_NAME=$(echo $(Build.Repository.Name)-${serviceName} | tr '[:upper:]' '[:lower:]')`,
+                  // Iterate through serviceBuildVariables, export each variable, then append as build argument
+                  `ACR_BUILD_BASE_COMMAND='az acr build -r $(ACR_NAME) --image $IMAGE_NAME .'`,
+                  `SERVICE_BUILD_VARIABLES=$(echo \${serviceBuildVariables} | tr "," " " )`,
+                  `echo "Service Variables: $SERVICE_BUILD_VARIABLES`,
+                  `VARIABLES_ARRAY=(echo $SERVICE_BUILD_VARIABLES)`,
+                  `for i in \${VARIABLES_ARRAY[@]}; do export $i=\${i} ; ACR_BUILD_BASE_COMMAND+=" --build-arg $i=\${i}" ; done`,
+                  `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
                   `export IMAGE_TAG=${IMAGE_TAG}`,
                   `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
                   `echo "Image Name: $IMAGE_NAME"`,

@@ -202,17 +202,16 @@ export const serviceBuildAndUpdatePipeline = (
               },
               {
                 script: generateYamlScript([
+                  `. ./build.sh --source-only`,
+                  `get_spk_version`,
+                  `download_spk`,
                   `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
                   `tag_name="$BUILD_REPO_NAME:${IMAGE_TAG}"`,
                   `commitId=$(Build.SourceVersion)`,
                   `commitId=$(echo "\${commitId:0:7}")`,
-                  `service=$(Build.Repository.Name)`,
-                  `service=\${service##*/}`,
+                  `service=$(./spk/spk service get-display-name -p ${relativeServiceForDockerfile})`,
                   `url=$(git remote --verbose | grep origin | grep fetch | cut -f2 | cut -d' ' -f1)`,
                   `repourl=\${url##*@}`,
-                  `. ./build.sh --source-only`,
-                  `get_spk_version`,
-                  `download_spk`,
                   `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p1 $(Build.BuildId) --image-tag $tag_name --commit-id $commitId --service $service --repository $repourl`,
                 ]),
                 displayName:
@@ -595,7 +594,7 @@ const manifestGenerationPipelineYaml = (): string => {
         displayName:
           "If configured, update manifest pipeline details in Spektate db before manifest generation",
         condition:
-          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''))",
+          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''), ne(variables['Build.Reason'], 'PullRequest'))",
       },
       {
         task: "ShellScript@2",
@@ -637,7 +636,7 @@ const manifestGenerationPipelineYaml = (): string => {
         displayName:
           "If configured, update manifest pipeline details in Spektate db after manifest generation",
         condition:
-          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''))",
+          "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''), ne(variables['Build.Reason'], 'PullRequest'))",
       },
     ],
   };

@@ -209,7 +209,7 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
       path.join(targetDirectory, serviceDirectory),
       [],
       [],
-      []
+      ["${serviceBuildVariables}"]
     );
 
     expect(writeSpy).toBeCalledWith(
