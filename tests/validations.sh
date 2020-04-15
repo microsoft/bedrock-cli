@@ -230,7 +230,10 @@ spk service create $FrontEnd $FrontEnd -d $services_dir -p "chart" -g $local_rep
 directory_to_check="$services_full_dir/$FrontEnd"
 file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" )
 validate_directory $directory_to_check "${file_we_expect[@]}"
-validate_file $directory_to_check/build-update-hld.yaml  'echo "Build Variables: FOO,BAR"'
+# Validate that build variables were passed in via --services-build-variables
+validate_file $directory_to_check/build-update-hld.yaml 'Build Variables: FOO,BAR'
+# Validate that vg and variables are tracked in bedrock.yaml
+validate_file $services_full_dir/bedrock.yaml 'bedrock-cli-vg-test'
 
 # TODO uncomment this when helm chart fixed
 # spk service create $BackEnd $BackEnd -d $services_dir -p "$BackEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
