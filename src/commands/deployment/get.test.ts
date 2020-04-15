@@ -33,7 +33,7 @@ const MOCKED_INPUT_VALUES: CommandOptions = {
   buildId: "",
   commitId: "",
   deploymentId: "",
-  env: "",
+  ring: "",
   imageTag: "",
   output: "",
   service: "",
@@ -45,7 +45,7 @@ const MOCKED_VALUES: ValidatedOptions = {
   buildId: "",
   commitId: "",
   deploymentId: "",
-  env: "",
+  ring: "",
   imageTag: "",
   nTop: 0,
   output: "",
@@ -292,7 +292,6 @@ describe("Introspect deployments", () => {
       const dep = deployment as IDeployment;
 
       // Make sure the basic fields are defined
-      expect(dep.deploymentId).not.toBe("");
       expect(dep.service).not.toBe("");
       expect(duration(dep)).not.toBe("");
       expect(status(dep)).not.toBe("");
@@ -321,7 +320,6 @@ describe("Print deployments", () => {
     const deployment = [
       "2019-08-30T21:05:19.047Z",
       "hello-bedrock",
-      "7468ca0a24e1",
       "c626394",
       6046,
       "hello-bedrock-master-6046",
@@ -338,13 +336,14 @@ describe("Print deployments", () => {
     expect(table).toBeDefined();
 
     if (table) {
-      const matchItems = table.filter((field) => field[2] === deployment[2]);
+      //Use date (index 0) as matching filter
+      const matchItems = table.filter((field) => field[0] === deployment[0]);
       expect(matchItems).toHaveLength(1); // one matching row
 
       (matchItems[0] as IDeployment[]).forEach((field, i) => {
         expect(field).toEqual(deployment[i]);
       });
-      expect(matchItems[0]).toHaveLength(14);
+      expect(matchItems[0]).toHaveLength(13);
 
       table = printDeployments(
         mockedDeps,
@@ -395,7 +394,7 @@ describe("Output formats", () => {
     expect(table).toBeDefined();
 
     if (table) {
-      table.forEach((field) => expect(field).toHaveLength(20));
+      table.forEach((field) => expect(field).toHaveLength(19));
     }
   });
 });
