@@ -166,9 +166,9 @@ const testExecuteFunc = async (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .mockResolvedValueOnce(undefined as any);
   }
-  const fncreateProject = jest
-    .spyOn(projectService, "createProject")
-    .mockResolvedValueOnce();
+  const fncreateProject = jest.spyOn(projectService, "createProject");
+  fncreateProject.mockReset();
+  fncreateProject.mockResolvedValueOnce();
 
   if (usePrompt) {
     await execute(
@@ -191,7 +191,7 @@ const testExecuteFunc = async (
   } else {
     expect(fncreateProject).toBeCalledTimes(1);
   }
-  fncreateProject.mockReset();
+
   expect(exitFn).toBeCalledTimes(1);
   expect(exitFn.mock.calls).toEqual([[0]]);
 };
