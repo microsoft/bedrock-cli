@@ -537,10 +537,10 @@ function approve_pull_request () {
             exit 1
         fi
     fi
-    real_title=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[].title | startswith($pr_title)) | .[].title' | head -n 1)
+    real_title=$(echo $all_prs | jq -r --arg pr_title "$pr_title" '.[] | select(.title | startswith($pr_title)) | .title' | head -n 1)
     pull_request_id=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[0].title | startswith($pr_title)) | .[0].pullRequestId')
     if [ "$pull_request_id" == "" ]; then
-        pull_request_id=$(echo $all_prs | jq -r --arg pr_title "$pr_title" 'select(.[].title | startswith($pr_title)) | .[0].pullRequestId')
+        pull_request_id=$(echo $all_prs | jq -r --arg pr_title "$pr_title" '.[] | select(.title | startswith($pr_title)) | .pullRequestId' | head -n 1)
     fi
     echo "Found pull request starting with phrase '$pr_title'"
     echo "Pull request id $pull_request_id is '$real_title'"
