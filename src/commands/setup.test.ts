@@ -119,6 +119,7 @@ const testExecuteFunc = async (
   usePrompt = true,
   hasProject = true
 ): Promise<void> => {
+  jest.spyOn(setup, "isAzCLIInstall").mockResolvedValueOnce();
   jest
     .spyOn(gitService, "getGitApi")
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -165,10 +166,8 @@ const testExecuteFunc = async (
       .spyOn(projectService, "getProject")
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .mockResolvedValueOnce(undefined as any);
+    jest.spyOn(projectService, "createProject").mockResolvedValueOnce();
   }
-  const fncreateProject = jest.spyOn(projectService, "createProject");
-  fncreateProject.mockReset();
-  fncreateProject.mockResolvedValueOnce();
 
   if (usePrompt) {
     await execute(
