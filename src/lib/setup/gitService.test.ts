@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { WORKSPACE } from "./constants";
+import { WORKSPACE, HLD_REPO } from "./constants";
 import * as gitService from "./gitService";
 import {
+  completePullRequest,
   commitAndPushToRemote,
   createRepo,
   createRepoInAzureOrg,
@@ -11,6 +12,8 @@ import {
   getRepoInAzureOrg,
   getRepoURL,
 } from "./gitService";
+import { getErrorMessage } from "../errorBuilder";
+import * as azureGit from "../git/azure";
 
 const mockRequestContext = {
   accessToken: "pat",
@@ -348,5 +351,33 @@ describe("test commitAndPushToRemote function", () => {
         "repoName"
       )
     ).rejects.toThrow();
+  });
+});
+
+describe("test completePullRequest function", () => {
+  it("negative test: no active pull requests", async () => {
+    jest.spyOn(azureGit, "getActivePullRequests").mockResolvedValueOnce([]);
+    await expect(
+      completePullRequest({} as any, mockRequestContext, HLD_REPO)
+    ).rejects.toThrow(
+      getErrorMessage("setup-cmd-cannot-locate-pr-for-approval")
+    );
+  });
+  it("negative test: active pull request with no id", async () => {
+    jest
+      .spyOn(azureGit, "getActivePullRequests")
+      .mockResolvedValueOnce([{} as any]);
+    await expect(
+      completePullRequest({} as any, mockRequestContext, HLD_REPO)
+    ).rejects.toThrow(
+      getErrorMessage("setup-cmd-cannot-locate-pr-for-approval")
+    );
+  });
+  it("positve test", async () => {
+    jest
+      .spyOn(azureGit, "getActivePullRequests")
+      .mockResolvedValueOnce([{ pullRequestId: 123 } as any]);
+    jest.spyOn(azureGit, "completePullRequest").mockResolvedValueOnce();
+    await completePullRequest({} as any, mockRequestContext, HLD_REPO);
   });
 });
