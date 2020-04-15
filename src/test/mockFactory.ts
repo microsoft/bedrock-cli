@@ -102,7 +102,7 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
                   `echo "Image Name: $IMAGE_NAME"`,
                   `ACR_BUILD_COMMAND="az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
                   ``,
-                  `echo exporting build variables from variable groups, if available:`,
+                  `echo "Exporting build variables from variable groups, if available: "`,
                   `echo "Build Variables: ${serviceBuildVariables}"`,
                   ...(serviceBuildVariables ?? []).map(
                     (variable) =>
