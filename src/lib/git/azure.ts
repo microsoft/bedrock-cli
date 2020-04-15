@@ -3,6 +3,8 @@ import { IGitApi } from "azure-devops-node-api/GitApi";
 import AZGitInterfaces, {
   GitPullRequestSearchCriteria,
   GitRepository,
+  PullRequestStatus,
+  GitPullRequest,
 } from "azure-devops-node-api/interfaces/GitInterfaces";
 import { AzureDevOpsOpts } from ".";
 import { Config } from "../../config";
@@ -11,6 +13,8 @@ import { azdoUrl } from "../azdoClient";
 import { build as buildError } from "../errorBuilder";
 import { errorStatusCode } from "../errorStatusCode";
 import { getOriginUrl, safeGitUrlForLogging } from "../gitutils";
+import { RequestContext } from "../setup/constants";
+import { exec } from "../shell";
 
 ////////////////////////////////////////////////////////////////////////////////
 // State
@@ -21,6 +25,16 @@ let gitApi: IGitApi | undefined; // keep track of the gitApi so it can be reused
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
 ////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns azure organization URL.
+ *
+ * @param orgName Organization name
+ */
+export const getAzureOrganizationUrl = (orgName: string): string => {
+  // TODO: Do we need to consider visualstudio.com domain?
+  return `https://dev.azure.com/${orgName}`;
+};
 
 /**
  * Authenticates using config and credentials from global config and returns
@@ -399,4 +413,79 @@ export const validateRepository = async (
   }
 
   await repositoryHasFile(fileName, branch, repoName, accessOpts);
+};
+
+/**
+ * Returns active pull requests.
+ *
+ * @param gitAPI Git Api client.
+ * @param repoName Name of repository
+ * @param projectName Project name
+ * @param targetRef target git reference (default is master)
+ */
+export const getActivePullRequests = async (
+  gitAPI: IGitApi,
+  repoName: string,
+  projectName: string,
+  targetRef = "master"
+): Promise<GitPullRequest[]> => {
+  return await gitAPI.getPullRequests(
+    repoName,
+    {
+      targetRefName: `refs/heads/${targetRef}`,
+      status: PullRequestStatus.Active,
+    },
+    projectName
+  );
+};
+
+/**
+ * Completes a pull request.
+ *
+ * @param pullRequest pull request
+ * @param rc Request Context
+ */
+export const completePullRequest = async (
+  pullRequest: GitPullRequest,
+  rc: RequestContext
+): Promise<void> => {
+  logger.info(`Approving pull request ${pullRequest.pullRequestId}`);
+  try {
+    const login = [
+      "login",
+      "--service-principal",
+      "--username",
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      rc.servicePrincipalId!,
+      "--password",
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      rc.servicePrincipalPassword!,
+      "--tenant",
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      rc.servicePrincipalTenantId!,
+    ];
+    const autoComplete = [
+      "repos",
+      "pr",
+      "update",
+      "--id",
+      (pullRequest.pullRequestId || "").toString(),
+      "--auto-complete",
+      "true",
+      "--organization",
+      getAzureOrganizationUrl(rc.orgName),
+      "--output",
+      "json",
+    ];
+
+    await exec("az", login);
+    await exec("az", autoComplete);
+    logger.info(`Approved pull request ${pullRequest.pullRequestId}`);
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.GIT_OPS_ERR,
+      "git-azure-approve-pull-request-err",
+      err
+    );
+  }
 };
