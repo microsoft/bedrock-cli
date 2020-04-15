@@ -32,6 +32,7 @@ let gitApi: IGitApi | undefined; // keep track of the gitApi so it can be reused
  * @param orgName Organization name
  */
 export const getAzureOrganizationUrl = (orgName: string): string => {
+  // TODO: Do we need to consider visualstudio.com domain?
   return `https://dev.azure.com/${orgName}`;
 };
 
