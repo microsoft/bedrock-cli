@@ -230,6 +230,7 @@ spk service create $FrontEnd $FrontEnd -d $services_dir -p "chart" -g $local_rep
 directory_to_check="$services_full_dir/$FrontEnd"
 file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" )
 validate_directory $directory_to_check "${file_we_expect[@]}"
+validate_file $directory_to_check/build-update-hld.yaml  'echo "Build Variables: FOO,BAR"'
 
 # TODO uncomment this when helm chart fixed
 # spk service create $BackEnd $BackEnd -d $services_dir -p "$BackEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt

@@ -409,7 +409,7 @@ parameters to `spk service create --helm-config-git`:
 
 `https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts`
 
-#### Passing in Variables as Dockerfile Build Arguments
+#### Passing Variables as Dockerfile Build Arguments
 
 If you want to pass in build arguments during the Dockerfile build process, you
 can inject them using the `--service-build-vg` and `--service-build-variables`
