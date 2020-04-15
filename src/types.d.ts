@@ -107,10 +107,7 @@ export interface AzurePipelinesYaml {
         script?: string;
         displayName?: string;
         env?: {
-          AZURE_DEVOPS_EXT_PAT?: string;
-          ACCESS_TOKEN_SECRET?: string;
-          BEDROCK_BUILD_SCRIPT?: string;
-          REPO?: string;
+          [key: string]: string;
         };
         condition?: string;
         inputs?: {
