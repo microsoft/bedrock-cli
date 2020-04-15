@@ -56,6 +56,10 @@ export interface CommandValues extends CommandOptions {
   serviceVariablesArray: string[];
 }
 
+export const validUpperUnderscoreCase = (segment: string): boolean => {
+  return !!segment.match(/^[A-Z0-9_]+$/);
+};
+
 export const fetchValues = (opts: CommandOptions): CommandValues => {
   if (!isPortNumberString(opts.k8sBackendPort)) {
     throw Error("value for --k8s-service-port is not a valid port number");
@@ -81,6 +85,12 @@ export const fetchValues = (opts: CommandOptions): CommandValues => {
       .split(",")
       .map((str) => str.trim());
   }
+
+  serviceVariablesArray.forEach(function (r) {
+    if (!validUpperUnderscoreCase(r)) {
+      logger.warn(`${r} is not in a valid format. Valid strings include only uppercases, numbers, and underscores.`);
+    }
+  });
 
   const values: CommandValues = {
     gitPush: opts.gitPush,

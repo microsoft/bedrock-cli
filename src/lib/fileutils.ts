@@ -146,8 +146,6 @@ export const serviceBuildAndUpdatePipeline = (
   const relativeServiceForDockerfile = relServicePath.startsWith("./")
     ? relServicePath
     : "./" + relServicePath;
-  // const test = (serviceBuildVariables ?? []).map((group) => ({ group }));
-  // logger.info(`${test}`);
 
   const pipelineYaml: AzurePipelinesYaml = {
     trigger: {
