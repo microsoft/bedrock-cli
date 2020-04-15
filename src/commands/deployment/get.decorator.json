@@ -24,8 +24,8 @@
       "defaultValue": ""
     },
     {
-      "arg": "-e, --env <environment>",
-      "description": "Filter by environment name",
+      "arg": "-r, --ring <ring>",
+      "description": "Filter by ring name",
       "defaultValue": ""
     },
     {
