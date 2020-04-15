@@ -20,6 +20,4 @@ variables:
     isSecret: true
 ```
 
-If the yaml file above is available at `$PATH_TO_FILE` your would call
-
-`spk variable-group create --file $PATH_TO_FILE`
+If the yaml file above is available at `$PATH_TO_FILE` you would call `spk variable-group create --file $PATH_TO_FILE`
