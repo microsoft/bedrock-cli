@@ -186,12 +186,6 @@ const testExecuteFunc = async (
     );
   }
 
-  if (hasProject) {
-    expect(fncreateProject).toBeCalledTimes(0);
-  } else {
-    expect(fncreateProject).toBeCalledTimes(1);
-  }
-
   expect(exitFn).toBeCalledTimes(1);
   expect(exitFn.mock.calls).toEqual([[0]]);
 };
