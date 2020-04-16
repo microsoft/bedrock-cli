@@ -6,8 +6,9 @@ import {
   waitForStorageAccountToBeProvisioned,
 } from "./azureStorage";
 import * as azureStorage from "./azureStorage";
-import { RequestContext } from "./constants";
+import { RequestContext, STORAGE_ACCOUNT_NAME } from "./constants";
 import * as azure from "../azure/storage";
+import { getErrorMessage } from "../errorBuilder";
 
 const testCreateStorage = async (positive: boolean): Promise<void> => {
   jest.spyOn(azureStorage, "tryToCreateStorageAccount").mockImplementationOnce(
@@ -92,6 +93,23 @@ describe("test tryToCreateStorageAccount function", () => {
     await tryToCreateStorageAccount(rc);
     expect(rc.createdStorageAccount).toBeTruthy();
     expect(rc.storageAccountName).toBe("teststore");
+  });
+  it("negative test", async () => {
+    jest
+      .spyOn(azureStorage, "createStorageAccount")
+      .mockRejectedValueOnce(Error());
+    const rc: RequestContext = {
+      orgName: "notUsed",
+      projectName: "notUsed",
+      accessToken: "notUsed",
+      workspace: "notUsed",
+    };
+    await expect(tryToCreateStorageAccount(rc)).rejects.toThrow(
+      getErrorMessage({
+        errorKey: "storage-account-cannot-be-created",
+        values: [STORAGE_ACCOUNT_NAME],
+      })
+    );
   });
 });
 

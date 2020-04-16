@@ -11,10 +11,6 @@ import {
 } from "../../lib/bedrockYaml";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import {
-  PROJECT_CVG_DEPENDENCY_ERROR_MESSAGE,
-  PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE,
-} from "../../lib/constants";
-import {
   addNewServiceToMaintainersFile,
   generateDockerfile,
   generateGitIgnoreFile,
@@ -26,6 +22,8 @@ import { isPortNumberString } from "../../lib/validator";
 import { logger } from "../../logger";
 import { BedrockFileInfo, HelmConfig, User } from "../../types";
 import decorator from "./create.decorator.json";
+import { build as buildError, log as logError } from "../../lib/errorBuilder";
+import { errorStatusCode } from "../../lib/errorStatusCode";
 
 export interface CommandOptions {
   gitPush: boolean;
@@ -62,7 +60,10 @@ export const validUpperUnderscoreCase = (segment: string): boolean => {
 
 export const fetchValues = (opts: CommandOptions): CommandValues => {
   if (!isPortNumberString(opts.k8sBackendPort)) {
-    throw Error("value for --k8s-service-port is not a valid port number");
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "service-create-cmd-port-invalid-err"
+    );
   }
 
   const bedrock = Bedrock();
@@ -126,9 +127,15 @@ export const fetchValues = (opts: CommandOptions): CommandValues => {
 export const checkDependencies = (projectPath: string): void => {
   const fileInfo: BedrockFileInfo = bedrockFileInfo(projectPath);
   if (fileInfo.exist === false) {
-    throw Error(PROJECT_INIT_CVG_DEPENDENCY_ERROR_MESSAGE);
+    throw buildError(
+      errorStatusCode.CMD_EXE_ERR,
+      "service-create-cmd-init-dependency-err"
+    );
   } else if (fileInfo.hasVariableGroups === false) {
-    throw Error(PROJECT_CVG_DEPENDENCY_ERROR_MESSAGE);
+    throw buildError(
+      errorStatusCode.CMD_EXE_ERR,
+      "service-create-cmd-init-cvg-dependency-err"
+    );
   }
 };
 
@@ -291,8 +298,15 @@ export const validateGitUrl = async (
         fail("Not a valid git+ssh url");
       }
     } catch (err) {
-      logger.error(
-        `Provided helm git URL is an invalid git+ssh or http/https URL: ${gitUrl}`
+      logError(
+        buildError(
+          errorStatusCode.VALIDATION_ERR,
+          {
+            errorKey: "service-create-cmd-invalid-helm-url-err",
+            values: [gitUrl],
+          },
+          err
+        )
       );
       await exitFn(1);
       return;
@@ -306,43 +320,47 @@ export const execute = async (
   opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
-  if (!serviceName) {
-    logger.error("Service name is missing");
-    await exitFn(1);
-    return;
-  }
-
-  if (!servicePath) {
-    logger.error("Service path is missing");
-    await exitFn(1);
-    return;
-  }
-
-  // validate user inputs are DNS compliant
   try {
-    dns.assertIsValid("<service-name>", serviceName);
-    assertValidDnsInputs(opts);
-  } catch (err) {
-    logger.error(err);
-    await exitFn(1);
-  }
+    if (!serviceName) {
+      throw buildError(
+        errorStatusCode.CMD_EXE_ERR,
+        "service-create-cmd-service-name-missing-err"
+      );
+    }
 
-  // Sanity checking the specified Helm URLs
-  await validateGitUrl(opts.helmConfigGit, exitFn);
+    if (!servicePath) {
+      throw buildError(
+        errorStatusCode.CMD_EXE_ERR,
+        "service-create-cmd-service-path-missing-err"
+      );
+    }
 
-  const projectPath = process.cwd();
-  logger.verbose(`project path: ${projectPath}`);
+    // validate user inputs are DNS compliant
+    try {
+      dns.assertIsValid("<service-name>", serviceName);
+      assertValidDnsInputs(opts);
+    } catch (err) {
+      throw buildError(
+        errorStatusCode.CMD_EXE_ERR,
+        "service-create-cmd-service-name-dns-invalid-err",
+        err
+      );
+    }
 
-  try {
+    // Sanity checking the specified Helm URLs
+    await validateGitUrl(opts.helmConfigGit, exitFn);
+
+    const projectPath = process.cwd();
+    logger.verbose(`project path: ${projectPath}`);
+
     checkDependencies(projectPath);
     const values = fetchValues(opts);
     await createService(projectPath, serviceName, servicePath, values);
     await exitFn(0);
   } catch (err) {
-    logger.error(
-      `Error occurred adding service ${serviceName} to project ${projectPath}`
+    logError(
+      buildError(errorStatusCode.CMD_EXE_ERR, "service-create-cmd-failed", err)
     );
-    logger.error(err);
     await exitFn(1);
   }
 };

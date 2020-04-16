@@ -19,18 +19,18 @@ import {
   WORKSPACE,
 } from "../lib/setup/constants";
 import { createDirectory } from "../lib/setup/fsUtil";
-import { getAzureRepoUrl, getGitApi } from "../lib/setup/gitService";
+import {
+  completePullRequest,
+  getAzureRepoUrl,
+  getGitApi,
+} from "../lib/setup/gitService";
 import {
   createBuildPipeline,
   createHLDtoManifestPipeline,
   createLifecyclePipeline,
 } from "../lib/setup/pipelineService";
 import { createProjectIfNotExist } from "../lib/setup/projectService";
-import {
-  getAnswerFromFile,
-  prompt,
-  promptForApprovingHLDPullRequest,
-} from "../lib/setup/prompt";
+import { getAnswerFromFile, prompt } from "../lib/setup/prompt";
 import {
   appRepo,
   helmRepo,
@@ -43,6 +43,7 @@ import decorator from "./setup.decorator.json";
 import { createStorage } from "../lib/setup/azureStorage";
 import { build as buildError, log as logError } from "../lib/errorBuilder";
 import { errorStatusCode } from "../lib/errorStatusCode";
+import { exec } from "../lib/shell";
 import { ConfigYaml } from "../types";
 
 interface CommandOptions {
@@ -59,6 +60,27 @@ interface APIClients {
   gitAPI: IGitApi;
   buildAPI: IBuildApi;
 }
+
+export const isAzCLIInstall = async (): Promise<void> => {
+  try {
+    const result = await exec("az", ["version"]);
+    try {
+      logger.info(`az cli vesion ${JSON.parse(result)["azure-cli"]}`);
+    } catch (e) {
+      throw buildError(
+        errorStatusCode.ENV_SETTING_ERR,
+        "setup-cmd-az-cli-get-version-err",
+        e
+      );
+    }
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.ENV_SETTING_ERR,
+      "setup-cmd-az-cli-err",
+      err
+    );
+  }
+};
 
 /**
  * Creates SPK config file under `user-home/.spk` folder
@@ -169,18 +191,10 @@ export const createAppRepoTasks = async (
     await helmRepo(gitAPI, rc);
     await appRepo(gitAPI, rc);
     await createLifecyclePipeline(buildAPI, rc);
-    const approved = await promptForApprovingHLDPullRequest(rc);
-
-    if (approved) {
-      await createBuildPipeline(buildAPI, rc);
-
-      if (await promptForApprovingHLDPullRequest(rc)) {
-        return true;
-      }
-    }
-
-    logger.warn("HLD Pull Request is not approved.");
-    return false;
+    await completePullRequest(gitAPI, rc, HLD_REPO);
+    await createBuildPipeline(buildAPI, rc);
+    await completePullRequest(gitAPI, rc, HLD_REPO);
+    return true;
   } else {
     return false;
   }
@@ -243,6 +257,7 @@ export const execute = async (
   let requestContext: RequestContext | undefined = undefined;
 
   try {
+    await isAzCLIInstall();
     requestContext = opts.file ? getAnswerFromFile(opts.file) : await prompt();
     const rc = requestContext;
     createDirectory(WORKSPACE, true);
