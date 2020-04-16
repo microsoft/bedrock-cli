@@ -80,12 +80,12 @@
     },
     {
       "arg": "--service-build-vg <name of variable group for service build>",
-      "description": "List of variable groups to be linked to service pipeline",
+      "description": "List of variable groups to be linked to service pipeline. i.e. bedrock-vg,fabrikam-vg",
       "defaultValue": ""
     },
     {
       "arg": "--service-build-variables <list of variables to pass in as build arguments>",
-      "description": "List of variables from existing variable groups; will be used as build arguments in Docker build process",
+      "description": "List of variables from existing variable groups; will be used as build arguments in Docker build process. i.e. FOO,BAR",
       "defaultValue": ""
     }
   ]
