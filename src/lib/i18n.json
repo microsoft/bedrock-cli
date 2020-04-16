@@ -22,12 +22,14 @@
     "init_cmd_both_opts_err": "Could not execute this command because file that stores configuration was provided and interactive mode was set. Provide file name or enable interactive mode.",
 
     "setup-cmd-failed": "Setup command was not successfully executed.",
+    "setup-cmd-az-cli-err": "az command line was not installed.",
     "setup-cmd-prompt-err-no-subscriptions": "No subscriptions found.",
     "setup-cmd-prompt-err-subscription-missing": "Subscription Identifier was missing.",
     "setup-cmd-prompt-err-input-file-missing": "{0} did not exist or not accessible. Make sure that it is accessible.",
     "setup-cmd-core-api-err": "Could not get Core API client. Check the Azure credential.",
     "setup-cmd-git-api-err": "Could not get Git API client. Check the Azure DevOps credential.",
     "setup-cmd-build-api-err": "Could not get Build API client. Check the Azure DevOps credential.",
+    "setup-cmd-cannot-locate-pr-for-approval": "Could not locate pull request for approval",
 
     "spk-config-yaml-err-readyaml": "Could not load file, {0}.",
     "spk-config-yaml-var-undefined": "Environment variable needs to be defined for {0} since it's referenced in the config file.",
@@ -58,8 +60,6 @@
     "infra-scaffold-cmd-values-missing": "Values for name, version and/or 'template were missing. Provide value for values for them.",
 
     "infra-generate-cmd-failed": "Infra generate command was not successfully executed.",
-    "infra-module-source-modify-err": "Could not modify source module.",
-    "infra-inspect-generated-sources-err": "Could not generated sources.",
 
     "infra-defn-yaml-not-found": "{0} was not found in {1}",
     "infra-defn-yaml-invalid": "The {0} file is invalid. There are missing fields. template: {1} source: {2} version: {3}.",
@@ -78,12 +78,12 @@
 
     "project-pipeline-cmd-failed": "Project install lifecycle pipeline was not successfully executed.",
     "project-pipeline-err-github-repo": "GitHub repos are not supported. Repo url: {0} is invalid",
-    "project-pipeline-err-missing-values": "Value for {0} is missing.",
-    "project-pipeline-err-init-dependency": "Please run `spk project init` and `spk project cvg` commands before running this command to initialize the project.",
-    "project-pipeline-err-cvg": "Please run `spk project cvg` command before running this command to create a variable group.",
-    "project-pipeline-err-spk-config-missing": "SPK Config is missing",
+    "project-pipeline-err-missing-values": "Value for {0} was missing.",
+    "project-pipeline-err-init-dependency": "Run `spk project init` and `spk project cvg` commands before running this command to initialize the project.",
+    "project-pipeline-err-cvg": "Run `spk project cvg` command before running this command to create a variable group.",
+    "project-pipeline-err-spk-config-missing": "SPK Config was missing",
     "project-pipeline-err-pipeline-create": "Error occurred during pipeline creation for {0}",
-    "project-pipeline-err-invalid-build-definition": "Invalid BuildDefinition created, parameter 'id' is missing from {0}",
+    "project-pipeline-err-invalid-build-definition": "Invalid BuildDefinition created, parameter 'id' was missing from {0}",
 
     "git-err-show-current-branch": "Could not get the current branch of git. Ensure 'git branch --show-current' returns a proper response.",
     "git-err-checkout": "Could not checkout git branch, {0}.",
@@ -113,6 +113,7 @@
     "git-azure-get-match-branch-multiple": "Got more than one matching repositories in Azure DevOps with remote url '{0}' and branches '{1}' and '{2}'.",
     "git-azure-get-match-branch-err": "Could not get matching branch in Azure DevOps",
     "git-azure-create-pull-request-err": "Could not create pull request in Azure DevOps",
+    "git-azure-approve-pull-request-err": "Could not approve pull request in Azure DevOps",
     "git-azure-repo-no-exist": "Repository {0} did not exist in project {1}.",
     "git-azure-file-no-exist-in-repo": "File {0} did not exist in {1} branch in repository {2}.",
 
@@ -125,7 +126,7 @@
     "git-checkout-commit-push-create-PR-link": "Could not checkout, commit, push or create pull request",
     "git-create-repo-no-permissions": "Could not create git repository due to lack of permissions. Add code write permission to the personal access token",
     "git-create-repo-err": "Could not create git repository",
-    "git-delete-repo-id-missing": "Could not delete repository because repository id is missing.",
+    "git-delete-repo-id-missing": "Could not delete repository because repository id was missing.",
     "git-get-repo-no-permissions": "Could not get git repository due to lack of permissions. Add code read permission to the personal access token",
     "git-get-repo-azure-err": "Could not get git repository",
     "git-commit-Push-to_remote-err": "Could not git commit and push to remote source",
@@ -164,6 +165,15 @@
     "service-get-display-name-cmd-failed": "Service get display name command was not successfully executed.",
     "service-get-display-name-cmd-path-missing-param-err": "Value for path parameter was missing. This is required for running get-display-command. Provide it.",
     "service-get-display-name-cmd-service-name-not-found-err": "Could not find a service for path {0}. Make sure that the specified path is valid.",
+
+    "service-create-cmd-invalid-helm-url-err": "The helm git URL was invalid. Provided helm git URL is an invalid git+ssh or http/https URL: {0}",
+    "service-create-cmd-service-name-missing-err": "Service name was missing. Provide it.",
+    "service-create-cmd-service-path-missing-err": "Service path was missing. Provide it.",
+    "service-create-cmd-service-name-dns-invalid-err": "Service name or DNS value was invalid. See error message for more details.",
+    "service-create-cmd-failed": "Service create command was not successfully executed. Error occurred adding service '{0}' to project '{1}'.",
+    "service-create-cmd-port-invalid-err": "The value for --k8s-service-port was not a valid port number. Provide a valid port number",
+    "service-create-cmd-init-dependency-err": "Could not locate file information in bedrock.yaml. Run `spk project init` before running this command to initialize the project.",
+    "service-create-cmd-init-cvg-dependency-err": "Value for 'hasVariableGroups' in bedrock.yaml was missing. Run `spk project init` and `spk project cvg` commands before running this command to initialize the project.",
 
     "az-cli-login-err": "Could not login through azure cli.",
     "az-cli-create-sp-err": "Could not create service principal with azure cli",
@@ -258,6 +268,11 @@
     "project-create-variable-group-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
 
     "project-init-cmd-failed": "Project init was not successfully executed.",
+
+    "service-install-build-pipeline-cmd-failed": "Service install build pipeline was not successfully executed.",
+    "service-install-build-pipeline-cmd-pipeline-creation-err": "Error occurred when creating pipeline '{0}'. See the error details.",
+    "service-install-build-pipeline-cmd-id-missing-err": "Parameter 'id' was not found in '{0}'. Specify a value for 'id'.",
+    "service-install-build-pipeline-cmd-queue-build-err": "Error occurred queueing build for '{0}'. See error details.",
 
     "service-create-revision-cmd-failed": "Service create revision was not successfully executed.",
     "service-create-revision-cmd-err-pr-source-branch": "A pull request for a branch cannot be made against itself. Ensure your target branch(es) '{0}' do not include your source branch '{1}'",

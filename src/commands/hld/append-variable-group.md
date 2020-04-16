@@ -9,7 +9,6 @@ When an HLD repository is first initialized with `spk hld init`, the top portion
 of the `manifest-generation.yaml` looks like this:
 
 ```yaml
-# GENERATED WITH SPK VERSION 0.5.8
 trigger:
   branches:
     include:
@@ -28,7 +27,6 @@ this case `my-vg`, will add it under the `variables` section if it does not
 already exist:
 
 ```yaml
-# GENERATED WITH SPK VERSION 0.5.8
 trigger:
   branches:
     include:

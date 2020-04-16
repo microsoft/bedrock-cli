@@ -193,8 +193,13 @@ export const execute = async (
     await installHldToManifestPipeline(opts);
     await exitFn(0);
   } catch (err) {
-    logError(buildError(errorStatusCode.CMD_EXE_ERR, "", err));
-    logger.error(err);
+    logError(
+      buildError(
+        errorStatusCode.CMD_EXE_ERR,
+        "hld-install-manifest-pipeline-cmd-failed",
+        err
+      )
+    );
     await exitFn(1);
   }
 };

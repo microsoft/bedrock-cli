@@ -61,7 +61,7 @@ export interface InitObject {
 export interface CommandOptions {
   watch: boolean;
   output: string;
-  env: string;
+  ring: string;
   imageTag: string;
   buildId: string;
   commitId: string;
@@ -117,7 +117,7 @@ export const validateValues = (opts: CommandOptions): ValidatedOptions => {
     buildId: opts.buildId,
     commitId: opts.commitId,
     deploymentId: opts.deploymentId,
-    env: opts.env,
+    ring: opts.ring,
     imageTag: opts.imageTag,
     nTop: top,
     output: opts.output,
@@ -307,13 +307,12 @@ export const printDeployments = (
     let header = [
       "Start Time",
       "Service",
-      "Deployment",
       "Commit",
       "Src to ACR",
       "Image Tag",
       "Result",
       "ACR to HLD",
-      "Env",
+      "Ring",
       "Hld Commit",
       "Result",
     ];
@@ -373,7 +372,6 @@ export const printDeployments = (
           : "-"
       );
       row.push(deployment.service !== "" ? deployment.service : "-");
-      row.push(deployment.deploymentId);
       row.push(deployment.commitId !== "" ? deployment.commitId : "-");
       row.push(
         deployment.srcToDockerBuild ? deployment.srcToDockerBuild.id : "-"
@@ -515,7 +513,7 @@ export const getDeployments = async (
       initObj.srcPipeline,
       initObj.hldPipeline,
       initObj.clusterPipeline,
-      values.env,
+      values.ring,
       values.imageTag,
       values.buildId,
       values.commitId,
