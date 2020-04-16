@@ -22,7 +22,7 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
   relativeServicePathFormatted = "./my-service",
   ringBranches: string[] = ["master", "qa", "test"],
   variableGroups: string[] = [],
-  serviceBuildVariables: string[] = ["${serviceBuildVariables}"]
+  serviceBuildVariables: string[] = []
 ): AzurePipelinesYaml | string => {
   const relativeServiceForDockerfile = relativeServicePathFormatted.startsWith(
     "./"
