@@ -261,17 +261,3 @@ export const getAnswerFromFile = (file: string): RequestContext => {
   validationServicePrincipalInfoFromFile(rc, map);
   return rc;
 };
-
-export const promptForApprovingHLDPullRequest = async (
-  rc: RequestContext
-): Promise<boolean> => {
-  const urlPR = `${getAzureRepoUrl(
-    rc.orgName,
-    rc.projectName,
-    HLD_REPO
-  )}/pullrequest`;
-  const answers = await inquirer.prompt([
-    promptBuilder.approvingHLDPullRequest(urlPR),
-  ]);
-  return !!answers.approve_hld_pr;
-};

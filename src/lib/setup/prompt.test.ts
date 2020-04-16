@@ -10,7 +10,6 @@ import {
   getSubscriptionId,
   prompt,
   promptForACRName,
-  promptForApprovingHLDPullRequest,
   promptForServicePrincipalCreation,
   validationServicePrincipalInfoFromFile,
 } from "./prompt";
@@ -415,25 +414,6 @@ describe("test promptForServicePrincipalCreation function", () => {
       workspace: WORKSPACE,
     };
     await expect(promptForServicePrincipalCreation(mockRc)).rejects.toThrow();
-  });
-});
-
-describe("test promptForApprovingHLDPullRequest function", () => {
-  it("positive test", async () => {
-    jest
-      .spyOn(gitService, "getAzureRepoUrl")
-      .mockReturnValueOnce("https://sample/example");
-    jest.spyOn(inquirer, "prompt").mockResolvedValueOnce({
-      approve_hld_pr: true,
-    });
-    const mockRc: RequestContext = {
-      accessToken: "pat",
-      orgName: "org",
-      projectName: "project",
-      workspace: WORKSPACE,
-    };
-    const ans = await promptForApprovingHLDPullRequest(mockRc);
-    expect(ans).toBeTruthy();
   });
 });
 
