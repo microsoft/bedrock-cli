@@ -26,6 +26,7 @@ import {
   fetchValues,
   CommandValues,
   validateGitUrl,
+  validUpperUnderscoreCase,
 } from "./create";
 import { BedrockServiceConfig } from "../../types";
 
@@ -137,6 +138,15 @@ describe("Test fetchValues function", () => {
       .mockReturnValueOnce(bedrockYaml.DEFAULT_CONTENT());
     const result = fetchValues(mocked);
     expect(result).toEqual(mocked);
+  });
+});
+
+describe("validUpperUnderscoreCase", () => {
+  test("valid variable inputs", () => {
+    const validVariable = "FOOBAR";
+    const invalidVariable = "foo-bar";
+    expect(validUpperUnderscoreCase(validVariable)).toBe(true);
+    expect(validUpperUnderscoreCase(invalidVariable)).toBe(false);
   });
 });
 
@@ -484,6 +494,40 @@ describe("Adding a service to a repo directory", () => {
           values.middlewaresArray.length
         );
         expect(service.middlewares).toStrictEqual(values.middlewaresArray);
+      }
+    }
+  });
+  test("service build vg and variables get added", async () => {
+    await writeSampleMaintainersFileToDir(
+      path.join(randomTmpDir, "maintainers.yaml")
+    );
+    await writeSampleBedrockFileToDir(path.join(randomTmpDir, "bedrock.yaml"));
+
+    const values = getMockValues();
+    const serviceName = uuid();
+    const servicePath = uuid();
+    values.k8sPort = 1337;
+    values.serviceBuildVg = "foo,bar,baz";
+    values.serviceBuildVariables = "FOO,BAR,BAZ";
+    values.serviceVgArray = [ "foo", "bar", "baz"]
+    values.serviceVariablesArray = [ "FOO", "BAR", "BAZ"]
+
+    logger.info(
+      `creating randomTmpDir ${randomTmpDir} and service ${serviceName}`
+    );
+
+    await createService(randomTmpDir, serviceName, servicePath, values);
+    validateDirNFiles(randomTmpDir, servicePath, values);
+
+    const bedrockConfig = Bedrock(randomTmpDir);
+
+    // check that the added service has the expected middlewares
+    for (const service of bedrockConfig.services) {
+      if (service.displayName === serviceName) {
+        expect(service.serviceBuildVg).toBeDefined();
+        expect(service.serviceBuildVariables).toBeDefined();
+        expect(service.serviceBuildVg).toStrictEqual(values.serviceVgArray);
+        expect(service.serviceBuildVariables).toStrictEqual(values.serviceVariablesArray);
       }
     }
   });
