@@ -426,7 +426,7 @@ spk service create
 ```
 
 In this example, variables `FOO` and `BAR` exist in the variable group
-`fabrikam-vg`, and will be passed in as arguments in the Dockerfile.
+`fabrikam-vg`, and will be passed in as build arguments for the Dockerfile.
 
 #### Creating a Service Revision
 

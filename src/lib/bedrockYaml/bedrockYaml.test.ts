@@ -59,7 +59,7 @@ describe("Adding a new service to a Bedrock file", () => {
     const k8sBackend = "mybackendservice";
     const pathPrefix = "ingressprefix";
     const pathPrefixMajorVersion = "v2";
-    const BuildVariables = ["version"];
+    const BuildVariables = ["foo"];
     const BuildVg = ["test-vg"];
 
     const defaultBedrockFileObject = createTestBedrockYaml(
