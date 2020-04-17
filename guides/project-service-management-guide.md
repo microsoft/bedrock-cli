@@ -430,7 +430,7 @@ In this example, variables `FOO` and `BAR` exist in either variable groups `bedr
 
 **NOTE**: It is important to understand that Azure DevOps will have the last variable group
 take precedence. This means that if you have the same variable defined in both variable groups,
-the variable will take the value of the **last** variable group appeneded to the pipeline yaml
+the variable will take the value of the **last** variable group appended to the pipeline yaml
 file.
 
 #### Creating a Service Revision
