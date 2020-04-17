@@ -93,6 +93,13 @@ export const fetchValues = (opts: CommandOptions): CommandValues => {
     }
   });
 
+  if (serviceVariablesArray.includes("") || serviceVgArray.includes("")) {
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "service-create-cmd-invalid-service-variable-group-err"
+    );
+  }
+
   const values: CommandValues = {
     gitPush: opts.gitPush,
     helmChartChart: opts.helmChartChart,

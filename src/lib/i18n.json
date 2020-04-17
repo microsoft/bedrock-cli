@@ -167,6 +167,7 @@
     "service-get-display-name-cmd-service-name-not-found-err": "Could not find a service for path {0}. Make sure that the specified path is valid.",
 
     "service-create-cmd-invalid-helm-url-err": "The helm git URL was invalid. Provided helm git URL is an invalid git+ssh or http/https URL: {0}",
+    "service-create-cmd-invalid-service-variable-group-err": "The value for --service-build-vg or --service-build-variable was not valid.",
     "service-create-cmd-service-name-missing-err": "Service name was missing. Provide it.",
     "service-create-cmd-service-path-missing-err": "Service path was missing. Provide it.",
     "service-create-cmd-service-name-dns-invalid-err": "Service name or DNS value was invalid. See error message for more details.",
