@@ -227,7 +227,7 @@ export const serviceBuildAndUpdatePipeline = (
                   `ACR_BUILD_COMMAND="az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
                   ``,
                   `echo "Exporting build variables from variable groups, if available: "`,
-                  `echo "Build Variables: \${serviceBuildVariables}"`,
+                  `echo "Build Variables: ${serviceBuildVariables}"`,
                   ...(serviceBuildVariables ?? []).map(
                     (variable) =>
                       `ACR_BUILD_COMMAND+=" --build-arg ${variable}='$(${variable})'"`
