@@ -397,6 +397,7 @@ git push -u origin --all
 
 # Wait for the lifecycle pipeline to finish and approve the pull request
 mono_repo_commit_id=$(git log --format="%H" -n 1)
+verify_pipeline_with_poll_and_source_version $AZDO_ORG_URL $AZDO_PROJECT $frontend_pipeline_name 500 15 $mono_repo_commit_id
 verify_pipeline_with_poll_and_source_version $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name 300 15 $mono_repo_commit_id
 echo "Finding pull request that $lifecycle_pipeline_name pipeline created..."
 approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "Reconciling HLD"
