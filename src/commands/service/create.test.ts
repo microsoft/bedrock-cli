@@ -174,7 +174,9 @@ describe("validUpperUnderscoreCase", () => {
   test("valid variable inputs", () => {
     const validVariable = "FOOBAR";
     const invalidVariable = "foo-bar";
+    const anotherValidVariable = "FOO_BAR_BAZ";
     expect(validUpperUnderscoreCase(validVariable)).toBe(true);
+    expect(validUpperUnderscoreCase(anotherValidVariable)).toBe(true);
     expect(validUpperUnderscoreCase(invalidVariable)).toBe(false);
   });
 });

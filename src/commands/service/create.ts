@@ -87,11 +87,11 @@ export const fetchValues = (opts: CommandOptions): CommandValues => {
       .map((str) => str.trim());
   }
 
-  serviceVariablesArray.forEach(function (r) {
+  for (const r of serviceVariablesArray) {
     if (!validUpperUnderscoreCase(r)) {
       logger.warn(`${r} is not in a valid format. Valid strings include only uppercases, numbers, and underscores.`);
     }
-  });
+  };
 
   if (serviceVariablesArray.includes("") || serviceVgArray.includes("")) {
     throw buildError(
