@@ -232,6 +232,7 @@ export const generateClusterDefinition = (
   vartfData: string
 ): { [key: string]: string | { [key: string]: string } } => {
   const fields = parseVariablesTf(vartfData);
+  const defaultVariables: string[] = [];
   // map of string to string or map of string to string
   const def: { [key: string]: string | { [key: string]: string } } = {
     name: values.name,
@@ -252,9 +253,18 @@ export const generateClusterDefinition = (
     Object.keys(fieldDict).forEach((key) => {
       if (fieldDict[key] !== DEFAULT_VAR_VALUE) {
         delete fieldDict[key];
+        defaultVariables.push(key);
       }
     });
     def.variables = fieldDict;
+
+    if (defaultVariables.length > 0) {
+      logger.info(
+        `Default values will be used for these variables:\n${defaultVariables.join(
+          "\n"
+        )}. \nCustom values can be set for these variables in the definition.yaml file.`
+      );
+    }
   }
   return def;
 };
