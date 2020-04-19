@@ -86,12 +86,6 @@ To check existing Logic Apps in your subscription, go to the
 | spk hld install-manifest-pipeline | ✅       |
 | spk hld reconcile                 | ✅       |
 
-## Variable Group Management
-
-| Command                   | Coverage |
-| ------------------------- | -------- |
-| spk variable-group create | 🚫       |
-
 ## Service Introspection
 
 | Command                  | Coverage |

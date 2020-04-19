@@ -69,12 +69,6 @@ To send data from Azure pipelines to the service introspection storage created
 previously a variable group needs to be configured in Azure DevOps (where the
 pipelines are).
 
-To configure the variable group run:
-
-```
-spk variable-group create
-```
-
 You will need the following variables:
 
 - `INTROSPECTION_ACCOUNT_KEY`: Set this to the access key for your storage
@@ -87,14 +81,6 @@ You will need the following variables:
   account that you prefer to use
 
 ![](./images/variable_group.png)
-
-Make sure that you update the pipelines in the following steps to include this
-variable group, such as below:
-
-```yaml
-variables:
-  - group: <your-variable-group-name>
-```
 
 #### 2. CI pipeline configuration
 
