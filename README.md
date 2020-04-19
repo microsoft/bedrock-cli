@@ -44,7 +44,6 @@ Commands:
   infra              Manage and modify your Bedrock infrastructure.
   project            Initialize and manage your Bedrock project.
   service            Create and manage services for a Bedrock project.
-  variable-group     Creates Variable Group in Azure DevOps project.
 ```
 
 ## Prerequisites
