@@ -253,13 +253,6 @@
     "ring-delete-cmd-err-name-missing": "Could not execute this command because ring name was not provided. Provide a ring name.",
     "ring-delete-cmd-err-dependency": "Configuration information was missing. Run `spk project init` command to initialize them.",
 
-    "variable-group-create-cmd-failed": "Could not create variable group.",
-    "variable-group-create-cmd-err-create": "Could not load variable group. The variable group type '{0}' is not supported. Only 'Vsts' and 'AzureKeyVault' are valid types and case sensitive.",
-    "variable-group-create-cmd-err-access-token": "Provide a value for {0}.",
-    "variable-group-create-cmd-err-project-missing": "Provide a value for {0}.",
-    "variable-group-create-cmd-err-org-missing": "Provide a value for {0}.",
-    "variable-group-create-cmd-err-file-missing": "Provide a file with the variable group manifest.",
-
     "project-create-variable-group-cmd-failed": "Create variable group was not successfully executed.",
     "project-create-variable-group-cmd-err-root-invalid": "Project root path is not valid. Provide a valid root path.",
     "project-create-variable-group-cmd-err-variable-group-invalid": "Variable group name is not valid. Provide a valid variable group name.",

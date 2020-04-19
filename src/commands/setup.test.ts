@@ -204,7 +204,6 @@ describe("test execute function", () => {
   });
   it("negative test: 401 status code", async () => {
     jest.spyOn(setup, "isAzCLIInstall").mockResolvedValueOnce();
-
     const exitFn = jest.fn();
     jest
       .spyOn(promptInstance, "prompt")
@@ -233,7 +232,6 @@ describe("test execute function", () => {
   });
   it("negative test: VS402392 error", async () => {
     jest.spyOn(setup, "isAzCLIInstall").mockResolvedValueOnce();
-
     const exitFn = jest.fn();
 
     jest
@@ -262,7 +260,6 @@ describe("test execute function", () => {
   });
   it("negative test: other error", async () => {
     jest.spyOn(setup, "isAzCLIInstall").mockResolvedValueOnce();
-
     const exitFn = jest.fn();
 
     jest
@@ -291,7 +288,6 @@ describe("test execute function", () => {
   });
   it("negative test: other error", async () => {
     jest.spyOn(setup, "isAzCLIInstall").mockResolvedValueOnce();
-
     const exitFn = jest.fn();
 
     jest
