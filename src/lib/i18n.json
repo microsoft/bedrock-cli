@@ -120,7 +120,7 @@
     "fileutils-append-variable-group-to-pipeline-yaml": "Could not append variable group name to manifest-generation.yaml file in HLD repo. Check this is file exist and if it is YAML format.",
     "fileutils-generate-hld-pipeline-yaml": "Could not generate HLD Azure pipeline YAML.",
     "fileutils-generate-default-hld-component-yaml": "Could not generate default HLD component YAML.",
-    "fileutils-generate-git-ignore-file": "Could not generate .gitignore file in {0}.",
+    "fileutils-generate-git-ignore-file": "Could not append to existing or generate new .gitignore file in {0}.",
     "fileutils-update-ring-trigger-svc-file-not-found": "Could not update ring trigger because {0} was not in path {1}.",
 
     "git-checkout-commit-push-create-PR-link": "Could not checkout, commit, push or create pull request",

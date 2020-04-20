@@ -913,30 +913,26 @@ export const addNewServiceToMaintainersFile = (
 };
 
 /**
- * Writes out a default .gitignore file if one doesn't exist
+ * Appends content to an existing .gitignore file in target directory.
+ * Will create a new file if one does not exist.
  *
  * @param targetDirectory directory to generate the .gitignore file
- * @param content content of file
+ * @param values array of values to ignore
  */
 export const generateGitIgnoreFile = (
   targetDirectory: string,
-  content: string
+  values: string[]
 ): void => {
   const absTargetPath = path.resolve(targetDirectory);
-  logger.info(`Generating starter .gitignore in ${absTargetPath}`);
+  const gitIgnoreFilePath = path.join(absTargetPath, ".gitignore");
+  logger.info(
+    `Attempting to add values: "${values}" to ${gitIgnoreFilePath}. Will create a new file if needed.`
+  );
 
   try {
-    const gitIgnoreFilePath = path.join(absTargetPath, ".gitignore");
+    const content = ["\n# Bedrock files ---", ...values].join("\n");
 
-    if (fs.existsSync(gitIgnoreFilePath)) {
-      logger.warn(
-        `Existing .gitignore found at ${gitIgnoreFilePath}, skipping generation.`
-      );
-      return;
-    }
-
-    logger.info(`Writing .gitignore file to ${gitIgnoreFilePath}`);
-    fs.writeFileSync(gitIgnoreFilePath, content, "utf8");
+    fs.appendFileSync(gitIgnoreFilePath, content, "utf8");
   } catch (err) {
     throw buildError(
       errorStatusCode.FILE_IO_ERR,

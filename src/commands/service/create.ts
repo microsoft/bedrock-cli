@@ -167,7 +167,7 @@ export const createService = async (
   );
 
   // Create empty .gitignore file in directory
-  generateGitIgnoreFile(newServiceDir, "");
+  generateGitIgnoreFile(newServiceDir, [""]);
 
   // Create simple Dockerfile in directory
   generateDockerfile(newServiceDir);
