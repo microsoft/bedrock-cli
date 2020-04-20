@@ -41,6 +41,8 @@ export interface CommandOptions {
   packagesDir: string;
   pathPrefix: string;
   pathPrefixMajorVersion: string;
+  serviceBuildVg: string;
+  serviceBuildVariables: string;
 }
 
 export interface CommandValues extends CommandOptions {
@@ -48,7 +50,13 @@ export interface CommandValues extends CommandOptions {
   middlewaresArray: string[];
   ringNames: string[];
   variableGroups: string[];
+  serviceVgArray: string[];
+  serviceVariablesArray: string[];
 }
+
+export const validUpperUnderscoreCase = (segment: string): boolean => {
+  return !!segment.match(/^[A-Z0-9_]+$/);
+};
 
 export const fetchValues = (opts: CommandOptions): CommandValues => {
   if (!isPortNumberString(opts.k8sBackendPort)) {
@@ -65,6 +73,31 @@ export const fetchValues = (opts: CommandOptions): CommandValues => {
   let middlewaresArray: string[] = [];
   if (opts.middlewares && opts.middlewares.trim()) {
     middlewaresArray = opts.middlewares.split(",").map((str) => str.trim());
+  }
+
+  let serviceVgArray: string[] = [];
+  if (opts.serviceBuildVg && opts.serviceBuildVg.trim()) {
+    serviceVgArray = opts.serviceBuildVg.split(",").map((str) => str.trim());
+  }
+
+  let serviceVariablesArray: string[] = [];
+  if (opts.serviceBuildVariables && opts.serviceBuildVariables.trim()) {
+    serviceVariablesArray = opts.serviceBuildVariables
+      .split(",")
+      .map((str) => str.trim());
+  }
+
+  for (const r of serviceVariablesArray) {
+    if (!validUpperUnderscoreCase(r)) {
+      logger.warn(`${r} is not in a valid format. Valid strings include only uppercases, numbers, and underscores.`);
+    }
+  };
+
+  if (serviceVariablesArray.includes("") || serviceVgArray.includes("")) {
+    throw buildError(
+      errorStatusCode.VALIDATION_ERR,
+      "service-create-cmd-invalid-service-variable-group-err"
+    );
   }
 
   const values: CommandValues = {
@@ -87,6 +120,10 @@ export const fetchValues = (opts: CommandOptions): CommandValues => {
     pathPrefixMajorVersion: opts.pathPrefixMajorVersion,
     ringNames: rings,
     variableGroups,
+    serviceBuildVg: opts.serviceBuildVg,
+    serviceVgArray,
+    serviceBuildVariables: opts.serviceBuildVariables,
+    serviceVariablesArray,
   };
 
   // Values do not need to be validated
@@ -163,7 +200,9 @@ export const createService = async (
     values.ringNames,
     serviceName,
     newServiceDir,
-    values.variableGroups
+    values.variableGroups,
+    values.serviceVgArray,
+    values.serviceVariablesArray
   );
 
   // Create empty .gitignore file in directory
@@ -215,7 +254,9 @@ export const createService = async (
     values.k8sPort,
     values.k8sBackend,
     values.pathPrefix,
-    values.pathPrefixMajorVersion
+    values.pathPrefixMajorVersion,
+    values.serviceVgArray,
+    values.serviceVariablesArray
   );
 
   // If requested, create new git branch, commit, and push

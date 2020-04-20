@@ -178,6 +178,7 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
 
   afterEach(() => {
     mockFs.restore();
+    jest.clearAllMocks();
   });
 
   it("should not do anything if build-update-hld.yaml exists", () => {
@@ -191,6 +192,8 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
       [],
       "my-service",
       path.join(targetDirectory, serviceDirectory),
+      [],
+      [],
       []
     );
     expect(writeSpy).not.toBeCalled();
@@ -205,6 +208,8 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
       [],
       "my-service",
       path.join(targetDirectory, serviceDirectory),
+      [],
+      [],
       []
     );
 
@@ -221,6 +226,40 @@ describe("generateServiceBuildAndUpdatePipelineYaml", () => {
         "./my-service",
         [],
         []
+      ),
+      "utf8"
+    );
+    expect(writeSpy).toBeCalled();
+  });
+
+  it("generating a build pipeline with rings and service build variables", () => {
+    const absTargetPath = path.resolve(targetDirectory);
+    const expectedFilePath = `${absTargetPath}/${serviceDirectory}/${SERVICE_PIPELINE_FILENAME}`;
+
+    generateServiceBuildAndUpdatePipelineYaml(
+      targetDirectory,
+      ["master", "stage"],
+      "my-service",
+      path.join(targetDirectory, serviceDirectory),
+      [],
+      ["my-build-vg"],
+      ["VAR1,VAR2"]
+    );
+
+    expect(writeSpy).toBeCalledWith(
+      expectedFilePath,
+      `${getVersionMessage()}\n`,
+      "utf8"
+    );
+    expect(appendSpy).toBeCalledWith(
+      expectedFilePath,
+      createTestServiceBuildAndUpdatePipelineYaml(
+        true,
+        "my-service",
+        "./my-service",
+        ["master", "stage"],
+        ["my-build-vg"],
+        ["VAR1,VAR2"]
       ),
       "utf8"
     );
@@ -746,7 +785,9 @@ describe("serviceBuildUpdatePipeline", () => {
         ringBranches,
         serviceReference.serviceName,
         serviceReference.servicePath,
-        variableGroups
+        variableGroups,
+        [],
+        []
       );
 
       // file should exist
