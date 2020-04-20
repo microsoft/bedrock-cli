@@ -24,7 +24,7 @@ import {
   VM_IMAGE,
   BEDROCK_FILENAME,
 } from "../lib/constants";
-import { disableVerboseLogging, enableVerboseLogging } from "../logger";
+import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
 import {
   createTestComponentYaml,
   createTestHldAzurePipelinesYaml,
@@ -614,8 +614,9 @@ describe("Adding a new service to a Maintainer file", () => {
   });
 });
 
-describe("generating service gitignore file", () => {
+describe("generating or updating .gitignore file", () => {
   const targetDirectory = "my-new-service";
+  const writeSpy = jest.spyOn(fs, "appendFileSync");
 
   beforeEach(() => {
     mockFs({
@@ -624,29 +625,46 @@ describe("generating service gitignore file", () => {
   });
   afterEach(() => {
     mockFs.restore();
+    jest.clearAllMocks();
   });
 
-  const content = "hello world";
+  const values: string[] = ["file1", "file2", "file3"];
+  const expectedContent = "\n# Bedrock files ---\nfile1\nfile2\nfile3";
+  const absTargetPath = path.resolve(targetDirectory);
+  const expectedGitIgnoreFilePath = `${absTargetPath}/.gitignore`;
 
-  it("should not do anything if file exist", () => {
+  it("should append values if file exist", () => {
     const mockFsOptions = {
-      [`${targetDirectory}/.gitignore`]: "foobar",
+      [`${targetDirectory}/.gitignore`]: "someexistingfiletype",
     };
     mockFs(mockFsOptions);
 
-    const writeSpy = jest.spyOn(fs, "writeFileSync");
-    generateGitIgnoreFile(targetDirectory, content);
-    expect(writeSpy).not.toBeCalled();
+    generateGitIgnoreFile(targetDirectory, values);
+
+    expect(writeSpy).toBeCalledWith(
+      expectedGitIgnoreFilePath,
+      expectedContent,
+      "utf8"
+    );
+    expect(fs.readFileSync(expectedGitIgnoreFilePath, "utf8")).toEqual(
+      "someexistingfiletype" + expectedContent
+    );
   });
 
   it("should generate the file if one does not exist", () => {
-    const writeSpy = jest.spyOn(fs, "writeFileSync");
-    generateGitIgnoreFile(targetDirectory, content);
+    expect(fs.existsSync(expectedGitIgnoreFilePath)).toBe(false);
 
-    const absTargetPath = path.resolve(targetDirectory);
-    const expectedGitIgnoreFilePath = `${absTargetPath}/.gitignore`;
+    generateGitIgnoreFile(targetDirectory, values);
 
-    expect(writeSpy).toBeCalledWith(expectedGitIgnoreFilePath, content, "utf8");
+    expect(writeSpy).toBeCalledWith(
+      expectedGitIgnoreFilePath,
+      expectedContent,
+      "utf8"
+    );
+    expect(fs.existsSync(expectedGitIgnoreFilePath)).toBe(true);
+    expect(fs.readFileSync(expectedGitIgnoreFilePath, "utf8")).toEqual(
+      expectedContent
+    );
   });
 });
 
