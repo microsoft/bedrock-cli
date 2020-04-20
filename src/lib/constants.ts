@@ -5,6 +5,8 @@ export const BEDROCK_FILENAME = "bedrock.yaml";
 export const BUILD_SCRIPT_URL =
   "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh";
 
+export const CLI_LOG_FILENAME = "spk.log";
+
 export const HELM_VERSION = "2.16.3";
 
 export const HLD_COMPONENT_FILENAME = "component.yaml";

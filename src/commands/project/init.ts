@@ -15,6 +15,7 @@ import { BedrockFile, MaintainersFile } from "../../types";
 import decorator from "./init.decorator.json";
 import { build as buildError, log as logError } from "../../lib/errorBuilder";
 import { errorStatusCode } from "../../lib/errorStatusCode";
+import { CLI_LOG_FILENAME } from "../../lib/constants";
 
 // values that we need to pull out from command operator
 interface CommandOptions {
@@ -151,7 +152,7 @@ export const initialize = async (
   generateBedrockFile(absProjectRoot, defaultRing);
   await generateMaintainersFile(absProjectRoot, []);
   await generateHldLifecyclePipelineYaml(absProjectRoot);
-  generateGitIgnoreFile(absProjectRoot, "spk.log");
+  generateGitIgnoreFile(absProjectRoot, [CLI_LOG_FILENAME]);
 
   logger.info(`Project initialization complete!`);
 };
