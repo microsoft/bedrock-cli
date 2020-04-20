@@ -2,8 +2,9 @@ import fs from "fs";
 import path from "path";
 import uuid from "uuid/v4";
 import { disableVerboseLogging, enableVerboseLogging, logger } from ".";
+import { CLI_LOG_FILENAME } from "../lib/constants";
 
-const logFile = path.join(process.cwd(), "spk.log");
+const logFile = path.join(process.cwd(), CLI_LOG_FILENAME);
 
 test("A new info log gets added to logs", () => {
   const randomString = uuid();
