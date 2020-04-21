@@ -119,6 +119,7 @@ const testExecuteFunc = async (
   usePrompt = true,
   hasProject = true
 ): Promise<void> => {
+  jest.spyOn(setup, "isAzCLIInstall").mockResolvedValueOnce();
   jest
     .spyOn(gitService, "getGitApi")
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -165,10 +166,8 @@ const testExecuteFunc = async (
       .spyOn(projectService, "getProject")
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .mockResolvedValueOnce(undefined as any);
+    jest.spyOn(projectService, "createProject").mockResolvedValueOnce();
   }
-  const fncreateProject = jest
-    .spyOn(projectService, "createProject")
-    .mockResolvedValueOnce();
 
   if (usePrompt) {
     await execute(
@@ -186,12 +185,6 @@ const testExecuteFunc = async (
     );
   }
 
-  if (hasProject) {
-    expect(fncreateProject).toBeCalledTimes(0);
-  } else {
-    expect(fncreateProject).toBeCalledTimes(1);
-  }
-  fncreateProject.mockReset();
   expect(exitFn).toBeCalledTimes(1);
   expect(exitFn.mock.calls).toEqual([[0]]);
 };
@@ -210,6 +203,7 @@ describe("test execute function", () => {
     await testExecuteFunc(false, false);
   });
   it("negative test: 401 status code", async () => {
+    jest.spyOn(setup, "isAzCLIInstall").mockResolvedValueOnce();
     const exitFn = jest.fn();
     jest
       .spyOn(promptInstance, "prompt")
@@ -237,6 +231,7 @@ describe("test execute function", () => {
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("negative test: VS402392 error", async () => {
+    jest.spyOn(setup, "isAzCLIInstall").mockResolvedValueOnce();
     const exitFn = jest.fn();
 
     jest
@@ -264,6 +259,7 @@ describe("test execute function", () => {
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("negative test: other error", async () => {
+    jest.spyOn(setup, "isAzCLIInstall").mockResolvedValueOnce();
     const exitFn = jest.fn();
 
     jest
@@ -291,6 +287,7 @@ describe("test execute function", () => {
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("negative test: other error", async () => {
+    jest.spyOn(setup, "isAzCLIInstall").mockResolvedValueOnce();
     const exitFn = jest.fn();
 
     jest
@@ -341,7 +338,7 @@ describe("test getErrorMessage function", () => {
   });
 });
 
-const testCreateAppRepoTasks = async (prApproved = true): Promise<void> => {
+const testCreateAppRepoTasks = async (): Promise<void> => {
   const mockRc: RequestContext = {
     orgName: "org",
     projectName: "project",
@@ -366,15 +363,10 @@ const testCreateAppRepoTasks = async (prApproved = true): Promise<void> => {
   jest
     .spyOn(pipelineService, "createLifecyclePipeline")
     .mockResolvedValueOnce();
-  jest
-    .spyOn(promptInstance, "promptForApprovingHLDPullRequest")
-    .mockResolvedValueOnce(prApproved);
-  if (prApproved) {
-    jest.spyOn(pipelineService, "createBuildPipeline").mockResolvedValueOnce();
-    jest
-      .spyOn(promptInstance, "promptForApprovingHLDPullRequest")
-      .mockResolvedValueOnce(prApproved);
-  }
+  jest.spyOn(gitService, "completePullRequest").mockResolvedValueOnce();
+
+  jest.spyOn(pipelineService, "createBuildPipeline").mockResolvedValueOnce();
+  jest.spyOn(gitService, "completePullRequest").mockResolvedValueOnce();
 
   const res = await createAppRepoTasks(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -383,13 +375,12 @@ const testCreateAppRepoTasks = async (prApproved = true): Promise<void> => {
     {} as any, // buildAPI
     mockRc
   );
-  expect(res).toBe(prApproved);
+  expect(res).toBe(true);
 };
 
 describe("test createAppRepoTasks function", () => {
   it("positive test", async () => {
     await testCreateAppRepoTasks();
-    await testCreateAppRepoTasks(false);
   });
 });
 

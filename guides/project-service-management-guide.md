@@ -62,8 +62,8 @@ operating Kubernetes clusters with Bedrock principles.
 ### Setup SPK
 
 Download the latest version of `spk` from the
-[releases](https://github.com/microsoft/bedrock-cli/releases) page and add it to your
-PATH.
+[releases](https://github.com/microsoft/bedrock-cli/releases) page and add it to
+your PATH.
 
 To setup a local configuration:
 
@@ -266,6 +266,10 @@ below:
   -g, --helm-config-git <helm-git>                            bedrock helm chart configuration git repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
   -b, --helm-config-branch <helm-branch>                      bedrock custom helm chart configuration branch. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
   -p, --helm-config-path <helm-path>                          bedrock custom helm chart configuration path. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
+  --service-build-vg <variable-group>                         existing azure devops variable groups
+  may use multiple. (default: "")
+  --service-build-variables <variables>                       existing variables from azure devops variable groups
+  may use multiple. (default: "")
 ```
 
 As noted by the the documentation text, `helm-chart-*` and `helm-config-*` are
@@ -404,6 +408,30 @@ Ensure that the you _remove_ the `fabrikam@` portion of the URL when passing
 parameters to `spk service create --helm-config-git`:
 
 `https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts`
+
+#### Passing Variables as Dockerfile Build Arguments
+
+If you want to pass in build arguments during the Dockerfile build process, you
+can inject them using the `--service-build-vg` and `--service-build-variables`
+arguments, which will take in multiple variable groups and variables,
+respectively.
+
+```
+spk service create
+  --helm-config-git https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-app \
+  --helm-config-branch master \
+  --helm-path /charts/fabrikam \
+  --service-build-vg bedrock-vg,fabrikam-vg \
+  --service-build-variables FOO,BAR
+```
+
+In this example, variables `FOO` and `BAR` exist in either variable groups `bedrock-vg` or
+`fabrikam-vg`, and will be passed in as build arguments for the Dockerfile.
+
+**NOTE**: It is important to understand that Azure DevOps will have the last variable group in
+the pipeline yaml take precedence. This means that if you have the same variable defined in both
+variable groups, the variable will take the value from the **last** variable group appended to
+the pipeline yaml file.
 
 #### Creating a Service Revision
 

@@ -72,101 +72,20 @@ AZDO_ORG_NAME: Azure DevOps organization url where the generated repo is hosted 
 AZDO_PROJECT_NAME: The name of the project in your Azure DevOps organization where the generated repo is hosted
 ```
 
-You can use `spk` to create the Azure DevOps Variable Groups by executing
-`spk variable-group create` described in this
-[doc](../../guides/variable-group.md). This will require you to create a
-variable group manifest similar to the following:
-
-```yml
-name: "spk-infra-hld-vg"
-description: "variable group for infra hld"
-type: "Vsts"
-variables:
-  ACCESS_TOKEN_SECRET:
-    value: "<PAT>"
-  ARM_CLIENT_ID:
-    value: "<SP-APP-ID>"
-  ARM_CLIENT_SECRET:
-    value: "<SP-PASSWORD>"
-  ARM_SUBSCRIPTION_ID:
-    value: "<SUBSCRIPTION-ID>"
-  ARM_TENANT_ID:
-    value: "<SP-TENANT-ID>"
-  CLUSTER:
-    value: "<CLUSTER-NAME>"
-  GENERATED_REPO:
-    value: "<GIT-URL-TO-GENERATED-REPO>"
-  PROJECT_DIRECTORY:
-    value: "<PROJECT-NAME>"
-  AZDO_ORG_NAME: (optional)
-    value: "<AZURE-DEVOPS-ORG-NAME>"
-  AZDO_PROJECT_NAME: (optional)
-    value: "<AZURE-DEVOPS-PROJECT-NAME>"
-```
-
 ![](../images/spk-infra-vg.png)
 
 #### 3.1b. Create a Variable Group using Azure Key Vault
 
-By using the `spk variable-group create` you are also able to link variables to
-secrets in Azure Keyvault. Create a variable group in the portal or throught the
-`az` cli.
-
-> Please note that Key Vault Secret names can only contain alphanumeric
-> characters and dashes.
-
 Once the Keyvault has been created, You can now create a variable group manifest
 similar to the following:
 
-```yml
-name: "spk-infra-hld-vg-kv"
-description: "key vault variable group for infra hld"
-type: "AzureKeyVault"
-variables:
-  ACCESSTOKENSECRET:
-    enabled: true
-  ARMCLIENTID:
-    enabled: true
-  ARMCLIENTSECRET:
-    enabled: true
-  ARMSUBSCRIPTIONID:
-    enabled: true
-  ARMTENANTID:
-    enabled: true
-  CLUSTER:
-    enabled: true
-  GENERATEDREPO:
-    enabled: true
-  PROJECTDIRECTORY:
-    enabled: true
-  AZDOORGNAME: (optional)
-    enabled: true
-  AZDOPROJECTNAME: (optional)
-    enabled: true
-key_vault_provider:
-  name: "myvault"                                                # name of the Azure Key Vaukt with Secrets
-  service_endpoint:                                                   # service endpoint is required to authorize with Azure Key Vault
-    name: "my-KeyVault"
-    # If the service endpoint with this name does not exist, the following values are required to create a new service connection with this name
-    subscription_id: "<SUBSCRIPTION-ID>"
-    # Azure Subscription id where Key Vault exist
-    subscription_name: "<SUBSCRIPTION-NAME>"
-    # Azure Subscription name where Key Vault exist
-    service_principal_id: "<SP-ID>"
-    # Service Principal Id that has 'Get' and 'List' in Key Vault Access Policy
-    service_principal_secret: "<SP-PASSWORD>"
-    # Service Principal secret for the above Service Principal Id
-    tenant_id: "<SP-TENANT-ID>"
-    # AAD Tenant Id for the above Service Principal
-```
+You can create a variable group through the Azure DevOps UI and connect it to
+the pre-existing Key Vault you created. Navigate to your pipeline library and
+create a new variable group. Identify the key vault that was previously
+provisioned.
 
-> Be sure not to commit your variable group manifest to a remote repository
-> unless environment variables were used.
-
-Alternatively you can create a variable group through the Azure DevOps UI and
-connect it to the pre-existing Key Vault you created. Navigate to your pipeline
-library and create a new variable group. Identify the key vault that was
-previously provisioned.
+> Please note that Key Vault Secret names can only contain alphanumeric
+> characters and dashes.
 
 ![](../images/kvsetupvg.png)
 

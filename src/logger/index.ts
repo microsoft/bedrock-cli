@@ -1,4 +1,5 @@
 import { createLogger, format, transports } from "winston";
+import { CLI_LOG_FILENAME } from "../lib/constants";
 
 // visit https://github.com/winstonjs/logform for format options
 export const logger = createLogger({
@@ -7,7 +8,7 @@ export const logger = createLogger({
   defaultMeta: { service: "spk" },
   transports: [
     new transports.File({
-      filename: "spk.log",
+      filename: CLI_LOG_FILENAME,
       format: format.simple(),
     }),
     new transports.Console({

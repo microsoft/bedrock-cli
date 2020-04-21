@@ -225,11 +225,15 @@ cd "$TEST_WORKSPACE/$mono_repo_dir"
 
 # helm_repo_url="$AZDO_ORG_URL/$AZDO_PROJECT/_git/$helm_charts_dir"
 local_repo_url="$AZDO_ORG_URL/$AZDO_PROJECT/_git/$mono_repo_dir"
-spk service create $FrontEnd $FrontEnd -d $services_dir -p "chart" -g $local_repo_url -b master >> $TEST_WORKSPACE/log.txt
+spk service create $FrontEnd $FrontEnd -d $services_dir -p "chart" -g $local_repo_url -b master --service-build-vg bedrock-cli-vg-test --service-build-variables FOO,BAR >> $TEST_WORKSPACE/log.txt
 # spk service create $FrontEnd $FrontEnd -d $services_dir -p "$FrontEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
 directory_to_check="$services_full_dir/$FrontEnd"
 file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" )
 validate_directory $directory_to_check "${file_we_expect[@]}"
+# Validate that build variables were passed in via --services-build-variables
+validate_file $directory_to_check/build-update-hld.yaml 'Build Variables: FOO,BAR'
+# Validate that vg and variables are tracked in bedrock.yaml
+validate_file $TEST_WORKSPACE/$mono_repo_dir/bedrock.yaml 'bedrock-cli-vg-test'
 
 # TODO uncomment this when helm chart fixed
 # spk service create $BackEnd $BackEnd -d $services_dir -p "$BackEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
@@ -393,6 +397,7 @@ git push -u origin --all
 
 # Wait for the lifecycle pipeline to finish and approve the pull request
 mono_repo_commit_id=$(git log --format="%H" -n 1)
+verify_pipeline_with_poll_and_source_version $AZDO_ORG_URL $AZDO_PROJECT $frontend_pipeline_name 500 15 $mono_repo_commit_id
 verify_pipeline_with_poll_and_source_version $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name 300 15 $mono_repo_commit_id
 echo "Finding pull request that $lifecycle_pipeline_name pipeline created..."
 approve_pull_request $AZDO_ORG_URL $AZDO_PROJECT "Reconciling HLD"
