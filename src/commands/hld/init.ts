@@ -12,6 +12,7 @@ import { logger } from "../../logger";
 import decorator from "./init.decorator.json";
 import { build as buildError, log as logError } from "../../lib/errorBuilder";
 import { errorStatusCode } from "../../lib/errorStatusCode";
+import { CLI_LOG_FILENAME } from "../../lib/constants";
 
 // values that we need to pull out from command operator
 interface CommandOptions {
@@ -39,7 +40,7 @@ export const initialize = async (
     componentPath
   );
   // Create .gitignore file in directory ignoring spk.log, if one doesn't already exist.
-  generateGitIgnoreFile(hldRepoPath, "spk.log");
+  generateGitIgnoreFile(hldRepoPath, [CLI_LOG_FILENAME]);
 
   // If requested, create new git branch, commit, and push
   if (gitPush) {

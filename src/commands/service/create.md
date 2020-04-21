@@ -10,7 +10,9 @@ spk service create my-service . \
   --helm-config-path $path_to_chart_in_repo \
   --helm-config-git $helm_repo_url \ # Needs to start with https and not contain user name
   --helm-config-branch master \
-  --helm-chart-access-token-variable $ENV_VAR_NAME
+  --helm-chart-access-token-variable $ENV_VAR_NAME \
+  --service-build-vg $service_build_variable_group \
+  --service-build-variables $service_build_variables
 ```
 
 ## Note
@@ -52,3 +54,7 @@ spk service create my-service . \
           - name: docs-service
             port: 3001
   ```
+
+- `--service-build-vg` and `--service-build-variables` are optional arguments
+  often used together to pass existing variables from an existing variable group
+  as build arguments into a Dockerfile build process.

@@ -59,6 +59,8 @@ describe("Adding a new service to a Bedrock file", () => {
     const k8sBackend = "mybackendservice";
     const pathPrefix = "ingressprefix";
     const pathPrefixMajorVersion = "v2";
+    const buildVariables = ["FOO"];
+    const buildVg = ["test-vg"];
 
     const defaultBedrockFileObject = createTestBedrockYaml(
       false
@@ -76,7 +78,9 @@ describe("Adding a new service to a Bedrock file", () => {
       k8sBackendPort,
       k8sBackend,
       pathPrefix,
-      pathPrefixMajorVersion
+      pathPrefixMajorVersion,
+      buildVg,
+      buildVariables
     );
 
     const expected: BedrockFile = {
@@ -92,6 +96,8 @@ describe("Adding a new service to a Bedrock file", () => {
           middlewares: traefikMiddlewares,
           pathPrefix,
           pathPrefixMajorVersion,
+          serviceBuildVg: buildVg,
+          serviceBuildVariables: buildVariables,
         },
       ],
       variableGroups: [],

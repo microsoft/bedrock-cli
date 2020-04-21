@@ -77,6 +77,16 @@
       "arg": "--path-prefix-major-version <path-prefix-major-version>",
       "description": "Version to be used in the path prefix; will be used to configure Traefik2 IngressRoutes. ie. 'v1' will result in a path prefix of '/v1/servicename",
       "defaultValue": ""
+    },
+    {
+      "arg": "--service-build-vg <comma-delimitated-list-of-variable-group-names>",
+      "description": "List of variable groups to be linked to service pipeline. i.e. bedrock-vg,fabrikam-vg",
+      "defaultValue": ""
+    },
+    {
+      "arg": "--service-build-variables <comma-delimitated-list-of-variable-names>",
+      "description": "List of variables from existing variable groups; will be used as build arguments in Docker build process. i.e. FOO,BAR",
+      "defaultValue": ""
     }
   ]
 }

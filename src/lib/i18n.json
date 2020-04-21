@@ -120,7 +120,7 @@
     "fileutils-append-variable-group-to-pipeline-yaml": "Could not append variable group name to manifest-generation.yaml file in HLD repo. Check this is file exist and if it is YAML format.",
     "fileutils-generate-hld-pipeline-yaml": "Could not generate HLD Azure pipeline YAML.",
     "fileutils-generate-default-hld-component-yaml": "Could not generate default HLD component YAML.",
-    "fileutils-generate-git-ignore-file": "Could not generate .gitignore file in {0}.",
+    "fileutils-generate-git-ignore-file": "Could not append to existing or generate new .gitignore file in {0}.",
     "fileutils-update-ring-trigger-svc-file-not-found": "Could not update ring trigger because {0} was not in path {1}.",
 
     "git-checkout-commit-push-create-PR-link": "Could not checkout, commit, push or create pull request",
@@ -167,6 +167,7 @@
     "service-get-display-name-cmd-service-name-not-found-err": "Could not find a service for path {0}. Make sure that the specified path is valid.",
 
     "service-create-cmd-invalid-helm-url-err": "The helm git URL was invalid. Provided helm git URL is an invalid git+ssh or http/https URL: {0}",
+    "service-create-cmd-invalid-service-variable-group-err": "The value for --service-build-vg or --service-build-variable was not valid.",
     "service-create-cmd-service-name-missing-err": "Service name was missing. Provide it.",
     "service-create-cmd-service-path-missing-err": "Service path was missing. Provide it.",
     "service-create-cmd-service-name-dns-invalid-err": "Service name or DNS value was invalid. See error message for more details.",
@@ -252,13 +253,6 @@
     "ring-delete-cmd-failed": "Could not delete ring: {0}.",
     "ring-delete-cmd-err-name-missing": "Could not execute this command because ring name was not provided. Provide a ring name.",
     "ring-delete-cmd-err-dependency": "Configuration information was missing. Run `spk project init` command to initialize them.",
-
-    "variable-group-create-cmd-failed": "Could not create variable group.",
-    "variable-group-create-cmd-err-create": "Could not load variable group. The variable group type '{0}' is not supported. Only 'Vsts' and 'AzureKeyVault' are valid types and case sensitive.",
-    "variable-group-create-cmd-err-access-token": "Provide a value for {0}.",
-    "variable-group-create-cmd-err-project-missing": "Provide a value for {0}.",
-    "variable-group-create-cmd-err-org-missing": "Provide a value for {0}.",
-    "variable-group-create-cmd-err-file-missing": "Provide a file with the variable group manifest.",
 
     "project-create-variable-group-cmd-failed": "Create variable group was not successfully executed.",
     "project-create-variable-group-cmd-err-root-invalid": "Project root path is not valid. Provide a valid root path.",
