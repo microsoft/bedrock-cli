@@ -224,7 +224,8 @@ cd "$TEST_WORKSPACE/$mono_repo_dir"
 # Commented code below is for external repo helm charts. Currently doesn't work.
 
 # Create test vg (bedrock-cli-vg-test)
-az pipelines variable-group create --name bedrock-cli-vg-test --authorize true --variables "FOO=BAR" "BAR=BAZ" | jq '.id'
+variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT bedrock-cli-vg-test "delete"
+az pipelines variable-group create --name bedrock-cli-vg-test --authorize true --variables "FOO=BAR" "BAR=BAZ"
 
 # Verify the variable group was created. Fail if not
 variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT bedrock-cli-vg-test "fail"
