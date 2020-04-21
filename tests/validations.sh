@@ -223,6 +223,12 @@ cd "$TEST_WORKSPACE/$mono_repo_dir"
 
 # Commented code below is for external repo helm charts. Currently doesn't work.
 
+# Create test vg (bedrock-cli-vg-test)
+az pipelines variable-group create --name bedrock-cli-vg-test --authorize true --variables "FOO=BAR" "BAR=BAZ" | jq '.id'
+
+# Verify the variable group was created. Fail if not
+variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT bedrock-cli-vg-test "fail"
+
 # helm_repo_url="$AZDO_ORG_URL/$AZDO_PROJECT/_git/$helm_charts_dir"
 local_repo_url="$AZDO_ORG_URL/$AZDO_PROJECT/_git/$mono_repo_dir"
 spk service create $FrontEnd $FrontEnd -d $services_dir -p "chart" -g $local_repo_url -b master --service-build-vg bedrock-cli-vg-test --service-build-variables FOO,BAR >> $TEST_WORKSPACE/log.txt
