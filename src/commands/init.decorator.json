@@ -9,7 +9,7 @@
     },
     {
       "arg": "-i, --interactive",
-      "description": "Interactive mode.",
+      "description": "Interactive mode. Creates a config file (config.yaml) in a folder .spk under your home directory",
       "defaultValue": false
     }
   ]

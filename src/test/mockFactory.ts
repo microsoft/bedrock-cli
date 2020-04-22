@@ -21,7 +21,8 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
   serviceName = "my-service",
   relativeServicePathFormatted = "./my-service",
   ringBranches: string[] = ["master", "qa", "test"],
-  variableGroups: string[] = []
+  variableGroups: string[] = [],
+  serviceBuildVariables: string[] = []
 ): AzurePipelinesYaml | string => {
   const relativeServiceForDockerfile = relativeServicePathFormatted.startsWith(
     "./"
@@ -94,13 +95,23 @@ export const createTestServiceBuildAndUpdatePipelineYaml = (
               },
               {
                 script: generateYamlScript([
-                  `export BUILD_REPO_NAME=$(echo $(Build.Repository.Name)-${serviceName} | tr '[:upper:]' '[:lower:]')`,
+                  // Iterate through serviceBuildVariables, export each variable, then append as build argument
+                  `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
                   `export IMAGE_TAG=${IMAGE_TAG}`,
                   `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
                   `echo "Image Name: $IMAGE_NAME"`,
+                  `ACR_BUILD_COMMAND="az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
+                  ``,
+                  `echo "Exporting build variables from variable groups, if available: "`,
+                  `echo "Build Variables: ${serviceBuildVariables}"`,
+                  ...(serviceBuildVariables ?? []).map(
+                    (variable) =>
+                      `ACR_BUILD_COMMAND+=" --build-arg ${variable}='$(${variable})'"`
+                  ),
+                  ``,
                   `cd ${relativeServiceForDockerfile}`,
-                  `echo "az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
-                  `az acr build -r $(ACR_NAME) --image $IMAGE_NAME .`,
+                  `echo "ACR BUILD COMMAND: $ACR_BUILD_COMMAND"`,
+                  `$ACR_BUILD_COMMAND`,
                 ]),
                 displayName: "ACR Build and Publish",
               },

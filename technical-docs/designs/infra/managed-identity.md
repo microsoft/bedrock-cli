@@ -55,8 +55,8 @@ The following are not included in this proposal:
 This design seeks to introduce modular testing for terraform known as
 `Test Fixtures` based on best practices initially introduced by
 [Terratest Abstraction](https://github.com/microsoft/terratest-abstraction). The
-test fixtures decouples terraform commands to respective pipeline templats to be
-called and dynamically populated by a targeted template test.
+test fixtures decouples terraform commands to respective pipeline templates to
+be called and dynamically populated by a targeted template test.
 
 ### 3.1 Embed new Infrastructure DevOps Model Flow - Continuous Integration
 

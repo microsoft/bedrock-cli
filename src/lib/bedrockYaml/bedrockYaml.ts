@@ -87,6 +87,7 @@ export const read = (dir: string): BedrockFile => {
  * @param k8sBackend Kubernetes Backend Service name
  * @param pathPrefix Pathprefix for IngressRoute
  * @param pathPrefixMajorVersion PathPrefix major version
+ * @param buildVariableGroup Variable group Name
  */
 export const addNewService = (
   dir: string,
@@ -97,7 +98,9 @@ export const addNewService = (
   k8sBackendPort: number,
   k8sBackend: string,
   pathPrefix: string,
-  pathPrefixMajorVersion: string
+  pathPrefixMajorVersion: string,
+  serviceBuildVg: string[],
+  serviceBuildVariables: string[]
 ): void => {
   const absPath = path.resolve(dir);
   const data = read(absPath);
@@ -113,6 +116,8 @@ export const addNewService = (
       middlewares,
       pathPrefix,
       pathPrefixMajorVersion,
+      serviceBuildVg,
+      serviceBuildVariables,
     },
   ];
 

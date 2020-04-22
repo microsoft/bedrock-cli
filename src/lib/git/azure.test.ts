@@ -5,15 +5,19 @@ import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
 import { getErrorMessage } from "../errorBuilder";
 import { AzureDevOpsOpts } from "../git";
 import * as gitutils from "../gitutils";
+import * as shell from "../shell";
 import {
+  completePullRequest,
   createPullRequest,
   generatePRUrl,
+  getAzureOrganizationUrl,
   getGitOrigin,
   GitAPI,
   repositoryHasFile,
   validateRepository,
 } from "./azure";
 import * as azure from "./azure";
+import { RequestContext } from "../setup/constants";
 jest.mock("azure-devops-node-api");
 jest.mock("../../config");
 
@@ -281,5 +285,50 @@ describe("repositoryHasFile", () => {
     await expect(
       repositoryHasFile("testFile2.txt", "master", "test-repo", accessOpts)
     ).rejects.toThrow();
+  });
+});
+
+describe("test getAzureOrganizationUrl function", () => {
+  it("positive test", () => {
+    expect(getAzureOrganizationUrl("hello")).toBe(
+      "https://dev.azure.com/hello"
+    );
+  });
+});
+
+const mockRequestContext: RequestContext = {
+  servicePrincipalId: "servicePrincipalId",
+  servicePrincipalPassword: "servicePrincipalPassword",
+  servicePrincipalTenantId: "servicePrincipalTenantId",
+  orgName: "unittest",
+  projectName: "project",
+  accessToken: "token",
+  workspace: "test",
+};
+
+describe("test completePullRequest function", () => {
+  it("negative test: cannot login", async () => {
+    jest.spyOn(shell, "exec").mockRejectedValueOnce(Error());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await expect(
+      completePullRequest({ pullRequestId: "test" } as any, mockRequestContext)
+    ).rejects.toThrow(getErrorMessage("git-azure-approve-pull-request-err"));
+  });
+  it("negative test: cannot approve pull request", async () => {
+    jest.spyOn(shell, "exec").mockResolvedValueOnce("ok");
+    jest.spyOn(shell, "exec").mockRejectedValueOnce(Error());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await expect(
+      completePullRequest({ pullRequestId: "test" } as any, mockRequestContext)
+    ).rejects.toThrow(getErrorMessage("git-azure-approve-pull-request-err"));
+  });
+  it("positive test", async () => {
+    jest.spyOn(shell, "exec").mockResolvedValueOnce("ok");
+    jest.spyOn(shell, "exec").mockResolvedValueOnce("ok");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await completePullRequest(
+      { pullRequestId: "test" } as any,
+      mockRequestContext
+    );
   });
 });
