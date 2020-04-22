@@ -1,8 +1,10 @@
 # MSI Support Testing for Bedrock AKS-gitops
 
-| Revision | Date         | Author         | Remarks       |
-| -------: | ------------ | -------------- | ------------- |
-|      0.1 | Mar-30, 2020 | Nathaniel Rose | Initial Draft |
+| Revision | Date         | Author         | Remarks                          |
+| -------: | ------------ | -------------- | -------------------------------- |
+|      0.1 | Mar-30, 2020 | Nathaniel Rose | Initial Draft                    |
+|      0.2 | Apr-16, 2020 | Nathaniel Rose | Added Appendix                   |
+|      0.3 | Apr-20, 2020 | Nathaniel Rose | Added Terratest Abstraction repo |
 
 ## 1. Overview
 
@@ -23,8 +25,8 @@ AKS creates two managed identities:
 
 This document outlines a testing suite to support feature related support for
 managed identities in AKS using a proposed new Bedrock environment that
-leverages a modified cobalt project test harness in order for test pod identity
-within an AKS cluster using agile CI/CD and test validation.
+leverages a modified Terratest Abstraction test harness in order for test pod
+identity within an AKS cluster using agile CI/CD and test validation.
 
 ### Scenarios Addressed:
 
@@ -44,16 +46,17 @@ The following are not included in this proposal:
 
 - Mocking for Terraform Unit Tests
 - Feature revert and Rollback from failed merges
-- Adjusting Cobalt Test Fixture support for current file organization of
-  Bedrock: i.e.: testing files in respective folders for template environments.
+- Adjusting Terratest Abstraction Test Fixture support for current file
+  organization of Bedrock: i.e.: testing files in respective folders for
+  template environments.
 
 ## 3. Design Details
 
 This design seeks to introduce modular testing for terraform known as
 `Test Fixtures` based on best practices initially introduced by
-[Project Cobalt](github.com/microsoft/cobalt). The test fixtures decouples
-terraform commands to respective pipeline templats to be called and dynamically
-populated by a targeted template test.
+[Terratest Abstraction](https://github.com/microsoft/terratest-abstraction). The
+test fixtures decouples terraform commands to respective pipeline templates to
+be called and dynamically populated by a targeted template test.
 
 ### 3.1 Embed new Infrastructure DevOps Model Flow - Continuous Integration
 
@@ -165,10 +168,10 @@ terraform and a flux manifest repository.
 
 #### Unit Tests
 
-Cobalt Test Fixtures includes a library that simplifies writing unit terraform
-tests against templates. It extracts out pieces of this process and provides a
-static validation for a json sample output per module. For this, we require Unit
-Tests for the following modules:
+Terratest Abstraction Test Fixtures includes a library that simplifies writing
+unit terraform tests against templates. It extracts out pieces of this process
+and provides a static validation for a json sample output per module. For this,
+we require Unit Tests for the following modules:
 
 - AKS
 - Key Vault
@@ -239,7 +242,7 @@ following:
 - [Bedrock Pre-Reqs: az cli | terraform | golang | fabrikate ](https://github.com/microsoft/bedrock/tree/master/tools/prereqs)
 - [Terratest](https://github.com/gruntwork-io/terratest)
 - [Terraform Compliance](https://github.com/eerkunt/terraform-compliance)
-- [Cobalt Terraform Test Fixtures](https://github.com/microsoft/cobalt/tree/master/test-harness)
+- [Terratest Abstraction Terraform Test Fixtures](https://github.com/microsoft/terratest-abstraction)
 
 ## 5. Risks & Mitigations
 
@@ -257,3 +260,60 @@ Risks & Limitations:
 
 Yes, Documentation will need to be added to the new terraform environment and
 the Bedrock testing guidance.
+
+## 7. Appendix
+
+### Feature Comparison
+
+|                               Feature | Bedrock | Terratest Abstraction |
+| ------------------------------------: | ------- | --------------------- |
+|                     Test Whitelisting | Yes     | Yes                   |
+|                Resolve Keys & Secrets | No      | Yes                   |
+|               Staged Test Environment | Yes     | Yes                   |
+|                          Code Linting | Yes     | Yes                   |
+|                  Terraform Compliance | No      | No                    |
+| Terraform Commands: Init, Plan, Apply | Yes     | Yes                   |
+|                   Module Unit Testing | No      | Yes                   |
+|                   Integration Testing | Yes     | Yes                   |
+|          Automated Release Management | No      | No                    |
+|                    Acceptance Testing | No      | No                    |
+
+1.  **Test Whitelisting** - Using `git diff` to determine which files have been
+    modified in an incoming PR to target the appropriate tests that need to be
+    ran successfully respective to the files changed.
+2.  **Resolve Keys & Secrets** - Using Azure Key Vault to successfully populate
+    values through a variable group to be used as environment arguments for
+    infrastructure or service layer turnstiles.
+3.  **Staged Test Environments** - Separate collections of resources targeted by
+    the whitelisted results of the deployment pipeline. These environments are
+    configured for validating tests at different stages of the test pipeline.
+4.  **Code Linting** - Analyze source code for error, bugs and stylistic
+    inconsistencies for golang, terraform and other languages leveraged. This
+    will ideally be migrated to ore-commit git hooks that format source code
+    prior to a `git push`.
+5.  **Terraform Compliance (Optional)** - Use negative testing to validate a
+    parsed output of `terraform plan` provides values that are acceptable for
+    deployment according to a predefined encrypted configuration set for
+    resources.
+6.  **Terraform Commands** - Dissociated, decoupled terraform commands for
+    initializing, planning and applying incoming changes at different stages in
+    the test pipeline. Currently terraform commands are carried out in the
+    terratest go scripts for integration tests. The commands need to be migrated
+    to their own respective pipeline step for improved visibility of deployment
+    failures.
+7.  **Module Unit Testing** - Run `terraform init`,
+    `terraform workspace select`, `terraform plan` and parse the plan output
+    into a Terraform Plan to validate a resource attribute matches a provided
+    value mapping for the terraform module.
+8.  **Integration Testing** - Use the Go library
+    [terratest](https://github.com/gruntwork-io/terratest) to run automated
+    infrastructure integration tests that check health of deployed resource such
+    as Kubernetes services, web server http responses, database mock values,
+    agent logs.
+9.  **Automated Release Management** - Use continuous delivery inside the DevOps
+    pipeline to carry incoming features through staged production environments
+    and landing a incremental release branch. This allows Master branch to
+    always remain ready and successful.
+10. **Acceptance Testing (Optional)** - Documentation or boiler plate example of
+    an acceptability test for infrastructure in release pipeline to evaluate
+    system compliance, performance or business requirements.
