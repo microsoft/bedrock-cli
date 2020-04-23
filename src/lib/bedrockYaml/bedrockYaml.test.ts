@@ -337,11 +337,9 @@ describe("Adding a variable group to an existing bedrock.yaml", () => {
 
     // "" means that bedrock.yaml is written to a random directory
     const dir = create("", defaultBedrockFileObject);
-
     const ringName = "new-ring";
 
     addVariableGroup(defaultBedrockFileObject, dir, "test-vg");
-
     const expected: BedrockFile = {
       rings: {
         ...(defaultBedrockFileObject as BedrockFile).rings,

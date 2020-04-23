@@ -72,9 +72,8 @@ export const checkDependencies = (projectPath: string): void => {
 
 /**
  * Checks if a variable group exists in an Azure DevOps project
- * @param projectPath
- * @param variableGroupName
- * @param values
+ * @param variableGroupName Variable Group Name
+ * @param values The config values
  */
 export const variableGroupExists = async (
   variableGroupName: string,
@@ -92,6 +91,7 @@ export const variableGroupExists = async (
 /**
  * Update the variable groups for the project services
  * @param bedrockFile The bedrock.yaml file
+ * @param variableGroupName Variable Group Name
  */
 export const updateServicesVariableGroups = (
   bedrockFile: BedrockFile,
@@ -110,8 +110,10 @@ export const updateServicesVariableGroups = (
 /**
  * Executes the command.
  *
+ * @param projectPath The path to the spk project
  * @param variableGroupName Variable Group Name
  * @param opts Option object from command
+ * @param exitFn The exit function
  */
 export const execute = async (
   projectPath: string,
