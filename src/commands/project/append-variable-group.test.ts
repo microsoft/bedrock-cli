@@ -35,10 +35,16 @@ describe("Test execute function", () => {
       .spyOn(appendVariableGrp, "validateValues")
       .mockReturnValueOnce(mockValues as ConfigValues);
     jest.spyOn(bedrockYaml, "addVariableGroup").mockReturnValue();
+    jest
+      .spyOn(fileutils, "appendVariableGroupToPipelineYaml")
+      .mockReturnValue();
 
     expect(bedrockFile.variableGroups?.length).toBe(0);
     await execute("my-path", "my-vg", mockValues, exitFn);
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[0]]);
+    expect(fileutils.appendVariableGroupToPipelineYaml).toHaveBeenCalledTimes(
+      3
+    );
   });
 });

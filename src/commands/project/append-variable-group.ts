@@ -15,10 +15,12 @@ import { logger } from "../../logger";
 import { build as buildError, log as logError } from "../../lib/errorBuilder";
 import { errorStatusCode } from "../../lib/errorStatusCode";
 import decorator from "./append-variable-group.decorator.json";
-import { BedrockFileInfo } from "../../types";
+import { BedrockFileInfo, BedrockFile } from "../../types";
 import * as bedrockYaml from "../../lib/bedrockYaml";
 import { hasVariableGroup } from "../../lib/pipelines/variableGroup";
 import { AzureDevOpsOpts } from "../../lib/git";
+import { appendVariableGroupToPipelineYaml } from "../../lib/fileutils";
+import { SERVICE_PIPELINE_FILENAME } from "../../lib/constants";
 
 // Values that need to be pulled out from the command operator
 export interface CommandOptions {
@@ -88,6 +90,24 @@ export const variableGroupExists = async (
 };
 
 /**
+ * Update the variable groups for the project services
+ * @param bedrockFile The bedrock.yaml file
+ */
+export const updateServicesVariableGroups = (
+  bedrockFile: BedrockFile,
+  variableGroupName: string
+): void => {
+  bedrockFile.services.forEach((service) => {
+    const path = service.path;
+    appendVariableGroupToPipelineYaml(
+      path,
+      SERVICE_PIPELINE_FILENAME,
+      variableGroupName
+    );
+  });
+};
+
+/**
  * Executes the command.
  *
  * @param variableGroupName Variable Group Name
@@ -118,6 +138,7 @@ export const execute = async (
 
     const bedrockFile = Bedrock(projectPath);
     bedrockYaml.addVariableGroup(bedrockFile, projectPath, variableGroupName);
+    updateServicesVariableGroups(bedrockFile, variableGroupName);
     await exitFn(0);
   } catch (err) {
     logError(
