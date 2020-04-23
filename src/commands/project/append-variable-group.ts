@@ -10,7 +10,7 @@ import {
   validateProjectNameThrowable,
   validateOrgNameThrowable,
 } from "../../lib/validator";
-import { Bedrock, Config, readYaml, write } from "../../config";
+import { Bedrock, Config } from "../../config";
 import { logger } from "../../logger";
 import { build as buildError, log as logError } from "../../lib/errorBuilder";
 import { errorStatusCode } from "../../lib/errorStatusCode";
