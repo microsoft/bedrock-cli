@@ -15,10 +15,10 @@ with distributed teams may eventually lead to the scenario in which a production
 environment transitions into a failed state due to an improperly tested feature
 added.
 
-This document outlines multiple solutpopulation of denmarkion approaches that
-seeks to provide a rollback mechanisms to ensure the successful deployment of
-terraform infrastructure, automated reverted features in a release pipeline, and
-system alerting to notify key stakeholders and operations of system activity.
+This document outlines multiple solutions and approaches that seeks to provide a
+rollback mechanisms to ensure the successful deployment of terraform
+infrastructure, automated reverted features in a release pipeline, and system
+alerting to notify key stakeholders and operations of system activity.
 
 Rolling back services which includes a relational database can be very
 difficult. Traditionally this is done by restoring from a backup, performed
@@ -37,11 +37,11 @@ Components of this design are based on the learnings from:
 
 ## 2. Out of Scope
 
-This design document solely covers strategic approaches to revert changes to a
-deployed GitOps environment in Azure DevOps after changes made have caused state
-failures. This design leverages the use of terraform state files, Azure storage
-accounts and commit hashes to build an audit history. It does not address the
-following:
+This design document solely covers strategic approaches to revert terraform
+changes to a deployed GitOps environment in Azure DevOps after changes made have
+caused state failures. This design leverages the use of terraform state files,
+Azure storage accounts and commit hashes to build an audit history. It does not
+address the following:
 
 - Redeployment of stateful services in your environment
 - Complications arise when incompatible database changes during failed apply
@@ -181,7 +181,7 @@ steps:
     backendAzureRmResourceGroupName: 'nr-aks-hlf'
     backendAzureRmStorageAccountName: nrhype
     backendAzureRmContainerName: nrhype
-    backendAzureRmKey: $(Previous_key_git_version)
+    backendAzureRmKey: $(Previous_tfstate_key_git_version)
 ```
 
 #### Configure a Post-deployment Condition Approval
