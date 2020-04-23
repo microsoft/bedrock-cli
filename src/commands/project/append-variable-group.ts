@@ -84,10 +84,7 @@ export const variableGroupExists = async (
     project: values.devopsProject,
   };
 
-  if (!(await hasVariableGroup(accessOpts, variableGroupName))) {
-    return false;
-  }
-  return true;
+  return await hasVariableGroup(accessOpts, variableGroupName);
 };
 
 /**
