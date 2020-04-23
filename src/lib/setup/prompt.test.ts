@@ -14,7 +14,6 @@ import {
   validationServicePrincipalInfoFromFile,
 } from "./prompt";
 import * as promptInstance from "./prompt";
-import * as gitService from "./gitService";
 import * as servicePrincipalService from "../azure/servicePrincipalService";
 import * as subscriptionService from "../azure/subscriptionService";
 

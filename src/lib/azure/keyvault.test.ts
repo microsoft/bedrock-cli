@@ -1,4 +1,3 @@
-import { PipelineOptions } from "@azure/core-http";
 import { KeyVaultSecret } from "@azure/keyvault-secrets";
 import uuid from "uuid/v4";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
@@ -6,7 +5,6 @@ import { getErrorMessage } from "../errorBuilder";
 import * as azurecredentials from "./azurecredentials";
 import { getClient, getSecret, setSecret } from "./keyvault";
 import * as keyvault from "./keyvault";
-import { TokenCredential } from "azure-storage";
 
 const keyVaultName = uuid();
 const mockedName = uuid();
