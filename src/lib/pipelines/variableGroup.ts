@@ -284,3 +284,25 @@ export const deleteVariableGroup = async (
   }
   return false;
 };
+
+/**
+ * Checks if a variable group exists
+ *
+ * @param opts optionally override spk config with Azure DevOps access options
+ * @param name Name of the variable group
+ * @returns true if the variable group exists
+ */
+export const hasVariableGroup = async (
+  opts: AzureDevOpsOpts,
+  name: string
+): Promise<boolean> => {
+  const taskClient = await getTaskAgentApi(opts);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const project = opts.project!;
+
+  const groups = await taskClient.getVariableGroups(project, name);
+  if (groups && groups.length > 0 && groups[0].name) {
+    return groups[0].name === name;
+  }
+  return false;
+};

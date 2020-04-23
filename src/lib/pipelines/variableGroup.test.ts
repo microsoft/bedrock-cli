@@ -11,6 +11,7 @@ import {
   authorizeAccessToAllPipelines,
   buildVariablesMap,
   deleteVariableGroup,
+  hasVariableGroup,
   doAddVariableGroup,
 } from "./variableGroup";
 import * as variableGroup from "./variableGroup";
@@ -410,5 +411,34 @@ describe("test deleteVariableGroup function", () => {
     const deleted = await deleteVariableGroup({}, "test");
     expect(delFn).toBeCalledTimes(0);
     expect(deleted).toBeFalsy();
+  });
+});
+
+describe("test hasVariableGroup function", () => {
+  it("positive test: group found", async () => {
+    jest.spyOn(azdoClient, "getTaskAgentApi").mockResolvedValueOnce({
+      getVariableGroups: () => [
+        {
+          id: "1",
+          name: "test-vg",
+        },
+      ],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    const hasGroup = await hasVariableGroup({}, "test-vg");
+    expect(hasGroup).toBe(true);
+  });
+  it("negative test: group not found", async () => {
+    jest.spyOn(azdoClient, "getTaskAgentApi").mockResolvedValueOnce({
+      getVariableGroups: () => [
+        {
+          id: "1",
+          name: "test-vg",
+        },
+      ],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    const hasGroup = await hasVariableGroup({}, "test-env-vg");
+    expect(hasGroup).toBe(false);
   });
 });

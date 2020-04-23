@@ -146,28 +146,7 @@ export const setVariableGroupInBedrockFile = (
 
   // Get bedrock.yaml
   const bedrockFile = Bedrock(rootProjectPath);
-
-  if (!bedrockFile) {
-    throw buildError(
-      errorStatusCode.VALIDATION_ERR,
-      "project-create-variable-group-cmd-err-bedrock-file-missing"
-    );
-  }
-
-  logger.verbose(
-    `Bedrock file content in ${rootProjectPath}: \n ${JSON.stringify(
-      bedrockFile
-    )}`
-  );
-
-  // add new variable group
-  bedrockFile.variableGroups = [
-    ...(bedrockFile.variableGroups ?? []),
-    variableGroupName,
-  ];
-
-  // Write out
-  bedrockYaml.create(absProjectRoot, bedrockFile);
+  bedrockYaml.addVariableGroup(bedrockFile, rootProjectPath, variableGroupName);
 };
 
 /**

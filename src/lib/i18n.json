@@ -257,11 +257,14 @@
     "project-create-variable-group-cmd-failed": "Create variable group was not successfully executed.",
     "project-create-variable-group-cmd-err-root-invalid": "Project root path is not valid. Provide a valid root path.",
     "project-create-variable-group-cmd-err-variable-group-invalid": "Variable group name is not valid. Provide a valid variable group name.",
-    "project-create-variable-group-cmd-err-bedrock-file-missing": "Bedrock file does not exist. Check that the project directory has been initialized.",
     "project-create-variable-group-cmd-err-file-missing": "The file '{0}' does not exist in project '{1}'.",
     "project-create-variable-group-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
 
     "project-init-cmd-failed": "Project init was not successfully executed.",
+
+    "project-append-variable-group-cmd-failed": "Append variable group was not successfully executed.",
+    "project-append-variable-group-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
+    "project-append-variable-group-cmd-err-variable-group-invalid": "Could not add variable group '{0}' to the project. Check that the variable group exists in the Azure DevOps project '{1}/{2}'.",
 
     "service-install-build-pipeline-cmd-failed": "Service install build pipeline was not successfully executed.",
     "service-install-build-pipeline-cmd-pipeline-creation-err": "Error occurred when creating pipeline '{0}'. See the error details.",

@@ -388,6 +388,31 @@
     ],
     "markdown": "## Description\n\nBuilds a scaffold of an infrastructure deployment project containing a\n`definition.yaml` that enables a user to version, modify and organize terraform\ndeployments.\n\nIn detail, it will do the following:\n\n- Create a new folder with the `<name>` you provided.\n- Clone and cache the source repo to `~.spk/templates`.\n- Provide an infrastructure deployment scaffold based on a `<source>` git url\n  for a repo that holds terraform template, a `<version>` respective to the\n  repository tag or branch to pull from, and a `<template>` path to a terraform\n  environment template from the root of the git repo.\n\n## Example\n\n```\nspk infra scaffold --name fabrikam --source https://github.com/microsoft/bedrock --version master --template /cluster/environments/azure-single-keyvault\n```\n\ndefinition.yaml output:\n\n```yaml\nname: fabrikam\nsource: \"https://github.com/microsoft/bedrock.git\"\ntemplate: cluster/environments/azure-single-keyvault\nversion: master\nbackend:\n  storage_account_name: storage-account-name\n  access_key: storage-account-access-key\n  container_name: storage-account-container\n  key: tfstate-key\nvariables:\n  address_space: <insert value>\n  agent_vm_count: <insert value>\n  agent_vm_size: <insert value>\n  cluster_name: <insert value>\n  dns_prefix: <insert value>\n  flux_recreate: <insert value>\n  kubeconfig_recreate: <insert value>\n  gitops_ssh_url: <insert value>\n  gitops_ssh_key: <insert value>\n  gitops_path: <insert value>\n  keyvault_name: <insert value>\n  keyvault_resource_group: <insert value>\n  resource_group_name: <insert value>\n  ssh_public_key: <insert value>\n  service_principal_id: <insert value>\n  service_principal_secret: <insert value>\n  subnet_prefixes: <insert value>\n  vnet_name: <insert value>\n  subnet_name: <insert value>\n  acr_name: <insert value>\n```\n\n**Note:** Definitions will only include variables that do not have a default\nvalue. To override default values, add the variable name to the variables\ndefinition and provide a new value.\n"
   },
+  "project append-variable-group": {
+    "command": "append-variable-group <variable-group-name>",
+    "alias": "avg",
+    "description": "Appends the name of an existing variable group to the current bedrock.yaml file and the associated service build pipelines.",
+    "options": [
+      {
+        "arg": "-o, --org-name <organization-name>",
+        "description": "Organization Name for Azure DevOps",
+        "required": true,
+        "inherit": "azureDevops.org"
+      },
+      {
+        "arg": "-d, --devops-project <devops-project>",
+        "description": "Azure DevOps Project name",
+        "required": true,
+        "inherit": "azureDevops.project"
+      },
+      {
+        "arg": "-a, --personal-access-token <personal-access-token>",
+        "description": "Personal Access Token",
+        "required": true,
+        "inherit": "azureDevops.access_token"
+      }
+    ]
+  },
   "project create-variable-group": {
     "command": "create-variable-group <variable-group-name>",
     "alias": "cvg",
