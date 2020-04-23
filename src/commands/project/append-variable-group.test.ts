@@ -6,6 +6,7 @@ import * as config from "../../config";
 import { BedrockFile } from "../../types";
 import { ConfigValues } from "./pipeline";
 import * as bedrockYaml from "../../lib/bedrockYaml";
+import * as variableGrp from "../../lib/pipelines/variableGroup";
 
 const mockValues: CommandOptions = {
   devopsProject: "azDoProject",
@@ -24,7 +25,7 @@ describe("Test execute function", () => {
     const exitFn = jest.fn();
     spyOn(fileutils, "appendVariableGroupToPipelineYaml");
     jest
-      .spyOn(appendVariableGrp, "variableGroupExists")
+      .spyOn(variableGrp, "hasVariableGroup")
       .mockReturnValueOnce(Promise.resolve(false));
 
     const bedrockFile = createTestBedrockYaml(false) as BedrockFile;
@@ -51,7 +52,7 @@ describe("Test execute function", () => {
     const exitFn = jest.fn();
     spyOn(fileutils, "appendVariableGroupToPipelineYaml");
     jest
-      .spyOn(appendVariableGrp, "variableGroupExists")
+      .spyOn(variableGrp, "hasVariableGroup")
       .mockReturnValue(Promise.resolve(true));
 
     const bedrockFile = createTestBedrockYaml(false) as BedrockFile;
