@@ -146,6 +146,8 @@ function variable_group_exists () {
         echo "The variable group $vg_name does not exist"
         if [ "$action" == "fail" ]; then
             exit 1
+        else
+            echo "Unable to $action variable group $vg_name".
         fi
     fi
 }

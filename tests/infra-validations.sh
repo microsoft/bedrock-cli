@@ -102,7 +102,7 @@ git commit -m "inital commit for TF Template Repo"
 git tag "$tf_template_version"
 
 # git remote rm origin
-source=https://infra_account:$ACCESS_TOKEN_SECRET@$repo_url 
+source=https://infra_account:$ACCESS_TOKEN_SECRET@$repo_url
 git remote add origin "$source"
 echo "git push"
 git push -u origin --all
@@ -138,7 +138,7 @@ sed -ri 's/^(\s*)(storage_account_name\s*:\s*<storage account name>\s*$)/\1stora
 
 # Create remote repo for Infra HLD ------------------
 # Add pipeline yml fo generation verification
-echo "Copying generate pipeline validation yml to Infra HLD repo from $generate_pipeline_path" 
+echo "Copying generate pipeline validation yml to Infra HLD repo from $generate_pipeline_path"
 # Copy from current directory (pipeline) otherwise copy from azure-pipelines/templates (local)
 cp $generate_pipeline_path . || cp $generate_pipeline_path_local .
 git init
@@ -162,7 +162,7 @@ git commit -m "inital commit for HLD Infra Repo"
 git tag "$infra_hld_version"
 
 # git remote rm origin
-infra_source=https://infra_account:$ACCESS_TOKEN_SECRET@$repo_url 
+infra_source=https://infra_account:$ACCESS_TOKEN_SECRET@$repo_url
 git remote add origin "$infra_source"
 echo "git push"
 git push -u origin --all
@@ -193,7 +193,7 @@ git commit -m "inital commit for Generated Infra Repo"
 git tag "$infra_generated_version"
 
 # git remote rm origin
-source=https://infra_account:$ACCESS_TOKEN_SECRET@$repo_url 
+source=https://infra_account:$ACCESS_TOKEN_SECRET@$repo_url
 git remote add origin "$source"
 echo "git push"
 git push -u origin --all
