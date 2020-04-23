@@ -172,7 +172,9 @@ export const handleInteractiveMode = async (): Promise<void> => {
   const data = yaml.safeDump(curConfig);
 
   fs.writeFileSync(defaultConfigFile(), data);
-  logger.info("Successfully constructed SPK configuration file.");
+  logger.info(
+    "Successfully constructed config.yaml file in .spk under the $HOME directory"
+  );
   const ok = await validatePersonalAccessToken(curConfig.azure_devops);
   if (ok) {
     logger.info(

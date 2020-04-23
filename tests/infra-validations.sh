@@ -68,17 +68,16 @@ mkdir $terraform_template_dir
 cd $terraform_template_dir
 git init
 mkdir template
-mkdir template/module
 cd template
 
 # Configure Validation Terraform files
-module=$'provider "azurerm" {\n   features {}\n}\nresource "azurerm_resource_group" "resource_group"{\n  name= var.rg_name\n  location = var.rg_location\n}'
-tfTemplate=$'provider "azurerm" {\n   features {}\n}\nresource "azurerm_resource_group" "example"{\n  name= var.rg_name\n  location = var.rg_location\n}\nmodule "resource_group" {\n  source= "./module"\n  rg_name= "local_test"\n  rg_location = "eastus"\n}'
+tfTemplate=$'provider "azurerm" {\n   features {}\n}\nresource "azurerm_resource_group" "example"{\n  name= "${var.rg_name}"\n  location = "${var.rg_location}"\n}'
 tfVars=$'variable "rg_name" {\n  type = "string"\n}\n\nvariable "rg_location" {\n  type = "string"\n}\n'
 backendTfVars=$'storage_account_name="<storage account name>"'
 touch main.tf variables.tf backend.tfvars
-touch module/main.tf module/variables.tf
-echo "$tfVars" >> variables.tf| echo "$tfVars" >> module/variables.tf | echo "$module" >> module/main.tf | echo "$backendTfVars" >> backend.tfvars | echo "$tfTemplate" >> main.tf
+echo "$tfVars" >> variables.tf | echo "$backendTfVars" >> backend.tfvars | echo "$tfTemplate" >> main.tf
+file_we_expect=("variables.tf" "main.tf" "backend.tfvars")
+validate_directory "$TEST_WORKSPACE/$terraform_template_dir/template" "${file_we_expect[@]}" >> $TEST_WORKSPACE/log.txt
 
 # Format Terraform files for SPK
 terraform fmt
@@ -102,7 +101,7 @@ git commit -m "inital commit for TF Template Repo"
 git tag "$tf_template_version"
 
 # git remote rm origin
-source=https://infra_account:$ACCESS_TOKEN_SECRET@$repo_url 
+source=https://infra_account:$ACCESS_TOKEN_SECRET@$repo_url
 git remote add origin "$source"
 echo "git push"
 git push -u origin --all
@@ -138,7 +137,7 @@ sed -ri 's/^(\s*)(storage_account_name\s*:\s*<storage account name>\s*$)/\1stora
 
 # Create remote repo for Infra HLD ------------------
 # Add pipeline yml fo generation verification
-echo "Copying generate pipeline validation yml to Infra HLD repo from $generate_pipeline_path" 
+echo "Copying generate pipeline validation yml to Infra HLD repo from $generate_pipeline_path"
 # Copy from current directory (pipeline) otherwise copy from azure-pipelines/templates (local)
 cp $generate_pipeline_path . || cp $generate_pipeline_path_local .
 git init
@@ -162,7 +161,7 @@ git commit -m "inital commit for HLD Infra Repo"
 git tag "$infra_hld_version"
 
 # git remote rm origin
-infra_source=https://infra_account:$ACCESS_TOKEN_SECRET@$repo_url 
+infra_source=https://infra_account:$ACCESS_TOKEN_SECRET@$repo_url
 git remote add origin "$infra_source"
 echo "git push"
 git push -u origin --all
@@ -193,7 +192,7 @@ git commit -m "inital commit for Generated Infra Repo"
 git tag "$infra_generated_version"
 
 # git remote rm origin
-source=https://infra_account:$ACCESS_TOKEN_SECRET@$repo_url 
+source=https://infra_account:$ACCESS_TOKEN_SECRET@$repo_url
 git remote add origin "$source"
 echo "git push"
 git push -u origin --all

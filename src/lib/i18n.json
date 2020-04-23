@@ -22,12 +22,14 @@
     "init_cmd_both_opts_err": "Could not execute this command because file that stores configuration was provided and interactive mode was set. Provide file name or enable interactive mode.",
 
     "setup-cmd-failed": "Setup command was not successfully executed.",
+    "setup-cmd-az-cli-err": "az command line was not installed.",
     "setup-cmd-prompt-err-no-subscriptions": "No subscriptions found.",
     "setup-cmd-prompt-err-subscription-missing": "Subscription Identifier was missing.",
     "setup-cmd-prompt-err-input-file-missing": "{0} did not exist or not accessible. Make sure that it is accessible.",
     "setup-cmd-core-api-err": "Could not get Core API client. Check the Azure credential.",
     "setup-cmd-git-api-err": "Could not get Git API client. Check the Azure DevOps credential.",
     "setup-cmd-build-api-err": "Could not get Build API client. Check the Azure DevOps credential.",
+    "setup-cmd-cannot-locate-pr-for-approval": "Could not locate pull request for approval",
 
     "spk-config-yaml-err-readyaml": "Could not load file, {0}.",
     "spk-config-yaml-var-undefined": "Environment variable needs to be defined for {0} since it's referenced in the config file.",
@@ -58,8 +60,6 @@
     "infra-scaffold-cmd-values-missing": "Values for name, version and/or 'template were missing. Provide value for values for them.",
 
     "infra-generate-cmd-failed": "Infra generate command was not successfully executed.",
-    "infra-module-source-modify-err": "Could not modify source module.",
-    "infra-inspect-generated-sources-err": "Could not generated sources.",
 
     "infra-defn-yaml-not-found": "{0} was not found in {1}",
     "infra-defn-yaml-invalid": "The {0} file is invalid. There are missing fields. template: {1} source: {2} version: {3}.",
@@ -113,13 +113,14 @@
     "git-azure-get-match-branch-multiple": "Got more than one matching repositories in Azure DevOps with remote url '{0}' and branches '{1}' and '{2}'.",
     "git-azure-get-match-branch-err": "Could not get matching branch in Azure DevOps",
     "git-azure-create-pull-request-err": "Could not create pull request in Azure DevOps",
+    "git-azure-approve-pull-request-err": "Could not approve pull request in Azure DevOps",
     "git-azure-repo-no-exist": "Repository {0} did not exist in project {1}.",
     "git-azure-file-no-exist-in-repo": "File {0} did not exist in {1} branch in repository {2}.",
 
     "fileutils-append-variable-group-to-pipeline-yaml": "Could not append variable group name to manifest-generation.yaml file in HLD repo. Check this is file exist and if it is YAML format.",
     "fileutils-generate-hld-pipeline-yaml": "Could not generate HLD Azure pipeline YAML.",
     "fileutils-generate-default-hld-component-yaml": "Could not generate default HLD component YAML.",
-    "fileutils-generate-git-ignore-file": "Could not generate .gitignore file in {0}.",
+    "fileutils-generate-git-ignore-file": "Could not append to existing or generate new .gitignore file in {0}.",
     "fileutils-update-ring-trigger-svc-file-not-found": "Could not update ring trigger because {0} was not in path {1}.",
 
     "git-checkout-commit-push-create-PR-link": "Could not checkout, commit, push or create pull request",
@@ -166,6 +167,7 @@
     "service-get-display-name-cmd-service-name-not-found-err": "Could not find a service for path {0}. Make sure that the specified path is valid.",
 
     "service-create-cmd-invalid-helm-url-err": "The helm git URL was invalid. Provided helm git URL is an invalid git+ssh or http/https URL: {0}",
+    "service-create-cmd-invalid-service-variable-group-err": "The value for --service-build-vg or --service-build-variable was not valid.",
     "service-create-cmd-service-name-missing-err": "Service name was missing. Provide it.",
     "service-create-cmd-service-path-missing-err": "Service path was missing. Provide it.",
     "service-create-cmd-service-name-dns-invalid-err": "Service name or DNS value was invalid. See error message for more details.",
@@ -251,13 +253,6 @@
     "ring-delete-cmd-failed": "Could not delete ring: {0}.",
     "ring-delete-cmd-err-name-missing": "Could not execute this command because ring name was not provided. Provide a ring name.",
     "ring-delete-cmd-err-dependency": "Configuration information was missing. Run `spk project init` command to initialize them.",
-
-    "variable-group-create-cmd-failed": "Could not create variable group.",
-    "variable-group-create-cmd-err-create": "Could not load variable group. The variable group type '{0}' is not supported. Only 'Vsts' and 'AzureKeyVault' are valid types and case sensitive.",
-    "variable-group-create-cmd-err-access-token": "Provide a value for {0}.",
-    "variable-group-create-cmd-err-project-missing": "Provide a value for {0}.",
-    "variable-group-create-cmd-err-org-missing": "Provide a value for {0}.",
-    "variable-group-create-cmd-err-file-missing": "Provide a file with the variable group manifest.",
 
     "project-create-variable-group-cmd-failed": "Create variable group was not successfully executed.",
     "project-create-variable-group-cmd-err-root-invalid": "Project root path is not valid. Provide a valid root path.",

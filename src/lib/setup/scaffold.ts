@@ -226,6 +226,10 @@ export const initService = async (
     pathPrefixMajorVersion: "",
     ringNames: ["master"],
     variableGroups: [VARIABLE_GROUP],
+    serviceBuildVg: "",
+    serviceVgArray: [],
+    serviceBuildVariables: "",
+    serviceVariablesArray: [],
   });
 };
 

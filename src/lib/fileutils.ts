@@ -138,7 +138,9 @@ export const serviceBuildAndUpdatePipeline = (
   serviceName: string,
   relServicePath: string,
   ringBranches: string[],
-  variableGroups?: string[]
+  variableGroups?: string[],
+  serviceBuildVg?: string[],
+  serviceBuildVariables?: string[]
 ): AzurePipelinesYaml => {
   const relativeServicePathFormatted = sanitizeTriggerPath(relServicePath);
   const relativeServiceForDockerfile = relServicePath.startsWith("./")
@@ -157,7 +159,10 @@ export const serviceBuildAndUpdatePipeline = (
             },
           }),
     },
-    variables: [...(variableGroups ?? []).map((group) => ({ group }))],
+    variables: [
+      ...(variableGroups ?? []).map((group) => ({ group })),
+      ...(serviceBuildVg ?? []).map((group) => ({ group })),
+    ],
     stages: [
       {
         // Build stage
@@ -214,13 +219,23 @@ export const serviceBuildAndUpdatePipeline = (
               },
               {
                 script: generateYamlScript([
+                  // Iterate through serviceBuildVariables, export each variable, then append as build argument
                   `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
                   `export IMAGE_TAG=${IMAGE_TAG}`,
                   `export IMAGE_NAME=$BUILD_REPO_NAME:$IMAGE_TAG`,
                   `echo "Image Name: $IMAGE_NAME"`,
+                  `ACR_BUILD_COMMAND="az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
+                  ``,
+                  `echo "Exporting build variables from variable groups, if available: "`,
+                  `echo "Build Variables: ${serviceBuildVariables}"`,
+                  ...(serviceBuildVariables ?? []).map(
+                    (variable) =>
+                      `ACR_BUILD_COMMAND+=" --build-arg ${variable}='$(${variable})'"`
+                  ),
+                  ``,
                   `cd ${relativeServiceForDockerfile}`,
-                  `echo "az acr build -r $(ACR_NAME) --image $IMAGE_NAME ."`,
-                  `az acr build -r $(ACR_NAME) --image $IMAGE_NAME .`,
+                  `echo "ACR BUILD COMMAND: $ACR_BUILD_COMMAND"`,
+                  `$ACR_BUILD_COMMAND`,
                 ]),
                 displayName: "ACR Build and Publish",
               },
@@ -393,7 +408,9 @@ export const generateServiceBuildAndUpdatePipelineYaml = (
   ringBranches: string[],
   serviceName: string,
   servicePath: string,
-  variableGroups: string[]
+  variableGroups: string[],
+  serviceVgArray: string[],
+  serviceVariablesArray: string[]
 ): void => {
   const absProjectRoot = path.resolve(projectRoot);
   const absServicePath = path.resolve(servicePath);
@@ -422,7 +439,9 @@ export const generateServiceBuildAndUpdatePipelineYaml = (
     serviceName,
     path.relative(absProjectRoot, absServicePath),
     ringBranches,
-    variableGroups
+    variableGroups,
+    serviceVgArray,
+    serviceVariablesArray
   );
 
   writeVersion(pipelineYamlFullPath);
@@ -913,30 +932,26 @@ export const addNewServiceToMaintainersFile = (
 };
 
 /**
- * Writes out a default .gitignore file if one doesn't exist
+ * Appends content to an existing .gitignore file in target directory.
+ * Will create a new file if one does not exist.
  *
  * @param targetDirectory directory to generate the .gitignore file
- * @param content content of file
+ * @param values array of values to ignore
  */
 export const generateGitIgnoreFile = (
   targetDirectory: string,
-  content: string
+  values: string[]
 ): void => {
   const absTargetPath = path.resolve(targetDirectory);
-  logger.info(`Generating starter .gitignore in ${absTargetPath}`);
+  const gitIgnoreFilePath = path.join(absTargetPath, ".gitignore");
+  logger.info(
+    `Attempting to add values: "${values}" to ${gitIgnoreFilePath}. Will create a new file if needed.`
+  );
 
   try {
-    const gitIgnoreFilePath = path.join(absTargetPath, ".gitignore");
+    const content = ["\n# Bedrock files ---", ...values].join("\n");
 
-    if (fs.existsSync(gitIgnoreFilePath)) {
-      logger.warn(
-        `Existing .gitignore found at ${gitIgnoreFilePath}, skipping generation.`
-      );
-      return;
-    }
-
-    logger.info(`Writing .gitignore file to ${gitIgnoreFilePath}`);
-    fs.writeFileSync(gitIgnoreFilePath, content, "utf8");
+    fs.appendFileSync(gitIgnoreFilePath, content, "utf8");
   } catch (err) {
     throw buildError(
       errorStatusCode.FILE_IO_ERR,
