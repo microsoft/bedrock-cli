@@ -1,4 +1,8 @@
-import { execute, CommandOptions } from "./append-variable-group";
+import {
+  execute,
+  CommandOptions,
+  validateValues,
+} from "./append-variable-group";
 import * as appendVariableGrp from "./append-variable-group";
 import * as fileutils from "../../lib/fileutils";
 import { createTestBedrockYaml } from "../../test/mockFactory";
@@ -7,6 +11,7 @@ import { BedrockFile } from "../../types";
 import { ConfigValues } from "./pipeline";
 import * as bedrockYaml from "../../lib/bedrockYaml";
 import * as variableGrp from "../../lib/pipelines/variableGroup";
+import { deepClone } from "../../lib/util";
 
 const mockValues: CommandOptions = {
   devopsProject: "azDoProject",
@@ -74,5 +79,25 @@ describe("Test execute function", () => {
     expect(fileutils.appendVariableGroupToPipelineYaml).toHaveBeenCalledTimes(
       3
     );
+  });
+});
+describe("test validateValues function", () => {
+  it("valid org and project name", () => {
+    const data = deepClone(mockValues);
+    validateValues(data);
+  });
+  it("invalid project name", () => {
+    const data = deepClone(mockValues);
+    data.devopsProject = "project\\abc";
+    expect(() => {
+      validateValues(data);
+    }).toThrow();
+  });
+  it("invalid org name", () => {
+    const data = deepClone(mockValues);
+    data.orgName = "org name";
+    expect(() => {
+      validateValues(data);
+    }).toThrow();
   });
 });
