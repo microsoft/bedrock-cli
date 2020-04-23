@@ -20,6 +20,33 @@ describe("Test execute function", () => {
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
+  it("variable group does not exist", async () => {
+    const exitFn = jest.fn();
+    spyOn(fileutils, "appendVariableGroupToPipelineYaml");
+    jest
+      .spyOn(appendVariableGrp, "variableGroupExists")
+      .mockReturnValueOnce(Promise.resolve(false));
+
+    const bedrockFile = createTestBedrockYaml(false) as BedrockFile;
+
+    jest.spyOn(config, "Bedrock").mockReturnValue(bedrockFile as BedrockFile);
+    jest.spyOn(appendVariableGrp, "checkDependencies").mockReturnValueOnce();
+    jest
+      .spyOn(appendVariableGrp, "validateValues")
+      .mockReturnValueOnce(mockValues as ConfigValues);
+    jest.spyOn(bedrockYaml, "addVariableGroup").mockReturnValue();
+    jest
+      .spyOn(fileutils, "appendVariableGroupToPipelineYaml")
+      .mockReturnValue();
+
+    expect(bedrockFile.variableGroups?.length).toBe(0);
+    await execute("my-path", "my-vg", mockValues, exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+    expect(fileutils.appendVariableGroupToPipelineYaml).toHaveBeenCalledTimes(
+      0
+    );
+  });
   it("appends variable group", async () => {
     const exitFn = jest.fn();
     spyOn(fileutils, "appendVariableGroupToPipelineYaml");
