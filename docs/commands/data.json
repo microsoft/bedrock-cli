@@ -411,7 +411,8 @@
         "required": true,
         "inherit": "azure_devops.access_token"
       }
-    ]
+    ],
+    "markdown": "## Description\n\nAppend an existing variable group in Azure DevOps project and its services.\n\n## Command Prerequisites\n\nThis command requires to have an existing bedrock project that was initialized\nwith `spk project init`. It also requires that the variable group to be added\nexists in the Azure DevOps project.\n\n## Example\n\nWhen an bedrock project repository is first initialized with `spk project init`,\nit will create a `bedrock.yaml` file that looks similar to this:\n\n```yaml\nrings:\n  master:\n    isDefault: true\nvariableGroups: []\nservices: []\n.\n.\n.\n```\n\nrunning `spk project append-variable-group my-vg` with a variable group name, in\nthis case `my-vg`, will add it under the `variables` section if it does not\nalready exist:\n\n```yaml\nrings:\n  master:\n    isDefault: true\nvariableGroups:\n    - my-vg\nservices: []\n.\n.\n.\n```\n\nIf there are any `services` specified, it will add the variable group to its\ncorresponding `build-update-hld.yaml` file under the `variables` section:\n\n```yaml\nvariables:\n  - group: my-vg\n```\n"
   },
   "project create-variable-group": {
     "command": "create-variable-group <variable-group-name>",
