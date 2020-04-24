@@ -56,7 +56,7 @@ export const checkDependencies = (projectPath: string): void => {
   if (fileInfo.exist === false) {
     throw buildError(
       errorStatusCode.VALIDATION_ERR,
-      "project-create-variable-group-cmd-err-dependency"
+      "project-create-variable-group-cmd-err-bedrock-yaml-missing"
     );
   }
 };
@@ -140,33 +140,11 @@ export const setVariableGroupInBedrockFile = (
     );
   }
 
-  const absProjectRoot = path.resolve(rootProjectPath);
   logger.info(`Setting variable group ${variableGroupName}`);
 
   // Get bedrock.yaml
   const bedrockFile = Bedrock(rootProjectPath);
-
-  if (!bedrockFile) {
-    throw buildError(
-      errorStatusCode.VALIDATION_ERR,
-      "project-create-variable-group-cmd-err-bedrock-file-missing"
-    );
-  }
-
-  logger.verbose(
-    `Bedrock file content in ${rootProjectPath}: \n ${JSON.stringify(
-      bedrockFile
-    )}`
-  );
-
-  // add new variable group
-  bedrockFile.variableGroups = [
-    ...(bedrockFile.variableGroups ?? []),
-    variableGroupName,
-  ];
-
-  // Write out
-  bedrockYaml.create(absProjectRoot, bedrockFile);
+  bedrockYaml.addVariableGroup(bedrockFile, rootProjectPath, variableGroupName);
 };
 
 /**
