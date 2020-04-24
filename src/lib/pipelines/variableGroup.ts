@@ -279,7 +279,7 @@ export const deleteVariableGroup = async (
     const project = opts.project!;
 
     const groups = await taskClient.getVariableGroups(project, name);
-    if (groups && groups.length > 0 && groups[0].id) {
+    if (groups?.[0]?.id) {
       await taskClient.deleteVariableGroup(project, groups[0].id);
       return true;
     }
@@ -313,10 +313,7 @@ export const hasVariableGroup = async (
     const project = opts.project!;
 
     const groups = await taskClient.getVariableGroups(project, name);
-    if (groups && groups.length > 0 && groups[0].name) {
-      return groups[0].name === name;
-    }
-    return false;
+    return groups?.[0]?.name === name;
   } catch (err) {
     throw buildError(
       errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
