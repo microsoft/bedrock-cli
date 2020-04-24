@@ -273,16 +273,27 @@ export const deleteVariableGroup = async (
   opts: AzureDevOpsOpts,
   name: string
 ): Promise<boolean> => {
-  const taskClient = await getTaskAgentApi(opts);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const project = opts.project!;
+  try {
+    const taskClient = await getTaskAgentApi(opts);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const project = opts.project!;
 
-  const groups = await taskClient.getVariableGroups(project, name);
-  if (groups && groups.length > 0 && groups[0].id) {
-    await taskClient.deleteVariableGroup(project, groups[0].id);
-    return true;
+    const groups = await taskClient.getVariableGroups(project, name);
+    if (groups && groups.length > 0 && groups[0].id) {
+      await taskClient.deleteVariableGroup(project, groups[0].id);
+      return true;
+    }
+    return false;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+      {
+        errorKey: "var-group-delete-var-group-err",
+        values: [opts.project!, name],
+      },
+      err
+    );
   }
-  return false;
 };
 
 /**
@@ -296,13 +307,24 @@ export const hasVariableGroup = async (
   opts: AzureDevOpsOpts,
   name: string
 ): Promise<boolean> => {
-  const taskClient = await getTaskAgentApi(opts);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const project = opts.project!;
+  try {
+    const taskClient = await getTaskAgentApi(opts);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const project = opts.project!;
 
-  const groups = await taskClient.getVariableGroups(project, name);
-  if (groups && groups.length > 0 && groups[0].name) {
-    return groups[0].name === name;
+    const groups = await taskClient.getVariableGroups(project, name);
+    if (groups && groups.length > 0 && groups[0].name) {
+      return groups[0].name === name;
+    }
+    return false;
+  } catch (err) {
+    throw buildError(
+      errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+      {
+        errorKey: "var-group-has-var-group-err",
+        values: [opts.project!, name],
+      },
+      err
+    );
   }
-  return false;
 };

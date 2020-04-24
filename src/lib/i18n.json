@@ -240,6 +240,8 @@
     "var-group-add-err-vars-missing": "Could not add variable group because variables were not configured.",
     "var-group-add-with-key-vault-err-missing-provider": "Could not add variable group with key vault because Azure KeyVault provider data was not configured",
     "var-group-create-data-err": "Could not create variable group data.",
+    "var-group-has-var-group-err": "Could not get variable group, {1} information in project, {0}.",
+    "var-group-delete-var-group-err": "Could not delete variable group, {1} information in project, {0}.",
 
     "ring-create-cmd-failed": "Could not create ring: {0}.",
     "ring-create-cmd-err-name-missing": "Could not execute this command because ring name was not provided. Provide a ring name.",
@@ -258,13 +260,14 @@
     "project-create-variable-group-cmd-err-root-invalid": "Project root path is not valid. Provide a valid root path.",
     "project-create-variable-group-cmd-err-variable-group-invalid": "Variable group name is not valid. Provide a valid variable group name.",
     "project-create-variable-group-cmd-err-file-missing": "The file '{0}' does not exist in project '{1}'.",
-    "project-create-variable-group-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
+    "project-create-variable-group-cmd-err-bedrock-yaml-missing": "Bedrock.yaml file was not found. Run spk project init command to initialize the project.",
 
     "project-init-cmd-failed": "Project init was not successfully executed.",
 
     "project-append-variable-group-cmd-failed": "Append variable group was not successfully executed.",
-    "project-append-variable-group-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
+    "project-append-variable-group-cmd-err-bedrock-yaml-missing": "Bedrock.yaml file was not found. Run spk project init command to initialize the project.",
     "project-append-variable-group-cmd-err-variable-group-invalid": "Could not add variable group '{0}' to the project. Check that the variable group exists in the Azure DevOps project '{1}/{2}'.",
+    "project-append-variable-group-cmd-err-variable-group-missing": "No value for variable group name was given. Provide a variable group name.",
 
     "service-install-build-pipeline-cmd-failed": "Service install build pipeline was not successfully executed.",
     "service-install-build-pipeline-cmd-pipeline-creation-err": "Error occurred when creating pipeline '{0}'. See the error details.",

@@ -56,7 +56,7 @@ export const checkDependencies = (projectPath: string): void => {
   if (fileInfo.exist === false) {
     throw buildError(
       errorStatusCode.VALIDATION_ERR,
-      "project-create-variable-group-cmd-err-dependency"
+      "project-create-variable-group-cmd-err-bedrock-yaml-missing"
     );
   }
 };

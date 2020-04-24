@@ -65,7 +65,7 @@ export const checkDependencies = (projectPath: string): void => {
   if (fileInfo.exist === false) {
     throw buildError(
       errorStatusCode.VALIDATION_ERR,
-      "project-append-variable-group-cmd-err-dependency"
+      "project-append-variable-group-cmd-err-bedrock-yaml-missing"
     );
   }
 };
@@ -121,12 +121,11 @@ export const execute = async (
   opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
-  if (!hasValue(variableGroupName)) {
-    await exitFn(1);
-    return;
-  }
-
   try {
+    if (!hasValue(variableGroupName)) {
+      throw buildError(errorStatusCode.CMD_EXE_ERR);
+    }
+
     checkDependencies(projectPath);
     const values = validateValues(opts);
 
