@@ -293,3 +293,40 @@ export const validateRings = (bedrock: BedrockFile): void => {
     });
   }
 };
+
+/**
+ * Adds a variable group
+ * @param bedrock The bedrock config file
+ * @param dir Directory where <code>bedrock.yaml</code> file resides.
+ * @param variableGroupName The name of the variable group to be added
+ */
+export const addVariableGroup = (
+  bedrock: BedrockFile,
+  dir: string,
+  variableGroupName: string
+): void => {
+  const absProjectRoot = path.resolve(dir);
+  logger.info(`Setting variable group ${variableGroupName}`);
+
+  logger.verbose(
+    `Bedrock file content in ${dir}: \n ${JSON.stringify(bedrock)}`
+  );
+
+  if (bedrock.variableGroups && bedrock.variableGroups.length > 0) {
+    if (variableGroupName in bedrock.variableGroups) {
+      logger.info(
+        `Variable group '${variableGroupName}' already exits in '${dir}/bedrock.yaml'.`
+      );
+      return;
+    }
+  }
+
+  // add new variable group
+  bedrock.variableGroups = [
+    ...(bedrock.variableGroups ?? []),
+    variableGroupName,
+  ];
+
+  // Write out
+  create(absProjectRoot, bedrock);
+};
