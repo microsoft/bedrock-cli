@@ -11,7 +11,6 @@ import {
   validateForRequiredValues,
 } from "../../lib/commandBuilder";
 import { PROJECT_PIPELINE_FILENAME } from "../../lib/constants";
-import { AzureDevOpsOpts } from "../../lib/git";
 import { addVariableGroup } from "../../lib/pipelines/variableGroup";
 import {
   hasValue,
