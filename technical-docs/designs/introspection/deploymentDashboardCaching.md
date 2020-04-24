@@ -95,6 +95,10 @@ There shall be one call from the frontend (browser) to backend to get the
 deployment result, this will include the author and PR result within the
 response.
 
+<p style="text-align:center">
+<img src="cache-flow-chart.png" width="400px">
+</p>
+
 Cache refresh duration, _T_ is customizable via an environment parameter,
 `REACT_APP_CACHE_REFRESH_IN_SEC`. During development of React UI, the value of
 this parameter can be set to a very high value to avoid hit the Azure Dev-Ops
