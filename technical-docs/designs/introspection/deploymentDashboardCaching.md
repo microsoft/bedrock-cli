@@ -96,7 +96,7 @@ deployment result, this will include the author and PR result within the
 response.
 
 <p style="text-align:center">
-<img src="cache-flow-chart.png" width="400px">
+<img src="cache-flow-chart.png" width="800px">
 </p>
 
 Cache refresh duration, _T_ is customizable via an environment parameter,
