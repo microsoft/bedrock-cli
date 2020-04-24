@@ -99,3 +99,6 @@ junit.xml
 
 # quick-start-temp-folder
 quick-start-env/
+
+# Bedrock files ---
+spk.log
