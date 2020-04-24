@@ -123,7 +123,10 @@ export const execute = async (
 ): Promise<void> => {
   try {
     if (!hasValue(variableGroupName)) {
-      throw buildError(errorStatusCode.CMD_EXE_ERR);
+      throw buildError(
+        errorStatusCode.CMD_EXE_ERR,
+        "project-append-variable-group-cmd-err-variable-group-missing"
+      );
     }
 
     checkDependencies(projectPath);
