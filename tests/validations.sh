@@ -221,8 +221,14 @@ acr_name=$ACR_NAME
 create_helm_chart_v2 $TEST_WORKSPACE
 cd "$TEST_WORKSPACE/$mono_repo_dir"
 
-# Commented code below is for external repo helm charts. Currently doesn't work.
+# Check to see if 'bedrock-cli-vg-test' exists, if so, delete it and recreate.
+variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT bedrock-cli-vg-test "delete"
+az pipelines variable-group create --name "bedrock-cli-vg-test" --authorize true --organization $AZDO_ORG_URL --project $AZDO_PROJECT --variables "FOO=BAR" "BAR=BAZ"
 
+# Verify the variable group was created. Fail if not
+variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT bedrock-cli-vg-test "fail"
+
+# Commented code below is for external repo helm charts. Currently doesn't work.
 # helm_repo_url="$AZDO_ORG_URL/$AZDO_PROJECT/_git/$helm_charts_dir"
 local_repo_url="$AZDO_ORG_URL/$AZDO_PROJECT/_git/$mono_repo_dir"
 spk service create $FrontEnd $FrontEnd -d $services_dir -p "chart" -g $local_repo_url -b master --service-build-vg bedrock-cli-vg-test --service-build-variables FOO,BAR >> $TEST_WORKSPACE/log.txt

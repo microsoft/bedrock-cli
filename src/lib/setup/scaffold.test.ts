@@ -2,12 +2,10 @@
 import * as fs from "fs-extra";
 import * as path from "path";
 import simpleGit from "simple-git/promise";
-import * as cmdCreateVariableGroup from "../../commands/project/create-variable-group";
 import * as projectInit from "../../commands/project/init";
+import * as cmdCreateVariableGroup from "../../commands/project/create-variable-group";
 import * as createService from "../../commands/service/create";
 import * as fileutils from "../../lib/fileutils";
-import * as variableGroup from "../../lib/pipelines/variableGroup";
-import * as sVariableGroup from "../setup/variableGroup";
 import { createTempDir } from "../ioUtil";
 import {
   APP_REPO,
@@ -23,7 +21,6 @@ import {
   hldRepo,
   initService,
   manifestRepo,
-  setupVariableGroup,
 } from "./scaffold";
 import * as scaffold from "./scaffold";
 
@@ -160,11 +157,16 @@ describe("test appRepo function", () => {
     const git = simpleGit();
     git.init = jest.fn();
 
-    jest.spyOn(scaffold, "setupVariableGroup").mockResolvedValueOnce();
     jest.spyOn(scaffold, "initService").mockResolvedValueOnce();
     jest.spyOn(projectInit, "initialize").mockImplementationOnce(async () => {
       fs.createFileSync("README.md");
     });
+    jest
+      .spyOn(cmdCreateVariableGroup, "setVariableGroupInBedrockFile")
+      .mockReturnValueOnce();
+    jest
+      .spyOn(cmdCreateVariableGroup, "updateLifeCyclePipeline")
+      .mockReturnValueOnce();
 
     await appRepo({} as any, createRequestContext(tempDir));
     const folder = path.join(tempDir, APP_REPO);
@@ -174,19 +176,6 @@ describe("test appRepo function", () => {
   it("sanity test, initService", async () => {
     jest.spyOn(createService, "createService").mockResolvedValueOnce();
     await initService(createRequestContext("test"), "test");
-  });
-  it("sanity test on setupVariableGroup", async () => {
-    jest
-      .spyOn(variableGroup, "deleteVariableGroup")
-      .mockResolvedValueOnce(true);
-    jest.spyOn(sVariableGroup, "create").mockResolvedValueOnce();
-    jest
-      .spyOn(cmdCreateVariableGroup, "setVariableGroupInBedrockFile")
-      .mockReturnValueOnce();
-    jest
-      .spyOn(cmdCreateVariableGroup, "updateLifeCyclePipeline")
-      .mockReturnValueOnce();
-    await setupVariableGroup(createRequestContext("/dummy"));
   });
   it("negative test", async () => {
     const tempDir = createTempDir();
