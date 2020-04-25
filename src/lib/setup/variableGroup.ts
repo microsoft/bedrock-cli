@@ -1,25 +1,71 @@
-import { VariableGroupDataVariable } from "../../types";
+import { AzureDevOpsOpts } from "../../lib/git";
+import { deleteVariableGroup } from "../../lib/pipelines/variableGroup";
 import { logger } from "../../logger";
-import { addVariableGroup } from "../pipelines/variableGroup";
-import { HLD_REPO, RequestContext, STORAGE_PARTITION_KEY } from "./constants";
-import { getAzureRepoUrl } from "./gitService";
+import { VariableGroupDataVariable } from "../../types";
 import { build as buildError } from "../errorBuilder";
 import { errorStatusCode } from "../errorStatusCode";
+import { addVariableGroup } from "../pipelines/variableGroup";
+import {
+  HLD_REPO,
+  RequestContext,
+  STORAGE_PARTITION_KEY,
+  VARIABLE_GROUP,
+} from "./constants";
+import { getAzureRepoUrl } from "./gitService";
 
 const validateData = (rc: RequestContext): void => {
-  if (!rc.acrName) throw Error("Missing Azure Container Registry Name.");
-  if (!rc.orgName) throw Error("Missing Organization Name.");
-  if (!rc.projectName) throw Error("Missing Project Name.");
-  if (!rc.accessToken) throw Error("Missing Personal Access Token.");
-  if (!rc.servicePrincipalId) throw Error("Missing Service Principal Id.");
-  if (!rc.servicePrincipalPassword)
-    throw Error("Missing Service Principal Secret.");
-  if (!rc.servicePrincipalTenantId)
-    throw Error("Missing Service Principal Tenant Id.");
-  if (!rc.storageAccountAccessKey)
-    throw Error("Missing Storage Account Access Key.");
-  if (!rc.storageAccountName) throw Error("Missing Storage Account Name.");
-  if (!rc.storageTableName) throw Error("Missing Storage Table Name.");
+  // during the first iteration service principal
+  // and storage account are not setup.
+  if (!rc.accessToken) {
+    throw buildError(
+      errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+      "setup-cmd-create-variable-group-missing-pat"
+    );
+  }
+  if (rc.storageAccountAccessKey) {
+    if (!rc.acrName) {
+      throw buildError(
+        errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+        "setup-cmd-create-variable-group-missing-acr-name"
+      );
+    }
+    if (!rc.servicePrincipalId) {
+      throw buildError(
+        errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+        "setup-cmd-create-variable-group-missing-sp-id"
+      );
+    }
+    if (!rc.servicePrincipalPassword) {
+      throw buildError(
+        errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+        "setup-cmd-create-variable-group-missing-sp-pwd"
+      );
+    }
+    if (!rc.servicePrincipalTenantId) {
+      throw buildError(
+        errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+        "setup-cmd-create-variable-group-missing-tenant-id"
+      );
+    }
+    if (!rc.storageAccountAccessKey) {
+      throw buildError(
+        errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+        "setup-cmd-create-variable-group-missing-storage-access-key"
+      );
+    }
+    if (!rc.storageAccountName) {
+      throw buildError(
+        errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+        "setup-cmd-create-variable-group-missing-storage-account-name"
+      );
+    }
+    if (!rc.storageTableName) {
+      throw buildError(
+        errorStatusCode.AZURE_VARIABLE_GROUP_ERR,
+        "setup-cmd-create-variable-group-missing-storage-table-name"
+      );
+    }
+  }
 };
 
 export const createVariableData = (
@@ -27,6 +73,20 @@ export const createVariableData = (
 ): VariableGroupDataVariable => {
   try {
     validateData(rc);
+
+    // during the first iteration service principal
+    // and storage account are not setup.
+    if (!rc.storageAccountAccessKey) {
+      return {
+        HLD_REPO: {
+          value: getAzureRepoUrl(rc.orgName, rc.projectName, HLD_REPO),
+        },
+        PAT: {
+          isSecret: true,
+          value: rc.accessToken,
+        },
+      };
+    }
     return {
       ACR_NAME: {
         value: rc.acrName,
@@ -85,4 +145,16 @@ export const create = async (
     type: "Vsts",
     variables: createVariableData(rc),
   });
+};
+
+export const setupVariableGroup = async (rc: RequestContext): Promise<void> => {
+  const accessOpts: AzureDevOpsOpts = {
+    orgName: rc.orgName,
+    personalAccessToken: rc.accessToken,
+    project: rc.projectName,
+  };
+
+  await deleteVariableGroup(accessOpts, VARIABLE_GROUP);
+  await create(rc, VARIABLE_GROUP);
+  logger.info(`Successfully created variable group, ${VARIABLE_GROUP}`);
 };

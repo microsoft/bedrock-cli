@@ -30,6 +30,14 @@
     "setup-cmd-git-api-err": "Could not get Git API client. Check the Azure DevOps credential.",
     "setup-cmd-build-api-err": "Could not get Build API client. Check the Azure DevOps credential.",
     "setup-cmd-cannot-locate-pr-for-approval": "Could not locate pull request for approval",
+    "setup-cmd-create-variable-group-missing-pat": "Could not create variable group because Personal Access Token was missing.",
+    "setup-cmd-create-variable-group-missing-acr-name": "Could not create variable group because ACR name was missing.",
+    "setup-cmd-create-variable-group-missing-sp-id": "Could not create variable group because service principal id was missing.",
+    "setup-cmd-create-variable-group-missing-sp-pwd": "Could not create variable group because service principal password was missing.",
+    "setup-cmd-create-variable-group-missing-tenant-id": "Could not create variable group because service principal tenant id was missing.",
+    "setup-cmd-create-variable-group-missing-storage-access-key": "Could not create variable group because storage account access key was missing.",
+    "setup-cmd-create-variable-group-missing-storage-account-name": "Could not create variable group because storage account name was missing.",
+    "setup-cmd-create-variable-group-missing-storage-table-name": "Could not create variable group because storage table name was missing.",
 
     "spk-config-yaml-err-readyaml": "Could not load file, {0}.",
     "spk-config-yaml-var-undefined": "Environment variable needs to be defined for {0} since it's referenced in the config file.",
@@ -240,6 +248,8 @@
     "var-group-add-err-vars-missing": "Could not add variable group because variables were not configured.",
     "var-group-add-with-key-vault-err-missing-provider": "Could not add variable group with key vault because Azure KeyVault provider data was not configured",
     "var-group-create-data-err": "Could not create variable group data.",
+    "var-group-has-var-group-err": "Could not get variable group, {1} information in project, {0}.",
+    "var-group-delete-var-group-err": "Could not delete variable group, {1} information in project, {0}.",
 
     "ring-create-cmd-failed": "Could not create ring: {0}.",
     "ring-create-cmd-err-name-missing": "Could not execute this command because ring name was not provided. Provide a ring name.",
@@ -257,11 +267,15 @@
     "project-create-variable-group-cmd-failed": "Create variable group was not successfully executed.",
     "project-create-variable-group-cmd-err-root-invalid": "Project root path is not valid. Provide a valid root path.",
     "project-create-variable-group-cmd-err-variable-group-invalid": "Variable group name is not valid. Provide a valid variable group name.",
-    "project-create-variable-group-cmd-err-bedrock-file-missing": "Bedrock file does not exist. Check that the project directory has been initialized.",
     "project-create-variable-group-cmd-err-file-missing": "The file '{0}' does not exist in project '{1}'.",
-    "project-create-variable-group-cmd-err-dependency": "Please run `spk project init` command before running this command to initialize the project.",
+    "project-create-variable-group-cmd-err-bedrock-yaml-missing": "Bedrock.yaml file was not found. Run spk project init command to initialize the project.",
 
     "project-init-cmd-failed": "Project init was not successfully executed.",
+
+    "project-append-variable-group-cmd-failed": "Append variable group was not successfully executed.",
+    "project-append-variable-group-cmd-err-bedrock-yaml-missing": "Bedrock.yaml file was not found. Run spk project init command to initialize the project.",
+    "project-append-variable-group-cmd-err-variable-group-invalid": "Could not add variable group '{0}' to the project. Check that the variable group exists in the Azure DevOps project '{1}/{2}'.",
+    "project-append-variable-group-cmd-err-variable-group-missing": "No value for variable group name was given. Provide a variable group name.",
 
     "service-install-build-pipeline-cmd-failed": "Service install build pipeline was not successfully executed.",
     "service-install-build-pipeline-cmd-pipeline-creation-err": "Error occurred when creating pipeline '{0}'. See the error details.",

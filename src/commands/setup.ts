@@ -38,6 +38,7 @@ import {
   manifestRepo,
 } from "../lib/setup/scaffold";
 import { create as createSetupLog } from "../lib/setup/setupLog";
+import { setupVariableGroup } from "../lib/setup/variableGroup";
 import { logger } from "../logger";
 import decorator from "./setup.decorator.json";
 import { createStorage } from "../lib/setup/azureStorage";
@@ -188,6 +189,7 @@ export const createAppRepoTasks = async (
       rc.acrName,
       RESOURCE_GROUP_LOCATION
     );
+    await setupVariableGroup(rc);
     await helmRepo(gitAPI, rc);
     await appRepo(gitAPI, rc);
     await createLifecyclePipeline(buildAPI, rc);
@@ -266,6 +268,7 @@ export const execute = async (
     const { coreAPI, gitAPI, buildAPI } = await getAPIClients();
 
     await createProjectIfNotExist(coreAPI, rc);
+    await setupVariableGroup(rc);
     await hldRepo(gitAPI, rc);
     await manifestRepo(gitAPI, rc);
     await createHLDtoManifestPipeline(buildAPI, rc);

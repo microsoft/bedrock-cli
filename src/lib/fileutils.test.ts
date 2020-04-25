@@ -24,7 +24,7 @@ import {
   VM_IMAGE,
   BEDROCK_FILENAME,
 } from "../lib/constants";
-import { disableVerboseLogging, enableVerboseLogging, logger } from "../logger";
+import { disableVerboseLogging, enableVerboseLogging } from "../logger";
 import {
   createTestComponentYaml,
   createTestHldAzurePipelinesYaml,

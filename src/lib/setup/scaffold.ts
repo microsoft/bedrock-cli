@@ -11,9 +11,6 @@ import { initialize as projectInitialize } from "../../commands/project/init";
 import { createService } from "../../commands/service/create";
 import { RENDER_HLD_PIPELINE_FILENAME } from "../../lib/constants";
 import { appendVariableGroupToPipelineYaml } from "../../lib/fileutils";
-import { AzureDevOpsOpts } from "../../lib/git";
-import { deleteVariableGroup } from "../../lib/pipelines/variableGroup";
-import { create as createVariableGroup } from "../../lib/setup/variableGroup";
 import { logger } from "../../logger";
 import {
   APP_REPO,
@@ -187,21 +184,6 @@ export const helmRepo = async (
   }
 };
 
-export const setupVariableGroup = async (rc: RequestContext): Promise<void> => {
-  const accessOpts: AzureDevOpsOpts = {
-    orgName: rc.orgName,
-    personalAccessToken: rc.accessToken,
-    project: rc.projectName,
-  };
-
-  await deleteVariableGroup(accessOpts, VARIABLE_GROUP);
-  await createVariableGroup(rc, VARIABLE_GROUP);
-  logger.info(`Successfully created variable group, ${VARIABLE_GROUP}`);
-
-  setVariableGroupInBedrockFile(".", VARIABLE_GROUP);
-  updateLifeCyclePipeline(".");
-};
-
 export const initService = async (
   rc: RequestContext,
   repoName: string
@@ -251,7 +233,8 @@ export const appRepo = async (
     );
 
     await projectInitialize(".", { defaultRing: "master" }); //How is master set normally?
-    await setupVariableGroup(rc);
+    setVariableGroupInBedrockFile(".", VARIABLE_GROUP);
+    updateLifeCyclePipeline(".");
     await initService(rc, repoName);
     await git.add("./*");
 

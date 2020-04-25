@@ -16,11 +16,9 @@ import {
 import {
   ACR_NAME,
   DEFAULT_PROJECT_NAME,
-  HLD_REPO,
   RequestContext,
   WORKSPACE,
 } from "./constants";
-import { getAzureRepoUrl } from "./gitService";
 import {
   azCLILogin,
   createWithAzCLI,
