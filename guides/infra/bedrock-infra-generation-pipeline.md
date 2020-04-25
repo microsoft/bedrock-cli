@@ -10,8 +10,8 @@ orchestrator for your Infrastructure Generation workflow using `bedrock infra`.
    Pull Requests" for git repositories.
 2. _High Level Definitions_: Your own infrastructure high level definitions for
    your deployment. You can refer to a sample repo
-   [here](https://github.com/yradsmikham/bedrock-infra-hld). You should be able
-   to create your Infra HLD repo using a scaffolding process via `bedrock` (i.e.
+   [here](https://github.com/yradsmikham/spk-infra-hld). You should be able to
+   create your Infra HLD repo using a scaffolding process via `bedrock` (i.e.
    `bedrock infra scaffold`). For more information on how to do that, please
    refer to the [Cloud Infra Management](../cloud-infra-management.md) doc.
 

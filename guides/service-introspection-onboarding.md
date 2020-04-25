@@ -213,7 +213,7 @@ Paste the following task in the `azure-pipelines.yml` file **after** the
 After completing the steps in this guide, you should be able to:
 
 - Fill out the `azure_devops` and `introspection` settings in
-  [`bedrock-config.yaml`](https://github.com/microsoft/bedrock-cli/blob/master/bedrock-config.yaml)
+  [`bedrock-config.yaml`](https://github.com/microsoft/bedrock-cli/blob/master/spk-config.yaml)
   so that you can use service introspection. More information about `bedrock`
   config can be found on the
   [main page](https://github.com/microsoft/bedrock-cli).

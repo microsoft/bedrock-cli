@@ -29,7 +29,7 @@ $ bedrock init ./bedrock-config.yaml
 ```
 
 This takes the configuration file, which he created
-[following this pattern](https://github.com/microsoft/bedrock-cli/blob/master/bedrock-config.yaml),
+[following this pattern](https://github.com/microsoft/bedrock-cli/blob/master/spk-config.yaml),
 that contains configuration details like Azure access tokens, validates that the
 prerequisite tools that `bedrock` relies on (like `git`, `az`, etc.) are
 installed, inventories their versions, validates that the version being run is
