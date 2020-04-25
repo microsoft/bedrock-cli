@@ -15,6 +15,8 @@ import * as promptInstance from "../lib/setup/prompt";
 import * as scaffold from "../lib/setup/scaffold";
 import * as setupLog from "../lib/setup/setupLog";
 import * as azureStorage from "../lib/setup/azureStorage";
+import * as variableGroup from "../lib/setup/variableGroup";
+import * as shell from "../lib/shell";
 import { deepClone } from "../lib/util";
 import { ConfigYaml } from "../types";
 import {
@@ -23,6 +25,7 @@ import {
   execute,
   getAPIClients,
   getErrorMessage,
+  isAzCLIInstall,
 } from "./setup";
 import * as setup from "./setup";
 
@@ -37,6 +40,8 @@ const mockRequestContext: RequestContext = {
   toCreateAppRepo: true,
   workspace: WORKSPACE,
 };
+
+jest.spyOn(variableGroup, "setupVariableGroup").mockResolvedValue();
 
 describe("test createSPKConfig function", () => {
   it("positive test", () => {
@@ -417,6 +422,28 @@ describe("test getAPIClients function", () => {
 
     await expect(getAPIClients()).rejects.toThrow(
       errorMessage("setup-cmd-build-api-err")
+    );
+  });
+});
+
+describe("test isAzCLIInstall function", () => {
+  it("positive test", async () => {
+    const version = JSON.stringify({
+      "azure-cli": "2.0.79",
+    });
+    jest.spyOn(shell, "exec").mockResolvedValueOnce(version);
+    await isAzCLIInstall();
+  });
+  it("negative test: version is not returned", async () => {
+    jest.spyOn(shell, "exec").mockResolvedValueOnce("");
+    await expect(isAzCLIInstall()).rejects.toThrow(
+      errorMessage("setup-cmd-az-cli-err")
+    );
+  });
+  it("negative test: az is not installed", async () => {
+    jest.spyOn(shell, "exec").mockRejectedValueOnce(Error("test"));
+    await expect(isAzCLIInstall()).rejects.toThrow(
+      errorMessage("setup-cmd-az-cli-err")
     );
   });
 });
