@@ -32,10 +32,10 @@ Install `ts-node` to make your development cycle easier:
 
 ```sh
 yarn global add ts-node
-ts-node src/index.ts # this is the same as running `./spk` or 'node spk.js'
+ts-node src/index.ts # this is the same as running `./bedrock` or 'node bedrock.js'
 
 # You can now do things like
-ts-node src/index.ts project init # same as running `./spk project init`
+ts-node src/index.ts project init # same as running `./bedrock project init`
 ```
 
 ### Implementing Commands

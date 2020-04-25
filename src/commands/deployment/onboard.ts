@@ -48,7 +48,7 @@ export interface OnBoardConfig {
 }
 
 /**
- * Populates command values (if needed) to values from SPK config.
+ * Populates command values (if needed) to values from Bedrock config.
  *
  * @param opts values from commander
  */
@@ -60,7 +60,7 @@ export const populateValues = (opts: CommandOptions): CommandOptions => {
 /**
  * Validates the values from commander.
  *
- * @param opts values from commander (including populated values from spk config)
+ * @param opts values from commander (including populated values from bedrock config)
  */
 export const validateValues = (opts: CommandOptions): OnBoardConfig => {
   validateForRequiredValues(decorator, opts, true);

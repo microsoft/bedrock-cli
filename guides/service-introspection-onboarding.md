@@ -3,12 +3,12 @@
 Service Introspection shows information about a
 [Bedrock GitOps workflow](https://github.com/microsoft/bedrock/tree/master/gitops).
 
-Service introspection is used via the `spk deployment` commands. More
+Service introspection is used via the `bedrock deployment` commands. More
 information about the commands is available in the command reference
 [here](./service-introspection.md).
 
 The following diagram shows the main components of service introspection.
-![spk service introspection diagram](./images/service_introspection.png)
+![bedrock service introspection diagram](./images/service_introspection.png)
 
 To use service introspection you first need to make sure you have the following
 pre-requisites.
@@ -34,7 +34,7 @@ it or use an existing one.
 **Option 1:**
 
 Use the
-[`spk deployment onboard`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_onboard)
+[`bedrock deployment onboard`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_onboard)
 command.
 
 **Option 2:**
@@ -60,7 +60,7 @@ pipelines and services that is displayed by service introspection.
 ### Pipelines Configuration
 
 The Bedrock GitOps pipelines need to be configured to start sending data to
-`spk` service introspection. This is done by adding a script snippet in each
+`bedrock` service introspection. This is done by adding a script snippet in each
 `azure-pipelines.yml` configuration.
 
 #### 1. Configure a variable group
@@ -86,11 +86,11 @@ You will need the following variables:
 
 The CI pipeline runs from the source repository to build a docker image.
 
-**Important note**: If you used spk to configure your pipelines, the following
-scripts should already be present in your pipelines with the condition that
-above variables are specified in a variable group. In that case make sure the
-pipeline has added the variable group that defines the above variables, and you
-may skip the steps ahead!
+**Important note**: If you used bedrock to configure your pipelines, the
+following scripts should already be present in your pipelines with the condition
+that above variables are specified in a variable group. In that case make sure
+the pipeline has added the variable group that defines the above variables, and
+you may skip the steps ahead!
 
 Paste the following task in its corresponding `azure-pipelines.yml`:
 
@@ -101,13 +101,13 @@ Paste the following task in its corresponding `azure-pipelines.yml`:
     commitId=$(echo "${commitId:0:7}")
     service=$(Build.Repository.Name)
     service=${service##*/}
-    echo "Downloading SPK"
+    echo "Downloading Bedrock"
     curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh
     chmod +x build.sh
     . ./build.sh --source-only
-    get_spk_version
-    download_spk
-    ./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p1 $(Build.BuildId) --image-tag $tag_name --commit-id $commitId --service $service
+    get_bedrock_version
+    download_bedrock
+    ./bedrock/bedrock deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p1 $(Build.BuildId) --image-tag $tag_name --commit-id $commitId --service $service
 
   displayName: Update manifest pipeline details in Spektate db
 ```
@@ -124,9 +124,9 @@ by service introspection.
 - Add the task before the crucial steps in your pipeline. This will capture
   details about failures if the important steps fail.
 
-- To specify the `spk` version you want to download, set the `VERSION`
-  environment variable. With this, `get_spk_version` will download that version.
-  If `VERSION` is not set, it will download the latest version.
+- To specify the `bedrock` version you want to download, set the `VERSION`
+  environment variable. With this, `get_bedrock_version` will download that
+  version. If `VERSION` is not set, it will download the latest version.
 
 #### 3. CD release pipeline (ACR to HLD) configuration
 
@@ -146,11 +146,12 @@ pipeline in the Azure DevOps portal:
 ```yaml
 latest_commit=$(git rev-parse --short HEAD) curl
 https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh
-> build.sh chmod +x build.sh . ./build.sh --source-only get_spk_version
-download_spk ./spk/spk deployment create  -n $(INTROSPECTION_ACCOUNT_NAME) -k
-$(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p
-$(INTROSPECTION_PARTITION_KEY)  --p2 $(Release.ReleaseId) --hld-commit-id
-$latest_commit --env $(Release.EnvironmentName) --image-tag $(Build.BuildId)
+> build.sh chmod +x build.sh . ./build.sh --source-only get_bedrock_version
+download_bedrock ./bedrock/bedrock deployment create  -n
+$(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t
+$(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY)  --p2
+$(Release.ReleaseId) --hld-commit-id $latest_commit --env
+$(Release.EnvironmentName) --image-tag $(Build.BuildId)
 ```
 
 This task is similar to the one from step 1 but instead passes the information
@@ -166,13 +167,14 @@ your multi-stage `azure-pipelines.yml`:
 
 ```yaml
 latest_commit=$(git rev-parse --short HEAD) tag_name=$(Build.BuildId) echo
-"Downloading SPK" curl
+"Downloading Bedrock" curl
 https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh
-> build.sh chmod +x build.sh . ./build.sh --source-only get_spk_version
-download_spk ./spk/spk deployment create  -n $(INTROSPECTION_ACCOUNT_NAME) -k
-$(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p
-$(INTROSPECTION_PARTITION_KEY)  --p2 $(Build.BuildId) --hld-commit-id
-$latest_commit --env $(Build.SourceBranchName) --image-tag $tag_name
+> build.sh chmod +x build.sh . ./build.sh --source-only get_bedrock_version
+download_bedrock ./bedrock/bedrock deployment create  -n
+$(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t
+$(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY)  --p2
+$(Build.BuildId) --hld-commit-id $latest_commit --env $(Build.SourceBranchName)
+--image-tag $tag_name
 ```
 
 Make sure your variable `tag_name` in this script matches the `tag_name` in the
@@ -196,13 +198,13 @@ Paste the following task in the `azure-pipelines.yml` file **after** the
     commitId=$(Build.SourceVersion)
     commitId=$(echo "${commitId:0:7}")
     latest_commit=$(git rev-parse --short HEAD)
-    echo "Downloading SPK"
+    echo "Downloading Bedrock"
     curl https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh > build.sh
     chmod +x build.sh
     . ./build.sh --source-only
-    get_spk_version
-    download_spk
-    ./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --manifest-commit-id $latest_commit
+    get_bedrock_version
+    download_bedrock
+    ./bedrock/bedrock deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --manifest-commit-id $latest_commit
   displayName: Update manifest pipeline details in Spektate db
 ```
 
@@ -211,16 +213,17 @@ Paste the following task in the `azure-pipelines.yml` file **after** the
 After completing the steps in this guide, you should be able to:
 
 - Fill out the `azure_devops` and `introspection` settings in
-  [`spk-config.yaml`](https://github.com/microsoft/bedrock-cli/blob/master/spk-config.yaml)
-  so that you can use service introspection. More information about `spk` config
-  can be found on the [main page](https://github.com/microsoft/bedrock-cli).
+  [`bedrock-config.yaml`](https://github.com/microsoft/bedrock-cli/blob/master/spk-config.yaml)
+  so that you can use service introspection. More information about `bedrock`
+  config can be found on the
+  [main page](https://github.com/microsoft/bedrock-cli).
 
-- Validate and verify the `spk-config.yaml` settings and the service
+- Validate and verify the `bedrock-config.yaml` settings and the service
   introspection storage using
-  [`spk deployment validate`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_validate)
+  [`bedrock deployment validate`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_validate)
 
 - Get information about your deployment using
-  [`spk deployment get`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_get)
+  [`bedrock deployment get`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_get)
 
 - Launch the dashboard to visualize the data using
-  [`spk deployment dashboard`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_dashboard)
+  [`bedrock deployment dashboard`](https://microsoft.github.io/bedrock-cli/commands/#master@deployment_dashboard)

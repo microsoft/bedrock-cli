@@ -103,7 +103,7 @@ type MiddlewareMap<T = Partial<ReturnType<typeof middleware.create>>> = {
 };
 
 /**
- * In spk hld reconcile, the results should always result in the same artifacts being created based on the state of bedrock.yaml.
+ * In bedrock hld reconcile, the results should always result in the same artifacts being created based on the state of bedrock.yaml.
  * The only exception is for files under the /config directories and any access.yaml files.
  * @param absHldPath Absolute path to the local HLD repository directory
  * @param repositoryName Name of the bedrock project repository/directory inside of the HLD repository

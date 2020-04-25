@@ -278,7 +278,7 @@ describe("Tests Command Builder's exit function", () => {
     const exitFn = jest.fn();
     await exitCmd(
       createLogger({
-        defaultMeta: { service: "spk" },
+        defaultMeta: { service: "bedrock" },
         level: "info",
         transports: [],
       }),

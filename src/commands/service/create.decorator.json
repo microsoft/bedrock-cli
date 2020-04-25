@@ -1,7 +1,7 @@
 {
   "command": "create <service-name> <service-path>",
   "alias": "c",
-  "description": "Add a new service into this initialized spk project repository",
+  "description": "Add a new service into this initialized bedrock project repository",
   "options": [
     {
       "arg": "-c, --helm-chart-chart <helm-chart>",
@@ -50,7 +50,7 @@
     },
     {
       "arg": "--git-push",
-      "description": "SPK CLI will try to commit and push these changes to a new origin/branch named after the service.",
+      "description": "Bedrock will try to commit and push these changes to a new origin/branch named after the service.",
       "defaultValue": false
     },
     {

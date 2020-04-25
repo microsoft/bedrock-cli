@@ -27,7 +27,7 @@ After this command is successfully executed, you can launch the introspection
 dashboard to view the status of pipelines.
 
 ```
-spk setup --file <file-name>
+bedrock setup --file <file-name>
 ```
 
 Content of this file is as follow
@@ -76,8 +76,9 @@ The followings shall be created
 ## Pre-requisite
 
 1. azure cli needs to be installed so that pull request can be automatically
-approved. type `az version` to check if you have version 2.0.x installed.
-2. install `azure-devops` extension. To check if you have the extension, type `az extension list`
+   approved. type `az version` to check if you have version 2.0.x installed.
+2. install `azure-devops` extension. To check if you have the extension, type
+   `az extension list`
 
 ## Setup log
 

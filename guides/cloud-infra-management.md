@@ -1,13 +1,13 @@
 # Cloud Infra Management
 
 Manage and update Bedrock infrastructure. For more information on the
-`spk infra` design, refer to the infrastructure design docs
+`bedrock infra` design, refer to the infrastructure design docs
 [here](./infra/README.md).
 
 Usage:
 
 ```
-spk infra [command] [options]
+bedrock infra [command] [options]
 ```
 
 ## Commands
@@ -19,8 +19,9 @@ spk infra [command] [options]
 
 `definition.yaml` will handle secrets if specified in the following format:
 `variable_name: ${env:secret_name}`. When the yaml file is read,
-`spk infra generate` will load any references to environment variables either
-from local environment variables in the current shell, or from a .env file.
+`bedrock infra generate` will load any references to environment variables
+either from local environment variables in the current shell, or from a .env
+file.
 
 Example:
 
@@ -41,24 +42,24 @@ variables:
 
 ## Authentication (Private Repos)
 
-`spk` currently supports the use of Personal Access Tokens to authenticate with
-private infrastructure repositories hosted in Azure DevOps. To configure `spk`
-to build scaffolded definitions using a private AzDO repo, do one of the
-following:
+`bedrock` currently supports the use of Personal Access Tokens to authenticate
+with private infrastructure repositories hosted in Azure DevOps. To configure
+`bedrock` to build scaffolded definitions using a private AzDO repo, do one of
+the following:
 
-- **Using `.spk-config`** - Pass in your PAT through an .env when you initialize
-  spk. Be sure that the `access_token` and `infra_repository` is set and for
-  every scaffold, specify your `--version` and `--template`.
+- **Using `.bedrock-config`** - Pass in your PAT through an .env when you
+  initialize bedrock. Be sure that the `access_token` and `infra_repository` is
+  set and for every scaffold, specify your `--version` and `--template`.
 - **Using arguments** - Pass in your formatted source url for your private AzDO
   repo with the PAT and arbitrary username specified. Example
-  `spk infra scaffold --name fabrikam --source https://spk:{$PAT}@dev.azure.com/microsoft/spk/_git/infra_repo --version master --template cluster/environments/azure-single-keyvault`
+  `bedrock infra scaffold --name fabrikam --source https://bedrock:{$PAT}@dev.azure.com/microsoft/bedrock/_git/infra_repo --version master --template cluster/environments/azure-single-keyvault`
 
 ## Terraform Modules with Local Paths
 
-`spk` now supports Terraform source templates that use a
+`bedrock` now supports Terraform source templates that use a
 [local repository path](https://www.terraform.io/docs/modules/sources.html#local-paths)
 for references to modules. To obtain the modules for further teraform
-deployment, `spk infra generate` will shape a module source value from the
+deployment, `bedrock infra generate` will shape a module source value from the
 `source`, `tempate`, and `version` arguments passed.
 
 **Example:**
@@ -97,7 +98,7 @@ Template Main.tf
 
 ```
 
-SPK-generated Main.tf
+Bedrock-generated Main.tf
 
 ```tf
 "aks-gitops" {

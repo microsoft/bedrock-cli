@@ -6,8 +6,8 @@ set -e
 #Import functions
 . ./functions.sh
 
-TEST_WORKSPACE="$(pwd)/spk-env"
-[ ! -z "$SPK_LOCATION" ] || { echo "Provide SPK_LOCATION"; exit 1;}
+TEST_WORKSPACE="$(pwd)/bedrock-env"
+[ ! -z "$BEDROCK_CLI_LOCATION" ] || { echo "Provide BEDROCK_CLI_LOCATION"; exit 1;}
 [ ! -z "$ACCESS_TOKEN_SECRET" ] || { echo "Provide ACCESS_TOKEN_SECRET"; exit 1;}
 [ ! -z "$AZDO_PROJECT" ] || { echo "Provide AZDO_PROJECT"; exit 1;}
 [ ! -z "$AZDO_ORG" ] || { echo "Provide AZDO_ORG"; exit 1;}
@@ -18,7 +18,7 @@ TEST_WORKSPACE="$(pwd)/spk-env"
 AZDO_ORG_URL="${AZDO_ORG_URL:-"https://dev.azure.com/$AZDO_ORG"}"
 
 echo "TEST_WORKSPACE: $TEST_WORKSPACE"
-echo "SPK_LOCATION: $SPK_LOCATION"
+echo "BEDROCK_CLI_LOCATION: $BEDROCK_CLI_LOCATION"
 echo "AZDO_PROJECT: $AZDO_PROJECT"
 echo "AZDO_ORG: $AZDO_ORG"
 echo "AZDO_ORG_URL: $AZDO_ORG_URL"
@@ -39,8 +39,8 @@ services_full_dir="$TEST_WORKSPACE/$mono_repo_dir/$services_dir"
 single_app_full_dir="$TEST_WORKSPACE/$frontend_repo_dir"
 
 shopt -s expand_aliases
-alias spk=$SPK_LOCATION
-echo "SPK Version: $(spk --version)"
+alias bedrock=$BEDROCK_CLI_LOCATION
+echo "Bedrock CLI Version: $(bedrock --version)"
 
 echo "Running from $(pwd)"
 if [ -d "$TEST_WORKSPACE"  ]; then rm -Rf $TEST_WORKSPACE; fi
@@ -76,7 +76,7 @@ manifest_repo_url=$(get_remote_repo_url $AZDO_ORG_URL $AZDO_PROJECT $manifests_d
 ##################################
 # HLD Repo Setup START
 ##################################
-create_hld_repo $hld_dir $SPK_LOCATION
+create_hld_repo $hld_dir $BEDROCK_CLI_LOCATION
 validate_directory "$TEST_WORKSPACE/$hld_dir" "${file_we_expect[@]}"
 cd "$TEST_WORKSPACE/$hld_dir"
 git add -A
@@ -98,7 +98,7 @@ pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name
 echo "hld_dir $hld_dir"
 echo "hld_repo_url $hld_repo_url"
 echo "manifest_repo_url $manifest_repo_url"
-spk hld install-manifest-pipeline --org-name $AZDO_ORG -d $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET -r $hld_dir -u $hld_repo_url -m $manifest_repo_url >> $TEST_WORKSPACE/log.txt
+bedrock hld install-manifest-pipeline --org-name $AZDO_ORG -d $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET -r $hld_dir -u $hld_repo_url -m $manifest_repo_url >> $TEST_WORKSPACE/log.txt
 
 # Verify hld to manifest pipeline was created
 pipeline_created=$(az pipelines show --name $hld_to_manifest_pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
@@ -125,7 +125,7 @@ push_remote_git_repo $AZDO_ORG_URL $AZDO_PROJECT $helm_charts_dir
 # Single App Repo Setup START
 ##################################
 cd $TEST_WORKSPACE
-create_spk_project_and_service $AZDO_ORG_URL $AZDO_PROJECT $SPK_LOCATION $TEST_WORKSPACE $frontend_repo_dir $vg_name "http://$repo_url"
+create_bedrock_project_and_service $AZDO_ORG_URL $AZDO_PROJECT $BEDROCK_CLI_LOCATION $TEST_WORKSPACE $frontend_repo_dir $vg_name "http://$repo_url"
 
 git add -A
 # See if the remote repo exists
@@ -144,7 +144,7 @@ lifecycle_pipeline_name="$frontend_repo_dir-lifecycle"
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name
 
 # Deploy lifecycle pipeline and verify it runs.
-spk project install-lifecycle-pipeline --org-name $AZDO_ORG --devops-project $AZDO_PROJECT --repo-url $frontend_repo_url --repo-name $frontend_repo_dir --pipeline-name $lifecycle_pipeline_name --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
+bedrock project install-lifecycle-pipeline --org-name $AZDO_ORG --devops-project $AZDO_PROJECT --repo-url $frontend_repo_url --repo-name $frontend_repo_dir --pipeline-name $lifecycle_pipeline_name --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
 
 # Verify lifecycle pipeline was created
 pipeline_created=$(az pipelines show --name $lifecycle_pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
@@ -165,7 +165,7 @@ frontend_pipeline_name="$frontend_repo_dir-pipeline"
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $frontend_pipeline_name
 
 # Create a pipeline since the code exists in remote repo
-spk service install-build-pipeline --org-name $AZDO_ORG -r $frontend_repo_dir -u $frontend_repo_url -d $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET -n $frontend_pipeline_name . >> $TEST_WORKSPACE/log.txt
+bedrock service install-build-pipeline --org-name $AZDO_ORG -r $frontend_repo_dir -u $frontend_repo_url -d $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET -n $frontend_pipeline_name . >> $TEST_WORKSPACE/log.txt
 
 # Verify frontend service pipeline was created
 pipeline_created=$(az pipelines show --name $frontend_pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
@@ -206,7 +206,7 @@ git push --set-upstream origin $branchName
 current_time=$(date +"%Y-%m-%d-%H-%M-%S")
 pr_title="Automated Test PR $current_time"
 echo "Creating pull request: '$pr_title'" 
-spk service create-revision -t "$pr_title" -d "Adding my new file" --org-name $AZDO_ORG --personal-access-token $ACCESS_TOKEN_SECRET --remote-url $frontend_repo_url >> $TEST_WORKSPACE/log.txt
+bedrock service create-revision -t "$pr_title" -d "Adding my new file" --org-name $AZDO_ORG --personal-access-token $ACCESS_TOKEN_SECRET --remote-url $frontend_repo_url >> $TEST_WORKSPACE/log.txt
 
 echo "Attempting to approve pull request: '$pr_title'" 
 # Get the id of the pr created and set the PR to be approved

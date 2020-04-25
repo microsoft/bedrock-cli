@@ -3,16 +3,16 @@
 Reference: Introspection - Development and production setup of Dashboard <br>
 Authors: Samiya Akhtar, Andre Briggs, Dennis Seah
 
-| Revision | Date         | Author      | Remarks                                |
-| -------: | ------------ | ----------- | -------------------------------------- |
-|      0.1 | Mar-02, 2020 | Dennis Seah | Initial Draft                          |
-|      0.2 | Mar-05, 2020 | Dennis Seah | Incorporate comments from Andre Briggs |
+| Revision | Date         | Author      | Remarks                                               |
+| -------: | ------------ | ----------- | ----------------------------------------------------- |
+|      0.1 | Mar-02, 2020 | Dennis Seah | Initial Draft                                         |
+|      0.2 | Mar-05, 2020 | Dennis Seah | Incorporate comments from Andre Briggs                |
 |      1.0 | Mar-06, 2020 | Dennis Seah | Void Document section because tasks are taken care of |
 
 ## 1. Overview
 
 This design fixes a few things in the previous implementation of
-`spk deployment dashboard` command. The issues are
+`bedrock deployment dashboard` command. The issues are
 
 1. Secret and configuration values are exposed in the browser.
 2. Cross-origin resource sharing, CORS issue because HTTP request is initiated
@@ -112,6 +112,7 @@ access to the IP address and port is able to see the content of the dashboard.
 None
 
 ## 7. Documentation
+
 All documentation are covered as sprint tasks
 
 ## A. Appendix

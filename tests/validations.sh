@@ -6,8 +6,8 @@ set -e
 #Import functions
 . ./functions.sh
 
-TEST_WORKSPACE="$(pwd)/spk-env"
-[ ! -z "$SPK_LOCATION" ] || { echo "Provide SPK_LOCATION"; exit 1;}
+TEST_WORKSPACE="$(pwd)/bedrock-env"
+[ ! -z "$BEDROCK_CLI_LOCATION" ] || { echo "Provide BEDROCK_CLI_LOCATION"; exit 1;}
 [ ! -z "$ACCESS_TOKEN_SECRET" ] || { echo "Provide ACCESS_TOKEN_SECRET"; exit 1;}
 [ ! -z "$AZDO_PROJECT" ] || { echo "Provide AZDO_PROJECT"; exit 1;}
 [ ! -z "$AZDO_ORG" ] || { echo "Provide AZDO_ORG"; exit 1;}
@@ -20,7 +20,7 @@ TEST_WORKSPACE="$(pwd)/spk-env"
 AZDO_ORG_URL="${AZDO_ORG_URL:-"https://dev.azure.com/$AZDO_ORG"}"
 
 echo "TEST_WORKSPACE: $TEST_WORKSPACE"
-echo "SPK_LOCATION: $SPK_LOCATION"
+echo "BEDROCK_CLI_LOCATION: $BEDROCK_CLI_LOCATION"
 echo "AZDO_PROJECT: $AZDO_PROJECT"
 echo "AZDO_ORG: $AZDO_ORG"
 echo "AZDO_ORG_URL: $AZDO_ORG_URL"
@@ -43,8 +43,8 @@ services_full_dir="$TEST_WORKSPACE/$mono_repo_dir/$services_dir"
 FrontEndCompliant="${FrontEnd//./-}"
 
 shopt -s expand_aliases
-alias spk=$SPK_LOCATION
-echo "SPK Version: $(spk --version)"
+alias bedrock=$BEDROCK_CLI_LOCATION
+echo "Bedrock CLI Version: $(bedrock --version)"
 
 echo "Running from $(pwd)"
 if [ -d "$TEST_WORKSPACE"  ]; then rm -Rf $TEST_WORKSPACE; fi
@@ -105,9 +105,9 @@ cd $TEST_WORKSPACE
 mkdir $hld_dir
 cd $hld_dir
 git init
-spk hld init
+bedrock hld init
 touch component.yaml
-file_we_expect=("spk.log" "manifest-generation.yaml" "component.yaml" ".gitignore")
+file_we_expect=("bedrock.log" "manifest-generation.yaml" "component.yaml" ".gitignore")
 validate_directory "$TEST_WORKSPACE/$hld_dir" "${file_we_expect[@]}"
 
 git add -A
@@ -146,7 +146,7 @@ pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name
 echo "hld_dir $hld_dir"
 echo "hld_repo_url $hld_repo_url"
 echo "manifest_repo_url $manifest_repo_url"
-spk hld install-manifest-pipeline --org-name $AZDO_ORG -d $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET -u https://$hld_repo_url -m https://$manifest_repo_url >> $TEST_WORKSPACE/log.txt
+bedrock hld install-manifest-pipeline --org-name $AZDO_ORG -d $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET -u https://$hld_repo_url -m https://$manifest_repo_url >> $TEST_WORKSPACE/log.txt
 
 ##################################
 # Temporary: Add a variable group to hld to manifest pipeline manually for testing introspection
@@ -154,7 +154,7 @@ spk hld install-manifest-pipeline --org-name $AZDO_ORG -d $AZDO_PROJECT --person
 ##################################
 cd $hld_dir
 hld_repo_commit_id=$(git log --format="%H" -n 1)
-spk hld append-variable-group $vg_name
+bedrock hld append-variable-group $vg_name
 git add .
 git commit -m "Adding variable group $vg_name to pipeline"
 git push origin master
@@ -168,7 +168,7 @@ verify_pipeline_with_poll_and_source_version $AZDO_ORG_URL $AZDO_PROJECT $hld_to
 
 ##################################
 # External Helm Chart Repo Setup START
-# uncomment when we can handle private helm chart repos seamlessly in SPK
+# uncomment when we can handle private helm chart repos seamlessly in Bedrock CLI
 ##################################
 # cd $TEST_WORKSPACE
 # create_helm_chart_repo $helm_charts_dir $FrontEnd $TEST_WORKSPACE $ACR_NAME
@@ -189,15 +189,15 @@ cd $mono_repo_dir
 git init
 
 mkdir $services_dir
-spk project init >> $TEST_WORKSPACE/log.txt
-file_we_expect=("spk.log" ".gitignore" "bedrock.yaml" "maintainers.yaml" "hld-lifecycle.yaml")
+bedrock project init >> $TEST_WORKSPACE/log.txt
+file_we_expect=("bedrock.log" ".gitignore" "bedrock.yaml" "maintainers.yaml" "hld-lifecycle.yaml")
 validate_directory "$TEST_WORKSPACE/$mono_repo_dir" "${file_we_expect[@]}"
 
 # Does variable group already exist? Delete if so
 variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $vg_name "delete"
 
 # Create variable group
-spk project create-variable-group $vg_name -r $ACR_NAME --hld-repo-url $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --devops-project $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
+bedrock project create-variable-group $vg_name -r $ACR_NAME --hld-repo-url $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --devops-project $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
 
 # Verify the variable group was created. Fail if not
 variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $vg_name "fail"
@@ -231,8 +231,8 @@ variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT bedrock-cli-vg-test "fail"
 # Commented code below is for external repo helm charts. Currently doesn't work.
 # helm_repo_url="$AZDO_ORG_URL/$AZDO_PROJECT/_git/$helm_charts_dir"
 local_repo_url="$AZDO_ORG_URL/$AZDO_PROJECT/_git/$mono_repo_dir"
-spk service create $FrontEnd $FrontEnd -d $services_dir -p "chart" -g $local_repo_url -b master --service-build-vg bedrock-cli-vg-test --service-build-variables FOO,BAR >> $TEST_WORKSPACE/log.txt
-# spk service create $FrontEnd $FrontEnd -d $services_dir -p "$FrontEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
+bedrock service create $FrontEnd $FrontEnd -d $services_dir -p "chart" -g $local_repo_url -b master --service-build-vg bedrock-cli-vg-test --service-build-variables FOO,BAR >> $TEST_WORKSPACE/log.txt
+# bedrock service create $FrontEnd $FrontEnd -d $services_dir -p "$FrontEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
 directory_to_check="$services_full_dir/$FrontEnd"
 file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" )
 validate_directory $directory_to_check "${file_we_expect[@]}"
@@ -242,13 +242,13 @@ validate_file $directory_to_check/build-update-hld.yaml 'Build Variables: FOO,BA
 validate_file $TEST_WORKSPACE/$mono_repo_dir/bedrock.yaml 'bedrock-cli-vg-test'
 
 # TODO uncomment this when helm chart fixed
-# spk service create $BackEnd $BackEnd -d $services_dir -p "$BackEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
+# bedrock service create $BackEnd $BackEnd -d $services_dir -p "$BackEnd/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
 # validate_directory "$services_full_dir/$BackEnd" "${file_we_expect[@]}"
 
 git add -A
 
 # TODO: We aren't using the config file right now
-# spk init -f $SPK_CONFIG_FILE
+# bedrock init -f $BEDROCK_CONFIG_FILE
 
 # See if the remote repo exists
 repo_exists $AZDO_ORG_URL $AZDO_PROJECT $mono_repo_dir
@@ -279,7 +279,7 @@ lifecycle_pipeline_name="$mono_repo_dir-lifecycle"
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $lifecycle_pipeline_name
 
 # Deploy lifecycle pipeline and verify it runs.
-spk project install-lifecycle-pipeline --org-name $AZDO_ORG --devops-project $AZDO_PROJECT --repo-url "https://$repo_url" --pipeline-name $lifecycle_pipeline_name --personal-access-token $ACCESS_TOKEN_SECRET >> $TEST_WORKSPACE/log.txt
+bedrock project install-lifecycle-pipeline --org-name $AZDO_ORG --devops-project $AZDO_PROJECT --repo-url "https://$repo_url" --pipeline-name $lifecycle_pipeline_name --personal-access-token $ACCESS_TOKEN_SECRET >> $TEST_WORKSPACE/log.txt
 
 # TODO: Verify the lifecycle pipeline sucessfully runs
 # Verify lifecycle pipeline was created
@@ -303,7 +303,7 @@ frontend_pipeline_name="$FrontEnd-pipeline"
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $frontend_pipeline_name
 
 # Create a pipeline since the code exists in remote repo
-spk service install-build-pipeline --org-name $AZDO_ORG -u $remote_repo_url -d $AZDO_PROJECT -l $services_dir --personal-access-token $ACCESS_TOKEN_SECRET -n $frontend_pipeline_name -v $FrontEnd  >> $TEST_WORKSPACE/log.txt
+bedrock service install-build-pipeline --org-name $AZDO_ORG -u $remote_repo_url -d $AZDO_PROJECT -l $services_dir --personal-access-token $ACCESS_TOKEN_SECRET -n $frontend_pipeline_name -v $FrontEnd  >> $TEST_WORKSPACE/log.txt
 
 # Verify frontend service pipeline was created
 pipeline_created=$(az pipelines show --name $frontend_pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
@@ -333,7 +333,7 @@ git push --set-upstream origin $branchName
 current_time=$(date +"%Y-%m-%d-%H-%M-%S")
 pr_title="Automated Test PR $current_time"
 echo "Creating pull request: '$pr_title'"
-spk service create-revision -t "$pr_title" -d "Adding my new file" --org-name $AZDO_ORG --personal-access-token $ACCESS_TOKEN_SECRET --remote-url $remote_repo_url >> $TEST_WORKSPACE/log.txt
+bedrock service create-revision -t "$pr_title" -d "Adding my new file" --org-name $AZDO_ORG --personal-access-token $ACCESS_TOKEN_SECRET --remote-url $remote_repo_url >> $TEST_WORKSPACE/log.txt
 
 echo "Attempting to approve pull request: '$pr_title'"
 # Get the id of the pr created and set the PR to be approved
@@ -396,7 +396,7 @@ cd $mono_repo_dir
 echo "Create ring"
 git checkout master
 git pull origin master
-spk ring create $ring_name
+bedrock ring create $ring_name
 git add -A
 git commit -m "Adding test ring: $ring_name"
 git push -u origin --all
@@ -493,7 +493,7 @@ cd $mono_repo_dir
 echo "Delete ring"
 git checkout master
 git pull origin master
-spk ring delete $ring_name
+bedrock ring delete $ring_name
 git add -A
 git commit -m "Deleting test ring: $ring_name"
 git push -u origin --all
@@ -528,7 +528,7 @@ echo "Successfully deleted ring: $ring_name."
 echo "Successfully reached the end of the service validations scripts."
 
 ##################################
-# SPK Introspection Validation START
+# Bedrock CLI Introspection Validation START
 ##################################
 
 # Verify hld to manifest pipeline run was successful, to verify the full end-end capture of
@@ -544,14 +544,14 @@ if [ -d "tests" ]; then
   cd tests
 fi
 export sa_access_key=$(echo "$sa_access_key" | tr -d '"')
-spk init -f ./spk-config-test.yaml
-spk deployment get --build-id $pipeline1id
-export output=$(spk deployment get --build-id $pipeline1id -o json > file.json )
+bedrock init -f ./bedrock-config-test.yaml
+bedrock deployment get --build-id $pipeline1id
+export output=$(bedrock deployment get --build-id $pipeline1id -o json > file.json )
 length=$(cat file.json | jq 'length')
 if (( length > 0 )); then
-  echo "$length deployment(s) were returned by spk deployment get"
+  echo "$length deployment(s) were returned by bedrock deployment get"
 else
-  echo "Error: Empty JSON was returned from spk deployment get"
+  echo "Error: Empty JSON was returned from bedrock deployment get"
   exit 1
 fi
 
@@ -573,4 +573,4 @@ fi
 # All Tests Completed.
 ##################################
 
-echo "Successfully reached the end of spk deployment get tests."
+echo "Successfully reached the end of bedrock deployment get tests."

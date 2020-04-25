@@ -25,7 +25,7 @@ jest.mock("@azure/arm-containerregistry", () => {
             return [
               {
                 id:
-                  "/subscriptions/dd831253-787f-4dc8-8eb0-ac9d052177d9/resourceGroups/bedrockSPK/providers/Microsoft.ContainerRegistry/registries/acrWest",
+                  "/subscriptions/dd831253-787f-4dc8-8eb0-ac9d052177d9/resourceGroups/contosoFabrikam/providers/Microsoft.ContainerRegistry/registries/acrWest",
                 name: "acrWest",
               },
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -78,9 +78,9 @@ describe("test container registries function", () => {
     expect(result).toStrictEqual([
       {
         id:
-          "/subscriptions/dd831253-787f-4dc8-8eb0-ac9d052177d9/resourceGroups/bedrockSPK/providers/Microsoft.ContainerRegistry/registries/acrWest",
+          "/subscriptions/dd831253-787f-4dc8-8eb0-ac9d052177d9/resourceGroups/contosoFabrikam/providers/Microsoft.ContainerRegistry/registries/acrWest",
         name: "acrWest",
-        resourceGroup: "bedrockSPK",
+        resourceGroup: "contosoFabrikam",
       },
     ]);
   });

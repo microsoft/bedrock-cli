@@ -70,7 +70,7 @@ export const checkDependencies = (projectPath: string): void => {
  * @param servicePrincipalId The Azure service principal id with ACR pull and build permissions for az login
  * @param servicePrincipalPassword The service principal password for az login
  * @param tenantId The Azure AD tenant id for az login
- * @param accessOpts Azure DevOps access options from command options to override spk config
+ * @param accessOpts Azure DevOps access options from command options to override bedrock config
  */
 export const create = (
   variableGroupName: string,
@@ -105,7 +105,7 @@ export const create = (
     },
   };
   const variableGroupData: VariableGroupData = {
-    description: "Created from spk CLI",
+    description: "Created from bedrock CLI",
     name: variableGroupName,
     type: "Vsts",
     variables: vars,

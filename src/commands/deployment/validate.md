@@ -7,6 +7,6 @@ and the onboard
 
 ## Note
 
-The purpose of `--self-test` option is to make sure that `spk` is able to write
-data to the provided storage account. Once the test ends, it will remove the
-test data that was added.
+The purpose of `--self-test` option is to make sure that `bedrock` is able to
+write data to the provided storage account. Once the test ends, it will remove
+the test data that was added.
