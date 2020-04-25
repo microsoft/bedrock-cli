@@ -7,7 +7,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  - group: 'spk-infra-hld-vg'
+  - group: 'fabrikam-infra-hld-vg'
 
 steps:
 - checkout: self
