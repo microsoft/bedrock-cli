@@ -1,9 +1,9 @@
 ## Description
 
-SPK command to remove a ring from an initialized bedrock project.
+Bedrock command to remove a ring from an initialized bedrock project.
 
 _Note:_ A default ring cannot be removed. First set another ring as the default
-via `spk ring set-default` before deleting.
+via `bedrock ring set-default` before deleting.
 
 ## Example
 
@@ -32,7 +32,7 @@ variableGroups:
   - fabrikam-vg
 ```
 
-running `spk ring delete prod` will result in a few changes:
+running `bedrock ring delete prod` will result in a few changes:
 
 1. `prod` will be removed from `bedrock.yaml`:
    ```yaml

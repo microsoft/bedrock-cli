@@ -36,15 +36,15 @@ beforeEach(() => {
 describe("safeGitUrlForLogging", () => {
   it("should return a git url without access tokens when given a url with access tokens", () => {
     const testUrl =
-      "https://service_account:token@github.com/microsoft/spk.git";
-    const expected = "https://github.com/microsoft/spk.git";
+      "https://service_account:token@github.com/microsoft/bedrock.git";
+    const expected = "https://github.com/microsoft/bedrock.git";
 
     expect(safeGitUrlForLogging(testUrl)).toEqual(expected);
   });
 
   it("should return the same git url when given a url without access tokens", () => {
-    const testUrl = "https://github.com/microsoft/spk.git";
-    const expected = "https://github.com/microsoft/spk.git";
+    const testUrl = "https://github.com/microsoft/bedrock.git";
+    const expected = "https://github.com/microsoft/bedrock.git";
 
     expect(safeGitUrlForLogging(testUrl)).toEqual(expected);
   });
@@ -344,15 +344,14 @@ describe("getRepositoryName", () => {
 
   it("returns the repository name for an AzDo HTTPS origin url.", () => {
     const originUrl =
-      "https://user@dev.azure.com/myorg/spk-test-project/_git/new-repo";
+      "https://user@dev.azure.com/contoso/fabrikam/_git/new-repo";
     const repositoryName = getRepositoryName(originUrl);
 
     expect(repositoryName).toEqual(`new-repo`);
   });
 
   it("returns the repository name for an AzDo SSH origin url.", () => {
-    const originUrl =
-      "git@ssh.dev.azure.com:v3/mitarng/spk-test-project/new-repo";
+    const originUrl = "git@ssh.dev.azure.com:v3/contoso/fabrikam/new-repo";
     const repositoryName = getRepositoryName(originUrl);
 
     expect(repositoryName).toEqual(`new-repo`);
@@ -373,7 +372,7 @@ describe("getRepositoryName", () => {
   });
 
   it("Returns a help message for unknown or unsupported git providers.", () => {
-    const originUrl = "git@bitbucket.com:org/spk.git";
+    const originUrl = "git@bitbucket.com:org/bedrock.git";
     let threwError = false;
     try {
       getRepositoryName(originUrl);
@@ -407,21 +406,20 @@ describe("getRepositoryUrl", () => {
 
   it("return a proper repo url for an AzDo HTTP origin url.", () => {
     const originUrl =
-      "https://user@dev.azure.com/myorg/spk-test-project/_git/new-repo";
+      "https://user@dev.azure.com/contoso/fabrikam/_git/new-repo";
     const repositoryUrl = getRepositoryUrl(originUrl);
 
     expect(repositoryUrl).toEqual(
-      `https://dev.azure.com/myorg/spk-test-project/_git/new-repo`
+      `https://dev.azure.com/contoso/fabrikam/_git/new-repo`
     );
   });
 
   it("return a proper repo url for an AzDo SSH origin url.", () => {
-    const originUrl =
-      "git@ssh.dev.azure.com:v3/mitarng/spk-test-project/new-repo";
+    const originUrl = "git@ssh.dev.azure.com:v3/contoso/fabrikam/new-repo";
     const repositoryUrl = getRepositoryUrl(originUrl);
 
     expect(repositoryUrl).toEqual(
-      `https://dev.azure.com/mitarng/spk-test-project/_git/new-repo`
+      `https://dev.azure.com/contoso/fabrikam/_git/new-repo`
     );
   });
 
@@ -440,7 +438,7 @@ describe("getRepositoryUrl", () => {
   });
 
   it("Returns a help message for unknown or unsupported git providers.", () => {
-    const originUrl = "git@bitbucket.com:org/spk.git";
+    const originUrl = "git@bitbucket.com:org/bedrock.git";
     let threwError = false;
     try {
       getRepositoryUrl(originUrl);
@@ -486,7 +484,7 @@ describe("getPullRequestLink", () => {
 
   it("return a proper PR url for an AzDo HTTP origin url.", async () => {
     const originUrl =
-      "https://user@dev.azure.com/myorg/spk-test-project/_git/new-repo";
+      "https://user@dev.azure.com/contoso/fabrikam/_git/new-repo";
     const branchName = "oldbranchname";
     const newBranchName = "newbranchname";
     const pullRequestUrl = await getPullRequestLink(
@@ -496,13 +494,12 @@ describe("getPullRequestLink", () => {
     );
 
     expect(pullRequestUrl).toEqual(
-      `https://dev.azure.com/myorg/spk-test-project/_git/new-repo/pullrequestcreate?sourceRef=${newBranchName}&targetRef=${branchName}`
+      `https://dev.azure.com/contoso/fabrikam/_git/new-repo/pullrequestcreate?sourceRef=${newBranchName}&targetRef=${branchName}`
     );
   });
 
   it("return a proper PR url for an AzDo SSH origin url.", async () => {
-    const originUrl =
-      "git@ssh.dev.azure.com:v3/mitarng/spk-test-project/new-repo";
+    const originUrl = "git@ssh.dev.azure.com:v3/contoso/fabrikam/new-repo";
     const branchName = "oldbranchname";
     const newBranchName = "newbranchname";
     const pullRequestUrl = await getPullRequestLink(
@@ -512,7 +509,7 @@ describe("getPullRequestLink", () => {
     );
 
     expect(pullRequestUrl).toEqual(
-      `https://dev.azure.com/mitarng/spk-test-project/_git/new-repo/pullrequestcreate?sourceRef=${newBranchName}&targetRef=${branchName}`
+      `https://dev.azure.com/contoso/fabrikam/_git/new-repo/pullrequestcreate?sourceRef=${newBranchName}&targetRef=${branchName}`
     );
   });
 
@@ -547,7 +544,7 @@ describe("getPullRequestLink", () => {
   });
 
   it("Returns a help message for unknown or unsupported git providers.", async () => {
-    const originUrl = "git@bitbucket.com:Org/spk.git";
+    const originUrl = "git@bitbucket.com:Org/bedrock.git";
     const branchName = "oldbranchname";
     const newBranchName = "newbranchname";
     const pullRequestUrl = await getPullRequestLink(

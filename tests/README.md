@@ -1,10 +1,10 @@
-# Integration Testing SPK
+# Integration Testing Bedrock CLI
 
 This directory contains shell scripts that execute on a build agent and run
-`spk` commands. An [Azure DevOps pipeline yaml](../smoke-test-pipeline.yml) file
-scheduled the run of these tests. The yaml file orchestrates the download the
-lastest master branch build artifact of `spk` on a daily basis and running smoke
-tests.
+`bedrock` commands. An [Azure DevOps pipeline yaml](../smoke-test-pipeline.yml)
+file scheduled the run of these tests. The yaml file orchestrates the download
+the lastest master branch build artifact of `bedrock` on a daily basis and
+running smoke tests.
 
 `validations.sh`
 
@@ -49,59 +49,59 @@ To check existing Logic Apps in your subscription, go to the
 
 ## Initialization
 
-| Command  | Coverage |
-| -------- | -------- |
-| spk init | 🚫       |
+| Command      | Coverage |
+| ------------ | -------- |
+| bedrock init | 🚫       |
 
 ## Project Creation
 
-| Command                                | Coverage |
-| -------------------------------------- | -------- |
-| spk project create-variable-group      | ✅       |
-| spk project init                       | ✅       |
-| spk project install-lifecycle-pipeline | ✅       |
+| Command                                    | Coverage |
+| ------------------------------------------ | -------- |
+| bedrock project create-variable-group      | ✅       |
+| bedrock project init                       | ✅       |
+| bedrock project install-lifecycle-pipeline | ✅       |
 
 ## Service Management
 
-| Command                            | Coverage |
-| ---------------------------------- | -------- |
-| spk service create                 | ✅       |
-| spk service create-revision        | ✅       |
-| spk service install-build-pipeline | ✅       |
+| Command                                | Coverage |
+| -------------------------------------- | -------- |
+| bedrock service create                 | ✅       |
+| bedrock service create-revision        | ✅       |
+| bedrock service install-build-pipeline | ✅       |
 
 ## Ring Management
 
-| Command              | Coverage |
-| -------------------- | -------- |
-| spk ring create      | ✅       |
-| spk ring delete      | ✅       |
-| spk ring set-default | 🚫       |
+| Command                  | Coverage |
+| ------------------------ | -------- |
+| bedrock ring create      | ✅       |
+| bedrock ring delete      | ✅       |
+| bedrock ring set-default | 🚫       |
 
 ## HLD Management
 
-| Command                           | Coverage |
-| --------------------------------- | -------- |
-| spk hld append-variable-group     | ✅       |
-| spk hld init                      | ✅       |
-| spk hld install-manifest-pipeline | ✅       |
-| spk hld reconcile                 | ✅       |
+| Command                               | Coverage |
+| ------------------------------------- | -------- |
+| bedrock hld append-variable-group     | ✅       |
+| bedrock hld init                      | ✅       |
+| bedrock hld install-manifest-pipeline | ✅       |
+| bedrock hld reconcile                 | ✅       |
 
 ## Service Introspection
 
-| Command                  | Coverage |
-| ------------------------ | -------- |
-| spk deployment get       | ✅       |
-| spk deployment onboard   | ✅       |
-| spk deployment validate  | 🚫       |
-| spk deployment dashboard | 🚫       |
-| spk deployment create    | ✅       |
+| Command                      | Coverage |
+| ---------------------------- | -------- |
+| bedrock deployment get       | ✅       |
+| bedrock deployment onboard   | ✅       |
+| bedrock deployment validate  | 🚫       |
+| bedrock deployment dashboard | 🚫       |
+| bedrock deployment create    | ✅       |
 
 ## Infrastructure Management
 
-| Command            | Coverage |
-| ------------------ | -------- |
-| spk infra scaffold | ✅       |
-| spk infra generate | ✅       |
+| Command                | Coverage |
+| ---------------------- | -------- |
+| bedrock infra scaffold | ✅       |
+| bedrock infra generate | ✅       |
 
 # Setup Instructions
 
@@ -125,27 +125,28 @@ If you wish to run these tests locally, skip ahead to
    - SP_TENANT (e.g Service Principal Tenant Id)
    - ACR_NAME (e.g Name of ACR resource that is accessible from above service
      principal)
-   - SPK_LOCATION - The full path to the spk executable file respectively to the
-     OS.
-   - SPK_DEFINITION_ID ( DefinitionId of the SPK artifact build)
-   - SPK_PROJECT_ID ( Project Id of the AzDO project the SPK build occurs in)
+   - BEDROCK_CLI_LOCATION - The full path to the bedrock executable file
+     respectively to the OS.
+   - BEDROCK_CLI_DEFINITION_ID ( DefinitionId of the Bedrock CLI artifact build)
+   - BEDROCK_CLI_PROJECT_ID ( Project Id of the AzDO project the Bedrock CLI
+     build occurs in)
    - FUNC_SCRIPT (e.g.
-     https://raw.githubusercontent.com/MY_ORG/spk/master/tests/functions.sh)
+     https://raw.githubusercontent.com/MY_ORG/bedrock-cli/master/tests/functions.sh)
    - TEST_SCRIPT (e.g.
-     https://raw.githubusercontent.com/MY_ORG/spk/master/tests/validations.sh)
+     https://raw.githubusercontent.com/MY_ORG/bedrock-cli/master/tests/validations.sh)
    - TEST_SCRIPT2 (e.g.
-     https://raw.githubusercontent.com/MY_ORG/spk/master/tests/infra-validations.sh)
+     https://raw.githubusercontent.com/MY_ORG/bedrock-cli/master/tests/infra-validations.sh)
 
 3. [Azure CLI with Azure DevOps Extension](https://docs.microsoft.com/en-us/azure/devops/cli/?view=azure-devops)
    - Provided in pipeline yaml
-4. SPK Binary
+4. Bedrock CLI Binary
    - Provided in pipeline yaml
 
 ## How to find Definition and Project Ids
 
-Navigate to your SPK build pipeline in Azure DevOps. Pay attention to the URL in
-the browser. The example below is for the microsoft.bedrock-cli pipeline. The
-definition id is 128. ![definitionid](./images/definitionid.png)
+Navigate to your Bedrock CLI build pipeline in Azure DevOps. Pay attention to
+the URL in the browser. The example below is for the microsoft.bedrock-cli
+pipeline. The definition id is 128. ![definitionid](./images/definitionid.png)
 
 You can find the project id but navigating tot
 `https://dev.azure.com/{organization}/_apis/projects?api-version=5.0-preview.3`
@@ -169,7 +170,7 @@ pipeline. Instead run these steps:
    ```
 3. Set the following environment variables
    <pre>
-   export SPK_LOCATION=<b>REPLACE_ME</b>
+   export BEDROCK_CLI_LOCATION=<b>REPLACE_ME</b>
    export AZDO_PROJECT=<b>REPLACE_ME</b>
    export AZDO_ORG=<b>REPLACE_ME</b>
    export ACCESS_TOKEN_SECRET=<b>REPLACE_ME</b>

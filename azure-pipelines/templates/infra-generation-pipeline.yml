@@ -7,7 +7,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  - group: 'spk-infra-hld-vg'
+  - group: 'bedrock-infra-hld-vg'
 
 steps:
 - checkout: self
@@ -35,21 +35,21 @@ steps:
 - script: |
     . build.sh --source-only
     init
-    get_os_spk
-    get_spk_version
-    download_spk
-    echo 'SPK Version: '
-    spk --version
+    get_os_bedrock
+    get_bedrock_version
+    download_bedrock
+    echo 'Bedrock CLI Version: '
+    bedrock --version
     set -e
     echo "GENERATING $PROJECT_DIRECTORY"
     cd $PROJECT_DIRECTORY
-    spk infra generate -p $CLUSTER
+    bedrock infra generate -p $CLUSTER
   env:
     ARM_CLIENT_ID: $(ARM_CLIENT_ID)
     ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
     ARM_TENANT_ID: $(ARM_TENANT_ID)
     ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-  displayName: 'SPK'
+  displayName: 'Bedrock CLI'
 
 - script: |
     . build.sh --source-only
@@ -62,7 +62,7 @@ steps:
     . build.sh --source-only
     init
     cd $PROJECT_DIRECTORY-generated/$CLUSTER
-    terraform plan -var-file=./spk.tfvars
+    terraform plan -var-file=./bedrock.tfvars
   env:
     ARM_CLIENT_ID: $(ARM_CLIENT_ID)
     ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)

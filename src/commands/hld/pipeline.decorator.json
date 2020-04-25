@@ -1,7 +1,7 @@
 {
   "command": "install-manifest-pipeline",
   "alias": "p",
-  "description": "Install the manifest generation pipeline to your Azure DevOps instance. Default values are set in spk-config.yaml and can be loaded via spk init or overriden via option flags.",
+  "description": "Install the manifest generation pipeline to your Azure DevOps instance. Default values are set in bedrock-config.yaml and can be loaded via bedrock init or overriden via option flags.",
   "options": [
     {
       "arg": "-n, --pipeline-name <pipeline-name>",

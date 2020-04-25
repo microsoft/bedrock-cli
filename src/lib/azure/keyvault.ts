@@ -54,7 +54,7 @@ export const getClient = async (
  * @param keyVaultName The Azure key vault name
  * @param secretName Name of the secret
  * @param secretValue Value of the secret
- * @param opts optionally override spk config with Azure subscription access options
+ * @param opts optionally override bedrock config with Azure subscription access options
  *
  */
 export const setSecret = async (
@@ -85,7 +85,7 @@ export const setSecret = async (
  *
  * @param keyVaultName The Azure key vault name
  * @param secretName Name of the secret
- * @param opts optionally override spk config with Azure subscription access options
+ * @param opts optionally override bedrock config with Azure subscription access options
  *
  */
 export const getSecret = async (

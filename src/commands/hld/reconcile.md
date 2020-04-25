@@ -2,20 +2,20 @@
 
 The reconcile feature scaffolds a HLD with the services in the `bedrock.yaml`
 file at the root level of the application repository. Recall that in a
-mono-repo, `spk service create` will add an entry into the `bedrock.yaml`
+mono-repo, `bedrock service create` will add an entry into the `bedrock.yaml`
 corresponding to all tracked services. When the service has been merged into
 `master` of the application repository, a pipeline (see `hld-lifecycle.yaml`,
-created by `spk project init`) runs `spk hld reconcile` to add any _new_
+created by `bedrock project init`) runs `bedrock hld reconcile` to add any _new_
 services tracked in `bedrock.yaml` to the HLD.
 
-As of version v0.6.0 and the addition of `spk ring` commands,
-`spk hld reconcile` will add rings to the corresponding application repository
-directory in the HLD repository. Additionally, as of v0.6.1, the reconcile
-command will also remove rings from the corresponding application repository
-directory in the HLD repository.
+As of version v0.6.0 and the addition of `bedrock ring` commands,
+`bedrock hld reconcile` will add rings to the corresponding application
+repository directory in the HLD repository. Additionally, as of v0.6.1, the
+reconcile command will also remove rings from the corresponding application
+repository directory in the HLD repository.
 
 This command is _intended_ to be run in a pipeline (see the generated
-`hld-lifecycle.yaml` created from `spk project init`), but can be run by the
+`hld-lifecycle.yaml` created from `bedrock project init`), but can be run by the
 user in a CLI for verification.
 
 For a `bedrock.yaml` file that contained within the

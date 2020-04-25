@@ -47,7 +47,7 @@ describe("Test updateVariableWithLocalEnv function", () => {
       );
     }).toThrow(
       getErrorMessage({
-        errorKey: "spk-config-yaml-var-undefined",
+        errorKey: "bedrock-config-yaml-var-undefined",
         values: ["hello2"],
       })
     );
@@ -146,9 +146,9 @@ describe("Bedrock", () => {
   });
 });
 
-const mockFileName = "src/commands/mocks/spk-config.yaml";
+const mockFileName = "src/commands/mocks/bedrock-config.yaml";
 
-describe("Initializing a project to use spk with a config file", () => {
+describe("Initializing a project to use bedrock with a config file", () => {
   test("init command basic file test", async () => {
     // Create random directory to initialize
     const randomTmpDir = createTempDir();
@@ -184,10 +184,10 @@ describe("Initializing a project a config file but no env vars", () => {
 
 describe("Initializing a project with a non-existent file", () => {
   test("Non-existent file test", () => {
-    const filename = path.resolve("./spk-config-test.yaml");
+    const filename = path.resolve("./bedrock-config-test.yaml");
     expect(() => {
       loadConfiguration(filename);
-    }).toThrow(getErrorMessage("spk-config-yaml-load-err"));
+    }).toThrow(getErrorMessage("bedrock-config-yaml-load-err"));
   });
 });
 

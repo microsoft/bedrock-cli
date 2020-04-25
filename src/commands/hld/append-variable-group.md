@@ -5,8 +5,8 @@ initialized hld repository.
 
 ## Example
 
-When an HLD repository is first initialized with `spk hld init`, the top portion
-of the `manifest-generation.yaml` looks like this:
+When an HLD repository is first initialized with `bedrock hld init`, the top
+portion of the `manifest-generation.yaml` looks like this:
 
 ```yaml
 trigger:
@@ -22,7 +22,7 @@ steps:
 .
 ```
 
-running `spk hld append-variable-group my-vg` with a variable group name, in
+running `bedrock hld append-variable-group my-vg` with a variable group name, in
 this case `my-vg`, will add it under the `variables` section if it does not
 already exist:
 

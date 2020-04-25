@@ -88,12 +88,12 @@ describe("test fetchValidateValues function", () => {
       },
     });
   });
-  it("negative test: SPK Config is missing", () => {
+  it("negative test: Bedrock config is missing", () => {
     expect(() => {
       fetchValidateValues(mockValues, gitUrl, undefined);
     }).toThrow();
   });
-  it("SPK Config's azure_devops do not have value", () => {
+  it("Bedrock config's azure_devops do not have value", () => {
     expect(() => {
       fetchValidateValues(mockMissingValues, gitUrl, {
         azure_devops: {},
@@ -105,7 +105,7 @@ describe("test fetchValidateValues function", () => {
  -d, --devops-project <devops-project>. Provide them.`);
   });
 
-  it("SPK Config's azure_devops do not have value and command line does not have values", () => {
+  it("Bedrock config's azure_devops do not have value and command line does not have values", () => {
     expect(() => {
       fetchValidateValues(nullValues, gitUrl, {
         azure_devops: {},

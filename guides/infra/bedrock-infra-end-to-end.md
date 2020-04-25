@@ -1,4 +1,4 @@
-# (Another) SPK Infra Narrative
+# (Another) Bedrock Infra Narrative
 
 An extension to
 [Bedrock E2E](https://github.com/CatalystCode/bedrock-end-to-end-dx).
@@ -16,11 +16,11 @@ Like Olina, Hugo suspects that his project will grow over time, so he wants to
 be able to scalably add and manage N clusters without having to manage N sets of
 Terraform code and configuration. Huga would like each deployement to resemble
 the same Terraform environment template, but use different configuration values.
-Luckily, `spk` supports a hierarchical structure, where each layer will inherit
-configuratiom from its parent layer (if its not specified at the child level).
-To begin, Hugo runs:
+Luckily, `bedrock` supports a hierarchical structure, where each layer will
+inherit configuratiom from its parent layer (if its not specified at the child
+level). To begin, Hugo runs:
 
-`spk infra scaffold --name fabrikam --source https://github.com/microsoft/bedrock --version master --template cluster/environments/azure-single-keyvault`
+`bedrock infra scaffold --name fabrikam --source https://github.com/microsoft/bedrock --version master --template cluster/environments/azure-single-keyvault`
 
 When he runs this command, he finds that it does the following:
 
@@ -59,9 +59,10 @@ variables:
 ```
 
 Now that Hugo has scaffolded out the globally common configuration, he goes on
-to define the first cluster. To do this, he repeats the `spk` scaffolding step.
+to define the first cluster. To do this, he repeats the `bedrock` scaffolding
+step.
 
-`spk infra scaffold --name fabrikam/fabrikam-east --source https://github.com/microsoft/bedrock --version master --template cluster/environments/azure-single-keyvault`
+`bedrock infra scaffold --name fabrikam/fabrikam-east --source https://github.com/microsoft/bedrock --version master --template cluster/environments/azure-single-keyvault`
 
 Like before, this will create a new directory with a corresponding
 `definition.yaml` file. Again, Hugo modifies the `definition.yaml` so that _this
@@ -100,7 +101,7 @@ fabrikam/
 Hugo plans on generating the Terraform scripts for all the infrastructure, and
 he does this by running:
 
-`spk infra generate -p <cluster>`
+`bedrock infra generate -p <cluster>`
 
 against each regional cluster in the `fabrikam` project folder.
 
@@ -164,8 +165,8 @@ requests, and triggered Azure DevOps pipelines to automate changes made to his
 cluster. To do this, he writes a script for a generation pipeline linked to the
 cluster definition repo that will do the following:
 
-- Download and install the latest version of `spk`
-- Runs `spk infra generate` on the modified `definition.yaml`
+- Download and install the latest version of `bedrock`
+- Runs `bedrock infra generate` on the modified `definition.yaml`
   - Regenerates the terraform templates with the new changes
   - Validates the generated files by executing terraform commands (i.e.
     `terraform init` and `terraform plan`)
@@ -184,17 +185,17 @@ Cluster Generated repo that will:
 
 Hugo would like to change the `agent_vm_count` for his `fabrikam-east` cluster,
 and although he could simply update the `definition.yaml` file, run
-`spk infra generate` on the directory, and then finally run `terraform apply` to
-update the cluster, he would rather have these changes be automated, versioned,
-and logged somewhere. With the approach described above, Hugo can update the
-`definition.yaml` file, and push a new commit to the Cluster HLD Repo. From
-there, this will trigger an Azure DevOps pipeline that will execute a script.
-The script will download and install `spk`, run `spk infra generate` against the
-appropriate cluster to generate terraform files. Finally, the pipeline will
-execute terraform commands to ensure the terraform files are valid before
-creating a git pull request against the Cluster Generated repo. Hugo will need
-to review the pull request on the Cluster Generated repo to ensure that the
-changes are correct before merging.
+`bedrock infra generate` on the directory, and then finally run
+`terraform apply` to update the cluster, he would rather have these changes be
+automated, versioned, and logged somewhere. With the approach described above,
+Hugo can update the `definition.yaml` file, and push a new commit to the Cluster
+HLD Repo. From there, this will trigger an Azure DevOps pipeline that will
+execute a script. The script will download and install `bedrock`, run
+`bedrock infra generate` against the appropriate cluster to generate terraform
+files. Finally, the pipeline will execute terraform commands to ensure the
+terraform files are valid before creating a git pull request against the Cluster
+Generated repo. Hugo will need to review the pull request on the Cluster
+Generated repo to ensure that the changes are correct before merging.
 
 When the changes are merged, a deployment pipeline will be triggered to execute
 a simple script to perform `terraform` commands (i.e. `terraform apply`). Once
@@ -209,19 +210,19 @@ Hugo wants to add a null resource to his `azure-single-keyvault` template. So,
 he makes changes to the terraform templates to his personal Terraform template
 **source** repo. However, now he wants the `fabrikam-west` cluster to reflect
 this change. Similar to updating a configuration, Hugo makes a change to his
-`definition.yaml` by running `spk infra scaffold` to regenerate the
+`definition.yaml` by running `bedrock infra scaffold` to regenerate the
 `definition.yaml` files with the appropriate (new) variables (or he can simply
 modify the existing `definition.yaml`). Then, he commits this change to the
 Cluster HLD repo, which will trigger the CI/CD pipelines to accomplish a
 successful cluster deployment.
 
-![](../images/spk-infra-cicd.png)
+![](../images/bedrock-infra-cicd.png)
 
 # Summary
 
-- User runs `spk infra scaffold` to generate `definition.yaml` files and build
-  hiearchy for multi-cluster.
-- User runs `spk infra generate` to generate Terraform scripts based on the
+- User runs `bedrock infra scaffold` to generate `definition.yaml` files and
+  build hiearchy for multi-cluster.
+- User runs `bedrock infra generate` to generate Terraform scripts based on the
   `definition.yaml` files.
 - User creates two git repositories: (1) Infra HLD repo and (2) Infra Generated
   repo. The `definition.yaml` resides in the Infra HLD repo, meanwhile, the

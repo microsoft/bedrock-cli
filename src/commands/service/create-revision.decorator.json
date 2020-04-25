@@ -23,13 +23,13 @@
     },
     {
       "arg": "-a, --personal-access-token <personal-access-token>",
-      "description": "Personal access token associated with your Azure DevOps token; falls back to azure_devops.access_token in your spk config",
+      "description": "Personal access token associated with your Azure DevOps token; falls back to azure_devops.access_token in your bedrock config",
       "required": true,
       "inherit": "azure_devops.access_token"
     },
     {
       "arg": "-o, --org-name <organization-name>",
-      "description": "Your Azure DevOps organization name; falls back to azure_devops.org in your spk config",
+      "description": "Your Azure DevOps organization name; falls back to azure_devops.org in your bedrock config",
       "required": true,
       "inherit": "azure_devops.org"
     },

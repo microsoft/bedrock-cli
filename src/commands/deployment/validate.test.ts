@@ -345,7 +345,7 @@ describe("Write self-test data", () => {
     );
     expect(mockedDB).toHaveLength(1);
     expect(mockedDB[0].p1).toBe("500");
-    expect(mockedDB[0].service).toBe("spk-self-test");
+    expect(mockedDB[0].service).toBe("bedrock-self-test");
   });
   it("negative test", async () => {
     jest
@@ -373,7 +373,7 @@ describe("Delete self-test data", () => {
     );
     expect(mockedDB).toHaveLength(1);
     expect(mockedDB[0].p1).toBe("500");
-    expect(mockedDB[0].service).toBe("spk-self-test");
+    expect(mockedDB[0].service).toBe("bedrock-self-test");
 
     await deleteSelfTestData(
       "test-key",

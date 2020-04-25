@@ -15,7 +15,7 @@ import { build as buildError, log as logError } from "../../lib/errorBuilder";
 import { errorStatusCode } from "../../lib/errorStatusCode";
 import decorator from "./validate.decorator.json";
 
-const service = "spk-self-test";
+const service = "bedrock-self-test";
 
 export interface CommandOptions {
   selfTest: boolean;
@@ -124,9 +124,9 @@ export const writeSelfTestData = async (
 
   try {
     const p1Id = buildId;
-    const imageTag = "spk-test-123";
+    const imageTag = "v1.04";
     const commitId = "6nbe" + buildId;
-    const env = "SPK-TEST";
+    const env = "BEDROCK-TEST";
 
     logger.info("Adding src to ACR data to service introspection...");
     await addSrcToACRPipeline(tableInfo, p1Id, imageTag, service, commitId);
@@ -197,7 +197,7 @@ export const deleteSelfTestData = async (
 /**
  * Run the self-test for introspection
  *
- * @param config spk configuration values
+ * @param config bedrock configuration values
  */
 export const runSelfTest = async (config: ValidateConfig): Promise<void> => {
   try {

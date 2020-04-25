@@ -1,5 +1,5 @@
 name: discovery-service
-source: "https://github.com/yradsmikham/spk-source"
+source: "https://github.com/contoso/fabrikam"
 template: cluster/environments/azure-single-keyvault
 version: v0.0.1
 backend:

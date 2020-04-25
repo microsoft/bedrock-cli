@@ -1,6 +1,6 @@
 # Release
 
-[![Build Status](https://dev.azure.com/epicstuff/bedrock/_apis/build/status/myho/%5Bspk%5D%20create%20github%20release?branchName=master)](https://dev.azure.com/epicstuff/bedrock/_build/latest?definitionId=130&branchName=master)
+[![Build Status](https://dev.azure.com/epicstuff/bedrock/_apis/build/status/myho/%5Bbedrock%5D%20create%20github%20release?branchName=master)](https://dev.azure.com/epicstuff/bedrock/_build/latest?definitionId=130&branchName=master)
 
 Instruction on how to cut a new release.
 

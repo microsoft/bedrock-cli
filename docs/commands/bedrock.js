@@ -11,7 +11,7 @@ var template =
 var optionTemplate =
   '<p>@@option@@</p><p class="cmd-description">@@description@@</p>@@inherit@@<div class="line-space"></div>';
 var inheritTemplate =
-  '<p class="cmd-inherit">inherit @@inherit@@ from spk config.yaml</p>';
+  '<p class="cmd-inherit">inherit @@inherit@@ from bedrock config.yaml</p>';
 var relTemplate =
   '<li><a class="preserve-view button is-small has-border-none has-inner-focus has-flex-justify-content-start is-full-width has-text-wrap is-text-left">@@value@@</a></li>';
 
@@ -88,7 +88,7 @@ function populateVersionList() {
 function showDetails(key) {
   if (!key) {
     window.location.hash = "#" + version + sepVersion;
-    $("#spk-details").html("");
+    $("#bedrock-details").html("");
     return;
   }
   window.location.hash = version + sepVersion + key.replace(/\s/g, "_");
@@ -102,7 +102,7 @@ function showDetails(key) {
   var alias = cmd.alias ? `|${cmd.alias}` : "";
   var content = template.replace(
     "@@main-cmd@@",
-    "spk " + key + alias + sanitize(values) + " [options]"
+    "bedrock " + key + alias + sanitize(values) + " [options]"
   );
   content = content.replace("@@cmd-description@@", cmd.description);
 
@@ -134,7 +134,7 @@ function showDetails(key) {
     content =
       '<p class="cmd-title1">@@main-cmd@@</p>'.replace(
         "@@main-cmd@@",
-        "spk " + key
+        "bedrock " + key
       ) +
       '<div class="markdown">' +
       converter.makeHtml(cmd.markdown) +
@@ -142,7 +142,7 @@ function showDetails(key) {
       content;
   }
 
-  $("#spk-details").html(content);
+  $("#bedrock-details").html(content);
 }
 
 function populateListing() {
@@ -156,7 +156,7 @@ function populateListing() {
     a +=
       "<li><a href=\"javascript:showDetails('" +
       c +
-      "');\">spk " +
+      "');\">bedrock " +
       c +
       "</a></li>";
     return a;

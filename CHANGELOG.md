@@ -26,7 +26,7 @@ See operational changes at
 
 ### Added
 
-- Enabled `spk ring` commands
+- Enabled `bedrock ring` commands
 
 ### Changed
 
@@ -38,7 +38,7 @@ See operational changes at
 
 ### Added
 
-- `spk setup` improvements
+- `bedrock setup` improvements
 
 ### Changed
 
@@ -48,7 +48,7 @@ See operational changes at
 
 ### Added
 
-- `spk setup` improvements
+- `bedrock setup` improvements
 
 ### Changed
 
@@ -67,7 +67,7 @@ See operational changes at
 
 ### Added
 
-- Initial version of `spk setup` command
+- Initial version of `bedrock setup` command
 
 ### Changed
 
@@ -89,7 +89,7 @@ See operational changes at
 
 ### Changed
 
-- Default fabrikate component initialized by `spk hld`
+- Default fabrikate component initialized by `bedrock hld`
 - Various bug fixes and refactoring
 
 ## [0.5.1] - 2020-02-05
@@ -117,7 +117,7 @@ See operational changes at
 ### Changed
 
 - Resolved [bug](https://github.com/microsoft/bedrock/issues/916) around
-  `spk hld reconcile`
+  `bedrock hld reconcile`
 - Resolved [bug](https://github.com/microsoft/bedrock/issues/905) around unit
   test failure
 
@@ -169,18 +169,18 @@ See operational changes at
 
 - Global Configuration
 
-  - One place to configuration all parameters to initialize the SPK tool
+  - One place to configuration all parameters to initialize the Bedrock tool
 
 - Service Management
 
-  - The ability to create an Azure Repo (standard or mono-repo) with SPK
+  - The ability to create an Azure Repo (standard or mono-repo) with Bedrock
     metadata files
   - The ability to create a service in your Azure Repo that will automatically
     be linked to an Azure DevOps Pipeline
 
 - Service Introspection
 
-  - Features to able to see your services being deployed in the SPK CLI
+  - Features to able to see your services being deployed in the Bedrock CLI
 
 ### Known Issues
 

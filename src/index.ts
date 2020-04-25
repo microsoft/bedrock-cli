@@ -40,7 +40,7 @@ const commandModules = [
     })
   );
   const rootCommand = Command(
-    "spk",
+    "bedrock",
     "The missing Bedrock CLI",
     [
       (c): void => {
