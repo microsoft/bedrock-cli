@@ -1,6 +1,6 @@
 ## Description
 
-SPK command to set a ring as the default for an initialized bedrock project.
+Bedrock command to set a ring as the default for an initialized bedrock project.
 
 ## Example
 
@@ -29,7 +29,7 @@ variableGroups:
   - fabrikam-vg
 ```
 
-running `spk ring set-default prod` will result in:
+running `bedrock ring set-default prod` will result in:
 
 1. `prod` will be set as the default in `bedrock.yaml`:
 

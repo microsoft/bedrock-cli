@@ -5,7 +5,7 @@ import { CLI_LOG_FILENAME } from "../lib/constants";
 export const logger = createLogger({
   level: "info",
   format: format.combine(format.timestamp(), format.errors({ stack: true })),
-  defaultMeta: { service: "spk" },
+  defaultMeta: { service: "bedrock" },
   transports: [
     new transports.File({
       filename: CLI_LOG_FILENAME,

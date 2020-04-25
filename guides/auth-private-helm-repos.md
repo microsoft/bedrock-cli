@@ -9,7 +9,7 @@ Helm chart repository, we can piggy back off the ability for
 
 ## Utilizing The Default PAT (ACCESS_TOKEN_SECRET)
 
-By default, all services created via `spk service create` with the
+By default, all services created via `bedrock service create` with the
 `--helm-config-*` family of options will be setup to consume the environment
 variable `ACCESS_TOKEN_SECRET` -- The PAT used to clone the application
 repository in the HLD-to-Materialized pipeline. So if the PAT used to setup your
@@ -33,10 +33,10 @@ for more information on how to add a variables to your pipeline.
 If you already have a environment variable name in mind you want to consume or
 already have it available in your pipeline before you create your service, you
 can make it aware of it via the `--helm-config-access-token-variable` flag in
-the `spk service create` command.
+the `bedrock service create` command.
 
 ```sh
-spk service create my-service ./path/to/service \
+bedrock service create my-service ./path/to/service \
   --helm-config-git https://dev.azure.com/my-org/my-project/_git/my-repo \
   --helm-config-branch master \
   --helm-config-path my-service-helm-chart \

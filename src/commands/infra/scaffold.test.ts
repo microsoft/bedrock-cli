@@ -193,7 +193,7 @@ describe("test validate function", () => {
 describe("test constructSource function", () => {
   it("validate result", () => {
     const source = constructSource(mockYaml);
-    expect(source).toBe("https://spk:token123@repoABC");
+    expect(source).toBe("https://bedrock:token123@repoABC");
   });
 });
 

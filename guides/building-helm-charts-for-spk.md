@@ -1,15 +1,15 @@
-# Building Helm Charts for SPK and Bedrock
+# Building Helm Charts for Bedrock CLI
 
 ### Prerequsities
 
 - This guide assumes that you are familiar with understanding and creating
   [helm charts](https://helm.sh) - which are consumed by
-  [fabrikate](https://github.com/microsoft/fabrikate) and `spk`.
+  [fabrikate](https://github.com/microsoft/fabrikate) and `bedrock`.
 
-- It also assumes that you have set up your `spk` project, and installed all
-  necessary pipelines created via `spk project init` (the lifecycle pipeline),
-  `spk service create` (build update hld pipeline), and `spk hld init` (manifest
-  generation pipeline).
+- It also assumes that you have set up your `bedrock` project, and installed all
+  necessary pipelines created via `bedrock project init` (the lifecycle
+  pipeline), `bedrock service create` (build update hld pipeline), and
+  `bedrock hld init` (manifest generation pipeline).
 
 - A helm chart with values.yaml containing
   [mandatory values](#mandatory-helm-chart-configuration).
@@ -19,18 +19,18 @@
 Recall the three git repositories that exist, and the pipelines that exist
 between them:
 
-![Repositories and pipelines](./images/spk-resource-diagram.png)
+![Repositories and pipelines](./images/bedrock-resource-diagram.png)
 
 In this guide, we assume a single application repository with a single service,
 a high level definition repository, and a materialized manifest repository, and
 all relevant pipelines between.
 
-When building applications that deploy with `spk` pipelines, it is important to
-consider the structure of the helm chart that is ultimately rendered to
+When building applications that deploy with `bedrock` pipelines, it is important
+to consider the structure of the helm chart that is ultimately rendered to
 Kubernetes manifests, and applied to your Kubernetes cluster. For this guide,
 refer to the following `bedrock.yaml` file at the root of an application source
 repository, and the packaged [sample helm chart](./sample-helm-chart) that
-allows `spk` created pipelines to operationalize building, updating, and
+allows `bedrock` created pipelines to operationalize building, updating, and
 deploying container images to your cluster.
 
 ```yaml
@@ -55,10 +55,10 @@ variableGroups:
 ```
 
 The above service `fabrikam` was added to `bedrock.yaml` by invoking
-`spk service create` with the requisite parameters ie:
+`bedrock service create` with the requisite parameters ie:
 
 ```sh
-spk service create fabrikam . \
+bedrock service create fabrikam . \
 --display-name fabrikam \
 --helm-config-git https://dev.azure.com/fabrikam/frontend/_git/charts \
 --helm-config-path frontend \
@@ -70,9 +70,10 @@ spk service create fabrikam . \
 ```
 
 When the above `bedrock.yaml` is committed and pushed to its git repository, the
-`hld-lifecycle` pipeline (which is generated and installed by `spk project init`
-and `spk project install-lifecycle-pipeline`) will consume the `bedrock.yaml`
-file and produce an initial HLD (a fabrikate consumable – see
+`hld-lifecycle` pipeline (which is generated and installed by
+`bedrock project init` and `bedrock project install-lifecycle-pipeline`) will
+consume the `bedrock.yaml` file and produce an initial HLD (a fabrikate
+consumable – see
 [this document](https://github.com/microsoft/fabrikate/blob/master/docs/component.md)
 for more details regarding its structure) that represents the structure to be
 consumed consumed by Fabrikate and rendered to Kubernetes manifests.
@@ -85,7 +86,7 @@ A HLD is generated from the `hld-lifecycle` pipeline, from any changes that are
 made to `bedrock.yaml`. This HLD will be a tree structure of directories and
 files, resembling the following:
 
-![Generated HLD from lifecycle pipeline](./images/spk-hld-generated.png)
+![Generated HLD from lifecycle pipeline](./images/bedrock-hld-generated.png)
 
 Note the highlighted files: the top level `common.yaml` (orange), the chart
 level `component.yaml` (green), the ring level `common.yaml` (blue), and the
@@ -99,7 +100,7 @@ the top level `common.yaml`.
 
 #### Top level configuration
 
-![Configured top level common.yaml in HLD](./images/spk-hld-top-level-config-generated.png)
+![Configured top level common.yaml in HLD](./images/bedrock-hld-top-level-config-generated.png)
 
 This file represents the "entry point" in configuring a running container image.
 This configuration is ever changing - every new git merge to the `dev` branch of
@@ -114,13 +115,13 @@ chart configured in `component.yaml`, discussed below.
 
 #### Chart level configuration
 
-![Configured chart configuration component.yaml](./images/spk-hld-chart-configuration-component-yaml.png)
+![Configured chart configuration component.yaml](./images/bedrock-hld-chart-configuration-component-yaml.png)
 
 The `hld-lifecycle` pipeline scaffolds the above component.yaml with two
 subcomponents. The first subcomponent, simply called `chart` references a helm
-chart and has the same configuration a user provides to `spk service create`,
-which is written to `bedrock.yaml`. The relevant lines from `bedrock.yaml` are
-below:
+chart and has the same configuration a user provides to
+`bedrock service create`, which is written to `bedrock.yaml`. The relevant lines
+from `bedrock.yaml` are below:
 
 ```yaml
 helm:
@@ -133,19 +134,19 @@ helm:
 The above configuration presumes that you have a _seperate_ git repository that
 contains a helm chart in the `frontend` path. This helm chart is further
 configured by a scaffolded configuration from the `hld-lifecycle` pipeline. For
-reference, a "compatible" helm chart for `spk` is
+reference, a "compatible" helm chart for `bedrock` is
 [provided here](./sample-helm-chart).
 
 #### Ring level configuration
 
-![Generated ring configuration common.yaml](./images/spk-hld-ring-configuration.png)
+![Generated ring configuration common.yaml](./images/bedrock-hld-ring-configuration.png)
 
 The above `common.yaml` configures the subcomponent `chart` from the
 `component.yaml` above to configure a `serviceName` for the helm chart,
 `fabrikam-k8s-svc-dev`. This configuration is produced from the `hld-lifecycle`
-pipeline, and consumes configuration a user provides via `spk service create`,
-which is written to `bedrock.yaml`. The relevant lines consumed from
-`bedrock.yaml` are below:
+pipeline, and consumes configuration a user provides via
+`bedrock service create`, which is written to `bedrock.yaml`. The relevant lines
+consumed from `bedrock.yaml` are below:
 
 ```yaml
 rings:
@@ -167,12 +168,12 @@ at the same level, named `static`. This subdirectory contains a generated
 Traefik IngressRoute from the `hld-lifecycle` pipeline, which is a static
 Kubernetes manifest and can be directly applied to a cluster.
 
-![Generated Ingress Route](./images/spk-hld-generated-ingress-route.png)
+![Generated Ingress Route](./images/bedrock-hld-generated-ingress-route.png)
 
 The `hld-lifecycle` pipeline scaffolds the above
 [Traefik2 IngressRoute](https://docs.traefik.io/v2.0/providers/kubernetes-crd/)
-from configuration a user provides via `spk service create`, which is writen to
-`bedrock.yaml`. The relevant lines consumed from `bedrock.yaml` are below:
+from configuration a user provides via `bedrock service create`, which is writen
+to `bedrock.yaml`. The relevant lines consumed from `bedrock.yaml` are below:
 
 ```yaml
 rings:
@@ -210,9 +211,9 @@ image:
 serviceName: "service"
 ```
 
-This set of values is the _required_ set of values for `spk` created pipelines
-to operationalize building, updating, and deploying container images to your
-cluster.
+This set of values is the _required_ set of values for `bedrock` created
+pipelines to operationalize building, updating, and deploying container images
+to your cluster.
 
 `image.tag`: This configuration is overriden by the values from the
 [top-level configuration](#top-level-configuration)
@@ -229,10 +230,10 @@ fully qualified url ie. `fabrikam` instead of `fabrikam.azurecr.io`.
 
 The manifest generation pipeline is created by:
 
-1. Invoking `spk hld init`
+1. Invoking `bedrock hld init`
 2. Committing and pushing the outputted artifacts
 3. Installing the generated pipelines yaml file by invoking
-   `spk hld install-manifest-pipeline` in a HLD repository.
+   `bedrock hld install-manifest-pipeline` in a HLD repository.
 
 This pipeline will be triggered off _any_ changes to the `master` branch of the
 HLD repository, rendering the HLD to static Kubernetes manifests that are
@@ -248,7 +249,7 @@ We expect two manifests to be rendered, which are discussed below
 
 #### Kubernetes Service
 
-![Rendered Kubernetes Service](./images/spk-rendered-service.png)
+![Rendered Kubernetes Service](./images/bedrock-rendered-service.png)
 
 This is simply a
 [Kubernetes Service](https://kubernetes.io/docs/concepts/services-networking/service/)
@@ -272,22 +273,22 @@ refer to the Kubernetes Documentation
 [here](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types).
 
 To allow external traffic (ie ingress traffic) to be routed to Services hosted
-on the cluster, `spk` utilizes the `traefik2` ingress controller and associated
-`IngressRoute` rules to allow external traffic to be routed into your cluster
-from a single endpoint. An Ingress Controller can be be configured to handle all
-kinds of scenarios that you may want to handle when running services in
-produciton, such as circuit breaking or traffic throttling - please refer to the
-`traefik2`
+on the cluster, `bedrock` utilizes the `traefik2` ingress controller and
+associated `IngressRoute` rules to allow external traffic to be routed into your
+cluster from a single endpoint. An Ingress Controller can be be configured to
+handle all kinds of scenarios that you may want to handle when running services
+in produciton, such as circuit breaking or traffic throttling - please refer to
+the `traefik2`
 [configuration introduction](https://docs.traefik.io/v2.0/getting-started/configuration-overview/)
 for more details. Further, assuming a correctly configured helm chart with all
-the [requsitite values](#mandatory-helm-chart-configuration), `spk` builds and
-scaffolds an `IngressRoute` for a service and its associated rings
+the [requsitite values](#mandatory-helm-chart-configuration), `bedrock` builds
+and scaffolds an `IngressRoute` for a service and its associated rings
 automatically. Refer to [static configuration](#static-configuration) for more
 details.
 
 #### Kubernetes Deployment
 
-![Rendered Kubernetes Deployment](./images/spk-rendered-deployment.png)
+![Rendered Kubernetes Deployment](./images/bedrock-rendered-deployment.png)
 
 This is simply a
 [Kubernetes Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)

@@ -13,7 +13,7 @@ import {
   DEFAULT_VAR_VALUE,
   DEFINITION_YAML,
   getSourceFolderNameFromURL,
-  spkTemplatesPath,
+  bedrockTemplatesPath,
   TERRAFORM_TFVARS,
   VARIABLES_TF,
 } from "./infra_common";
@@ -44,7 +44,7 @@ export const validateValues = (
     !config.azure_devops.infra_repository
   ) {
     logger.info(`The infrastructure repository containing the remote terraform \
-template repo and access token was not specified in spk-config.yml. Checking passed arguments.`);
+template repo and access token was not specified in bedrock-config.yml. Checking passed arguments.`);
 
     if (!opts.source) {
       // since access_token and infra_repository are missing, we cannot construct source for them
@@ -65,14 +65,14 @@ scaffolding, expecting public remote repository for terraform templates \
 or PAT embedded in source URL.`);
 };
 
-// Construct the source based on the the passed configurations of spk-config.yaml
+// Construct the source based on the the passed configurations of bedrock-config.yaml
 export const constructSource = (config: ConfigYaml): string => {
   // config.azure_devops exists because validateValues function checks it
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const devops = config.azure_devops!;
-  const source = `https://spk:${devops.access_token}@${devops.infra_repository}`;
+  const source = `https://bedrock:${devops.access_token}@${devops.infra_repository}`;
   logger.info(
-    `Infrastructure repository detected from initialized spk-config.yaml.`
+    `Infrastructure repository detected from initialized bedrock-config.yaml.`
   );
   return source;
 };
@@ -354,7 +354,7 @@ export const execute = async (
       version: opts.version,
     };
     const sourceFolder = getSourceFolderNameFromURL(opts.source);
-    const sourcePath = path.join(spkTemplatesPath, sourceFolder);
+    const sourcePath = path.join(bedrockTemplatesPath, sourceFolder);
     await validateRemoteSource(scaffoldDefinition);
     await copyTfTemplate(
       path.join(sourcePath, opts.template),

@@ -109,7 +109,7 @@ let initObject: InitObject;
 beforeAll(async () => {
   enableVerboseLogging();
 
-  const mockFileName = "src/commands/mocks/spk-config.yaml";
+  const mockFileName = "src/commands/mocks/bedrock-config.yaml";
   const filename = path.resolve(mockFileName);
   process.env["test_name"] = "my_storage_account";
   process.env["test_key"] = "my_storage_key";

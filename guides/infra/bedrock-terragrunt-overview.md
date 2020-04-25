@@ -1,4 +1,4 @@
-# SPK + Terragrunt (Deprecated)
+# Bedrock + Terragrunt (Deprecated)
 
 Terragrunt is a thin wrapper for Terraform that provides extra tools for keeping
 your Terraform configurations DRY (Dont Repeat Yourself), working with multiple
@@ -11,9 +11,9 @@ scaffolding and generation detailed in the
 2. [Recursive Child Templates](#recursive-child-templates)
 3. [Backend State](#backend-state)
 4. [Multiple Template Environments](#multiple-template-environments)
-5. [Embedding in SPK](#embedding-in-spk)
+5. [Embedding in Bedrock](#embedding-in-bedrock)
 6. [Issues with Terragrunt Approach](#issues-with-terragrunt-approach)
-7. [`spk infra` Vision](./spk-terragrunt-day-2-scenarios.md)
+7. [`bedrock infra` Vision](./bedrock-terragrunt-day-2-scenarios.md)
 
 ## Prerequisites
 
@@ -65,10 +65,10 @@ variables.
 ```go
 inputs = {
     # BYO Resource Group
-    resource_group_name      = "nr-spk-infra-tests-rg"
+    resource_group_name      = "nr-bedrock-infra-tests-rg"
     agent_vm_count           = "3"
-    dns_prefix               = "spk-dns-prefix"
-    vnet_name                = "spk-vnet"
+    dns_prefix               = "bedrock-dns-prefix"
+    vnet_name                = "bedrock-vnet"
     service_principal_id          = "${get_env("AZURE_SUBSCRIPTION_ID", "")}"
     service_principal_secret      = "${get_env("AZURE_SUBSCRIPTION_SECRET", "")}"
 }
@@ -87,7 +87,7 @@ include {
 }
 
 inputs = {
-    cluster_name             = "spk-cluster-west"
+    cluster_name             = "bedrock-cluster-west"
     ssh_public_key           = "public-key"
     gitops_ssh_url           = "git@github.com:timfpark/fabrikate-cloud-native-manifests.git"
     gitops_ssh_key           = "<path to private gitops repo key>"
@@ -135,10 +135,10 @@ name and the provided storage account from the base root folder.
 ```go
 inputs = {
    # BYO Resource Group
-   resource_group_name      = "nr-spk-infra-tests-rg"
+   resource_group_name      = "nr-bedrock-infra-tests-rg"
    agent_vm_count           = "3"
-   dns_prefix               = "spk-dns-prefix"
-   vnet_name                = "spk-vnet"
+   dns_prefix               = "bedrock-dns-prefix"
+   vnet_name                = "bedrock-vnet"
    service_principal_id          = "${get_env("AZURE_CLIENT_ID", "")}"
    service_principal_secret      = "${get_env("AZURE_CLIENT_SECRET", "")}"
 }
@@ -149,7 +149,7 @@ remote_state {
            storage_account_name = "${get_env("AZURE_BACKEND_STORAGE_NAME", "")}"
            container_name       = "${get_env("AZURE_BACKEND_CONTAINER_NAME", "")}"
            access_key           = "${get_env("AZURE_BACKEND_ACCESS_KEY", "")}"
-           key                  = "spk1.${path_relative_to_include()}/terraform.tfstate"
+           key                  = "bedrock1.${path_relative_to_include()}/terraform.tfstate"
    }
 }
 ```
@@ -165,7 +165,7 @@ include {
 }
 
 inputs = {
-    cluster_name             = "backend-spk-store"
+    cluster_name             = "backend-bedrock-store"
     ssh_public_key           = "public-key"
     gitops_ssh_url           = "git@github.com:timfpark/fabrikate-cloud-native-manifests.git"
     gitops_ssh_key           = "<path to private gitops repo key>"
@@ -212,12 +212,12 @@ other previous examples:
 ```
 inputs = {
     # BYO Resource Group
-    global_resource_group_name = "nr-spk-infra-tests-rg"
-    vnet_name = "spkvnet"
-    subnet_name = "spksubnet"
+    global_resource_group_name = "nr-bedrock-infra-tests-rg"
+    vnet_name = "bedrockvnet"
+    subnet_name = "bedrocksubnet"
     subnet_prefix = "10.39.0.0/24"
     address_space = "10.39.0.0/16"
-    keyvault_name = "spkkeyvault"
+    keyvault_name = "bedrockkeyvault"
     service_principal_id = "${get_env("AZURE_CLIENT_ID", "")}"
     tenant_id = "${get_env("AZURE_TENANT_ID", "")}"
 }
@@ -230,7 +230,7 @@ remote_state {
         storage_account_name = "${get_env("AZURE_BACKEND_STORAGE_NAME", "")}"
         container_name       = "${get_env("AZURE_BACKEND_CONTAINER_NAME", "")}"
         access_key           = "${get_env("AZURE_BACKEND_ACCESS_KEY", "")}"
-        key                  = "spk1.${path_relative_to_include()}/terraform.tfstate"
+        key                  = "bedrock1.${path_relative_to_include()}/terraform.tfstate"
     }
 }
 ```
@@ -275,7 +275,7 @@ remote_state {
         storage_account_name = "${get_env("AZURE_BACKEND_STORAGE_NAME", "")}"
         container_name       = "${get_env("AZURE_BACKEND_CONTAINER_NAME", "")}"
         access_key           = "${get_env("AZURE_BACKEND_ACCESS_KEY", "")}"
-        key                  = "spk1.${path_relative_to_include()}/terraform.tfstate"
+        key                  = "bedrock1.${path_relative_to_include()}/terraform.tfstate"
     }
 }
 
@@ -310,7 +310,7 @@ handle the key authentication.
 
 ```
 terraform {
-  source = "git@github.com:NathanielRose/spk-terragrunt-private.git//azure-simple-west"
+  source = "git@github.com:NathanielRose/bedrock-terragrunt-private.git//azure-simple-west"
 }
 ```
 
@@ -348,7 +348,7 @@ $ ssh -T -oStrictHostKeyChecking=accept-new git@github.com || true
 > We will work to understand how a more secure method for repo access can be
 > used for terraform.
 
-## Embedding in SPK
+## Embedding in Bedrock
 
 ### Building Cluster Definition
 
@@ -357,12 +357,12 @@ suspects that the project may grow beyond just a single cluster to multiple
 clusters and wants to be able to scalably add clusters without having to hand
 manage N sets of nearly identical Terraform scripts -- each deployment will be
 similar in structure but differ in a few configuration values (region,
-connection strings, etc). Infrastructure definitions with `spk` are
+connection strings, etc). Infrastructure definitions with `bedrock` are
 hierarchical, with each layer inheriting from the layer above it, so she starts
 by creating the globally common definition between all of her infrastructure:
 
 ```bash
-$ spk infra scaffold --name discovery-service --source https://github.com/fabrikam/bedrock --template cluster/environments/fabrikam-common-infra
+$ bedrock infra scaffold --name discovery-service --source https://github.com/fabrikam/bedrock --template cluster/environments/fabrikam-common-infra
 ```
 
 This creates a directory called `discovery-service` and places a
@@ -417,7 +417,7 @@ deploying in the east region. To do that, she enters the `discovery-service`
 directory above and issues the command:
 
 ```bash
-$ spk infra scaffold --name east --source https://github.com/fabrikam/bedrock --template cluster/environments/fabrikam-single-keyvault
+$ bedrock infra scaffold --name east --source https://github.com/fabrikam/bedrock --template cluster/environments/fabrikam-single-keyvault
 ```
 
 Like the previous command, this creates a directory called `east` and creates a
@@ -458,7 +458,7 @@ Likewise, she wants to create a `west` cluster, which she does in the same
 manner from the `discovery-service` directory:
 
 ```bash
-$ spk infra scaffold --name west --source https://github.com/fabrikam/bedrock --template cluster/environments/fabrikam-single-keyvault
+$ bedrock infra scaffold --name west --source https://github.com/fabrikam/bedrock --template cluster/environments/fabrikam-single-keyvault
 ```
 
 And fills in the `terragrunt.hcl` file with the following `west` specific
@@ -552,7 +552,7 @@ secrets are not commited to the repository.
 person in an operations role named Odin.
 
 **TODO**: Determine requirements to embed terragrunt as an executable under
-`spk` cli.
+`bedrock` cli.
 
 ## Issues with Terragrunt Approach
 
@@ -585,4 +585,4 @@ configuration
    person in an operations role named Odin.
 
 2. **TODO**: Determine requirements to embed terragrunt as an executable under
-   `spk` cli.
+   `bedrock` cli.

@@ -10,7 +10,7 @@ beforeAll(() => {
 afterAll(() => {
   disableVerboseLogging();
 });
-
+// Requires a version 2.22 or later of git
 describe("getCurrentBranch", () => {
   it("should return 'master' when working on a newly created repo with 0 commits", async () => {
     const randomTmpDir = createTempDir();

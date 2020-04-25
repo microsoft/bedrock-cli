@@ -84,11 +84,11 @@ export const isAzCLIInstall = async (): Promise<void> => {
 };
 
 /**
- * Creates SPK config file under `user-home/.spk` folder
+ * Creates Bedrock config file under `user-home/.bedrock` folder
  *
  * @param answers Answers provided to the commander
  */
-export const createSPKConfig = (rc: RequestContext): void => {
+export const createCLIConfig = (rc: RequestContext): void => {
   const data: ConfigYaml = {
     azure_devops: {
       access_token: rc.accessToken,
@@ -263,7 +263,7 @@ export const execute = async (
     requestContext = opts.file ? getAnswerFromFile(opts.file) : await prompt();
     const rc = requestContext;
     createDirectory(WORKSPACE, true);
-    createSPKConfig(rc);
+    createCLIConfig(rc);
 
     const { coreAPI, gitAPI, buildAPI } = await getAPIClients();
 
@@ -274,7 +274,7 @@ export const execute = async (
     await createHLDtoManifestPipeline(buildAPI, rc);
     await createAppRepoTasks(gitAPI, buildAPI, rc);
 
-    createSPKConfig(rc); // to write storage account information.
+    createCLIConfig(rc); // to write storage account information.
     createSetupLog(rc);
     await exitFn(0);
   } catch (err) {

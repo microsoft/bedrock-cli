@@ -101,7 +101,7 @@ export const createServiceEndPointParams = (
  * Creates a new Service Endpoint in Azure DevOps project
  *
  * @param serviceEndpointData The service endpoint input data,
- * @param opts optionally override spk config with Azure DevOps access options
+ * @param opts optionally override bedrock config with Azure DevOps access options
  * @returns newly created `IServiceEndpoint` object
  */
 export const addServiceEndpoint = async (
@@ -168,7 +168,7 @@ export const addServiceEndpoint = async (
  * Get Service Endpoint by name from Azure DevOps project
  *
  * @param serviceEndpointName The service endpoint name to find existing service endpoint by name
- * @param opts optionally override spk config with Azure DevOps access options
+ * @param opts optionally override bedrock config with Azure DevOps access options
  * @returns `IServiceEndpoint` if found by the name; otherwise `null`
  */
 export const getServiceEndpointByName = async (
@@ -229,7 +229,7 @@ export const getServiceEndpointByName = async (
  * Check for Azdo Service Endpoint by name `serviceEndpointConfig.name` and creates `serviceEndpoint` if it does not exist
  *
  * @param serviceEndpointData The service endpoint inout data
- * @param opts optionally override spk config with Azure DevOps access options
+ * @param opts optionally override bedrock config with Azure DevOps access options
  * @returns newly created `IServiceEndpoint` object
  */
 export const createServiceEndpointIfNotExists = async (

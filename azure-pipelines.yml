@@ -64,8 +64,8 @@ steps:
 
   - task: PublishPipelineArtifact@1
     inputs:
-      path: $(System.DefaultWorkingDirectory)/dist/spk-linux
-      artifact: spk_linux_node_12
+      path: $(System.DefaultWorkingDirectory)/dist/bedrock-linux
+      artifact: bedrock_linux_node_12
     condition: and(eq(variables['Agent.JobStatus'], 'Succeeded'), endsWith(variables['Agent.JobName'], 'node_12_x'))
 
   - bash: |
@@ -90,7 +90,7 @@ steps:
       coverageDeltaType: percentage
       allowCoverageVariance: true
       coverageVariance: $(COVERAGE_VARIANCE) # Prefer a value less 1.00
-      baseDefinitionId: $(SPK_DEFINITION_ID)
+      baseDefinitionId: $(BEDROCK_CLI_DEFINITION_ID)
       baseBranchRef: refs/heads/master
       runTitle: 'Code Coverage Evaluation'
     condition: and(eq(variables['Agent.JobStatus'], 'Succeeded'), endsWith(variables['Agent.JobName'], 'node_12_x'))

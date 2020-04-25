@@ -41,7 +41,7 @@ const readPipelineFile = (
 
 /**
  * Create an access.yaml file for fabrikate authorization.
- * Should only be used by spk hld reconcile, which is an idempotent operation, but will not overwrite existing access.yaml keys
+ * Should only be used by bedrock hld reconcile, which is an idempotent operation, but will not overwrite existing access.yaml keys
  * @param accessYamlPath
  * @param gitRepoUrl
  * @param accessTokenEnvVar the environment variable to which will contain the PAT
@@ -201,16 +201,16 @@ export const serviceBuildAndUpdatePipeline = (
               {
                 script: generateYamlScript([
                   `. ./build.sh --source-only`,
-                  `get_spk_version`,
-                  `download_spk`,
+                  `get_bedrock_version`,
+                  `download_bedrock`,
                   `export BUILD_REPO_NAME=${BUILD_REPO_NAME(serviceName)}`,
                   `tag_name="$BUILD_REPO_NAME:${IMAGE_TAG}"`,
                   `commitId=$(Build.SourceVersion)`,
                   `commitId=$(echo "\${commitId:0:7}")`,
-                  `service=$(./spk/spk service get-display-name -p ${relativeServiceForDockerfile})`,
+                  `service=$(./bedrock/bedrock service get-display-name -p ${relativeServiceForDockerfile})`,
                   `url=$(git remote --verbose | grep origin | grep fetch | cut -f2 | cut -d' ' -f1)`,
                   `repourl=\${url##*@}`,
-                  `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p1 $(Build.BuildId) --image-tag $tag_name --commit-id $commitId --service $service --repository $repourl`,
+                  `./bedrock/bedrock deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p1 $(Build.BuildId) --image-tag $tag_name --commit-id $commitId --service $service --repository $repourl`,
                 ]),
                 displayName:
                   "If configured, update Spektate storage with build pipeline",
@@ -333,9 +333,9 @@ export const serviceBuildAndUpdatePipeline = (
                   `tag_name="$BUILD_REPO_NAME:$(Build.SourceBranchName)-$(Build.BuildNumber)"`,
                   `url=$(git remote --verbose | grep origin | grep fetch | cut -f2 | cut -d' ' -f1)`,
                   `repourl=\${url##*@}`,
-                  `get_spk_version`,
-                  `download_spk`,
-                  `./spk/spk deployment create  -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p2 $(Build.BuildId) --hld-commit-id $latest_commit --env $(Build.SourceBranchName) --image-tag $tag_name --pr $pr_id --repository $repourl`,
+                  `get_bedrock_version`,
+                  `download_bedrock`,
+                  `./bedrock/bedrock deployment create  -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p2 $(Build.BuildId) --hld-commit-id $latest_commit --env $(Build.SourceBranchName) --image-tag $tag_name --pr $pr_id --repository $repourl`,
                   `fi`,
                 ]),
                 displayName:
@@ -362,31 +362,31 @@ export const serviceBuildAndUpdatePipeline = (
     `'SP_TENANT' (service principal tenant)`,
   ].join(", ");
 
-  const spkServiceBuildPipelineCmd =
-    "spk service install-build-pipeline " + serviceName;
+  const bedrockServiceBuildPipelineCmd =
+    "bedrock service install-build-pipeline " + serviceName;
   logger.info(
-    `Generated ${SERVICE_PIPELINE_FILENAME} for service in path '${relativeServicePathFormatted}'. Commit and push this file to master before attempting to deploy via the command '${spkServiceBuildPipelineCmd}'; before running the pipeline ensure the following environment variables are available to your project variable groups: ${requiredPipelineVariables}`
+    `Generated ${SERVICE_PIPELINE_FILENAME} for service in path '${relativeServicePathFormatted}'. Commit and push this file to master before attempting to deploy via the command '${bedrockServiceBuildPipelineCmd}'; before running the pipeline ensure the following environment variables are available to your project variable groups: ${requiredPipelineVariables}`
   );
 
   return pipelineYaml;
 };
 
 /**
- * Gets the spk version
+ * Gets the bedrock version
  */
 export const getVersion = (): string => {
   return require("../../package.json").version;
 };
 
 /**
- * Gets the spk version message
+ * Gets the bedrock version message
  */
 export const getVersionMessage = (): string => {
   return VERSION_MESSAGE + getVersion();
 };
 
 /**
- * Writes the spk version to the given file
+ * Writes the bedrock version to the given file
  * @param filePath The path to the file
  */
 export const writeVersion = (filePath: string): void => {
@@ -583,14 +583,14 @@ const manifestGenerationPipelineYaml = (): string => {
           `commitId=$(Build.SourceVersion)`,
           `commitId=$(echo "\${commitId:0:7}")`,
           `. ./build.sh --source-only`,
-          `get_spk_version`,
-          `download_spk`,
+          `get_bedrock_version`,
+          `download_bedrock`,
           `message="$(Build.SourceVersionMessage)"`,
           `if [[ $message == *"Merge"* ]]; then`,
           `pr_id=$(echo $message | grep -oE '[0-9]+' | head -1 | sed -e 's/^0\\+//')`,
-          `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --pr $pr_id`,
+          `./bedrock/bedrock deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --pr $pr_id`,
           `else`,
-          `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId`,
+          `./bedrock/bedrock deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId`,
           `fi`,
         ]),
         displayName:
@@ -631,9 +631,9 @@ const manifestGenerationPipelineYaml = (): string => {
           `latest_commit=$(git rev-parse --short HEAD)`,
           `url=$(git remote --verbose | grep origin | grep fetch | cut -f2 | cut -d' ' -f1)`,
           `repourl=\${url##*@}`,
-          `get_spk_version`,
-          `download_spk`,
-          `./spk/spk deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --manifest-commit-id $latest_commit --repository $repourl`,
+          `get_bedrock_version`,
+          `download_bedrock`,
+          `./bedrock/bedrock deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --manifest-commit-id $latest_commit --repository $repourl`,
         ]),
         displayName:
           "If configured, update manifest pipeline details in Spektate db after manifest generation",
@@ -680,7 +680,7 @@ export const generateHldAzurePipelinesYaml = (
     ].join(", ");
 
     logger.info(
-      `Generated ${RENDER_HLD_PIPELINE_FILENAME}. Commit and push this file to master before attempting to deploy via the command 'spk hld install-manifest-pipeline'; before running the pipeline ensure the following environment variables are available to your pipeline: ${requiredPipelineVariables}`
+      `Generated ${RENDER_HLD_PIPELINE_FILENAME}. Commit and push this file to master before attempting to deploy via the command 'bedrock hld install-manifest-pipeline'; before running the pipeline ensure the following environment variables are available to your pipeline: ${requiredPipelineVariables}`
     );
 
     writeVersion(azurePipelinesYamlPath);
@@ -809,17 +809,17 @@ const hldLifecyclePipelineYaml = (): string => {
           `get_fab_version`,
           `download_fab`,
           ``,
-          `# SPK`,
-          `get_spk_version`,
-          `download_spk`,
+          `# BEDROCK`,
+          `get_bedrock_version`,
+          `download_bedrock`,
           ``,
           `# Clone HLD repo`,
           `git_connect`,
           ``,
-          `# Update HLD via spk`,
+          `# Update HLD via bedrock`,
           `git checkout -b "RECONCILE/$(Build.Repository.Name)-$(Build.BuildNumber)"`,
-          `echo "spk hld reconcile $(Build.Repository.Name) $PWD ./.."`,
-          `spk hld reconcile $(Build.Repository.Name) $PWD ./..`,
+          `echo "bedrock hld reconcile $(Build.Repository.Name) $PWD ./.."`,
+          `bedrock hld reconcile $(Build.Repository.Name) $PWD ./..`,
           ``,
           `# Set git identity`,
           `git config user.email "admin@azuredevops.com"`,
@@ -847,7 +847,7 @@ const hldLifecyclePipelineYaml = (): string => {
           `az repos pr create --description "Reconciling HLD with $(Build.Repository.Name)-$(Build.BuildNumber)." "PR created by: $(Build.DefinitionName) with buildId: $(Build.BuildId) and buildNumber: $(Build.BuildNumber)"`,
         ]),
         displayName:
-          "Download Fabrikate and SPK, Update HLD, Push changes, Open PR",
+          "Download Fabrikate and BEDROCK, Update HLD, Push changes, Open PR",
         env: {
           ACCESS_TOKEN_SECRET: "$(PAT)",
           APP_REPO_URL: "$(Build.Repository.Uri)",
@@ -863,7 +863,7 @@ const hldLifecyclePipelineYaml = (): string => {
 
 /**
  * Writes out the service to hld lifecycle pipeline.
- * This pipeline utilizes spk hld reconcile to add/remove services from the hld repository.
+ * This pipeline utilizes bedrock hld reconcile to add/remove services from the hld repository.
  *
  * @param projectRoot
  */
@@ -901,7 +901,7 @@ export const generateHldLifecyclePipelineYaml = async (
   ].join(", ");
 
   logger.info(
-    `Generated ${PROJECT_PIPELINE_FILENAME}. Commit and push this file to master before attempting to deploy via the command 'spk project install-lifecycle-pipeline'; before running the pipeline ensure the following environment variables are available to your pipeline: ${requiredPipelineVariables}`
+    `Generated ${PROJECT_PIPELINE_FILENAME}. Commit and push this file to master before attempting to deploy via the command 'bedrock project install-lifecycle-pipeline'; before running the pipeline ensure the following environment variables are available to your pipeline: ${requiredPipelineVariables}`
   );
 };
 

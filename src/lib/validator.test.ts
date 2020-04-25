@@ -110,7 +110,7 @@ const testValidatePrereqs = (
   cmd: string,
   expectedResult: boolean
 ): void => {
-  const filename = path.resolve("src/commands/mocks/spk-config.yaml");
+  const filename = path.resolve("src/commands/mocks/bedrock-config.yaml");
   process.env.test_name = "my_storage_account";
   process.env.test_key = "my_storage_key";
   loadConfiguration(filename);
@@ -133,12 +133,12 @@ const testValidatePrereqs = (
   }
 };
 
-describe("Validating executable prerequisites in spk-config", () => {
-  test("Validate that exectuable boolean matches in spk-config - global = true", () => {
+describe("Validating executable prerequisites in bedrock-config", () => {
+  test("Validate that exectuable boolean matches in bedrock-config - global = true", () => {
     // Iterate through an array of non-existent binaries to create a force fail. If fails, then test pass
     testValidatePrereqs(true, "foobar", false);
   });
-  test("Validate that exectuable boolean matches in spk-config - global = false", () => {
+  test("Validate that exectuable boolean matches in bedrock-config - global = false", () => {
     // Iterate through an array of non-existent binaries to create a force fail. If fails, then test pass
     testValidatePrereqs(false, "foobar", false);
   });
@@ -231,8 +231,8 @@ describe("test validateProjectName function", () => {
     });
   });
   it("valid value", () => {
-    expect(validateProjectName("BedrockSPK")).toBe(true);
-    validateProjectNameThrowable("BedrockSPK");
+    expect(validateProjectName("ContosoFabrikam")).toBe(true);
+    validateProjectNameThrowable("ContosoFabrikam");
   });
 });
 

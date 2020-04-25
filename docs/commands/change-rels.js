@@ -212,7 +212,7 @@ function getChangesHTML(oChanges) {
       "@@changes@@",
       oChanges.added
         .map(function (add) {
-          return "<li>spk " + sanitize(add) + "</li>";
+          return "<li>bedrock " + sanitize(add) + "</li>";
         })
         .join("")
     );
@@ -222,7 +222,7 @@ function getChangesHTML(oChanges) {
       "@@changes@@",
       oChanges.removed
         .map(function (rm) {
-          return "<li>spk " + sanitize(rm) + "</li>";
+          return "<li>bedrock " + sanitize(rm) + "</li>";
         })
         .join("")
     );

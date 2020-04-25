@@ -5,7 +5,7 @@ export const BEDROCK_FILENAME = "bedrock.yaml";
 export const BUILD_SCRIPT_URL =
   "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh";
 
-export const CLI_LOG_FILENAME = "spk.log";
+export const CLI_LOG_FILENAME = "bedrock.log";
 
 export const HELM_VERSION = "2.16.3";
 
@@ -19,4 +19,4 @@ export const SERVICE_PIPELINE_FILENAME = "build-update-hld.yaml";
 
 export const VM_IMAGE = "ubuntu-latest";
 
-export const VERSION_MESSAGE = "# GENERATED WITH SPK VERSION ";
+export const VERSION_MESSAGE = "# GENERATED WITH BEDROCK VERSION ";

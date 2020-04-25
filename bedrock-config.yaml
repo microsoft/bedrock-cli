@@ -8,7 +8,7 @@ azure_devops:
   project: "" # Your AzDo project
 infra:
   # DO NOT MODIFY THE FOLLOWING
-  # Prerequisite versions are auto-generated upon executing `spk init`
+  # Prerequisite versions are auto-generated upon executing `bedrock init`
   terraform: "v0.12.6"
   helm: "v2.14.3"
   git: "2.17.1"
@@ -19,13 +19,13 @@ introspection:
     image: "mcr.microsoft.com/k8s/bedrock/spektate:latest" # Use this default docker image unless you would like to use a custom one
     name: "spektate"
   azure: # This is the storage account for the service introspection tool.
-    account_name: "storage-account-name" # Must be defined to run spk deployment commands
-    table_name: "storage-account-table-name" # Must be defined to run spk deployment commands
-    partition_key: "storage-account-table-partition-key" # Must be defined to run spk deployment commands
-    key: "storage-access-key" # Must be defined to run spk deployment commands. Use ${env:INTROSPECTION_STORAGE_ACCESS_KEY} and set it in .env file
+    account_name: "storage-account-name" # Must be defined to run bedrock deployment commands
+    table_name: "storage-account-table-name" # Must be defined to run bedrock deployment commands
+    partition_key: "storage-account-table-partition-key" # Must be defined to run bedrock deployment commands
+    key: "storage-access-key" # Must be defined to run bedrock deployment commands. Use ${env:INTROSPECTION_STORAGE_ACCESS_KEY} and set it in .env file
     source_repo_access_token: "source_repo_access_token" # Optional. Required only when source repository is private (in order to render the author column in dashboard)
 
-    # Following 5 fields are needed only if using spk to onboard to use introspection tool
+    # Following 5 fields are needed only if using bedrock to onboard to use introspection tool
     service_principal_id: "service-principal-id"
     service_principal_secret: "service-principal-secret"
     subscription_id: "subscription-id"

@@ -116,7 +116,7 @@ export const makePullRequest = async (
   values: CommandValues
 ): Promise<void> => {
   for (const ring of defaultRings) {
-    const title = values.title || `[SPK] ${values.sourceBranch} => ${ring}`;
+    const title = values.title || `[BEDROCK] ${values.sourceBranch} => ${ring}`;
     await createPullRequest(title, values.sourceBranch, ring, {
       description: values.description,
       orgName: values.orgName,
@@ -142,7 +142,8 @@ const populateValues = async (opts: CommandOptions): Promise<CommandValues> => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     sourceBranch: opts.sourceBranch!,
     title: opts.title,
-    description: opts.description || "This is automated PR generated via SPK",
+    description:
+      opts.description || "This is automated PR generated via BEDROCK",
     remoteUrl: opts.remoteUrl,
     // validateForRequiredValues confirm that personalAccessToken has value
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

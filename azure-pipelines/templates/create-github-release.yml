@@ -25,9 +25,9 @@ jobs:
           releaseNotesFilePath: ${{ parameters.releaseNotesFilePath }}
           target: ${{ parameters.target }}
           assets: |
-            $(Agent.BuildDirectory)/dist/spk-linux
-            $(Agent.BuildDirectory)/dist/spk-macos
-            $(Agent.BuildDirectory)/dist/spk-win.exe
+            $(Agent.BuildDirectory)/dist/bedrock-linux
+            $(Agent.BuildDirectory)/dist/bedrock-macos
+            $(Agent.BuildDirectory)/dist/bedrock-win.exe
           tagSource: ${{ parameters.tagSource }}
           isDraft: ${{ parameters.isDraft }}
           isPreRelease: ${{ parameters.isPrelease }}

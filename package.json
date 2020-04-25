@@ -1,12 +1,12 @@
 {
-  "name": "spk",
+  "name": "bedrock",
   "version": "0.6.3",
   "description": "The missing Bedrock CLI",
   "author": "Bedrock Team (https://aka.ms/bedrock)",
   "contributors": [],
   "license": "MIT",
   "scripts": {
-    "build": "shx rm -rf dist && webpack && pkg -t node12-linux-x64,node12-macos-x64,node12-win-x64 dist/spk.js && shx mv spk-{linux,macos,win.exe} dist",
+    "build": "shx rm -rf dist && webpack && pkg -t node12-linux-x64,node12-macos-x64,node12-win-x64 dist/bedrock.js && shx mv bedrock-{linux,macos,win.exe} dist",
     "build-cmd-docs": "ts-node tools/generateDoc.ts",
     "lint": "eslint 'src/**/*.ts{,x}'",
     "lint-fix": "eslint --fix 'src/**/*.ts{,x}'",

@@ -39,7 +39,7 @@ export const buildVariablesMap = (
  * `variableGroup` data and returns `true` if successful
  *
  * @param variableGroup The Variable group object
- * @param opts optionally override spk config with Azure DevOps access options
+ * @param opts optionally override bedrock config with Azure DevOps access options
  * @returns `true` if successful; otherwise `false`
  */
 export const authorizeAccessToAllPipelines = async (
@@ -109,7 +109,7 @@ export const authorizeAccessToAllPipelines = async (
  *
  * @param variableGroupData The Variable group data
  * @param accessToAllPipelines Whether the variable group should be accessible by all pipelines
- * @param opts optionally override spk config with Azure DevOps access options
+ * @param opts optionally override bedrock config with Azure DevOps access options
  * @returns newly created `VariableGroup` object
  */
 export const doAddVariableGroup = async (
@@ -150,7 +150,7 @@ export const doAddVariableGroup = async (
  * `VariableGroup` object
  *
  * @param variableGroupData with required variables
- * @param opts optionally override spk config with Azure DevOps access options
+ * @param opts optionally override bedrock config with Azure DevOps access options
  * @returns newly created `VariableGroup` object
  */
 export const addVariableGroup = async (
@@ -197,7 +197,7 @@ export const addVariableGroup = async (
  * project and returns `VariableGroup` object
  *
  * @param variableGroupData with required variables
- * @param opts optionally override spk config with Azure DevOps access options
+ * @param opts optionally override bedrock config with Azure DevOps access options
  * @returns newly created `VariableGroup` object
  */
 export const addVariableGroupWithKeyVaultMap = async (
@@ -265,7 +265,7 @@ export const addVariableGroupWithKeyVaultMap = async (
 /**
  * Deletes variable group
  *
- * @param opts optionally override spk config with Azure DevOps access options
+ * @param opts optionally override bedrock config with Azure DevOps access options
  * @param name Name of group to be deleted.
  * @returns true if group exists and deleted.
  */
@@ -299,7 +299,7 @@ export const deleteVariableGroup = async (
 /**
  * Checks if a variable group exists
  *
- * @param opts optionally override spk config with Azure DevOps access options
+ * @param opts optionally override bedrock config with Azure DevOps access options
  * @param name Name of the variable group
  * @returns true if the variable group exists
  */

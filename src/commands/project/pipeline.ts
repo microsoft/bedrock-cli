@@ -84,18 +84,18 @@ export const checkDependencies = (projectPath: string): void => {
  * @param opts Options object from commander.
  * @param gitOriginUrl Git origin URL which is used to set values
  *        for pipeline, repoName and repoUrl
- * @param spkConfig SPK Configuration for getting default values.
+ * @param bedrockConfig Bedrock configuration for getting default values.
  * @returns values that are needed for this command.
  */
 export const fetchValidateValues = (
   opts: CommandOptions,
   gitOriginUrl: string,
-  spkConfig: ConfigYaml | undefined
+  bedrockConfig: ConfigYaml | undefined
 ): ConfigValues => {
-  if (!spkConfig) {
+  if (!bedrockConfig) {
     throw buildError(
       errorStatusCode.VALIDATION_ERR,
-      "project-pipeline-err-spk-config-missing"
+      "project-pipeline-err-bedrock-config-missing"
     );
   }
 
