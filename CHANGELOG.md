@@ -4,13 +4,11 @@
 
 - Updated CLI binary name.
 
-- See operational changes at
-  [here](https://microsoft.github.io/bedrock-cli/commands/#change_rel_0_6_4).
+- See operational changes [here](https://microsoft.github.io/bedrock-cli/commands/#change_rel_0_6_4).
 
 ## [0.6.3] - 2020-04-24
 
-- See operational changes at
-  [here](https://microsoft.github.io/bedrock-cli/commands/#change_rel_0_6_3).
+- See operational changes [here](https://microsoft.github.io/bedrock-cli/commands/#change_rel_0_6_3).
 
 ## [0.6.2] - 2020-04-12
 
