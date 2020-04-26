@@ -27,6 +27,7 @@ export interface RequestContext {
   createdResourceGroup?: boolean;
   createdACR?: boolean;
   error?: string;
+  localHelmChart?: boolean;
 }
 
 export const MANIFEST_REPO = "quick-start-manifest";

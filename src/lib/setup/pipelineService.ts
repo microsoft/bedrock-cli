@@ -75,12 +75,23 @@ export const getBuildStatusString = (
 export const getPipelineByName = async (
   buildApi: IBuildApi,
   projectName: string,
-  pipelineName: string
+  pipelineName: string,
+  containsName = false
 ): Promise<BuildDefinitionReference | undefined> => {
   try {
     logger.info(`Finding pipeline ${pipelineName}`);
     const defs = await buildApi.getDefinitions(projectName);
-    return defs.find((d) => d.name === pipelineName);
+    if (containsName) {
+      const queryResult = defs.find((d) => d.name?.includes(pipelineName));
+      if (queryResult) {
+        logger.info(`Query result name: ${queryResult.name}`);
+      } else {
+        logger.info("NO RESULT!");
+      }
+      return queryResult;
+    } else {
+      return defs.find((d) => d.name === pipelineName);
+    }
   } catch (err) {
     throw buildError(
       errorStatusCode.PIPELINE_ERR,

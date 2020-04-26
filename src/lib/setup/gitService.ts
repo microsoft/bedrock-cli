@@ -207,7 +207,7 @@ export const completePullRequest = async (
   gitApi: IGitApi,
   rc: RequestContext,
   repoName: string
-): Promise<void> => {
+): Promise<number> => {
   const pullRequests = await getActivePullRequests(
     gitApi,
     repoName,
@@ -217,7 +217,7 @@ export const completePullRequest = async (
     const pr = pullRequests[0];
     if (pr && pr.pullRequestId) {
       await approvePR(pr, rc);
-      return;
+      return pr.pullRequestId;
     }
   }
   throw buildError(
