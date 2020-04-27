@@ -6,7 +6,7 @@ Reference: Introspection - Caching of deployment status in Dashboard's backend
 | Revision | Date         | Author        | Remarks              |
 | -------: | ------------ | ------------- | -------------------- |
 |      0.1 | Mar-07, 2020 | Dennis Seah   | Initial Draft        |
-|      0.2 | Apr-23, 2020 | Samiya Akhtar | Caching update logic |
+|      1.0 | Apr-23, 2020 | Samiya Akhtar | Caching update logic |
 
 ## 1. Overview
 
