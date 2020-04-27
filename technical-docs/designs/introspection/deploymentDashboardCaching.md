@@ -80,7 +80,8 @@ A timer wakes up at _T_ seconds to refresh the cache in the following manner.
    call for these new instances and update the cache.
 3. Check if there are deleted deployed instances, if yes, remove them from the
    cache.
-4. one API call to get Manifest Repo Sync State.
+4. Check if there are new or updated instances, and if yes, one API call to get 
+   Manifest Repo Sync State
 5. Check if the instances in cache require an update, this could be any of the
    following scenarios:
    - A deployment was in progress and one of its builds have completed, so the
