@@ -53,7 +53,7 @@ export const getTableService = (
  * Finds matching deployments for a filter name and filter value in the storage
  * @param tableInfo table info interface containing information about the deployment storage table
  * @param filterName name of the filter, such as `imageTag`
- * @param filterValue value of the filter, such as `hello-spk-master-1234`
+ * @param filterValue value of the filter, such as `v1.04`
  */
 export const findMatchingDeployments = (
   tableInfo: DeploymentTable,

@@ -10,7 +10,7 @@
     },
     {
       "arg": "-U, --hld-repo-url <hld-repo-url>",
-      "description": "The high level definition (HLD) git repo url; falls back to azure_devops.hld_repository in spk config.",
+      "description": "The high level definition (HLD) git repo url; falls back to azure_devops.hld_repository in bedrock config.",
       "required": true,
       "inherit": "azure_devops.hld_repository"
     },
@@ -31,19 +31,19 @@
     },
     {
       "arg": "-o, --org-name <organization-name>",
-      "description": "Azure DevOps organization name; falls back to azure_devops.org in spk config.",
+      "description": "Azure DevOps organization name; falls back to azure_devops.org in bedrock config.",
       "required": true,
       "inherit": "azure_devops.org"
     },
     {
       "arg": "-d, --devops-project <project>",
-      "description": "Azure DevOps project name; falls back to azure_devops.project in spk config.",
+      "description": "Azure DevOps project name; falls back to azure_devops.project in bedrock config.",
       "required": true,
       "inherit": "azure_devops.project"
     },
     {
       "arg": "-a, --personal-access-token <personal-access-token>",
-      "description": "Azure DevOps Personal access token; falls back to azure_devops.access_token in spk config.",
+      "description": "Azure DevOps Personal access token; falls back to azure_devops.access_token in bedrock config.",
       "required": true,
       "inherit": "azure_devops.access_token"
     }

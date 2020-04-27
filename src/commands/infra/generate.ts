@@ -16,8 +16,8 @@ import {
   BACKEND_TFVARS,
   DEFINITION_YAML,
   getSourceFolderNameFromURL,
-  SPK_TFVARS,
-  spkTemplatesPath,
+  BEDROCK_TFVARS,
+  bedrockTemplatesPath,
 } from "./infra_common";
 import { copyTfTemplate } from "./scaffold";
 import { build as buildError, log as logError } from "../../lib/errorBuilder";
@@ -53,7 +53,7 @@ export const validateDefinition = (
   projectPath: string
 ): DefinitionYAMLExistence => {
   // If templates folder does not exist, create cache templates directory
-  mkdirp.sync(spkTemplatesPath);
+  mkdirp.sync(bedrockTemplatesPath);
 
   // Check for parent definition.yaml and child definition.yaml
   const parentPathExist = fs.existsSync(path.join(parentPath, DEFINITION_YAML));
@@ -188,7 +188,7 @@ export const gitClone = async (
   sourcePath: string
 ): Promise<void> => {
   await git.clone(source, `${sourcePath}`);
-  logger.info(`Cloning source repo to .spk/templates was successful.`);
+  logger.info(`Cloning source repo to .bedrock/templates was successful.`);
 };
 
 export const checkRemoteGitExist = async (
@@ -214,7 +214,7 @@ export const checkRemoteGitExist = async (
 };
 
 /**
- * Attempts to remove cloned repo in ~/.spk/template directory
+ * Attempts to remove cloned repo in ~/.bedrock/template directory
  *
  * @param source remote URL for cloning to cache
  * @param sourcePath Path to the template folder cache
@@ -228,7 +228,7 @@ export const retryRemoteValidate = async (
   safeLoggingUrl: string,
   version: string
 ): Promise<void> => {
-  // SPK can assume that there is a remote that it has access to since it was able to compare commit histories. Delete cache and reset on provided remote
+  // BEDROCK can assume that there is a remote that it has access to since it was able to compare commit histories. Delete cache and reset on provided remote
   fsExtra.removeSync(sourcePath);
   createGenerated(sourcePath);
   const git = simpleGit();
@@ -252,7 +252,7 @@ export const validateRemoteSource = async (
 
   // Converting source name to storable folder name
   const sourceFolder = getSourceFolderNameFromURL(source);
-  const sourcePath = path.join(spkTemplatesPath, sourceFolder);
+  const sourcePath = path.join(bedrockTemplatesPath, sourceFolder);
   const safeLoggingUrl = safeGitUrlForLogging(source);
   logger.info(`Converted to: ${sourceFolder}`);
   logger.info(`Checking if source: ${sourcePath} is stored locally.`);
@@ -367,34 +367,34 @@ export const generateTfvars = (
 };
 
 /**
- * Checks if an spk.tfvars already exists
+ * Checks if an bedrock.tfvars already exists
  *
- * @param generatedPath Path to the spk.tfvars file
+ * @param generatedPath Path to the bedrock.tfvars file
  * @param tfvarsFilename Name of .tfvars file
  */
 export const checkTfvars = (
   generatedPath: string,
   tfvarsFilename: string
 ): void => {
-  // Remove existing spk.tfvars if it already exists
+  // Remove existing bedrock.tfvars if it already exists
   if (fs.existsSync(path.join(generatedPath, tfvarsFilename))) {
     fs.unlinkSync(path.join(generatedPath, tfvarsFilename));
   }
 };
 
 /**
- * Reads in a tfVars object and returns a spk.tfvars file
+ * Reads in a tfVars object and returns a bedrock.tfvars file
  *
- * @param spkTfVars spk tfvars object in an array
- * @param generatedPath Path to write the spk.tfvars file to
+ * @param bedrockTfVars bedrock tfvars object in an array
+ * @param generatedPath Path to write the bedrock.tfvars file to
  * @param tfvarsFileName Name of the .tfvaras file
  */
 export const writeTfvarsFile = (
-  spkTfVars: string[],
+  bedrockTfVars: string[],
   generatedPath: string,
   tfvarsFilename: string
 ): void => {
-  spkTfVars.forEach((tfvar) => {
+  bedrockTfVars.forEach((tfvar) => {
     fs.appendFileSync(path.join(generatedPath, tfvarsFilename), tfvar + "\n");
   });
 };
@@ -406,9 +406,9 @@ export const generateConfigWithParentEqProjectPath = async (
 ): Promise<void> => {
   createGenerated(parentDirectory);
   if (parentInfraConfig.variables) {
-    const spkTfvarsObject = generateTfvars(parentInfraConfig.variables);
-    checkTfvars(parentDirectory, SPK_TFVARS);
-    writeTfvarsFile(spkTfvarsObject, parentDirectory, SPK_TFVARS);
+    const bedrockTfvarsObject = generateTfvars(parentInfraConfig.variables);
+    checkTfvars(parentDirectory, BEDROCK_TFVARS);
+    writeTfvarsFile(bedrockTfvarsObject, parentDirectory, BEDROCK_TFVARS);
     await copyTfTemplate(templatePath, parentDirectory, true);
   } else {
     // Consider the case where the only common configuration is just
@@ -425,7 +425,7 @@ export const generateConfigWithParentEqProjectPath = async (
     // Not all templates will require a remote backend
     // (i.e Bedrock's azure-simple).
     // If a remote backend is not configured for a template,
-    // it will be impossible to be able to use spk infra in a
+    // it will be impossible to be able to use bedrock infra in a
     // pipeline, but this can still work locally.
     logger.warn(
       `A remote backend configuration is not defined in the definition.yaml`
@@ -471,7 +471,7 @@ const combineVariable = (
   const merged = dirIteration(parentVars, leafVars);
   // Generate Terraform files in generated directory
   const combined = generateTfvars(merged);
-  // Write variables to  `spk.tfvars` file
+  // Write variables to  `bedrock.tfvars` file
   checkTfvars(childDirectory, fileName);
   writeTfvarsFile(combined, childDirectory, fileName);
 };
@@ -492,9 +492,9 @@ export const singleDefinitionGeneration = async (
 ): Promise<void> => {
   createGenerated(parentDirectory);
   createGenerated(childDirectory);
-  const spkTfvarsObject = generateTfvars(infraConfig.variables);
-  checkTfvars(childDirectory, SPK_TFVARS);
-  writeTfvarsFile(spkTfvarsObject, childDirectory, SPK_TFVARS);
+  const bedrockTfvarsObject = generateTfvars(infraConfig.variables);
+  checkTfvars(childDirectory, BEDROCK_TFVARS);
+  writeTfvarsFile(bedrockTfvarsObject, childDirectory, BEDROCK_TFVARS);
   if (infraConfig.backend) {
     const backendTfvarsObject = generateTfvars(infraConfig.backend);
     checkTfvars(childDirectory, BACKEND_TFVARS);
@@ -530,7 +530,7 @@ export const moduleSourceModify = async (
   try {
     let result = "";
     const sourceFolder = getSourceFolderNameFromURL(fileSource.source);
-    const sourcePath = path.join(spkTemplatesPath, sourceFolder);
+    const sourcePath = path.join(bedrockTemplatesPath, sourceFolder);
 
     // Split data by line and iterate
     for (let line of tfData.split(/\r?\n/)) {
@@ -638,7 +638,7 @@ export const generateConfig = async (
   const parentDirectory = getParentGeneratedFolder(parentPath, outputPath);
   const sourceFolder = getSourceFolderNameFromURL(sourceConfig.source);
   const templatePath = path.join(
-    spkTemplatesPath,
+    bedrockTemplatesPath,
     sourceFolder,
     sourceConfig.template
   );
@@ -667,7 +667,7 @@ export const generateConfig = async (
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       leafInfraConfig.variables!,
       childDirectory,
-      SPK_TFVARS
+      BEDROCK_TFVARS
     );
 
     // Create a backend.tfvars for remote backend configuration

@@ -2,14 +2,14 @@
 
 ## Introduction
 
-This guide presumes that you have set up your `spk` project, and installed all
-necessary pipelines created via `spk project init` (the lifecycle pipeline),
-`spk service create` (build update hld pipeline), and `spk hld init` (manifest
-generation pipeline), and followed the
-[guidelines for creating helm charts](./building-helm-charts-for-spk.md).
+This guide presumes that you have set up your `bedrock` project, and installed
+all necessary pipelines created via `bedrock project init` (the lifecycle
+pipeline), `bedrock service create` (build update hld pipeline), and
+`bedrock hld init` (manifest generation pipeline), and followed the
+[guidelines for creating helm charts](./building-helm-charts-for-bedrock.md).
 
-In `spk`, we offer the concept of a `ring` - a way to route inbound traffic to
-_revisions_ of a service on a Kubernetes cluster via request headers. For
+In `bedrock`, we offer the concept of a `ring` - a way to route inbound traffic
+to _revisions_ of a service on a Kubernetes cluster via request headers. For
 example, if an inbound request is decorated with the `Ring: dev` header, the
 request is routed to the `dev` revision of a service. Similarly, if a request is
 decorated with the `Ring: prod` header, the request is routed to the `prod`
@@ -71,9 +71,9 @@ branches:
 ```
 
 A user wants to add a ring `test-new-homepage`, they first create the `ring`, by
-invoking the relevant `spk` command:
+invoking the relevant `bedrock` command:
 
-- `spk ring create test-new-homepage`
+- `bedrock ring create test-new-homepage`
 
 This command will add an entry to our `rings` dictionary in `bedrock.yaml`, and
 modify all `build-update-hld` pipelines for services tracked in bedrock.yaml.
@@ -138,27 +138,27 @@ container image tag.
 
 ## Status Quo and current work
 
-At present, `spk` is at version `0.5.4`, which _does_ not implement `ring`
+At present, `bedrock` is at version `0.5.4`, which _does_ not implement `ring`
 management commands - ie adding or removing a `ring` using a _more_ user
 friendly cli, however this work is being tracked in the following github issues:
 
 - [Ring Management Docs and Implementation Epic](https://github.com/microsoft/bedrock/issues/955)
-- [Adding a Ring in SPK](https://github.com/microsoft/bedrock/issues/969)
-- [Deleting a Ring in SPK](https://github.com/microsoft/bedrock/issues/971)
-- [Setting a default Ring in SPK](https://github.com/microsoft/bedrock/issues/972)
+- [Adding a Ring in Bedrock](https://github.com/microsoft/bedrock/issues/969)
+- [Deleting a Ring in Bedrock](https://github.com/microsoft/bedrock/issues/971)
+- [Setting a default Ring in Bedrock](https://github.com/microsoft/bedrock/issues/972)
 - [Removing a service and a ring from a Cluster](https://github.com/microsoft/bedrock/issues/858)
 
 ## Bridging the gap
 
-While `ring` management features are not yet available in `spk`, we can bridge
-the gap to using `rings` with a few manual steps for configuration
+While `ring` management features are not yet available in `bedrock`, we can
+bridge the gap to using `rings` with a few manual steps for configuration
 
 ### Adding a Ring
 
 See [this issue](https://github.com/microsoft/bedrock/issues/969) for details on
-how this feature will be implemented in `spk`.
+how this feature will be implemented in `bedrock`.
 
-To add a ring manually, an `spk` user can take the following steps:
+To add a ring manually, an `bedrock` user can take the following steps:
 
 1. Ensure a git branch exists with the same name of the `ring` to be added (eg:
    a `ring` named `test-new-feature` relies on a git branch with the same name,
@@ -200,7 +200,7 @@ variables:
    each service tracked in bedrock.yaml. The `ring` component is identified in
    the below diagram as `[Ring Component]`
 
-![Sample HLD](./images/spk-hld-generated.png)
+![Sample HLD](./images/bedrock-hld-generated.png)
 
 6. Change to the new `ring` branch: `test-new-feature`, and begin to commit, and
    push code as you normally would.
@@ -208,9 +208,9 @@ variables:
 ### Deleting a Ring
 
 See: [this issue](https://github.com/microsoft/bedrock/issues/971) for details
-on how this feature will be implemented in `spk`.
+on how this feature will be implemented in `bedrock`.
 
-To delete a `ring` manually, an `spk` user can take the following steps:
+To delete a `ring` manually, an `bedrock` user can take the following steps:
 
 1. In an application repository's `bedrock.yaml`, remove the name of the `ring`
    from the top level `rings` object ie:
@@ -292,7 +292,7 @@ references to the ring in the HLD repository.
    identified in the below diagram as `[Ring Component]`. In a clone of the HLD
    repository, one can delete the directory identified by `[Ring Component]`:
 
-![Sample HLD](./images/spk-hld-generated.png)
+![Sample HLD](./images/bedrock-hld-generated.png)
 
 2. Finally, a user must modify the `component.yaml` within the directory
    identified by `[Service Component]` in the above diagram to no longer point

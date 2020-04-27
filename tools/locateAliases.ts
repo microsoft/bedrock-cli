@@ -54,7 +54,7 @@ const consolidateAliases = (
 
 const dir = path.join(process.cwd(), "src", "commands");
 const commandDirs = getSubDirectories(dir);
-commandDirs.unshift(dir); // this is needed because `spk init` is outside `commands` folder
+commandDirs.unshift(dir); // this is needed because `bedrock init` is outside `commands` folder
 
 let commands: CommandBuildElements[] = [];
 commandDirs.forEach((folder) => {

@@ -62,7 +62,7 @@ const validateRepos = (hldRepoUrl: string, manifestRepoUrl: string): void => {
 };
 
 export const populateValues = (opts: CommandOptions): CommandOptions => {
-  // exception will be thrown if spk's config.yaml is missing
+  // exception will be thrown if bedrock's config.yaml is missing
   populateInheritValueFromConfig(decorator, Config(), opts);
   validateForRequiredValues(decorator, opts, true);
   validateOrgNameThrowable(opts.orgName);

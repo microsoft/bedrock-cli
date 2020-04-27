@@ -110,7 +110,7 @@ export const updateServicesVariableGroups = (
 /**
  * Executes the command.
  *
- * @param projectPath The path to the spk project
+ * @param projectPath The path to the bedrock project
  * @param variableGroupName Variable Group Name
  * @param opts Option object from command
  * @param exitFn The exit function

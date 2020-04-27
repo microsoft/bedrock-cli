@@ -1,6 +1,7 @@
 # Software Design Document
 
-Reference: spk init interactive mode - supporting introspection configuration
+Reference: `bedrock init` interactive mode - supporting introspection
+configuration
 
 <p>
 Authors:
@@ -20,9 +21,9 @@ Authors:
 
 ## 1. Overview
 
-Our objective is to improve the usability of `spk init` command. We have already
-added very basic support for prompting organization name, project name and
-personal access token; and writing them into `spk` `config.yaml` file.
+Our objective is to improve the usability of `bedrock init` command. We have
+already added very basic support for prompting organization name, project name
+and personal access token; and writing them into `bedrock` `config.yaml` file.
 
 We hope to extend this effort to cover the basic setup for introspection
 configuration values. We shall prompt for the values and validate them
@@ -67,10 +68,10 @@ User needs to provide these information
 
 Note:
 
-> The command line tool will read these values from existing `spk` `config.yaml`
-> (if this file exists) and have the values in `config.yaml` as default value
-> for each prompt. E.g. you have `my-secret` as Storage Account Key, you will
-> have a prompt like this.
+> The command line tool will read these values from existing `bedrock`
+> `config.yaml` (if this file exists) and have the values in `config.yaml` as
+> default value for each prompt. E.g. you have `my-secret` as Storage Account
+> Key, you will have a prompt like this.
 
 ```
 ? Enter Storage Account Key
@@ -81,7 +82,7 @@ You can hit enter key to accept the default value or enter a new value.
 
 Note:
 
-> `spk` `config.yaml` shall not be created if any of the values are invalid.
+> `bedrock` `config.yaml` shall not be created if any of the values are invalid.
 
 ## 4. Dependencies
 
@@ -89,8 +90,8 @@ None.
 
 ## 5. Risks & Mitigations
 
-The content in `spk` `config.yaml` in the `<user-home>/.spk` folder shall be
-overwritten. User may lost important information.
+The content in `bedrock` `config.yaml` in the `<user-home>/.bedrock` folder
+shall be overwritten. User may lost important information.
 
 ## 6. Documentation
 
