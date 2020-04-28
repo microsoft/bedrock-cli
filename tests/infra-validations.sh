@@ -123,7 +123,7 @@ bedrock infra scaffold -n $infra_hld_project --source "$source" --version "$tf_t
 # Validate the definition in the Infra-HLD repo ------------------
 file_we_expect=("definition.yaml")
 echo "Debugging and testing"
-ls -a
+ls $TEST_WORKSPACE/$infra_hld_dir/$infra_hld_project
 validate_directory "$TEST_WORKSPACE/$infra_hld_dir/$infra_hld_project" "${file_we_expect[@]}"
 
 # Validate the contents of the definition.yaml
