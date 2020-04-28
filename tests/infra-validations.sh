@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Fail on first error
-set -e
+set -x
 
 #Import functions
 . ./functions.sh
