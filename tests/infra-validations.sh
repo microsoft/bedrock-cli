@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Fail on first error
-set -x
+set -e
 
 #Import functions
 . ./functions.sh
@@ -68,17 +68,16 @@ mkdir $terraform_template_dir
 cd $terraform_template_dir
 git init
 mkdir template
-mkdir template/module
-cd template
+mkdir module
 
 # Configure Validation Terraform files
 module=$'provider "azurerm" {\n   features {}\n}\nresource "azurerm_resource_group" "resource_group"{\n  name= var.rg_name\n  location = var.rg_location\n}'
-tfTemplate=$'provider "azurerm" {\n   features {}\n}\nresource "azurerm_resource_group" "example"{\n  name= var.rg_name\n  location = var.rg_location\n}\nmodule "resource_group" {\n  source= "./module"\n  rg_name= "local_test"\n  rg_location = "eastus"\n}'
+tfTemplate=$'provider "azurerm" {\n   features {}\n}\nresource "azurerm_resource_group" "example"{\n  name= var.rg_name\n  location = var.rg_location\n}\nmodule "resource_group" {\n  source= "../module"\n  rg_name= "local_test"\n  rg_location = "eastus"\n}'
 tfVars=$'variable "rg_name" {\n  type = "string"\n}\n\nvariable "rg_location" {\n  type = "string"\n}\n'
 backendTfVars=$'storage_account_name="<storage account name>"'
-touch main.tf variables.tf backend.tfvars
+touch template/main.tf template/variables.tf template/backend.tfvars
 touch module/main.tf module/variables.tf
-echo "$tfVars" >> variables.tf| echo "$tfVars" >> module/variables.tf | echo "$module" >> module/main.tf | echo "$backendTfVars" >> backend.tfvars | echo "$tfTemplate" >> main.tf
+echo "$tfVars" >> template/variables.tf| echo "$tfVars" >> module/variables.tf | echo "$module" >> module/main.tf | echo "$backendTfVars" >> template/backend.tfvars | echo "$tfTemplate" >> template/main.tf
 
 # Format Terraform files for Bedrock CLI
 terraform fmt
@@ -116,11 +115,12 @@ pwd
 echo "../$terraform_template_dir"
 echo "$tf_template_version"
 mkdir $infra_hld_dir
+ls -a
 cd $infra_hld_dir
 
 echo "Debugging Before"
 ls -a
-bedrock infra scaffold -n $infra_hld_project --source "$source" --version "$tf_template_version" --template "template" >> $TEST_WORKSPACE/log.txt
+bedrock infra scaffold -n $infra_hld_project --source "$source" --version "$tf_template_version" --template "template/" >> $TEST_WORKSPACE/log.txt
 
 # Validate the definition in the Infra-HLD repo ------------------
 file_we_expect=("definition.yaml")
