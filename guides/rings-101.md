@@ -59,22 +59,22 @@ Traefik2 to the correct _Ringed Service_ based on the service requested and the
 `Ring` header -- routing the request to
 `foobar-prod.my-namespace.svc.cluster.local` for you.
 
-## Rings & SPK
+## Rings & Bedrock CLI
 
 ### Prerequisites
 
-[SPK](https://github.com/microsoft/bedrock-cli) is command line tool meant to
-ease the adoption of [Bedrock](https://github.com/microsoft/bedrock/)
-methodologies and patterns. With SPK, rings are first class citizens and are
-managed/tracked alongside your services, enabling quick scaffolding and
+[Bedrock CLI](https://github.com/microsoft/bedrock-cli) is command line tool
+meant to ease the adoption of [Bedrock](https://github.com/microsoft/bedrock/)
+methodologies and patterns. With Bedrock CLI, rings are first class citizens and
+are managed/tracked alongside your services, enabling quick scaffolding and
 deployment of your services to your rings.
 
 ### Creating/Adding a Ring
 
 Creating/adding a Ring is based around a single command:
-`spk ring create <ring-name>`.
+`bedrock ring create <ring-name>`.
 
-This command adds a new ring to your spk project and tracks it in projects
+This command adds a new ring to your bedrock project and tracks it in projects
 `bedrock.yaml` file. Subsequently, the command walks through every service in
 your project and updates their build pipeline YAML to monitor the git branch the
 ring corresponds to, so that every merge into the ring branch will trigger a new
@@ -88,21 +88,21 @@ lifecycle pipeline to add the ring to each service defined in the project
 A sample HLD repository tree for a sample application repository
 (`fabrikam-project`) with a service (`fabrikam`) and a newly added ring (`dev`):
 
-![Sample HLD](./images/spk-hld-generated.png)
+![Sample HLD](./images/bedrock-hld-generated.png)
 
 **Note:** There should only ever be a single lifecycle pipeline associated with
 a project. The single branch on which it triggers, points to the "source of
 truth" `bedrock.yaml`. This is the branch on which ring creation and deletion
 needs to be commited to.
 
-**Note:** Because `spk` will add the branch triggers for each ring added to all
-associated service build pipelines within a project, no additional pipelines
+**Note:** Because `bedrock` will add the branch triggers for each ring added to
+all associated service build pipelines within a project, no additional pipelines
 should be created when adding a ring.
 
 ### Deleting/Removing a Ring
 
 Deleting/removing a ring does the inverse of [creating](#creatingadding-a-ring):
-`spk ring delete <ring-name>`.
+`bedrock ring delete <ring-name>`.
 
 This command removes the ring from your `bedrock.yaml` file and walks through
 all the services in your project and removing the ring branch from the service
@@ -110,7 +110,8 @@ pipeline YAML.
 
 **Note:** The "default" ring cannot be deleted. If you wish to remove the ring
 defined under `bedrock.yaml` with `isDefault: true`, you must first set another
-ring to be the default ring via `spk ring set-default <new-default-ring-name>`.
+ring to be the default ring via
+`bedrock ring set-default <new-default-ring-name>`.
 
 **Note:** Deleting a `ring` presently does not remove the service and `ring`
 from a cluster as the project lifecycle pipeline does not yet remove rings or
@@ -191,8 +192,8 @@ spec:
           port: 80
 ```
 
-In addition this property is used by the `spk service create-revision` command.
-Details can be found
+In addition this property is used by the `bedrock service create-revision`
+command. Details can be found
 [here.](https://microsoft.github.io/bedrock-cli/commands/index.html#service_create-revision)
 
 Note: there can only be 1 (one) ringed marked as `isDefault`.

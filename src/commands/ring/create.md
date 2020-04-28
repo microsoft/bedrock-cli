@@ -1,6 +1,6 @@
 ## Description
 
-SPK command to create a ring into an initialized bedrock project.
+Bedrock command to create a ring into an initialized bedrock project.
 
 ## Example
 
@@ -29,7 +29,7 @@ variableGroups:
   - fabrikam-vg
 ```
 
-running `spk ring create stage` will result in a few changes:
+running `bedrock ring create stage` will result in a few changes:
 
 1. `stage` will be added into `bedrock.yaml` rings component:
    ```yaml

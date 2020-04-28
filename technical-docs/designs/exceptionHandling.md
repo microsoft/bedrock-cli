@@ -10,7 +10,7 @@ Reference: Exception Handling<br> Authors: Andre Briggs, Dennis Seah
 
 ## 1. Overview
 
-User of `spk` command line tool needs to have a better understanding of what
+User of `bedrock` command line tool needs to have a better understanding of what
 happened when command does not execute successfully. Currently, we output error
 message to logs (using `winston logger`); and it is difficult to go through the
 log entries to pinpoint the error. This is because error, warning and
@@ -89,7 +89,7 @@ web client call. We would like to have a JSON object like this
 ```
 {
   "errorCode": 1000,
-  "message": "Execution of spk project install-lifecycle-pipeline could not be completed.",
+  "message": "Execution of bedrock project install-lifecycle-pipeline could not be completed.",
   "parent": {
     "errorCode": 1010,
     "message": "Execute of installPipeline function failed.",
@@ -137,7 +137,7 @@ Example:
 ```json
   "errors": {
     "infra-scaffold-cmd-failed": "Scaffold Command was not successfully executed.",
-    "infra-scaffold-cmd-src-missing": "Value for source is required because it cannot be constructed with properties in spk-config.yaml. Provide value for source.",
+    "infra-scaffold-cmd-src-missing": "Value for source is required because it cannot be constructed with properties in bedrock-config.yaml. Provide value for source.",
     "infra-scaffold-cmd-values-missing": "Values for name, version and/or 'template were missing. Provide value for values for them.",
     "infra-err-validating-remote-git": "Could not determine error when validating remote git source.",
     "infra-err-retry-validating-remote-git": "Failure error thrown during retrying validating remote git source.",

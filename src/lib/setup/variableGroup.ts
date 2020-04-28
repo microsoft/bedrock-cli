@@ -140,7 +140,7 @@ export const create = async (
   logger.info(`Creating Variable Group from group definition '${name}'`);
 
   await addVariableGroup({
-    description: "Created by spk quick start command",
+    description: "Created by bedrock quick start command",
     name,
     type: "Vsts",
     variables: createVariableData(rc),

@@ -1,6 +1,6 @@
 # Software Design Document
 
-Reference: Introspection - An option to take variables in SPK scaffold
+Reference: Introspection - An option to take variables in Bedrock CLI `scaffold`
 command<br> Authors: Andre Briggs, Yvonne Radsmikham, Nathaniel Rose, Dennis
 Seah
 
@@ -12,13 +12,13 @@ Seah
 
 ## 1. Overview
 
-`spk infra scaffold` command create a `definition.yaml` that enables user to
+`bedrock infra scaffold` command create a `definition.yaml` that enables user to
 version, modify and organize terraform deployments. There are many variables in
 this file; and it requires use to edit this file in order to complete it.
 
-We want to reduce this two steps process (running `spk infra scaffold` and edit
-`definition.yaml` file) into a single process by enhancing the existing
-`spk infra scaffold` command.
+We want to reduce this two steps process (running `bedrock infra scaffold` and
+edit `definition.yaml` file) into a single process by enhancing the existing
+`bedrock infra scaffold` command.
 
 ## 2. Out of Scope
 
@@ -30,7 +30,7 @@ number of steps in scaffolding.
 ### 3.1 New option --file
 
 In the current release (0.5.6),
-[`spk infra scaffold`](https://microsoft.github.io/bedrock-cli/commands/index.html#0.5.6@infra_scaffold)
+[`bedrock infra scaffold`](https://microsoft.github.io/bedrock-cli/commands/index.html#0.5.6@infra_scaffold)
 has 4 options (`--name`, `--source`, `--version` and `--template`). We shall
 introduce a new option `-f`, `--file` which allows user to specify a file that
 contains values for these variables.
@@ -69,8 +69,8 @@ This means that pre validations are needed before executing the command.
 
 ### 3.2 Interactive option
 
-User can runs `spk infra scaffold --interactive`. In this mode, user shall be
-prompt for
+User can runs `bedrock infra scaffold --interactive`. In this mode, user shall
+be prompt for
 
 1. Cluster name for scaffolding (value for option `--name`)
 2. Source URL for the repository containing the terraform deployment (value for
@@ -108,6 +108,6 @@ special case of this file.
 
 Documentation should be done in the
 [`md` file](https://github.com/microsoft/bedrock-cli/blob/master/src/commands/infra/scaffold.md)
-that are associated with `spk infra scaffold` command.
+that are associated with `bedrock infra scaffold` command.
 
 \- end -

@@ -25,7 +25,7 @@ export const azdoUrl = (orgName: string): string =>
 
 /**
  * Creates AzDo `azure-devops-node-api.WebApi` with `org` and `token`
- * @param opts optionally override spk config Azure DevOps access options
+ * @param opts optionally override bedrock config Azure DevOps access options
  * @returns AzDo `WebApi` object
  */
 export const getWebApi = async (
@@ -35,7 +35,7 @@ export const getWebApi = async (
     return connection;
   }
 
-  // Load config from opts and fallback to spk config
+  // Load config from opts and fallback to bedrock config
   const config = Config();
   const {
     personalAccessToken = config.azure_devops?.access_token,
@@ -74,7 +74,7 @@ export const invalidateWebApi = (): void => {
 
 /**
  * Creates AzDo `azure-devops-node-api.WebApi.RestClient` with `org` and `token and returns `RestClient`
- * @param opts optionally override spk config Azure DevOps access options
+ * @param opts optionally override bedrock config Azure DevOps access options
  * @returns AzDo `RestClient` object
  */
 export const getRestClient = async (
@@ -99,7 +99,7 @@ export const getRestClient = async (
 
 /**
  * Creates AzDo `azure-devops-node-api.WebApi.IBuildApi` with `org` and `token and returns `RestClient`
- * @param opts optionally override spk config Azure DevOps access options
+ * @param opts optionally override bedrock config Azure DevOps access options
  * @returns AzDo `IBuildApi` object
  */
 export const getBuildApi = async (

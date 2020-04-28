@@ -43,8 +43,8 @@ const getSubDirectories = (curDir: string): string[] => {
 };
 
 // get the list of command from the array of
-// command object. e.g `spk infra generate` and
-// `spk deployment dashboard`
+// command object. e.g `bedrock infra generate` and
+// `bedrock deployment dashboard`
 const listCommands = (
   allCommands: Command[]
 ): { [key: string]: CommandBuildElements } => {
@@ -66,7 +66,7 @@ const listCommands = (
 
 const dir = path.join(process.cwd(), "src", "commands");
 const commandDirs = getSubDirectories(dir);
-commandDirs.unshift(dir); // this is needed because `spk init` is outside `commands` folder
+commandDirs.unshift(dir); // this is needed because `bedrock init` is outside `commands` folder
 
 const commands: Command[] = commandDirs
   .map((d) => {

@@ -1,7 +1,7 @@
 {
   "command": "init",
   "alias": "i",
-  "description": "Initialize the spk tool for the first time.",
+  "description": "Initialize the bedrock tool for the first time.",
   "options": [
     {
       "arg": "-f, --file <config-file-path>",
@@ -9,7 +9,7 @@
     },
     {
       "arg": "-i, --interactive",
-      "description": "Interactive mode. Creates a config file (config.yaml) in a folder .spk under your home directory",
+      "description": "Interactive mode. Creates a config file (config.yaml) in a folder .bedrock under your home directory",
       "defaultValue": false
     }
   ]

@@ -56,7 +56,7 @@ export const create = (rc: RequestContext | undefined, file?: string): void => {
 
     if (rc.toCreateAppRepo && !rc.error) {
       console.log(
-        `type "spk deployment get" or "spk deployment dashboard" command to view deployments information.`
+        `type "bedrock deployment get" or "bedrock deployment dashboard" command to view deployments information.`
       );
     }
 

@@ -7,7 +7,7 @@ deployments.
 In detail, it will do the following:
 
 - Create a new folder with the `<name>` you provided.
-- Clone and cache the source repo to `~.spk/templates`.
+- Clone and cache the source repo to `~.bedrock/templates`.
 - Provide an infrastructure deployment scaffold based on a `<source>` git url
   for a repo that holds terraform template, a `<version>` respective to the
   repository tag or branch to pull from, and a `<template>` path to a terraform
@@ -16,7 +16,7 @@ In detail, it will do the following:
 ## Example
 
 ```
-spk infra scaffold --name fabrikam --source https://github.com/microsoft/bedrock --version master --template /cluster/environments/azure-single-keyvault
+bedrock infra scaffold --name fabrikam --source https://github.com/microsoft/bedrock --version master --template /cluster/environments/azure-single-keyvault
 ```
 
 definition.yaml output:

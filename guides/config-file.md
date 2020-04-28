@@ -1,6 +1,7 @@
-# spk-config.yaml
+# bedrock-config.yaml
 
-The [`spk-config.yaml`](../spk-config.yaml) consists of three main sections:
+The [`bedrock-config.yaml`](../bedrock-config.yaml) consists of three main
+sections:
 
 1. `introspection`
 2. `infra`
@@ -9,7 +10,8 @@ The [`spk-config.yaml`](../spk-config.yaml) consists of three main sections:
 #### Environment Variables
 
 To specify private keys or access tokens that should **not be stored in raw
-text** in the `spk-config.yaml` file, set the values in environment variables.
+text** in the `bedrock-config.yaml` file, set the values in environment
+variables.
 
 For example:
 

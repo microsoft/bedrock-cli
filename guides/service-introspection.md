@@ -15,7 +15,7 @@ This will walk you through setting up a Bedrock GitOps pipeline workflow.
 Usage:
 
 ```
-spk deployment [command] [options]
+bedrock deployment [command] [options]
 ```
 
 Commands:
@@ -34,8 +34,8 @@ Global options:
 
 ## Requirements
 
-Fill out the service introspection settings in your spk config file, for example
-`spk-config.yaml`. [Sample config file](../spk-config.yaml).
+Fill out the service introspection settings in your bedrock config file, for
+example `bedrock-config.yaml`. [Sample config file](../bedrock-config.yaml).
 
 ```
 introspection:
@@ -46,9 +46,9 @@ introspection:
     key: "storage-access-key"
 ```
 
-To create storage-account and table, use the `spk deployment onboard` command to
-create them where subscription Id, resource group name, service principal Id,
-password and tenant Id are required.
+To create storage-account and table, use the `bedrock deployment onboard`
+command to create them where subscription Id, resource group name, service
+principal Id, password and tenant Id are required.
 
 ### Service Principal
 

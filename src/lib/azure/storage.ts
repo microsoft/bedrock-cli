@@ -25,7 +25,7 @@ let storageManagementClient: StorageManagementClient | undefined;
 /**
  * Creates  Azure storage management client
  *
- * @param opts optionally override spk config with Azure subscription access options
+ * @param opts optionally override bedrock config with Azure subscription access options
  *
  */
 export const getStorageManagementClient = async (
@@ -44,7 +44,7 @@ export const getStorageManagementClient = async (
     );
   }
 
-  // Load config from opts and fallback to spk config
+  // Load config from opts and fallback to bedrock config
   const introspection = Config().introspection;
   const azure = introspection ? introspection.azure : undefined;
   const { subscriptionId = azure && azure.subscription_id } = opts;
@@ -83,7 +83,7 @@ export const isStorageAccountNameAvailable = async (
  * Gets the access keys for the given storage account
  * @param accountName The storage account name
  * @param resourceGroup The resource group where the storage account is
- * @param opts optionally override spk config with Azure subscription access options
+ * @param opts optionally override bedrock config with Azure subscription access options
  *
  */
 export const getStorageAccountKeys = async (
@@ -172,7 +172,7 @@ export const validateStorageAccount = async (
  *
  * @param resourceGroup Name of Azure resource group
  * @param accountName The Azure storage account name
- * @param opts optionally override spk config with Azure subscription access options
+ * @param opts optionally override bedrock config with Azure subscription access options
  *
  */
 export const getStorageAccount = async (
@@ -227,7 +227,7 @@ export const getStorageAccount = async (
  *
  * @param resourceGroup Name of Azure resource group
  * @param accountName The Azure storage account name
- * @param opts optionally override spk config with Azure subscription access options
+ * @param opts optionally override bedrock config with Azure subscription access options
  *
  */
 export const isStorageAccountExist = async (
@@ -288,7 +288,7 @@ const validateInputsForCreateAccount = (
  * @param resourceGroup Name of Azure resource group
  * @param accountName The Azure storage account name
  * @param location The Azure storage account location
- * @param opts optionally override spk config with Azure subscription access options
+ * @param opts optionally override bedrock config with Azure subscription access options
  *
  */
 export const createStorageAccount = async (
@@ -354,7 +354,7 @@ export const createStorageAccount = async (
  *
  * @param resourceGroup Name of Azure resource group
  * @param accountName The Azure storage account name
- * @param opts optionally override spk config with Azure subscription access options
+ * @param opts optionally override bedrock config with Azure subscription access options
  * @returns the storage account primary access key `Promise<string>`
  *
  */

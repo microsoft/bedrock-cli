@@ -7,8 +7,8 @@ set -e
 
 # To-do: DOCUMENTATION
 
-TEST_WORKSPACE="$(pwd)/spk-env"
-[ ! -z "$SPK_LOCATION" ] || { echo "Provide SPK_LOCATION"; exit 1;}
+TEST_WORKSPACE="$(pwd)/bedrock-env"
+[ ! -z "$BEDROCK_CLI_LOCATION" ] || { echo "Provide BEDROCK_CLI_LOCATION"; exit 1;}
 [ ! -z "$ACCESS_TOKEN_SECRET" ] || { echo "Provide ACCESS_TOKEN_SECRET"; exit 1;}
 [ ! -z "$AZDO_PROJECT" ] || { echo "Provide AZDO_PROJECT"; exit 1;}
 [ ! -z "$AZ_RESOURCE_GROUP" ] || { echo "Provide AZ_RESOURCE_GROUP"; exit 1;}
@@ -21,7 +21,7 @@ TEST_WORKSPACE="$(pwd)/spk-env"
 AZDO_ORG_URL="${AZDO_ORG_URL:-"https://dev.azure.com/$AZDO_ORG"}"
 
 echo "TEST_WORKSPACE: $TEST_WORKSPACE"
-echo "SPK_LOCATION: $SPK_LOCATION"
+echo "BEDROCK_CLI_LOCATION: $BEDROCK_CLI_LOCATION"
 echo "AZDO_PROJECT: $AZDO_PROJECT"
 echo "AZDO_ORG: $AZDO_ORG"
 echo "AZDO_ORG_URL: $AZDO_ORG_URL"
@@ -48,8 +48,8 @@ mono_repo_dir=fabrikamintro2019
 services_full_dir="$TEST_WORKSPACE/$mono_repo_dir/$services_dir"
 
 shopt -s expand_aliases
-alias spk=$SPK_LOCATION
-echo "SPK Version: $(spk --version)"
+alias bedrock=$BEDROCK_CLI_LOCATION
+echo "Bedrock CLI Version: $(bedrock --version)"
 echo "Running from $(pwd)"
 
 echo "Running from $(pwd)"
@@ -63,12 +63,12 @@ fi
 
 cd $TEST_WORKSPACE
 
-# spk deployment onboard validation test
-sat_onboard_name='spktest'$RANDOM
+# bedrock deployment onboard validation test
+sat_onboard_name='bedrocktest'$RANDOM
 subscription_id=$(az account list | jq '.[] | select(.isDefault == true) | .id' -r)
 storage_account_exists $AZ_STORAGE_ACCOUNT $AZ_RESOURCE_GROUP "fail"
 
-spk deployment onboard -s $AZ_STORAGE_ACCOUNT -t $sat_onboard_name -l $sa_location -r $AZ_RESOURCE_GROUP --subscription-id $subscription_id --service-principal-id $SP_APP_ID --service-principal-password $SP_PASS --tenant-id $SP_TENANT
+bedrock deployment onboard -s $AZ_STORAGE_ACCOUNT -t $sat_onboard_name -l $sa_location -r $AZ_RESOURCE_GROUP --subscription-id $subscription_id --service-principal-id $SP_APP_ID --service-principal-password $SP_PASS --tenant-id $SP_TENANT
 storage_account_table_exists $sat_onboard_name $AZ_STORAGE_ACCOUNT "fail"
 
-echo "Successfully validated spk deployment onboard."
+echo "Successfully validated bedrock deployment onboard."

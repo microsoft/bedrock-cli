@@ -39,9 +39,9 @@
     "setup-cmd-create-variable-group-missing-storage-account-name": "Could not create variable group because storage account name was missing.",
     "setup-cmd-create-variable-group-missing-storage-table-name": "Could not create variable group because storage table name was missing.",
 
-    "spk-config-yaml-err-readyaml": "Could not load file, {0}.",
-    "spk-config-yaml-var-undefined": "Environment variable needs to be defined for {0} since it's referenced in the config file.",
-    "spk-config-yaml-load-err": "Could not load configuration.",
+    "bedrock-config-yaml-err-readyaml": "Could not load file, {0}.",
+    "bedrock-config-yaml-var-undefined": "Environment variable needs to be defined for {0} since it's referenced in the config file.",
+    "bedrock-config-yaml-load-err": "Could not load configuration.",
     "bedrock-config-invalid": "Invalid helm configuration found in {0}.",
     "config-file-not-defined": "Pipeline yaml file name is undefined.",
 
@@ -64,7 +64,7 @@
     "hld-install-manifest-pipeline-cmd-validate-repo-err": "Could not validate repositories. {0} and/or {1} may not be supported.",
 
     "infra-scaffold-cmd-failed": "Infra scaffold command was not successfully executed.",
-    "infra-scaffold-cmd-src-missing": "Value for source is required because it cannot be constructed with properties in spk-config.yaml. Provide value for source.",
+    "infra-scaffold-cmd-src-missing": "Value for source is required because it cannot be constructed with properties in bedrock-config.yaml. Provide value for source.",
     "infra-scaffold-cmd-values-missing": "Values for name, version and/or 'template were missing. Provide value for values for them.",
 
     "infra-generate-cmd-failed": "Infra generate command was not successfully executed.",
@@ -87,9 +87,9 @@
     "project-pipeline-cmd-failed": "Project install lifecycle pipeline was not successfully executed.",
     "project-pipeline-err-github-repo": "GitHub repos are not supported. Repo url: {0} is invalid",
     "project-pipeline-err-missing-values": "Value for {0} was missing.",
-    "project-pipeline-err-init-dependency": "Run `spk project init` and `spk project cvg` commands before running this command to initialize the project.",
-    "project-pipeline-err-cvg": "Run `spk project cvg` command before running this command to create a variable group.",
-    "project-pipeline-err-spk-config-missing": "SPK Config was missing",
+    "project-pipeline-err-init-dependency": "Run `bedrock project init` and `bedrock project cvg` commands before running this command to initialize the project.",
+    "project-pipeline-err-cvg": "Run `bedrock project cvg` command before running this command to create a variable group.",
+    "project-pipeline-err-bedrock-config-missing": "Bedrock Config was missing",
     "project-pipeline-err-pipeline-create": "Error occurred during pipeline creation for {0}",
     "project-pipeline-err-invalid-build-definition": "Invalid BuildDefinition created, parameter 'id' was missing from {0}",
 
@@ -151,20 +151,20 @@
 
     "introspect-validate-cmd-failed": "Deployment validate command was not successfully executed.",
     "introspect-validate-cmd-valid-err": "Validation failed. Missing configuration: {0}",
-    "introspect-validate-cmd-missing-vals": "Configuration for introspection storage account and DevOps pipeline to execute this command were missing. Initialize the spk tool with the right configuration",
+    "introspect-validate-cmd-missing-vals": "Configuration for introspection storage account and DevOps pipeline to execute this command were missing. Initialize the bedrock tool with the right configuration",
     "introspect-validate-cmd-valid-failed": "Validation was unsuccessful. Try again.",
     "introspect-validate-cmd-valid-exception": "Error was caught during validation.",
     "introspect-validate-cmd-write-pipeline": "Error writing data to service introspection.",
 
     "introspect-get-cmd-failed": "Deployment validate get was not successfully executed.",
     "introspect-get-cmd-err-validation-top-num": "Could not execute command because value for top option {0} is not apositive number. Provide a positive number for port.",
-    "introspect-get-cmd-missing-vals": "Configuration for storage account and DevOps pipeline were missing. Initialize the spk tool with the right configuration.",
+    "introspect-get-cmd-missing-vals": "Configuration for storage account and DevOps pipeline were missing. Initialize the bedrock tool with the right configuration.",
     "introspect-get-cmd-cluster-sync-stat-err": "Could not get cluster sync status.",
     "introspect-get-cmd-get-deployments-err": "Could not get deployments.",
 
     "introspect-dashboard-cmd-failed": "Deployment dashboard command was not successfully executed.",
     "introspect-dashboard-cmd-invalid-port": "value for port option has to be a valid port number. Enter a valid port number.",
-    "introspect-dashboard-cmd-missing-vals": "Configuration for storage account and DevOps pipeline were missing. Initialize the spk tool with the right configuration.",
+    "introspect-dashboard-cmd-missing-vals": "Configuration for storage account and DevOps pipeline were missing. Initialize the bedrock tool with the right configuration.",
     "introspect-dashboard-cmd-kill-docker-container": "Could not kill dashboard docker containers.",
     "introspect-dashboard-cmd-get-env": "Could not get environment parameters.",
     "introspect-dashboard-cmd-launch-pre-req-err": "Requirements to launch dashboard were not met.",
@@ -181,8 +181,8 @@
     "service-create-cmd-service-name-dns-invalid-err": "Service name or DNS value was invalid. See error message for more details.",
     "service-create-cmd-failed": "Service create command was not successfully executed. Error occurred adding service '{0}' to project '{1}'.",
     "service-create-cmd-port-invalid-err": "The value for --k8s-service-port was not a valid port number. Provide a valid port number",
-    "service-create-cmd-init-dependency-err": "Could not locate file information in bedrock.yaml. Run `spk project init` before running this command to initialize the project.",
-    "service-create-cmd-init-cvg-dependency-err": "Value for 'hasVariableGroups' in bedrock.yaml was missing. Run `spk project init` and `spk project cvg` commands before running this command to initialize the project.",
+    "service-create-cmd-init-dependency-err": "Could not locate file information in bedrock.yaml. Run `bedrock project init` before running this command to initialize the project.",
+    "service-create-cmd-init-cvg-dependency-err": "Value for 'hasVariableGroups' in bedrock.yaml was missing. Run `bedrock project init` and `bedrock project cvg` commands before running this command to initialize the project.",
 
     "az-cli-login-err": "Could not login through azure cli.",
     "az-cli-create-sp-err": "Could not create service principal with azure cli",
@@ -254,26 +254,26 @@
     "ring-create-cmd-failed": "Could not create ring: {0}.",
     "ring-create-cmd-err-name-missing": "Could not execute this command because ring name was not provided. Provide a ring name.",
     "ring-create-cmd-err-ring-exists": "Could not create ring {0} in project {1} because it already exists. Provide a different name.",
-    "ring-create-cmd-err-dependency": "Configuration information was missing. Run `spk project init` command to initialize them.",
+    "ring-create-cmd-err-dependency": "Configuration information was missing. Run `bedrock project init` command to initialize them.",
 
     "ring-set-default-cmd-failed": "Could not set default ring: {0}.",
     "ring-set-default-cmd-err-name-missing": "Could not execute this command because ring name was not provided. Provide a ring name.",
-    "ring-set-default-cmd-err-dependency": "Configuration information was missing. Run `spk project init` command to initialize them.",
+    "ring-set-default-cmd-err-dependency": "Configuration information was missing. Run `bedrock project init` command to initialize them.",
 
     "ring-delete-cmd-failed": "Could not delete ring: {0}.",
     "ring-delete-cmd-err-name-missing": "Could not execute this command because ring name was not provided. Provide a ring name.",
-    "ring-delete-cmd-err-dependency": "Configuration information was missing. Run `spk project init` command to initialize them.",
+    "ring-delete-cmd-err-dependency": "Configuration information was missing. Run `bedrock project init` command to initialize them.",
 
     "project-create-variable-group-cmd-failed": "Create variable group was not successfully executed.",
     "project-create-variable-group-cmd-err-root-invalid": "Project root path is not valid. Provide a valid root path.",
     "project-create-variable-group-cmd-err-variable-group-invalid": "Variable group name is not valid. Provide a valid variable group name.",
     "project-create-variable-group-cmd-err-file-missing": "The file '{0}' does not exist in project '{1}'.",
-    "project-create-variable-group-cmd-err-bedrock-yaml-missing": "Bedrock.yaml file was not found. Run spk project init command to initialize the project.",
+    "project-create-variable-group-cmd-err-bedrock-yaml-missing": "Bedrock.yaml file was not found. Run bedrock project init command to initialize the project.",
 
     "project-init-cmd-failed": "Project init was not successfully executed.",
 
     "project-append-variable-group-cmd-failed": "Append variable group was not successfully executed.",
-    "project-append-variable-group-cmd-err-bedrock-yaml-missing": "Bedrock.yaml file was not found. Run spk project init command to initialize the project.",
+    "project-append-variable-group-cmd-err-bedrock-yaml-missing": "Bedrock.yaml file was not found. Run bedrock project init command to initialize the project.",
     "project-append-variable-group-cmd-err-variable-group-invalid": "Could not add variable group '{0}' to the project. Check that the variable group exists in the Azure DevOps project '{1}/{2}'.",
     "project-append-variable-group-cmd-err-variable-group-missing": "No value for variable group name was given. Provide a variable group name.",
 
@@ -352,7 +352,7 @@
 
     "bedrock-yaml-ring-set-default-not-found": "Could not set default ring because ring {0} is not defined in {1}.",
     "bedrock-yaml-ring-remove-not-found": "Could not remove ring because ring {0} is not defined in {1}.",
-    "bedrock-yaml-ring-remove-default": "Could not remove ring because ring {0} was set to isDefault. Set another default ring with 'spk ring set-default' first before attempting to delete",
+    "bedrock-yaml-ring-remove-default": "Could not remove ring because ring {0} was set to isDefault. Set another default ring with 'bedrock ring set-default' first before attempting to delete",
     "bedrock-yaml-ring-validation-err-many-rings": "There were one than on rings ({0}) with 'isDefault: true'",
 
     "commander-err-cannot-locate-opt": "Could locate option name {0}"

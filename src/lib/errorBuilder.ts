@@ -87,7 +87,7 @@ const isErrorChainObject = (o: Error | ErrorChain): boolean => {
 /**
  * Builds an error object
  *
- * @param code spk error code
+ * @param code bedrock error code
  * @param errorKey Error key. e.g. "infra-scaffold-cmd-src-missing" or can be an object
  *                 to support string substitution in error message
  *                 {

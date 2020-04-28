@@ -100,7 +100,7 @@ describe("Test validateValues function", () => {
       expect(true).toBe(false);
     } catch (e) {
       expect(e.message).toBe(
-        "introspect-dashboard-cmd-missing-vals: Configuration for storage account and DevOps pipeline were missing. Initialize the spk tool with the right configuration."
+        "introspect-dashboard-cmd-missing-vals: Configuration for storage account and DevOps pipeline were missing. Initialize the bedrock tool with the right configuration."
       );
     }
   });

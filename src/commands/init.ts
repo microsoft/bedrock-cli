@@ -39,7 +39,7 @@ interface Answer {
 export const handleFileConfig = (file: string): void => {
   loadConfiguration(file);
   saveConfiguration(file);
-  logger.info("Successfully initialized the spk tool!");
+  logger.info("Successfully initialized the bedrock tool!");
 };
 
 /**
@@ -65,7 +65,7 @@ export const prompt = async (curConfig: ConfigYaml): Promise<Answer> => {
 };
 
 /**
- * Returns SPK Configuration. Empty azure devops values are returned
+ * Returns Bedrock configuration. Empty azure devops values are returned
  * if config.yaml is absent.
  */
 export const getConfig = (): ConfigYaml => {
@@ -173,7 +173,7 @@ export const handleInteractiveMode = async (): Promise<void> => {
 
   fs.writeFileSync(defaultConfigFile(), data);
   logger.info(
-    "Successfully constructed config.yaml file in .spk under the $HOME directory"
+    "Successfully constructed config.yaml file in .bedrock under the $HOME directory"
   );
   const ok = await validatePersonalAccessToken(curConfig.azure_devops);
   if (ok) {

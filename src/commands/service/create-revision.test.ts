@@ -252,7 +252,7 @@ describe("Create pull request", () => {
 
 describe("test getRemoteUrl function", () => {
   it("sanity test: get original url", () => {
-    expect(getRemoteUrl(undefined)).resolves.toMatch(/(.*?)\/spk/i);
+    expect(getRemoteUrl(undefined)).resolves.toMatch(/(.*?)\/bedrock/i);
   });
   it("sanity test", () => {
     const url = "https://github.com/microsoft/bedrock-cli1";

@@ -156,9 +156,9 @@ export const exit = (
   return new Promise((resolve) => {
     const hasFileLogger = log.transports.some((t) => {
       if (t instanceof transports.File) {
-        // callback will be called once if spk.log
+        // callback will be called once if bedrock.log
         // already exist.
-        // it will be called twice if spk.log
+        // it will be called twice if bedrock.log
         // do not exist. the one call has size === 0
         fs.watchFile(t.filename, (curr) => {
           if (curr.size > 0) {
@@ -176,7 +176,7 @@ export const exit = (
       exitFn(statusCode);
       resolve();
     } else {
-      // this is to handle the case when nothing to be written to spk.log
+      // this is to handle the case when nothing to be written to bedrock.log
       // handle fs.watchFile callback will not be execute.
       setTimeout(() => {
         exitFn(statusCode);

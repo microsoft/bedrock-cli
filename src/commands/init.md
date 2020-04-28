@@ -1,4 +1,4 @@
-This command creates a configuration file, `config.yaml` in a folder `.spk`
+This command creates a configuration file, `config.yaml` in a folder `.bedrock`
 under your home directory. There are two options for creating this file
 
 1. an interactive mode where you have to answer a few questions; and
@@ -7,10 +7,10 @@ under your home directory. There are two options for creating this file
 
 ## Interactive mode
 
-The command line tool attempts to read `config.yaml` in a folder `.spk` under
-your home directory. Configuration values shall be read from it if it exists.
-And these values shall be default values for the questions. Otherwise, there
-shall be no default values. These are the questions
+The command line tool attempts to read `config.yaml` in a folder `.bedrock`
+under your home directory. Configuration values shall be read from it if it
+exists. And these values shall be default values for the questions. Otherwise,
+there shall be no default values. These are the questions
 
 1. Organization Name of Azure dev-op account
 2. Project Name of Azure dev-op account
@@ -31,11 +31,11 @@ not.
 ## Example
 
 ```
-spk init --interactive
+bedrock init --interactive
 ```
 
 or
 
 ```
-spk init --file myConfig.yaml
+bedrock init --file myConfig.yaml
 ```

@@ -29,7 +29,7 @@ afterAll(() => {
   disableVerboseLogging();
 });
 
-const mockFileName = "src/commands/mocks/spk-config.yaml";
+const mockFileName = "src/commands/mocks/bedrock-config.yaml";
 
 describe("Test execute function", () => {
   it("negative test: missing file value", async () => {

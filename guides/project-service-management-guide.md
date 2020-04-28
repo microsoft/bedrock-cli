@@ -2,12 +2,13 @@
 
 This document describes the workflow for deploying a set of services
 [Bedrock](https://github.com/microsoft/bedrock/) workflows via the
-[spk](https://github.com/microsoft/bedrock-cli) CLI tool.
+[bedrock](https://github.com/microsoft/bedrock-cli) CLI tool.
 
 ## High Level Overview
 
-1. Confirm you have met the [Requirements](#requirements) for SPK's automation.
-2. [Install and configure SPK](#installing-and-configuring-spk)
+1. Confirm you have met the [Requirements](#requirements) for Bedrock's
+   automation.
+2. [Install and configure Bedrock CLI](#installing-and-configuring-bedrock)
 3. Create and configure the required
    [high level definition and manifest repositories](#repositories)
 4. [Initialize the Bedrock Application Repository](#initializing-an-application-repository)
@@ -28,7 +29,7 @@ This document describes the workflow for deploying a set of services
 An overview of how these different pieces fit together from an automation
 perspective:
 
-![spk resources](./images/spk-resource-diagram.png "Bedrock SPK Resources")
+![bedrock resources](./images/bedrock-resource-diagram.png "Bedrock CLI Resources")
 
 ## Requirements
 
@@ -42,8 +43,8 @@ This guide assumes a few things as requirements to use this automation:
      [create a project](https://docs.microsoft.com/en-us/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=preview-page).
 2. The application will be packaged and run using container images hosted on
    [Azure Container Registry](https://azure.microsoft.com/en-us/services/container-registry/)
-3. The user running `spk` has full access to the above resources.
-4. The user is running the latest `spk`
+3. The user running `bedrock` has full access to the above resources.
+4. The user is running the latest `bedrock`
    [release](https://github.com/microsoft/bedrock-cli/releases).
 5. The user has
    [Azure CLI installed](https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest).
@@ -54,26 +55,26 @@ This guide assumes a few things as requirements to use this automation:
    materialized manifests) must be in the same Azure DevOps Organization AND
    Project.
 
-## Installing and Configuring SPK
+## Installing and Configuring Bedrock
 
-`spk` is the Command Line Interface that provides automation around defining and
-operating Kubernetes clusters with Bedrock principles.
+`bedrock` is the Command Line Interface that provides automation around defining
+and operating Kubernetes clusters with Bedrock principles.
 
-### Setup SPK
+### Setup Bedrock
 
-Download the latest version of `spk` from the
+Download the latest version of `bedrock` from the
 [releases](https://github.com/microsoft/bedrock-cli/releases) page and add it to
 your PATH.
 
 To setup a local configuration:
 
 1. [Generate a Personal Access Token](#generating-personal-access-token)
-2. [Create a spk config file](#create-spk-config-file)
-3. [Initialize spk](#initializing-spk)
+2. [Create a bedrock config file](#create-bedrock-config-file)
+3. [Initialize bedrock](#initializing-bedrock)
 
 ### Generate Personal Access Token
 
-Generate a new Personal Access Token (PAT) to grant `spk` permissions in the
+Generate a new Personal Access Token (PAT) to grant `bedrock` permissions in the
 Azure Devops Project. Please grant PAT the following permissions:
 
 - Build (Read & execute)
@@ -83,25 +84,25 @@ Azure Devops Project. Please grant PAT the following permissions:
 For help, follow the
 [guide](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page).
 
-### Create SPK config file
+### Create Bedrock config file
 
-Create a copy of `spk-config.yaml` from the starter
-[template](./../spk-config.yaml) with the appropriate values for the
+Create a copy of `bedrock-config.yaml` from the starter
+[template](./../bedrock-config.yaml) with the appropriate values for the
 `azure_devops` section.
 
-**Note:** This `spk-config.yaml` should not be commited anywhere, as it contains
-sensitive credentials.
+**Note:** This `bedrock-config.yaml` should not be commited anywhere, as it
+contains sensitive credentials.
 
-### Initialize SPK
+### Initialize Bedrock
 
-Run `spk init -f <spk-config.yaml>` where `<spk-config.yaml>` the path to the
-configuation file.
+Run `bedrock init -f <bedrock-config.yaml>` where `<bedrock-config.yaml>` the
+path to the configuation file.
 
-**Note:** When running `spk init -f <spk-config.yaml>`, `spk` will copy the
-values from the config file and store it into local memory elsewhere. If you
-wish to utilize `spk` with another project or target, then you must rerun
-`spk init` with another configuration first OR, you may overwrite each commands
-via flags.
+**Note:** When running `bedrock init -f <bedrock-config.yaml>`, `bedrock` will
+copy the values from the config file and store it into local memory elsewhere.
+If you wish to utilize `bedrock` with another project or target, then you must
+rerun `bedrock init` with another configuration first OR, you may overwrite each
+commands via flags.
 
 ## Repositories
 
@@ -124,16 +125,17 @@ applied to the Kubernetes cluster by Flux.
 #### Initializing the High Level Definition Repository
 
 - [Create a repository in the given AzDO project.](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-new-repo?view=azure-devops#create-a-repo-using-the-web-portal)
-- Edit your SPK config to point to this repo (if you haven't already done this).
+- Edit your Bedrock config to point to this repo (if you haven't already done
+  this).
 - [Clone the repository.](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-new-repo?view=azure-devops#clone-the-repo-to-your-computer)
-- Initialize via `spk`, this will add the fabrikate
+- Initialize via `bedrock`, this will add the fabrikate
   [traefik2](https://github.com/microsoft/fabrikate-definitions/tree/master/definitions/traefik2)
   as the initial sample component. This can be overridden via optional flags.
   ```
-  spk hld init --git-push
+  bedrock hld init --git-push
   ```
 
-**NOTE** `spk hld` command documentation can be found
+**NOTE** `bedrock hld` command documentation can be found
 [here](./hld-management.md).
 
 ### Materialized Manifests Repository
@@ -146,7 +148,8 @@ deploy all manifests in this repository to the cluster periodically.
 #### Initializing the Materialized Manifests Repository
 
 - [Create a repository in the given AzDO project.](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-new-repo?view=azure-devops#create-a-repo-using-the-web-portal)
-- Edit your SPK config to point to this repo (if you haven't already done this).
+- Edit your Bedrock config to point to this repo (if you haven't already done
+  this).
 - [Clone the repository.](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-new-repo?view=azure-devops#clone-the-repo-to-your-computer)
 - Add a simple README to the repository
   ```
@@ -160,11 +163,11 @@ deploy all manifests in this repository to the cluster periodically.
 #### Deploy Manifest Generation Pipeline
 
 Deploy a manifest generation pipeline between the high level definition repo and
-the materialized manifests repo. Assuming you have configured `spk`, you can run
-this without flag parameters from your HLD repo root:
+the materialized manifests repo. Assuming you have configured `bedrock`, you can
+run this without flag parameters from your HLD repo root:
 
 ```
-$ spk hld install-manifest-pipeline
+$ bedrock hld install-manifest-pipeline
 ```
 
 ### Application Repositories
@@ -189,18 +192,18 @@ application repositories
 
 - [Create a repository in the given AzDO project.](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-new-repo?view=azure-devops#create-a-repo-using-the-web-portal)
 - [Clone the repository.](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-new-repo?view=azure-devops#clone-the-repo-to-your-computer)
-- Initialize the project via `spk`
+- Initialize the project via `bedrock`
   ```
-  $ spk project init
+  $ bedrock project init
   $ git add -A
   $ git commit -m "Initializing application repository."
   $ git push -u origin --all
   ```
-- Create a variable group via `spk`. If you are using a repo per service source
-  control strategy, you only need to do this once.
+- Create a variable group via `bedrock`. If you are using a repo per service
+  source control strategy, you only need to do this once.
   ```
   $ export VARIABLE_GROUP_NAME=<my-vg-name>
-  $ spk project create-variable-group $VARIABLE_GROUP_NAME -r $ACR_NAME -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS
+  $ bedrock project create-variable-group $VARIABLE_GROUP_NAME -r $ACR_NAME -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS
   $ git add -A
   $ git commit -m "Adding Project Variable Group."
   $ git push -u origin --all
@@ -209,11 +212,11 @@ application repositories
   Images will be served from and `SP_APP_ID`, `SP_PASS`, and, `SP_TENANT` are an
   associated Service Principal's ID, Password, and Tenant, that have Read and
   Write access to the ACR.
-- Deploy the lifecycle pipeline (optional flag parameters can be used if `spk`
-  was not intialized)
+- Deploy the lifecycle pipeline (optional flag parameters can be used if
+  `bedrock` was not intialized)
 
   ```
-  $ spk project install-lifecycle-pipeline --org-name $ORG_NAME --devops-project $DEVOPS_PROJECT --repo-url $SERVICE_REPO_URL --repo-name $SERVICE_NAME
+  $ bedrock project install-lifecycle-pipeline --org-name $ORG_NAME --devops-project $DEVOPS_PROJECT --repo-url $SERVICE_REPO_URL --repo-name $SERVICE_NAME
   ```
 
   where `ORG_NAME` is the name of your Azure Devops org, `DEVOPS_PROJECT` is the
@@ -224,40 +227,40 @@ application repositories
   Note: If you are using a repo per service source control strategy you should
   run `install-lifecycle-pipeline` once for each repo.
 
-**NOTE** `spk project` command documentation can be found
+**NOTE** `bedrock project` command documentation can be found
 [here](./project-management.md).
 
 #### Adding a Service to a Application Repository
 
 - [Clone the repository.](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-new-repo?view=azure-devops#clone-the-repo-to-your-computer)
-- Create the service via `spk`, there are optional parameters that _should_ be
-  used to configure the service and its associated helm charts (other optional
-  flag parameters can be used if `spk` was not intialized)
+- Create the service via `bedrock`, there are optional parameters that _should_
+  be used to configure the service and its associated helm charts (other
+  optional flag parameters can be used if `bedrock` was not intialized)
   ```
   SERVICE_NAME=<my-new-service-name>
-  spk service create $SERVICE_NAME . ...
+  bedrock service create $SERVICE_NAME . ...
   git add -A
   git commit -m "Adding $SERVICE_NAME to the repository."
   git push -u origin --all
   ```
-- Deploy the service's multistage build pipeline via `spk` (optional flag
-  parameters can be used if `spk` was not intialized)
+- Deploy the service's multistage build pipeline via `bedrock` (optional flag
+  parameters can be used if `bedrock` was not intialized)
   ```
-  spk service install-build-pipeline . -n $SERVICE_NAME-build-pipeline -o $ORG_NAME -r $SERVICE_NAME -u $SERVICE_REPO_URL -d $DEVOPS_PROJECT
+  bedrock service install-build-pipeline . -n $SERVICE_NAME-build-pipeline -o $ORG_NAME -r $SERVICE_NAME -u $SERVICE_REPO_URL -d $DEVOPS_PROJECT
   ```
 - Review and accept the pull request to add the service to the high level
   definition in Azure Devops.
 
-**NOTE** `spk service` command documentation can be found
+**NOTE** `bedrock service` command documentation can be found
 [here](./service-management.md).
 
-#### Helm Configuration for SPK
+#### Helm Configuration for Bedrock CLI
 
-`spk service create` allows a user to configure a service a number of ways with
-a backing helm chart.
+`bedrock service create` allows a user to configure a service a number of ways
+with a backing helm chart.
 
-Presently, there are are a number of options for `spk service create` documented
-below:
+Presently, there are are a number of options for `bedrock service create`
+documented below:
 
 ```
   -c, --helm-chart-chart <helm-chart>                         bedrock helm chart name. --helm-chart-* and --helm-config-* are exclusive; you may only use one. (default: "")
@@ -286,28 +289,29 @@ A Helm Repository is a well known set of helm charts conforming to the
 Perhaps the best known helm repository is the community run
 [helm charts repository](https://github.com/helm/charts).
 
-As an `spk` user, if you would like to incorporate helm charts from a well known
-public repository, you may simply run `spk` the following `helm-chart`
+As an `bedrock` user, if you would like to incorporate helm charts from a well
+known public repository, you may simply run `bedrock` the following `helm-chart`
 arguments:
 
 ```sh
-spk service create nginx my-nginx-service --helm-chart-chart stable/nginx --helm-chart-repository github.com/helm/charts
+bedrock service create nginx my-nginx-service --helm-chart-chart stable/nginx --helm-chart-repository github.com/helm/charts
 ```
 
 ##### Helm Charts in a distinct Git Repository from Application Sources in the same Azure DevOps Project
 
 If your Helm Charts are in their own distinct Git Repository in the _same_ Azure
-DevOps project, you can use the `helm-config` arguments to configure `spk`:
+DevOps project, you can use the `helm-config` arguments to configure `bedrock`:
 
 ```
-spk service create fabrikam path/to/fabrikam \
+bedrock service create fabrikam path/to/fabrikam \
   --helm-config-git https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts
   --helm-config-branch master \
   --helm-path /charts/fabrikam
 ```
 
 The above invocation presumes that the helm chart repository configured for
-`spk` is _different_ from the application repository configured for `spk` usage.
+`bedrock` is _different_ from the application repository configured for
+`bedrock` usage.
 
 The `helm-config-git` parameter _must not_ contain the username portion of a
 url. If you retrieve the URL from Azure DevOps's "Clone Repository" UI, it will
@@ -316,12 +320,12 @@ automatically have the username filled for an HTTPs clone ie:
 `https://fabrikam@dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts`
 
 Ensure that the you _remove_ the `fabrikam@` portion of the URL when passing
-parameters to `spk service create --helm-config-git`:
+parameters to `bedrock service create --helm-config-git`:
 
 `https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts`
 
-When you invoke `spk service create` with `--helm-config` argments, there is a
-4th optional argument that can be provided
+When you invoke `bedrock service create` with `--helm-config` argments, there is
+a 4th optional argument that can be provided
 `--helm-config-access-token-variable`. This configuration option is the name of
 the environment variable containing a Personal Access Token to access the git
 repository in `helm config git`. In this scenario, however, both git
@@ -338,13 +342,13 @@ scenario covers a situation in which you will want to configure the
 
 If your Helm Charts are in their own distinct Git Repository in a different
 Azure DevOps project, you can use still use the `helm-config` arguments to
-configure `spk`, but must also provide another option,
+configure `bedrock`, but must also provide another option,
 `--helm-config-access-token-variable`. This configuration option is the name of
 the environment variable containing the Personal Access Token to access the git
 repository in `helm-config-git`:
 
 ```
-spk service create fabrikam path/to/fabrikam \
+bedrock service create fabrikam path/to/fabrikam \
   --helm-config-git https://dev.azure.com/fabrikam/fabrikam-helm-charts-project/_git/fabrikam-helm-charts \
   --helm-config-branch master \
   --helm-path /charts/fabrikam \
@@ -358,7 +362,7 @@ automatically have the username filled for an HTTPs clone ie:
 `https://fabrikam@dev.azure.com/fabrikam/fabrikam-helm-charts-project/_git/fabrikam-helm-charts`
 
 Ensure that the you _remove_ the `fabrikam@` portion of the URL when passing
-parameters to `spk service create --helm-config-git`:
+parameters to `bedrock service create --helm-config-git`:
 
 `https://dev.azure.com/fabrikam/fabrikam-helm-charts-project/_git/fabrikam-helm-charts`
 
@@ -378,13 +382,13 @@ pipeline variable. To do so, find the HLD to Materialized pipeline in the
 pipelines view on Azure DevOps, select it, select `Variables`, then select
 `New Variable`:
 
-![Add a new pipeline variable](./images/spk-add-variable.png)
+![Add a new pipeline variable](./images/bedrock-add-variable.png)
 
 ##### Helm Charts in the same repository as the application
 
 If your Helm Charts are intended to be placed adjacent to your application
 source (no distinct git repository), you may still use the `helm-config`
-arguments to configure `spk`.
+arguments to configure `bedrock`.
 
 If you presume that the `fabrikam-app` repository is the _same_ repository as
 the repository of your application sources, then the following invocation will
@@ -392,7 +396,7 @@ allow a user to configure a service with helm charts tracked in the _same_
 repository.
 
 ```
-spk service create
+bedrock service create
   --helm-config-git https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-app \
   --helm-config-branch master \
   --helm-path /charts/fabrikam
@@ -405,7 +409,7 @@ automatically have the username filled for an HTTPs clone ie:
 `https://fabrikam@dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts`
 
 Ensure that the you _remove_ the `fabrikam@` portion of the URL when passing
-parameters to `spk service create --helm-config-git`:
+parameters to `bedrock service create --helm-config-git`:
 
 `https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-helm-charts`
 
@@ -417,7 +421,7 @@ arguments, which will take in multiple variable groups and variables,
 respectively.
 
 ```
-spk service create
+bedrock service create
   --helm-config-git https://dev.azure.com/fabrikam/fabrikam-project/_git/fabrikam-app \
   --helm-config-branch master \
   --helm-path /charts/fabrikam \
@@ -425,13 +429,14 @@ spk service create
   --service-build-variables FOO,BAR
 ```
 
-In this example, variables `FOO` and `BAR` exist in either variable groups `bedrock-vg` or
-`fabrikam-vg`, and will be passed in as build arguments for the Dockerfile.
+In this example, variables `FOO` and `BAR` exist in either variable groups
+`bedrock-vg` or `fabrikam-vg`, and will be passed in as build arguments for the
+Dockerfile.
 
-**NOTE**: It is important to understand that Azure DevOps will have the last variable group in
-the pipeline yaml take precedence. This means that if you have the same variable defined in both
-variable groups, the variable will take the value from the **last** variable group appended to
-the pipeline yaml file.
+**NOTE**: It is important to understand that Azure DevOps will have the last
+variable group in the pipeline yaml take precedence. This means that if you have
+the same variable defined in both variable groups, the variable will take the
+value from the **last** variable group appended to the pipeline yaml file.
 
 #### Creating a Service Revision
 
@@ -447,22 +452,22 @@ the pipeline yaml file.
   git commit -m "Adding my new file"
   git push --set-upstream origin <my-new-feature-branch>
   ```
-- Create Service Revision via `spk` (optional flag parameters can be used if
-  `spk` was not intialized)
+- Create Service Revision via `bedrock` (optional flag parameters can be used if
+  `bedrock` was not intialized)
   ```
-  spk service create-revision . -n $SERVICE_NAME-build-pipeline -o $ORG_NAME -r $SERVICE_NAME -u $SERVICE_REPO_URL -d $DEVOPS_PROJECT
+  bedrock service create-revision . -n $SERVICE_NAME-build-pipeline -o $ORG_NAME -r $SERVICE_NAME -u $SERVICE_REPO_URL -d $DEVOPS_PROJECT
   ```
 
-**NOTE** `spk service` command documentation can be found
+**NOTE** `bedrock service` command documentation can be found
 [here](./service-management.md).
 
 ## Helm Charts
 
-To have spk's build pipelines work properly, an application needs an associated
-[Helm](https://helm.sh/) chart with specific variables.
+To have bedrock's build pipelines work properly, an application needs an
+associated [Helm](https://helm.sh/) chart with specific variables.
 
 See the
-[guide to building helm charts with spk for more details](./building-helm-charts-for-spk.md)
+[guide to building helm charts with bedrock for more details](./building-helm-charts-for-bedrock.md)
 
 ### Requirements
 
@@ -471,7 +476,7 @@ TBD
 ### Sample Helm Chart
 
 This repository bundles a sample helm chart. Please refer to the
-[guide for building helm charts](./building-helm-charts-for-spk.md) and the
+[guide for building helm charts](./building-helm-charts-for-bedrock.md) and the
 [sample helm chart](./sample-helm-chart) for details.
 
 ## Variable Groups

@@ -6,8 +6,8 @@ set -e
 #Import functions
 . ./functions.sh
 
-TEST_WORKSPACE="$(pwd)/spk-env"
-[ ! -z "$SPK_LOCATION" ] || { echo "Provide SPK_LOCATION"; exit 1;}
+TEST_WORKSPACE="$(pwd)/bedrock-env"
+[ ! -z "$BEDROCK_CLI_LOCATION" ] || { echo "Provide BEDROCK_CLI_LOCATION"; exit 1;}
 [ ! -z "$ACCESS_TOKEN_SECRET" ] || { echo "Provide ACCESS_TOKEN_SECRET"; exit 1;}
 [ ! -z "$AZDO_PROJECT" ] || { echo "Provide AZDO_PROJECT"; exit 1;}
 [ ! -z "$AZDO_ORG" ] || { echo "Provide AZDO_ORG"; exit 1;}
@@ -19,7 +19,7 @@ TEST_WORKSPACE="$(pwd)/spk-env"
 AZDO_ORG_URL="${AZDO_ORG_URL:-"https://dev.azure.com/$AZDO_ORG"}"
 
 echo "TEST_WORKSPACE: $TEST_WORKSPACE"
-echo "SPK_LOCATION: $SPK_LOCATION"
+echo "BEDROCK_CLI_LOCATION: $BEDROCK_CLI_LOCATION"
 echo "AZDO_PROJECT: $AZDO_PROJECT"
 echo "AZDO_ORG: $AZDO_ORG"
 echo "AZDO_ORG_URL: $AZDO_ORG_URL"
@@ -33,15 +33,15 @@ infra_hld_dir=fabrikam-infra-hld
 infra_hld_project=fabrikam-base-env
 infra_region=west/
 infra_generated_dir=fabrikam-generated-deploy
-vg_name="spk-infra-hld-vg"
+vg_name="bedrock-infra-hld-vg"
 generate_pipeline_path="$(pwd)/infra-generation-pipeline.yml"
 generate_pipeline_path_local="$(pwd)/../azure-pipelines/templates/infra-generation-pipeline.yml"
 
 validation_test_yaml="rg_name: <insert value>"
 
 shopt -s expand_aliases
-alias spk=$SPK_LOCATION
-echo "SPK Version: $(spk --version)"
+alias bedrock=$BEDROCK_CLI_LOCATION
+echo "Bedrock CLI Version: $(bedrock --version)"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   if ! [ -x "$(command -v gsed)" ]; then
@@ -80,10 +80,10 @@ touch main.tf variables.tf backend.tfvars
 touch module/main.tf module/variables.tf
 echo "$tfVars" >> variables.tf| echo "$tfVars" >> module/variables.tf | echo "$module" >> module/main.tf | echo "$backendTfVars" >> backend.tfvars | echo "$tfTemplate" >> main.tf
 
-# Format Terraform files for SPK
+# Format Terraform files for Bedrock CLI
 terraform fmt
 
-# The TF Template requires a git release for a version to be targeted for spk scaffold
+# The TF Template requires a git release for a version to be targeted for bedrock scaffold
 git add -A
 
 # See if the remote repo exists
@@ -118,7 +118,7 @@ echo "$tf_template_version"
 mkdir $infra_hld_dir
 cd $infra_hld_dir
 
-spk infra scaffold -n $infra_hld_project --source "$source" --version "$tf_template_version" --template "template" >> $TEST_WORKSPACE/log.txt
+bedrock infra scaffold -n $infra_hld_project --source "$source" --version "$tf_template_version" --template "template" >> $TEST_WORKSPACE/log.txt
 
 # Validate the definition in the Infra-HLD repo ------------------
 file_we_expect=("definition.yaml")
@@ -128,7 +128,7 @@ validate_directory "$TEST_WORKSPACE/$infra_hld_dir/$infra_hld_project" "${file_w
 validate_file "$TEST_WORKSPACE/$infra_hld_dir/$infra_hld_project/definition.yaml" $validation_test_yaml >> $TEST_WORKSPACE/log.txt
 
 # Setup region deployment example within the Infra HLD Repo ------------------
-spk infra scaffold -n $infra_hld_project/$infra_region --source "$source" --version "$tf_template_version" --template "template" >> $TEST_WORKSPACE/log.txt
+bedrock infra scaffold -n $infra_hld_project/$infra_region --source "$source" --version "$tf_template_version" --template "template" >> $TEST_WORKSPACE/log.txt
 
 # Configure the scaffolded test terraform deployment------------------
 # Modify the Resource Group Name & storage account name *Revisit optimal way to simulate*
@@ -143,7 +143,7 @@ echo "Copying generate pipeline validation yml to Infra HLD repo from $generate_
 cp $generate_pipeline_path . || cp $generate_pipeline_path_local .
 git init
 
-# The HLD Template requires a git release for a version to be targeted for spk scaffold
+# The HLD Template requires a git release for a version to be targeted for bedrock scaffold
 git add -A
 
 # See if the remote repo exists
@@ -218,11 +218,11 @@ variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $vg_name "fail"
 hld_generate_pipeline=$infra_hld_dir-generate-pipeline
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $hld_generate_pipeline
 
-# Create Generate Pipeline for Validation of spk infra generate
+# Create Generate Pipeline for Validation of bedrock infra generate
 echo "Creating Pipeline"
-az pipelines create --name $hld_generate_pipeline --description "Pipeline for validating spk infra generate" --repository $infra_hld_dir --branch "master" --repository-type "tfsgit" --yml-path "infra-generation-pipeline.yml"
+az pipelines create --name $hld_generate_pipeline --description "Pipeline for validating bedrock infra generate" --repository $infra_hld_dir --branch "master" --repository-type "tfsgit" --yml-path "infra-generation-pipeline.yml"
 
-# Verify spk infra generate pipeline was created
+# Verify bedrock infra generate pipeline was created
 echo "Verifying Created Pipeline"
 pipeline_created=$(az pipelines show --name $hld_generate_pipeline --org $AZDO_ORG_URL --p $AZDO_PROJECT)
 
@@ -239,11 +239,11 @@ echo "Checking out PR: $pr_id"
 git checkout $pr_id
 
 # Validate Directory of Generated Repo PR
-file_we_expect=("variables.tf" "main.tf" "backend.tfvars" "spk.tfvars")
+file_we_expect=("variables.tf" "main.tf" "backend.tfvars" "bedrock.tfvars")
 validate_directory "$TEST_WORKSPACE/$infra_generated_dir/$infra_hld_project-generated/$infra_region" "${file_we_expect[@]}" >> $TEST_WORKSPACE/log.txt
 echo "PR for generated repo validated."
 # Validate the contents of the definition.yaml
-spkVars_test=$'rg_name = "test-rg"\nrg_location = "west us2"\n'
-validate_file "$TEST_WORKSPACE/$infra_generated_dir/$infra_hld_project-generated/$infra_region/spk.tfvars" $spkVars_test >> $TEST_WORKSPACE/log.txt
-echo "SPK.tfvars file in the generated repo validated."
+bedrockVars_test=$'rg_name = "test-rg"\nrg_location = "west us2"\n'
+validate_file "$TEST_WORKSPACE/$infra_generated_dir/$infra_hld_project-generated/$infra_region/bedrock.tfvars" $bedrockVars_test >> $TEST_WORKSPACE/log.txt
+echo "bedrock.tfvars file in the generated repo validated."
 echo "Successfully reached the end of the infrastructure validations script."

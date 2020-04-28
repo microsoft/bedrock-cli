@@ -363,9 +363,9 @@ function validate_file () {
     fi
 }
 
-function create_spk_project_and_service () {
+function create_bedrock_project_and_service () {
 
-    local spk=$3
+    local bedrock=$3
     local TEST_WORKSPACE=$4
     local repo_dir_name=$5
     local var_group_name=$6
@@ -377,25 +377,25 @@ function create_spk_project_and_service () {
     cd $repo_dir_name
     git init
 
-    $spk project init #>> $TEST_WORKSPACE/log.txt
-    file_we_expect=("spk.log" ".gitignore" "bedrock.yaml" "maintainers.yaml" "hld-lifecycle.yaml")
+    $bedrock project init #>> $TEST_WORKSPACE/log.txt
+    file_we_expect=("bedrock.log" ".gitignore" "bedrock.yaml" "maintainers.yaml" "hld-lifecycle.yaml")
     validate_directory "$TEST_WORKSPACE/$repo_dir_name" "${file_we_expect[@]}"
 
     # Does variable group already exist? Delete if so
     variable_group_exists $1 $2 $var_group_name "delete"
 
     # Create variable group
-    echo "spk project create-variable-group $var_group_name -r $ACR_NAME --hld-repo-url $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --devops-project $2 --personal-access-token $ACCESS_TOKEN_SECRET"
-    $spk project create-variable-group $var_group_name -r $ACR_NAME --hld-repo-url $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --devops-project $2 --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
+    echo "bedrock project create-variable-group $var_group_name -r $ACR_NAME --hld-repo-url $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --devops-project $2 --personal-access-token $ACCESS_TOKEN_SECRET"
+    $bedrock project create-variable-group $var_group_name -r $ACR_NAME --hld-repo-url $hld_repo_url -u $SP_APP_ID -t $SP_TENANT -p $SP_PASS --org-name $AZDO_ORG --devops-project $2 --personal-access-token $ACCESS_TOKEN_SECRET  >> $TEST_WORKSPACE/log.txt
 
     # Verify the variable group was created. Fail if not
     variable_group_exists $AZDO_ORG_URL $AZDO_PROJECT $var_group_name "fail"
 
-    # $spk service create . -n "$repo_dir_name-service" -p chart -g "$1/$2/_git/$repo_dir_name" -b master >> $TEST_WORKSPACE/log.txt
-    echo "$spk service create "$repo_dir_name-service" . -p "$repo_dir_name/chart" -g $helm_repo_url -b master"
-    $spk service create "$repo_dir_name-service" . -p "$repo_dir_name/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
+    # $bedrock service create . -n "$repo_dir_name-service" -p chart -g "$1/$2/_git/$repo_dir_name" -b master >> $TEST_WORKSPACE/log.txt
+    echo "$bedrock service create "$repo_dir_name-service" . -p "$repo_dir_name/chart" -g $helm_repo_url -b master"
+    $bedrock service create "$repo_dir_name-service" . -p "$repo_dir_name/chart" -g $helm_repo_url -b master >> $TEST_WORKSPACE/log.txt
     directory_to_check="$TEST_WORKSPACE/$repo_dir_name"
-    file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" "maintainers.yaml" "hld-lifecycle.yaml" "spk.log" "bedrock.yaml")
+    file_we_expect=(".gitignore" "build-update-hld.yaml" "Dockerfile" "maintainers.yaml" "hld-lifecycle.yaml" "bedrock.log" "bedrock.yaml")
     validate_directory $directory_to_check "${file_we_expect[@]}"
 }
 
@@ -459,14 +459,14 @@ function create_manifest_repo () {
 }
 
 function create_hld_repo () {
-    local spk=$2
+    local bedrock=$2
 
     mkdir $1
     cd $1
     git init
-    $spk hld init
+    $bedrock hld init
     touch component.yaml
-    file_we_expect=("spk.log" "manifest-generation.yaml" "component.yaml" ".gitignore")
+    file_we_expect=("bedrock.log" "manifest-generation.yaml" "component.yaml" ".gitignore")
 
     cd ..
 }

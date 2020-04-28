@@ -192,7 +192,7 @@ export const tryGetGitOrigin = async (
 ): Promise<string> => {
   return getAzdoOriginUrl().catch(() => {
     logger.warn(
-      "Could not get Git Origin for Azure DevOps - are you running 'spk' _not_ in a pipeline?"
+      "Could not get Git Origin for Azure DevOps - are you running 'bedrock' _not_ in a pipeline?"
     );
     return getOriginUrl(absRepoPath);
   });

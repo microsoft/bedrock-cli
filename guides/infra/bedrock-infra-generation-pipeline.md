@@ -1,7 +1,7 @@
 # Guide: Infrastructure Generation Pipeline
 
 This section describes how to configure Azure Devops to be your CI/CD
-orchestrator for your Infrastructure Generation workflow using `spk infra`.
+orchestrator for your Infrastructure Generation workflow using `bedrock infra`.
 
 ## Prerequisites
 
@@ -11,9 +11,9 @@ orchestrator for your Infrastructure Generation workflow using `spk infra`.
 2. _High Level Definitions_: Your own infrastructure high level definitions for
    your deployment. You can refer to a sample repo
    [here](https://github.com/yradsmikham/spk-infra-hld). You should be able to
-   create your Infra HLD repo using a scaffolding process via `spk` (i.e.
-   `spk infra scaffold`). For more information on how to do that, please refer
-   to the [Cloud Infra Management](../cloud-infra-management.md) doc.
+   create your Infra HLD repo using a scaffolding process via `bedrock` (i.e.
+   `bedrock infra scaffold`). For more information on how to do that, please
+   refer to the [Cloud Infra Management](../cloud-infra-management.md) doc.
 
 ## Setup
 
@@ -33,7 +33,7 @@ Pull Requests" permissions configured in the security settings.
 
 ### 2. Add Azure Pipeline Build YAML
 
-The SPK repository has a
+The Bedrock repository has a
 [template](../../azure-pipelines/templates/infra-generation-pipeline.yml) Azure
 DevOps pipeline that you may use as reference. Add the
 `infra-generation-pipeline.yml` file to the root of the Infra HLD repo.
@@ -50,8 +50,8 @@ In Azure DevOps:
 #### 3.1a. Create a Variable Group.
 
 Variable Groups may vary based on the `azure-pipelines.yml` used, but for the
-spk `infra-generation-pipeline.yml` template, the following variables will need
-to be added as part of the pipeline Variable Group:
+bedrock `infra-generation-pipeline.yml` template, the following variables will
+need to be added as part of the pipeline Variable Group:
 
 ```
 ACCESS_TOKEN_SECRET: Personal Access Token for your repo type.
@@ -60,7 +60,7 @@ ARM_CLIENT_SECRET: Azure Service Principal password
 ARM_SUBSCRIPTION_ID: Azure Subscription ID
 ARM_TENANT_ID: Azure Service Principal Tenant ID
 CLUSTER: A specific cluster name of a multi-cluster (i.e. west)
-GENERATED_REPO: The full URL to your manifest repo (i.e. https://github.com/yradsmikham/spk-infra-generated.git)
+GENERATED_REPO: The full URL to your manifest repo (i.e. https://github.com/yradsmikham/bedrock-infra-generated.git)
 PROJECT_DIRECTORY: The name of your project (i.e. discovery-service)
 ```
 
@@ -72,7 +72,7 @@ AZDO_ORG_NAME: Azure DevOps organization url where the generated repo is hosted 
 AZDO_PROJECT_NAME: The name of the project in your Azure DevOps organization where the generated repo is hosted
 ```
 
-![](../images/spk-infra-vg.png)
+![](../images/bedrock-infra-vg.png)
 
 #### 3.1b. Create a Variable Group using Azure Key Vault
 
@@ -129,50 +129,50 @@ It can be omitted when using Azure DevOps repos.
 Additionally, you can also use the Azure DevOps portal to manually create the
 pipeline as shown in the following steps 3-7:
 
-![](../images/spk-infra-new-pipeline.png)
+![](../images/bedrock-infra-new-pipeline.png)
 
 3. Choose the platform you are using for source control. For now, there are only
    examples for GitHub and Azure DevOps repos. However, other version control
    tools should be fairly similar.
 
-![](../images/spk-infra-azdo.png)
+![](../images/bedrock-infra-azdo.png)
 
 4. Select an Infra HLD repository.
 
-![](../images/spk-infra-azdo-repo.png)
+![](../images/bedrock-infra-azdo-repo.png)
 
 5. Choose "Existing Azure Pipeline YAML file" if there is an
    `azure-pipelines.yml` in the selected Infra HLD repo.
 
-![](../images/spk-infra-existing-yaml.png)
+![](../images/bedrock-infra-existing-yaml.png)
 
 6. On the side panel, select the appropriate repo branch to work from, and also
    the path to the `azure-pipelines.yml` file.
 
-![](../images/spk-infra-path-to-yaml.png)
+![](../images/bedrock-infra-path-to-yaml.png)
 
 7. Be sure to verify that the `azure-pipelines.yml` is linked to the correct
    variable group that was created earlier. When the pipeline is ready, hit
    'Save and run'
 
-![](../images/spk-infra-save-run.png)
+![](../images/bedrock-infra-save-run.png)
 
 8. Create Pull Request
 
 Assuming your pipeline runs to success...
 
-![](../images/spk-infra-successful-pipeline.png)
+![](../images/bedrock-infra-successful-pipeline.png)
 
 There should now be a PR pending approval for your Infra Generated Repo.
 
-![](../images/spk-infra-pr.png)
+![](../images/bedrock-infra-pr.png)
 
 9. Approve and merge PR
 
 If the PR looks correct, hit 'Approve' and then 'Complete'.
-![](../images/spk-infra-pr-approve.png)
+![](../images/bedrock-infra-pr-approve.png)
 
 From here, you can complete the merge to master branch of the Infra Generated
 Repo.
 
-![](../images/spk-infra-complete-merge.png)
+![](../images/bedrock-infra-complete-merge.png)

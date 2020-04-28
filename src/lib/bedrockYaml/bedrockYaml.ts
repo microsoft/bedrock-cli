@@ -237,7 +237,7 @@ export const removeRing = (
   }
 
   // Check if ring is default, if so, warn "Cannot delete default ring
-  // set a new default via `spk ring set-default` first." and exit
+  // set a new default via `bedrock ring set-default` first." and exit
   if (matchingRing.config.isDefault) {
     throw buildError(errorStatusCode.ENV_SETTING_ERR, {
       errorKey: "bedrock-yaml-ring-remove-default",
