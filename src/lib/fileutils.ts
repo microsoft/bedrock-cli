@@ -585,18 +585,20 @@ const manifestGenerationPipelineYaml = (): string => {
           `. ./build.sh --source-only`,
           `get_bedrock_version`,
           `download_bedrock`,
-          `message="$(Build.SourceVersionMessage)"`,
-          `if [[ $message == *"Merge"* ]]; then`,
-          `pr_id=$(echo $message | grep -oE '[0-9]+' | head -1 | sed -e 's/^0\\+//')`,
-          `./bedrock/bedrock deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --pr $pr_id`,
-          `else`,
+          `pullrequestid=$(az repos pr list --organization $(System.TeamFoundationCollectionUri) --project $(System.TeamProject) --status completed | jq -r --arg commitid "$(Build.SourceVersion)" '.[] | select(.lastMergeCommit.commitId | startswith($commitid))' | jq '.pullRequestId')`,
+          `if [[ -z "$pullrequestid" ]]; then`,
           `./bedrock/bedrock deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId`,
+          `else`,
+          `./bedrock/bedrock deployment create -n $(INTROSPECTION_ACCOUNT_NAME) -k $(INTROSPECTION_ACCOUNT_KEY) -t $(INTROSPECTION_TABLE_NAME) -p $(INTROSPECTION_PARTITION_KEY) --p3 $(Build.BuildId) --hld-commit-id $commitId --pr $pullrequestid`,
           `fi`,
         ]),
         displayName:
           "If configured, update manifest pipeline details in Spektate db before manifest generation",
         condition:
           "and(ne(variables['INTROSPECTION_ACCOUNT_NAME'], ''), ne(variables['INTROSPECTION_ACCOUNT_KEY'], ''),ne(variables['INTROSPECTION_TABLE_NAME'], ''),ne(variables['INTROSPECTION_PARTITION_KEY'], ''), ne(variables['Build.Reason'], 'PullRequest'))",
+        env: {
+          AZURE_DEVOPS_EXT_PAT: "$(PAT)",
+        },
       },
       {
         task: "ShellScript@2",
