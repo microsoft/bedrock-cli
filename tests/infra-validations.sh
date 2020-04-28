@@ -118,6 +118,8 @@ echo "$tf_template_version"
 mkdir $infra_hld_dir
 cd $infra_hld_dir
 
+echo "Debugging Before"
+ls $TEST_WORKSPACE/$infra_hld_dir/$infra_hld_project
 bedrock infra scaffold -n $infra_hld_project --source "$source" --version "$tf_template_version" --template "template" >> $TEST_WORKSPACE/log.txt
 
 # Validate the definition in the Infra-HLD repo ------------------
