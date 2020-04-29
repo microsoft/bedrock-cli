@@ -16,7 +16,7 @@ import {
   generateGitIgnoreFile,
   generateServiceBuildAndUpdatePipelineYaml,
 } from "../../lib/fileutils";
-import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
+import { checkoutCommitPushCreatePRLink } from "../../lib/gitpr";
 import * as dns from "../../lib/net/dns";
 import { isPortNumberString } from "../../lib/validator";
 import { logger } from "../../logger";
@@ -89,9 +89,11 @@ export const fetchValues = (opts: CommandOptions): CommandValues => {
 
   for (const r of serviceVariablesArray) {
     if (!validUpperUnderscoreCase(r)) {
-      logger.warn(`${r} is not in a valid format. Valid strings include only uppercases, numbers, and underscores.`);
+      logger.warn(
+        `${r} is not in a valid format. Valid strings include only uppercases, numbers, and underscores.`
+      );
     }
-  };
+  }
 
   if (serviceVariablesArray.includes("") || serviceVgArray.includes("")) {
     throw buildError(
