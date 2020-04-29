@@ -1,7 +1,7 @@
 import fs from "fs";
 import * as fsExtra from "fs-extra";
 import path from "path";
-import git from "simple-git/promise";
+import simpleGit from "simple-git/promise";
 import { loadConfigurationFromLocalEnv, readYaml } from "../../config";
 import { getErrorMessage } from "../../lib/errorBuilder";
 import { safeGitUrlForLogging } from "../../lib/gitutils";
@@ -137,7 +137,7 @@ describe("test checkRemoteGitExist function", () => {
     const { safeLoggingUrl, source, sourcePath } = await getMockedDataForGitTests(
       true
     );
-    (git as jest.Mock).mockImplementation(() => {
+    (simpleGit as jest.Mock).mockImplementation(() => {
      return {listRemote:async ():Promise<string>=> "https://github.com/microsoft/bedrock"}
     })
     let gitError = undefined
@@ -154,7 +154,7 @@ describe("test checkRemoteGitExist function", () => {
     const { safeLoggingUrl, source, sourcePath } = await getMockedDataForGitTests(
       true
     );
-    (git as jest.Mock).mockImplementation(() => {
+    (simpleGit as jest.Mock).mockImplementation(() => {
      return {listRemote:async ():Promise<undefined>=> undefined}
     })
     let gitError = undefined
@@ -202,20 +202,20 @@ describe("test gitCheckout function", () => {
 
 describe("test gitClone function", () => {
   it("postive Test", async () => {
-    const gitCmd = git();
-    gitCmd.clone = async (): Promise<"ok"> => {
+    const git = simpleGit();
+    git.clone = async (): Promise<"ok"> => {
       return "ok";
     };
-    await gitClone(gitCmd, "source", "path");
+    await gitClone(git, "source", "path");
     // no exception thrown
   });
   it("negative Test", async () => {
-    const gitCmd = git();
-    gitCmd.clone = (): Promise<never> => {
+    const git = simpleGit();
+    git.clone = (): Promise<never> => {
       throw Error("Error");
     };
 
-    await expect(gitClone(gitCmd, "source", "path")).rejects.toThrow();
+    await expect(gitClone(git, "source", "path")).rejects.toThrow();
   });
 });
 

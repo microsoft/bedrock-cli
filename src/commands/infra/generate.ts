@@ -4,7 +4,7 @@ import fsExtra from "fs-extra";
 import mkdirp from "mkdirp";
 import path from "path";
 import process from "process";
-import git from "simple-git/promise";
+import simpleGit from "simple-git/promise";
 import { loadConfigurationFromLocalEnv, readYaml } from "../../config";
 import { build as buildCmd, exit as exitCmd } from "../../lib/commandBuilder";
 import { safeGitUrlForLogging } from "../../lib/gitutils";
@@ -23,7 +23,6 @@ import { copyTfTemplate } from "./scaffold";
 import { build as buildError, log as logError } from "../../lib/errorBuilder";
 import { errorStatusCode } from "../../lib/errorStatusCode";
 import { exec } from "../../lib/shell";
-import { TriggerUpdateParameters } from "@azure/arm-containerregistry/esm/models/mappers";
 
 interface CommandOptions {
   project: string | undefined;
@@ -160,7 +159,7 @@ export const gitPull = async (
     logger.info(
       `${safeLoggingUrl} already cloned and a git branch is currently checked out. Performing 'git pull'...`
     );
-    await git(sourcePath).pull();
+    await simpleGit(sourcePath).pull();
   } catch (err) {
     logger.info(
       `A git tag is currently checked out. Skipping 'git pull' operation.`
@@ -174,7 +173,7 @@ export const gitCheckout = async (
 ): Promise<void> => {
   // Checkout tagged version
   logger.info(`Checking out template version: ${version}`);
-  await git(sourcePath).checkout(version);
+  await simpleGit(sourcePath).checkout(version);
 };
 
 /**
@@ -184,7 +183,7 @@ export const gitCheckout = async (
  * @param sourcePath location to clone repo to
  */
 export const gitClone = async (
-  git: git.SimpleGit,
+  git: simpleGit.SimpleGit,
   source: string,
   sourcePath: string
 ): Promise<void> => {
@@ -205,7 +204,7 @@ export const checkRemoteGitExist = async (
     });
   }
 
-  const result = await git(sourcePath).listRemote([source]);
+  const result = await simpleGit(sourcePath).listRemote([source]);
   if (!result) {
     logger.error(result);
     throw buildError(errorStatusCode.GIT_OPS_ERR, "infra-err-git-clone-failed");
@@ -232,8 +231,8 @@ export const retryRemoteValidate = async (
   // BEDROCK can assume that there is a remote that it has access to since it was able to compare commit histories. Delete cache and reset on provided remote
   fsExtra.removeSync(sourcePath);
   createGenerated(sourcePath);
-  const gitCmd = git();
-  await gitClone(gitCmd, source, sourcePath);
+  const git = simpleGit();
+  await gitClone(git, source, sourcePath);
   logger.info(`Checking out template version: ${version}`);
   await gitCheckout(sourcePath, version);
   await gitPull(sourcePath, safeLoggingUrl);
@@ -278,8 +277,8 @@ export const validateRemoteSource = async (
     if (fs.existsSync(path.join(sourcePath, ".git"))) {
       logger.info(`${source} already cloned. Proceeding with 'git checkout'.`);
     } else {
-      const gitCmd = git();
-      await gitClone(gitCmd, source, sourcePath);
+      const git = simpleGit();
+      await gitClone(git, source, sourcePath);
     }
     // Checkout tagged version
     await gitCheckout(sourcePath, version);
@@ -516,7 +515,7 @@ export const checkModuleSource = (tfData: string): boolean => {
 };
 
 export const revparse = async (sPath: string): Promise<string> => {
-  return await git(sPath).revparse(["--show-prefix"]);
+  return await simpleGit(sPath).revparse(["--show-prefix"]);
 };
 
 /**
