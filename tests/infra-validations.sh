@@ -68,16 +68,16 @@ mkdir $terraform_template_dir
 cd $terraform_template_dir
 git init
 mkdir template
-cd template
+mkdir module
 
 # Configure Validation Terraform files
-tfTemplate=$'provider "azurerm" {\n   features {}\n}\nresource "azurerm_resource_group" "example"{\n  name= "${var.rg_name}"\n  location = "${var.rg_location}"\n}'
+module=$'provider "azurerm" {\n   features {}\n}\nresource "azurerm_resource_group" "resource_group"{\n  name= var.rg_name\n  location = var.rg_location\n}'
+tfTemplate=$'provider "azurerm" {\n   features {}\n}\nresource "azurerm_resource_group" "example"{\n  name= var.rg_name\n  location = var.rg_location\n}\nmodule "resource_group" {\n  source = "../module"\n  rg_name= "local_test"\n  rg_location = "eastus"\n}'
 tfVars=$'variable "rg_name" {\n  type = "string"\n}\n\nvariable "rg_location" {\n  type = "string"\n}\n'
 backendTfVars=$'storage_account_name="<storage account name>"'
-touch main.tf variables.tf backend.tfvars
-echo "$tfVars" >> variables.tf | echo "$backendTfVars" >> backend.tfvars | echo "$tfTemplate" >> main.tf
-file_we_expect=("variables.tf" "main.tf" "backend.tfvars")
-validate_directory "$TEST_WORKSPACE/$terraform_template_dir/template" "${file_we_expect[@]}" >> $TEST_WORKSPACE/log.txt
+touch template/main.tf template/variables.tf template/backend.tfvars
+touch module/main.tf module/variables.tf
+echo "$tfVars" >> template/variables.tf| echo "$tfVars" >> module/variables.tf | echo "$module" >> module/main.tf | echo "$backendTfVars" >> template/backend.tfvars | echo "$tfTemplate" >> template/main.tf
 
 # Format Terraform files for Bedrock CLI
 terraform fmt
@@ -115,12 +115,18 @@ pwd
 echo "../$terraform_template_dir"
 echo "$tf_template_version"
 mkdir $infra_hld_dir
+ls -a
 cd $infra_hld_dir
 
-bedrock infra scaffold -n $infra_hld_project --source "$source" --version "$tf_template_version" --template "template" >> $TEST_WORKSPACE/log.txt
+echo "Debugging Before"
+ls -a
+bedrock infra scaffold -n $infra_hld_project --source "$source" --version "$tf_template_version" --template "template/" >> $TEST_WORKSPACE/log.txt
 
 # Validate the definition in the Infra-HLD repo ------------------
 file_we_expect=("definition.yaml")
+echo "Debugging and testing"
+ls $TEST_WORKSPACE/$infra_hld_dir/$infra_hld_project
+pwd
 validate_directory "$TEST_WORKSPACE/$infra_hld_dir/$infra_hld_project" "${file_we_expect[@]}"
 
 # Validate the contents of the definition.yaml
