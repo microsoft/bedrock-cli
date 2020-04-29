@@ -39,6 +39,9 @@ import {
   VARIABLES_TF,
 } from "./infra_common";
 import * as infraCommon from "./infra_common";
+import { exec } from "../../lib/shell";
+
+jest.mock("../../lib/shell");
 
 interface GitTestData {
   source: string;
@@ -85,7 +88,7 @@ afterEach(() => {
       "commands",
       "infra",
       "mocks",
-      "discovery-service-generated"
+      "fabrikam-generated"
     )
   );
 });
@@ -98,8 +101,8 @@ afterEach(() => {
 const getMockedDataForGitTests = async (
   positive: boolean
 ): Promise<GitTestData> => {
-  const mockParentPath = "src/commands/infra/mocks/discovery-service";
-  const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
+  const mockParentPath = "src/commands/infra/mocks/fabrikam";
+  const mockProjectPath = "src/commands/infra/mocks/fabrikam/west";
   const sourceConfiguration = validateDefinition(
     mockParentPath,
     mockProjectPath
@@ -153,29 +156,15 @@ describe("test checkRemoteGitExist function", () => {
   });
 });
 
-const testGitPull = async (positive: boolean): Promise<void> => {
-  const { safeLoggingUrl, sourcePath } = await getMockedDataForGitTests(
-    positive
-  );
-  if (!positive || fs.existsSync(path.join(sourcePath, ".git"))) {
-    await gitPull(sourcePath, safeLoggingUrl);
-  }
-};
-
 describe("test gitPull function", () => {
-  it("postive Test", async () => {
-    await testGitPull(true);
-    // no exception thrown
+  it("should call exec with the proper git arguments", async () => {
+    (exec as jest.Mock).mockClear();
+    const { safeLoggingUrl, sourcePath } = await getMockedDataForGitTests(true);
+    await gitPull(sourcePath, safeLoggingUrl);
+    expect(exec).toHaveBeenCalledTimes(1);
+    expect(exec).toHaveBeenCalledWith("git", ["symbolic-ref", "HEAD"], { cwd: sourcePath });
   });
-  it("negative Test", async () => {
-    try {
-      await testGitPull(false);
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e).toBeDefined();
-    }
-  });
-});
+})
 
 const testGitCheckout = async (positive: boolean): Promise<void> => {
   const { sourcePath } = await getMockedDataForGitTests(positive);
@@ -224,8 +213,8 @@ describe("Validate remote git source", () => {
     jest.spyOn(generate, "gitPull").mockResolvedValueOnce();
     jest.spyOn(generate, "gitCheckout").mockResolvedValueOnce();
 
-    const mockParentPath = "src/commands/infra/mocks/discovery-service";
-    const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
+    const mockParentPath = "src/commands/infra/mocks/fabrikam";
+    const mockProjectPath = "src/commands/infra/mocks/fabrikam/west";
     const sourceConfiguration = validateDefinition(
       mockParentPath,
       mockProjectPath
@@ -577,12 +566,12 @@ describe("test dirIteration", () => {
 
 describe("Validate sources in definition.yaml files", () => {
   it.skip("definition.yaml of leaf override parent's variable", async () => {
-    const mockParentPath = "src/commands/infra/mocks/discovery-service";
-    const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
+    const mockParentPath = "src/commands/infra/mocks/fabrikam";
+    const mockProjectPath = "src/commands/infra/mocks/fabrikam/west";
     const expectedSourceWest = {
-      source: "https://github.com/contoso/fabrikam",
+      source: "https://github.com/fabrikam/bedrock",
       template: "cluster/environments/azure-single-keyvault",
-      version: "v0.0.2",
+      version: "v0.0.1",
     };
     const outputPath = "";
     const sourceConfiguration = validateDefinition(
@@ -605,10 +594,10 @@ describe("Validate sources in definition.yaml files", () => {
     );
   });
   it.skip("definition.yaml of leaf and parent configuration are the same", async () => {
-    const mockParentPath = "src/commands/infra/mocks/discovery-service";
+    const mockParentPath = "src/commands/infra/mocks/fabrikam";
     const mockProjectPath = mockParentPath;
     const expectedSource = {
-      source: "https://github.com/contoso/fabrikam",
+      source: "https://github.com/fabrikam/bedrock",
       template: "cluster/environments/azure-single-keyvault",
       version: "v0.0.1",
     };
@@ -654,8 +643,8 @@ describe("Validate sources in definition.yaml files", () => {
   });
 
   test.skip("without project's definition.yaml", async () => {
-    const mockParentPath = "src/commands/infra/mocks/discovery-service";
-    const mockProjectPath = "src/commands/infra/mocks/discovery-service/east";
+    const mockParentPath = "src/commands/infra/mocks/fabrikam";
+    const mockProjectPath = "src/commands/infra/mocks/fabrikam/east";
     const expectedSourceEast = {
       source: "https://github.com/contoso/fabrikam",
       template: "cluster/environments/azure-single-keyvault",
@@ -682,11 +671,11 @@ describe("Validate sources in definition.yaml files", () => {
     );
   });
   test.skip("git source, template and version are missing in project path", async () => {
-    const mockParentPath = "src/commands/infra/mocks/discovery-service";
+    const mockParentPath = "src/commands/infra/mocks/fabirkam";
     const mockProjectPath =
-      "src/commands/infra/mocks/discovery-service/central";
+      "src/commands/infra/mocks/fabrikam/central";
     const expectedSourceCentral = {
-      source: "https://github.com/contoso/fabrikam",
+      source: "https://github.com/fabrikam/bedrock",
       template: "cluster/environments/azure-single-keyvault",
       version: "v0.0.1",
     };
@@ -723,14 +712,14 @@ describe("Validate sources in definition.yaml files", () => {
 
 describe("Validate replacement of variables between parent and leaf definitions", () => {
   test("Validating that leaf definitions take precedence when generating multi-cluster definitions", () => {
-    const mockParentPath = "src/commands/infra/mocks/discovery-service";
-    const mockProjectPath = "src/commands/infra/mocks/discovery-service/west";
+    const mockParentPath = "src/commands/infra/mocks/fabrikam";
+    const mockProjectPath = "src/commands/infra/mocks/fabrikam/west";
     const finalArray = [
       'acr_enabled = "true"',
       `address_space = "${DEFAULT_VAR_VALUE}"`,
       `agent_vm_count = "${DEFAULT_VAR_VALUE}"`,
       `agent_vm_size = "${DEFAULT_VAR_VALUE}"`,
-      'cluster_name = "discovery-service-west"',
+      'cluster_name = "fabrikam-west"',
       `dns_prefix = "${DEFAULT_VAR_VALUE}"`,
       `flux_recreate = "${DEFAULT_VAR_VALUE}"`,
       `kubeconfig_recreate = "${DEFAULT_VAR_VALUE}"`,
@@ -778,7 +767,7 @@ describe("Validate replacement of variables between parent and leaf definitions"
 
 describe("Validate bedrock.tfvars file", () => {
   test("Validating that a bedrock.tfvars is generated and has appropriate format", () => {
-    const mockProjectPath = "src/commands/infra/mocks/discovery-service";
+    const mockProjectPath = "src/commands/infra/mocks/fabrikam";
     const data = readYaml<InfraConfigYaml>(
       path.join(mockProjectPath, DEFINITION_YAML)
     );
@@ -790,7 +779,7 @@ describe("Validate bedrock.tfvars file", () => {
 
 describe("Validate backend.tfvars file", () => {
   test("Validating that a backend.tfvars is generated and has appropriate format", () => {
-    const mockProjectPath = "src/commands/infra/mocks/discovery-service";
+    const mockProjectPath = "src/commands/infra/mocks/fabrikam";
     const data = readYaml<InfraConfigYaml>(
       path.join(mockProjectPath, DEFINITION_YAML)
     );
