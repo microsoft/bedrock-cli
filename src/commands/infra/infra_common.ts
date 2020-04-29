@@ -2,13 +2,17 @@ import * as os from "os";
 import path from "path";
 import url from "url";
 
-export const spkTemplatesPath = path.join(os.homedir(), ".spk", "templates");
+export const bedrockTemplatesPath = path.join(
+  os.homedir(),
+  ".bedrock",
+  "templates"
+);
 
 export const DEFINITION_YAML = "definition.yaml";
 export const VARIABLES_TF = "variables.tf";
 export const BACKEND_TFVARS = "backend.tfvars";
 export const TERRAFORM_TFVARS = "terraform.tfvars";
-export const SPK_TFVARS = "spk.tfvars";
+export const BEDROCK_TFVARS = "bedrock.tfvars";
 export const DEFAULT_VAR_VALUE = "<insert value>";
 
 /**

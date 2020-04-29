@@ -5,7 +5,7 @@
       "Filter_array": {
         "inputs": {
           "from": "@body('List_tables')?['value']",
-          "where": "@startsWith(item()?['TableName'], 'spktest')"
+          "where": "@startsWith(item()?['TableName'], 'bedrocktest')"
         },
         "runAfter": {
           "List_tables": ["Succeeded"]

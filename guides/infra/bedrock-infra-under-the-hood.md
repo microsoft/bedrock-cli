@@ -1,43 +1,43 @@
-# spk infra (under the hood)
+# bedrock infra (under the hood)
 
-A breakdown of how `spk infra` will handle versioning, cloning, template
+A breakdown of how `bedrock infra` will handle versioning, cloning, template
 generation, and more.
 
 ## Sourcing Templates
 
-`spk` will rely on **git cloning** your source repository (e.g.
+`bedrock` will rely on **git cloning** your source repository (e.g.
 microsoft/bedrock) as a means to appropriately source Terraform templates. This
-will happen as part of the `spk infra scaffold` and `spk infra generate`
+will happen as part of the `bedrock infra scaffold` and `bedrock infra generate`
 executions using arguments `--source`, `--version`, and `--template`. The
 `--source` argument specifies the git url of your source repo, the `--template`
 argument specifies the path to the template within the git repo, and the
-`--version` argument specifies the git repo _tag_. `spk` requires that template
-or repo versions are made in the form of repo tags or branches.
+`--version` argument specifies the git repo _tag_. `bedrock` requires that
+template or repo versions are made in the form of repo tags or branches.
 
 This allows there to be flexibility in using _any_ source repository, including
 ones outside of Bedrock. As long as the `--template` value provides a valid path
 within the source repository, and the versioned source repository can be
-successfully cloned, `spk` will be able to scaffold and generate templates from
-any source.
+successfully cloned, `bedrock` will be able to scaffold and generate templates
+from any source.
 
 The following sequence of events will take place with regards to sourcing
-templates when running `spk infra` commands:
+templates when running `bedrock infra` commands:
 
-1. `spk infra scaffold` will clone source repository to `~/.spk/infra`
+1. `bedrock infra scaffold` will clone source repository to `~/.bedrock/infra`
    directory.
 2. The `--version` argument will correspond to a repo tag. After the repository
    is successfully cloned, `git checkout tags/<version>` will checkout the
    specific version of the repo.
-3. `spk infra scaffold` will copy the template files over to the current working
-   directory. The `--template` argument in `spk infra scaffold` will specify the
-   path to the Terraform template in the source repo (e.g.
+3. `bedrock infra scaffold` will copy the template files over to the current
+   working directory. The `--template` argument in `bedrock infra scaffold` will
+   specify the path to the Terraform template in the source repo (e.g.
    `/cluster/environments/azure-simple`).
 4. Argument values and variables parsed from `variables.tf` and `backend.tfvars`
    will be concatenated and transformed into a `definition.yaml`.
-5. `spk infra generate` will parse the `definition.yaml` (in the current working
-   directory), and (1) validate the source repo is already cloned in
-   `~./spk/infra` (2) perform a `git pull` to ensure remote updates are merged
-   (3) git checkout the repo tag based on the version provided in the
+5. `bedrock infra generate` will parse the `definition.yaml` (in the current
+   working directory), and (1) validate the source repo is already cloned in
+   `~./bedrock/infra` (2) perform a `git pull` to ensure remote updates are
+   merged (3) git checkout the repo tag based on the version provided in the
    `definition.yaml` and (4) after it is finished iterating through directories,
    copy the Terraform template to the `generated` directory with the approprite
    Terraform files filled out based on `definition.yaml` files.
@@ -58,16 +58,16 @@ fabrikam-generated
     |-fabrikam-east/
         |- backend.tfvars
         |- main.tf
-        |- spk.tfvars
+        |- bedrock.tfvars
     |- fabrikam-west/
         |- backend.tfvars
         |- main.tf
-        |- spk.tfvars
+        |- bedrock.tfvars
 ```
 
-`spk infra generate` will attempt to recursively read `definition.yaml` files
-following a "top-down" approach. When a user executes
-`spk infra generate -p fabrikam-east` for example (assuming in `fabrikam`
+`bedrock infra generate` will attempt to recursively read `definition.yaml`
+files following a "top-down" approach. When a user executes
+`bedrock infra generate -p fabrikam-east` for example (assuming in `fabrikam`
 directory):
 
 1. The command recursively (1) reads in the `definition.yaml` at the current
@@ -80,8 +80,8 @@ directory):
 
 ## Private Repos
 
-`spk` will extend the capability to clone private repositories using personal
-access tokens (PAT). For more information, please refer to this
+`bedrock` will extend the capability to clone private repositories using
+personal access tokens (PAT). For more information, please refer to this
 [section](../cloud-infra-management.md#authentication-private-repos) of Cloud
 Infra Management.
 
@@ -93,7 +93,7 @@ Often, templates may change drastically that it may make more sense to deploy a
 new cluster and perform a migration.
 
 - Where do you draw the line on performing re-deployments and migrations?
-- Should this be handled through `spk`, Azure DevOps pipeline, or etc.?
+- Should this be handled through `bedrock`, Azure DevOps pipeline, or etc.?
 
 ### Reconcilation Between Parent and Leaf Templates
 
@@ -117,13 +117,13 @@ changeset/modified files:
 
 1. If changes are made to definition.yaml files:
    - If a (parent) definition.yaml file:
-     - Run `spk infra generated` on all "leaf" directories.
+     - Run `bedrock infra generated` on all "leaf" directories.
      - Create a pull request against the HLD with the updated generated files.
    - If a (child/leaf) definition.yaml:
-     - run `spk infra generated` on just the leaf directory.
+     - run `bedrock infra generated` on just the leaf directory.
      - Create a PR to the HLD with the updated generated files.
    - If BOTH:
-     - Run `spk infra generated` on all "leaf" directories.
+     - Run `bedrock infra generated` on all "leaf" directories.
      - Create a PR to the HLD with the updated generated files.
 2. If changes are made to "generated" files:
    - Determine which generated directories are affected.

@@ -5,7 +5,7 @@
   "options": [
     {
       "arg": "--git-push",
-      "description": "SPK CLI will try to commit and push these changes to a new origin/branch.",
+      "description": "Bedrock will try to commit and push these changes to a new origin/branch.",
       "required": false,
       "defaultValue": false
     },

@@ -1,5 +1,5 @@
 # Azure DevOps Configuration
-azure_devops: # Should this live under the `spk` configuration?
+azure_devops: # Should this live under the `bedrock` configuration?
   server_url:
   org: "${env:AZDO_ORG}"
   project: "${env:AZDO_PROJECT}"
@@ -27,7 +27,7 @@ introspection:
     partition_key: "${env:sa_partition_key}"
     key: "${env:sa_access_key}"
     source_repo_access_token: "${env:ACCESS_TOKEN_SECRET}" # Optional. Define this to see author names in the dashboard
-    # Following is needed if using spk to onboard to use introspection tool
+    # Following is needed if using bedrock to onboard to use introspection tool
     service_principal_id: "service-principal-id"
     service_principal_secret: "service-principal-secret"
     subscription_id: "subscription-id"

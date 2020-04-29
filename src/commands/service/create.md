@@ -1,11 +1,11 @@
 ## Description
 
-Add a new service into this initialized spk project repository.
+Add a new service into this initialized bedrock project repository.
 
 ## Example
 
 ```bash
-spk service create my-service . \
+bedrock service create my-service . \
   --display-name $app_name \
   --helm-config-path $path_to_chart_in_repo \
   --helm-config-git $helm_repo_url \ # Needs to start with https and not contain user name
@@ -28,7 +28,7 @@ spk service create my-service . \
   the generated Traefik2 IngressRoutes. i.e.
 
   ```sh
-  spk service create my-example-documents-service path/to/my/service \
+  bedrock service create my-example-documents-service path/to/my/service \
     --middlewares middleware \
     --k8s-backend-port 3001 \
     --k8s-backend docs-service \

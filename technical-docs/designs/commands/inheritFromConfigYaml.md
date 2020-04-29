@@ -1,7 +1,7 @@
 # Software Design Document
 
 Reference: Simplification of command option values inheriting configuration
-values from spk config yaml command<br> Authors: Andre Briggs, Dennis Seah
+values from bedrock config yaml command<br> Authors: Andre Briggs, Dennis Seah
 
 | Revision | Date         | Author      | Remarks                                                 |
 | -------: | ------------ | ----------- | ------------------------------------------------------- |
@@ -10,13 +10,13 @@ values from spk config yaml command<br> Authors: Andre Briggs, Dennis Seah
 
 ## 1. Overview
 
-By Design, `spk` command option values inherit from configuration values from
-spk config yaml. This is to help the user from having to provide these values in
-the command line. However, in our generate documents and `commander` generated
-help, users are not informed about these inheritance. In this design doc, we
-propose a way to add this inheritance information in our generated operation
-document; and also a helper function to automatically populate values from
-`config.yaml` to the command option values.
+By Design, `bedrock` command option values inherit from configuration values
+from bedrock config yaml. This is to help the user from having to provide these
+values in the command line. However, in our generate documents and `commander`
+generated help, users are not informed about these inheritance. In this design
+doc, we propose a way to add this inheritance information in our generated
+operation document; and also a helper function to automatically populate values
+from `config.yaml` to the command option values.
 
 ## 2. Out of Scope
 
@@ -29,7 +29,7 @@ succinct explain how this function works.
 
 ### 3.1 New property in command json file.
 
-Taking this option from `spk deployment onboard` command for example.
+Taking this option from `bedrock deployment onboard` command for example.
 
 ```
   "options": [
@@ -63,7 +63,7 @@ With this new property, we have the opportunities to
 ### 3.2 Add inheritance information in operation help document
 
 In the
-[spk.js](https://github.com/microsoft/bedrock-cli/blob/master/docs/commands/spk.js)
+[bedrock.js](https://github.com/microsoft/bedrock-cli/blob/master/docs/commands/bedrock.js)
 javascript, we can add code to insert inheritance information like this.
 
 <p style="text-align:center">

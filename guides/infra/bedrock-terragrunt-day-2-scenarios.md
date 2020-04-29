@@ -1,4 +1,4 @@
-# SPK + Terragrunt Scenarios (Deprecated)
+# Bedrock + Terragrunt Scenarios (Deprecated)
 
 ## Building Cluster Definition (Alternative)
 
@@ -8,12 +8,13 @@ multiple clusters and wants to be able to scalably add and manage these clusters
 without having to hand manage N sets of nearly identical Terraform code and
 config. Instead, she would like to exploit the fact that each deployment will be
 nearly exactly the same in structure but differ in a few configuration values
-(region, connection strings, etc). `spk` allows her to do this with hierarchical
-deployment definitions, where each layer inherits from the layer above it. Given
-this, she starts by creating a common definition based on an existing template:
+(region, connection strings, etc). `bedrock` allows her to do this with
+hierarchical deployment definitions, where each layer inherits from the layer
+above it. Given this, she starts by creating a common definition based on an
+existing template:
 
 ```bash
-$ spk infra scaffold --base --name discovery-cluster --source https://github.com/fabrikam/bedrock --template cluster/environments/fabrikam-single-keyvault
+$ bedrock infra scaffold --base --name discovery-cluster --source https://github.com/fabrikam/bedrock --template cluster/environments/fabrikam-single-keyvault
 ```
 
 This creates a directory called discovery-cluster and places a terragrunt.hcl
@@ -54,14 +55,14 @@ adds the remote backend arguments to store terraform states.
 
 ```tf
 inputs = {
-    vnet_name = "spkvnet"
-    subnet_name = "spksubnet"
+    vnet_name = "bedrockvnet"
+    subnet_name = "bedrocksubnet"
     subnet_prefix = "10.39.0.0/24"
     address_space = "10.39.0.0/16"
-    keyvault_name = "spkkeyvault"
+    keyvault_name = "bedrockkeyvault"
     service_principal_id = "${get_env("AZURE_CLIENT_ID", "")}"
     tenant_id = "${get_env("AZURE_TENANT_ID", "")}"
-    keyvault_resource_group = "nr-spk-infra-tests-rg"
+    keyvault_resource_group = "nr-bedrock-infra-tests-rg"
     subnet_prefixes = "10.39.0.0/16"
     agent_vm_count = "16"
     gitops_ssh_url = "git@github.com:fabrikam/discovery-cluster-manifests.git"
@@ -81,7 +82,7 @@ remote_state {
         storage_account_name = "${get_env("AZURE_BACKEND_STORAGE_NAME", "")}"
         container_name       = "${get_env("AZURE_BACKEND_CONTAINER_NAME", "")}"
         access_key           = "${get_env("AZURE_BACKEND_ACCESS_KEY", "")}"
-        key                  = "spk1.${path_relative_to_include()}/terraform.tfstate"
+        key                  = "bedrock1.${path_relative_to_include()}/terraform.tfstate"
     }
 }
 ```
@@ -92,7 +93,7 @@ deploying in the east region. To do that, she enters the `discovery-cluster`
 directory above and issues the command:
 
 ```bash
-$ spk infra --leaf scaffold --name east
+$ bedrock infra --leaf scaffold --name east
 ```
 
 Like the previous command, this creates a directory called `east` and creates a
@@ -139,7 +140,7 @@ Likewise, she wants to create a `west` cluster, which she does in the same
 manner from the `discovery-cluster` directory:
 
 ```bash
-$ spk infra scaffold --leaf --name west
+$ bedrock infra scaffold --leaf --name west
 ```
 
 And fills in the `terragrunt.hcl` file with the following `west` specific
@@ -213,7 +214,7 @@ After several weeks, Odin joins the `discovery-cluster` project and upon the
 request of his lead Olina, He wishes to test out streaming functionality with
 the clusters in `east` and `west`.
 
-![test](../images/spk-rollback-upgrades.png)
+![test](../images/bedrock-rollback-upgrades.png)
 
 Odin installs terragrunt on his machine and wishes to test the current
 deployment of discovery-service in a dev environment. Odin, uses a
@@ -229,7 +230,7 @@ deployment of discovery-service in a dev environment. Odin, uses a
 This is cached into a sub folder for Odin to deploy in his own dev environment.
 Next he wishes to update the west template to include an eventhub he is testing
 for streaming. He runs a
-`spk infra update --hcl "/new-configs/terragrunt.hcl" --template discovery-service/west`.
+`bedrock infra update --hcl "/new-configs/terragrunt.hcl" --template discovery-service/west`.
 This replaces the config file at this leaf. He also adds the eventhub terraform
 module since this resource is unique to discovery-service/west.
 
@@ -248,9 +249,9 @@ latest from the discovery-service repository and notices the new release. To
 remediate the cluster down as soon as possible, she applys the previous release
 of the discovery-service to the CI/CD live stage.
 
-## `spk infra scaffold`
+## `bedrock infra scaffold`
 
-### SPK & Template Versioning (Work in progress)
+### Bedrock & Template Versioning (Work in progress)
 
 Spektate will version infrastructure templates based on modification of base HCL
 files and their respective leaf templates. Since the base is now top down
@@ -259,7 +260,7 @@ derived template.
 
 ```
 inputs = {
-    cluster_name             = "spk-cluster-west"
+    cluster_name             = "bedrock-cluster-west"
     ssh_public_key           = "public-key"
     gitops_ssh_url           = "git@github.com:timfpark/fabrikate-cloud-native-manifests.git"
     gitops_ssh_key           = "<path to private gitops repo key>"
@@ -279,19 +280,20 @@ Additional Thoughts:
 - Also provide guidance for alternatively using gitops through Atlantis for
   versioning.
 
-## `spk infra update`
+## `bedrock infra update`
 
-## SPK & Template Updating - Targeted Day 2 Scenarios
+## Bedrock & Template Updating - Targeted Day 2 Scenarios
 
 #### **Update Infrastructure Config & Modifications**
 
-- **Update Infrastructure Config & Modifications** - Using `spk infra update` to
-  modify Terragrunt HCL files based on args in a provided template folder (Leaf
-  Deployments). `spk infra update` should be provided an argument (e.g.
-  --template hcl-file / or var) that will pass the path to the leaf deployment
-  definition to either update the hcl file or a var within the hcl file.
+- **Update Infrastructure Config & Modifications** - Using
+  `bedrock infra update` to modify Terragrunt HCL files based on args in a
+  provided template folder (Leaf Deployments). `bedrock infra update` should be
+  provided an argument (e.g. --template hcl-file / or var) that will pass the
+  path to the leaf deployment definition to either update the hcl file or a var
+  within the hcl file.
 
-> `spk infra update --template "~/discover-service/cluster-west" --vars "cluster-name=new-cluster-name"`
+> `bedrock infra update --template "~/discover-service/cluster-west" --vars "cluster-name=new-cluster-name"`
 
 Expected Day 2 Operations Coverage:
 
@@ -303,11 +305,11 @@ Expected Day 2 Operations Coverage:
 #### **Update Partial Leaf Deployments / Migrating Base**
 
 - **Update Partial Leaf Deployments / Migrating Base** - Using
-  `spk infra update` to create a new base for a subset of leafs to be migrated
-  to a new common configuration for deployment.
+  `bedrock infra update` to create a new base for a subset of leafs to be
+  migrated to a new common configuration for deployment.
 
 > Example:
-> `spk infra update --new-base "azure-simple_v2" --template "~/discover-service/cluster-west" --base-file "new/base/terragrunt.hcl"`
+> `bedrock infra update --new-base "azure-simple_v2" --template "~/discover-service/cluster-west" --base-file "new/base/terragrunt.hcl"`
 
 ```
 └── recursive
@@ -360,7 +362,7 @@ Expected Day 2 Operations Coverage:
   vars in my discovery-service.
 
 > Example:
-> `spk infra update --template "~/discover-service/cluster-west" --version "0.1.2"`
+> `bedrock infra update --template "~/discover-service/cluster-west" --version "0.1.2"`
 
 Additional Thoughts:
 
@@ -373,7 +375,7 @@ Additional Thoughts:
 
 - Terragrunt coupled to terraform version restriction
 - One level terragrunt config propagation
-- `.spk` Management of templates
+- `.bedrock` Management of templates
 - Mock config guidance
 - Terraform workspaces on multiple deployment configuration
 

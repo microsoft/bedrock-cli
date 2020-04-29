@@ -16,7 +16,7 @@ resource configurations to be packaged and re-used.
 
 This document outlines multiple solution that seeks to validate alternative ways
 in which relative paths for child module may be supported in Bedrock
-implementation and the SPK cli tooling.
+implementation and the Bedrock CLI tooling.
 
 ```
 module "servers" {
@@ -26,8 +26,8 @@ module "servers" {
 }
 ```
 
-This design shall only target supporting relative paths in spk scaffolding and
-generation.
+This design shall only target supporting relative paths in Bedrock CLI
+scaffolding and generation.
 
 ### Issues Addressed:
 
@@ -38,13 +38,14 @@ generation.
 
 ## 2. Solution
 
-In the current implementation on SPK infra practices, the tool is embedded into
-a generation pipeline that provisions terraform files respective to the modified
-infra HLD. `spk infra generate` provisions a terraform deployment template files
-based on the key values provided in the target directory's `definition.yaml`. If
-the `source` template in the `definition.yaml` uses relative paths in respects
-to the source, `infra generate` command will produce a terraform file with the
-module source out of scope from the provisioned terraform files.
+In the current implementation on Bedrock CLI infra practices, the tool is
+embedded into a generation pipeline that provisions terraform files respective
+to the modified infra HLD. `bedrock infra generate` provisions a terraform
+deployment template files based on the key values provided in the target
+directory's `definition.yaml`. If the `source` template in the `definition.yaml`
+uses relative paths in respects to the source, `infra generate` command will
+produce a terraform file with the module source out of scope from the
+provisioned terraform files.
 
 When executing a `terraform init` on the generated deployment files it produces
 an error similar to the following:
@@ -61,7 +62,7 @@ Unable to evaluate directory symlink: lstat ../../azure: no such file or
 directory
 ```
 
-### 2.1 Munge together URL with relative Path in SPK Generate - **ACCEPTED DESIGN**
+### 2.1 Munge together URL with relative Path in Bedrock `infra generate` - **ACCEPTED DESIGN**
 
 One option to address this issue is to directly modify the generated `.tf` files
 to reflect the respective module source. Inside the `infra generate` command we
@@ -131,8 +132,8 @@ module "flex_volume" {
 An existing pull request for Bedrock currently exists that verifies relative
 path implementation with the use of Bedrock Provided Templates in
 [#1189](https://github.com/microsoft/bedrock/pull/1189). This design document
-seeks to propose interoperability of the relative paths with SPK tooling and
-adjustment of infrastructure pipeline.
+seeks to propose interoperability of the relative paths with Bedrock CLI tooling
+and adjustment of infrastructure pipeline.
 
 ## 4. Risks & Mitigations
 
@@ -144,7 +145,7 @@ Limitations to the solution include:
 ## 5. Documentation
 
 Yes. A brief update to the
-[`spk-infra-generation-pipeline.md`](/guides/infra/spk-infra-generation-pipeline.md)
+[`bedrock-infra-generation-pipeline.md`](/guides/infra/bedrock-infra-generation-pipeline.md)
 detailing relative path support for module sources.
 
 ## 6. Alternatives
@@ -152,8 +153,8 @@ detailing relative path support for module sources.
 ### 6.1 Copy Modules to Alternative Configured Generated Directory
 
 Another option is to copy modules from cached remote directory to the generated
-folder. This allows SPK to directly reference the parent module source with the
-generated terraform templates. In addition, this would also require the
+folder. This allows Bedrock CLI to directly reference the parent module source
+with the generated terraform templates. In addition, this would also require the
 templates to be placed accordingly in respects to relative paths to parent
 modules. In Bedrock, the template folders are 3 levels down
 (../../../cluster/azure/keyvault_flex_vol")
@@ -204,11 +205,12 @@ Limitations:
 
 A symbolic link, also termed a soft link, is a special kind of file that points
 to another file, much like a shortcut in Windows or a Macintosh alias. This will
-allow generate the alias the cached repo for all `spk infra generate` commands.
+allow generate the alias the cached repo for all `bedrock infra generate`
+commands.
 
 `ln -s modules /path/to/modules`
 
-Inside of spk, the terraform files will now reference the symlink which is
+Inside of bedrock, the terraform files will now reference the symlink which is
 cached.
 
 **Output `Main.tf`**

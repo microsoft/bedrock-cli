@@ -23,20 +23,20 @@ stages:
           - task: DownloadPipelineArtifact@2
             inputs:
               buildType: "specific"
-              project: $(SPK_PROJECT_ID)
-              definition: $(SPK_DEFINITION_ID)
+              project: $(BEDROCK_CLI_PROJECT_ID)
+              definition: $(BEDROCK_CLI_DEFINITION_ID)
               buildVersionToDownload: "latestFromBranch"
               branchName: "refs/heads/master"
-              itemPattern: "spk*"
-              artifactName: "spk_linux_node_12"
+              itemPattern: "bedrock*"
+              artifactName: "bedrock_linux_node_12"
               targetPath: "$(System.DefaultWorkingDirectory)"
           - bash: |
               shopt -s expand_aliases
               echo "Current Dir is $(pwd)"
-              chmod +x spk-linux
-              alias spk="$(pwd)/spk-linux"
-              spk --version
-            displayName: "Verify SPK downloaded and executable"
+              chmod +x bedrock-linux
+              alias bedrock="$(pwd)/bedrock-linux"
+              bedrock --version
+            displayName: "Verify Bedrock CLI downloaded and executable"
             failOnStderr: true
           - bash: |
               echo "FUNC_SCRIPT: $FUNC_SCRIPT"
@@ -71,7 +71,7 @@ stages:
               git config --global user.name "Service Account"
 
               # Set ENV VARs
-              export SPK_LOCATION="$(pwd)/spk-linux"
+              export BEDROCK_CLI_LOCATION="$(pwd)/bedrock-linux"
               export ACCESS_TOKEN_SECRET=$(AZDO_PAT)
               export SP_PASS=$(SP_PASS)
               export SP_TENANT=$(SP_TENANT)
@@ -96,20 +96,20 @@ stages:
           - task: DownloadPipelineArtifact@2
             inputs:
               buildType: "specific"
-              project: $(SPK_PROJECT_ID)
-              definition: $(SPK_DEFINITION_ID)
+              project: $(BEDROCK_CLI_PROJECT_ID)
+              definition: $(BEDROCK_CLI_DEFINITION_ID)
               buildVersionToDownload: "latestFromBranch"
               branchName: "refs/heads/master"
-              itemPattern: "spk*"
-              artifactName: "spk_linux_node_12"
+              itemPattern: "bedrock*"
+              artifactName: "bedrock_linux_node_12"
               targetPath: "$(System.DefaultWorkingDirectory)"
           - bash: |
               shopt -s expand_aliases
               echo "Current Dir is $(pwd)"
-              chmod +x spk-linux
-              alias spk="$(pwd)/spk-linux"
-              spk --version
-            displayName: "Verify SPK downloaded and executable"
+              chmod +x bedrock-linux
+              alias bedrock="$(pwd)/bedrock-linux"
+              bedrock --version
+            displayName: "Verify BEDROCK_CLI downloaded and executable"
             failOnStderr: true
           - bash: |
               echo "FUNC_SCRIPT: $FUNC_SCRIPT"
@@ -144,7 +144,7 @@ stages:
               git config --global user.name "Service Account"
 
               # Set ENV VARs
-              export SPK_LOCATION="$(pwd)/spk-linux"
+              export BEDROCK_CLI_LOCATION="$(pwd)/bedrock-linux"
               export ACCESS_TOKEN_SECRET=$(AZDO_PAT)
               export SP_PASS=$(SP_PASS)
               export SP_TENANT=$(SP_TENANT)
@@ -164,7 +164,7 @@ stages:
             timeoutInMinutes: 25
           - task: PublishPipelineArtifact@1
             inputs:
-              path: $(System.DefaultWorkingDirectory)/spk-env/log.txt
+              path: $(System.DefaultWorkingDirectory)/bedrock-env/log.txt
               artifact: test_logs
             condition: always()
       - job: infra_integration_tests
@@ -176,20 +176,20 @@ stages:
           - task: DownloadPipelineArtifact@2
             inputs:
               buildType: "specific"
-              project: $(SPK_PROJECT_ID)
-              definition: $(SPK_DEFINITION_ID)
+              project: $(BEDROCK_CLI_PROJECT_ID)
+              definition: $(BEDROCK_CLI_DEFINITION_ID)
               buildVersionToDownload: "latestFromBranch"
               branchName: "refs/heads/master"
-              itemPattern: "spk*"
-              artifactName: "spk_linux_node_12"
+              itemPattern: "bedrock*"
+              artifactName: "bedrock_linux_node_12"
               targetPath: "$(System.DefaultWorkingDirectory)"
           - bash: |
               shopt -s expand_aliases
               echo "Current Dir is $(pwd)"
-              chmod +x spk-linux
-              alias spk="$(pwd)/spk-linux"
-              spk --version
-            displayName: "Verify SPK downloaded and executable"
+              chmod +x bedrock-linux
+              alias bedrock="$(pwd)/bedrock-linux"
+              bedrock --version
+            displayName: "Verify Bedrock CLI downloaded and executable"
             failOnStderr: true
           - bash: |
               echo "FUNC_SCRIPT: $FUNC_SCRIPT"
@@ -231,7 +231,7 @@ stages:
               git config --global user.name "Service Account"
 
               # Set ENV VARs
-              export SPK_LOCATION="$(pwd)/spk-linux"
+              export BEDROCK_CLI_LOCATION="$(pwd)/bedrock-linux"
               export ACCESS_TOKEN_SECRET=$(AZDO_PAT)
               export SP_PASS=$(SP_PASS)
               export SP_TENANT=$(SP_TENANT)
@@ -249,6 +249,6 @@ stages:
             timeoutInMinutes: 15
           - task: PublishPipelineArtifact@1
             inputs:
-              path: $(System.DefaultWorkingDirectory)/spk-env/log.txt
+              path: $(System.DefaultWorkingDirectory)/bedrock-env/log.txt
               artifact: infra_test_logs
             condition: always()

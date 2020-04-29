@@ -18,7 +18,7 @@ import * as bedrockYaml from "./lib/bedrockYaml";
 ////////////////////////////////////////////////////////////////////////////////
 // State
 ////////////////////////////////////////////////////////////////////////////////
-let spkConfig: ConfigYaml = {}; // DANGEROUS! this var is globally retrievable and mutable via Config()
+let bedrockConfig: ConfigYaml = {}; // DANGEROUS! this var is globally retrievable and mutable via Config()
 let hasWarnedAboutUninitializedConfig = false; // has emitted an initialization warning if global config does not exist
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
@@ -36,7 +36,7 @@ export const readYaml = <T>(filepath: string): T => {
     return yaml.safeLoad(contents) as T;
   }
   throw buildError(errorStatusCode.FILE_IO_ERR, {
-    errorKey: "spk-config-yaml-err-readyaml",
+    errorKey: "bedrock-config-yaml-err-readyaml",
     values: [filepath],
   });
 };
@@ -55,7 +55,7 @@ export const updateVariableWithLocalEnv = (value: string): string => {
         value = value.replace(matches[0], process.env[matches[1]] as string);
       } else {
         throw buildError(errorStatusCode.ENV_SETTING_ERR, {
-          errorKey: "spk-config-yaml-var-undefined",
+          errorKey: "bedrock-config-yaml-var-undefined",
           values: [matches[1]],
         });
       }
@@ -92,10 +92,10 @@ export const loadConfigurationFromLocalEnv = <T>(configObj: T): T => {
 };
 
 /**
- * Fetches the absolute default directory of the spk global config
+ * Fetches the absolute default directory of the bedrock global config
  */
 export const defaultConfigDir = (): string => {
-  const dir = path.join(os.homedir(), ".spk");
+  const dir = path.join(os.homedir(), ".bedrock");
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
@@ -103,14 +103,14 @@ export const defaultConfigDir = (): string => {
 };
 
 /**
- * Fetches the absolute default path of the spk global config
+ * Fetches the absolute default path of the bedrock global config
  */
 export const defaultConfigFile = (): string =>
   path.join(defaultConfigDir(), "config.yaml");
 
 /**
  * Loads configuration from a given filename, if provided, otherwise
- * uses the default file location ~/.spk-config.yaml
+ * uses the default file location ~/.bedrock-config.yaml
  *
  * @param filepath file to load configuration from
  */
@@ -121,11 +121,11 @@ export const loadConfiguration = (
     fs.statSync(filepath);
     dotenv.config();
     const data = readYaml<ConfigYaml>(filepath);
-    spkConfig = loadConfigurationFromLocalEnv(data || {});
+    bedrockConfig = loadConfigurationFromLocalEnv(data || {});
   } catch (err) {
     throw buildError(
       errorStatusCode.FILE_IO_ERR,
-      "spk-config-yaml-load-err",
+      "bedrock-config-yaml-load-err",
       err
     );
   }
@@ -135,25 +135,25 @@ export const loadConfiguration = (
 // Exported
 ////////////////////////////////////////////////////////////////////////////////
 /**
- * Returns the global spk-config from the host user
+ * Returns the global bedrock-config from the host user
  */
 export const Config = (): ConfigYaml => {
   // Only load the config if it hasn't been loaded before (ie; its empty)
-  if (Object.keys(spkConfig).length === 0) {
+  if (Object.keys(bedrockConfig).length === 0) {
     try {
       loadConfiguration();
     } catch (err) {
       logger.verbose(err);
       if (!hasWarnedAboutUninitializedConfig) {
         logger.info(
-          `Unable to load SPK configuration file; run \`spk init\` to initialize your global configuration or ensure you have passed all required parameters to the called function.`
+          `Unable to load Bedrock configuration file; run \`bedrock init\` to initialize your global configuration or ensure you have passed all required parameters to the called function.`
         );
         hasWarnedAboutUninitializedConfig = true;
       }
     }
   }
 
-  return spkConfig;
+  return bedrockConfig;
 };
 
 /**

@@ -22,7 +22,7 @@ const verifyConfigDefined = (
 
 /**
  * Create an instance of `ClientSecretCredential` and returns for Azure data plane activities
- * @param opts optionally override spk config with Azure subscription access options
+ * @param opts optionally override bedrock config with Azure subscription access options
  */
 export const getCredentials = async (
   opts: AzureAccessOpts = {}
@@ -31,7 +31,7 @@ export const getCredentials = async (
   let servicePrincipalPassword = opts.servicePrincipalPassword;
   let tenantId = opts.tenantId;
 
-  // Load config from opts and fallback to spk config
+  // Load config from opts and fallback to bedrock config
   const config = Config();
   const azure =
     config && config.introspection ? config.introspection.azure : undefined;
@@ -62,12 +62,12 @@ export const getCredentials = async (
 
 /**
  * Create an instance of `ApplicationTokenCredentials` and returns for Azure Control/Management plane activities
- * @param opts optionally override spk config with Azure subscription access options
+ * @param opts optionally override bedrock config with Azure subscription access options
  */
 export const getManagementCredentials = async (
   opts: AzureAccessOpts = {}
 ): Promise<msRestNodeAuth.ApplicationTokenCredentials | undefined> => {
-  // Load config from opts and fallback to spk config
+  // Load config from opts and fallback to bedrock config
   const conf = Config();
   let servicePrincipalId = opts.servicePrincipalId;
   let servicePrincipalPassword = opts.servicePrincipalPassword;

@@ -192,7 +192,7 @@ export const tryGetGitOrigin = async (
 ): Promise<string> => {
   return getAzdoOriginUrl().catch(() => {
     logger.warn(
-      "Could not get Git Origin for Azure DevOps - are you running 'spk' _not_ in a pipeline?"
+      "Could not get Git Origin for Azure DevOps - are you running 'bedrock' _not_ in a pipeline?"
     );
     return getOriginUrl(absRepoPath);
   });
@@ -313,41 +313,18 @@ export const getPullRequestLink = async (
 };
 
 /**
- * Creates a new branch of name `newBranchName`, commits all `pathspecs` to the
- * new branch, pushes the new branch, and creates a PR to merge `newBranchName`
- * into the hosts current branch.
- *
- * @param newBranchName name of branch to create and which the a PR will be made for
- * @param pathspecs
+ * If the git repository is empty, git rev-parse HEAD will throw an error.
  */
-export const checkoutCommitPushCreatePRLink = async (
-  newBranchName: string,
-  ...pathspecs: string[]
-): Promise<void> => {
+export const isEmptyRepository = async (): Promise<boolean> => {
   try {
-    const currentBranch = await getCurrentBranch();
-    await checkoutBranch(newBranchName, true);
-    await commitPath(newBranchName, ...pathspecs);
-    await pushBranch(newBranchName);
-
-    const originUrl = await getOriginUrl();
-    const pullRequestLink = await getPullRequestLink(
-      currentBranch,
-      newBranchName,
-      originUrl
-    );
-    logger.info(`Link to create PR: ${pullRequestLink}`);
-
-    // cleanup
-    await checkoutBranch(currentBranch, false);
-    await deleteBranch(newBranchName);
-  } catch (err) {
-    throw buildError(
-      errorStatusCode.GIT_OPS_ERR,
-      "git-checkout-commit-push-create-PR-link",
-      err
-    );
+    await exec("git", ["rev-parse", "HEAD"]);
+  } catch (e) {
+    // No commits, repository is empty.
+    return true;
   }
+
+  // Commits exist, repository is not empty.
+  return false;
 };
 
 /**

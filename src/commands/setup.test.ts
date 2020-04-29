@@ -21,7 +21,7 @@ import { deepClone } from "../lib/util";
 import { ConfigYaml } from "../types";
 import {
   createAppRepoTasks,
-  createSPKConfig,
+  createCLIConfig,
   execute,
   getAPIClients,
   getErrorMessage,
@@ -43,11 +43,11 @@ const mockRequestContext: RequestContext = {
 
 jest.spyOn(variableGroup, "setupVariableGroup").mockResolvedValue();
 
-describe("test createSPKConfig function", () => {
+describe("test createCLIConfig function", () => {
   it("positive test", () => {
     const tmpFile = path.join(createTempDir(), "config.yaml");
     jest.spyOn(config, "defaultConfigFile").mockReturnValueOnce(tmpFile);
-    createSPKConfig(mockRequestContext);
+    createCLIConfig(mockRequestContext);
     const data = readYaml<ConfigYaml>(tmpFile);
     expect(data.azure_devops).toStrictEqual({
       access_token: "pat",
@@ -64,7 +64,7 @@ describe("test createSPKConfig function", () => {
     jest.spyOn(config, "defaultConfigFile").mockReturnValueOnce(tmpFile);
     const oData = deepClone(mockRequestContext);
     oData.toCreateAppRepo = false;
-    createSPKConfig(oData);
+    createCLIConfig(oData);
     const data = readYaml<ConfigYaml>(tmpFile);
     expect(data.azure_devops).toStrictEqual({
       access_token: "pat",
@@ -89,7 +89,7 @@ describe("test createSPKConfig function", () => {
     rc.servicePrincipalPassword = "e4c19d72-96d6-4172-b195-66b3b1c36db1";
     rc.servicePrincipalTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";
     rc.subscriptionId = "72f988bf-86f1-41af-91ab-2d7cd011db48";
-    createSPKConfig(rc);
+    createCLIConfig(rc);
 
     const data = readYaml<ConfigYaml>(tmpFile);
     expect(data.azure_devops).toStrictEqual({
@@ -150,7 +150,7 @@ const testExecuteFunc = async (
       .spyOn(promptInstance, "getAnswerFromFile")
       .mockReturnValueOnce(mockRequestContext);
   }
-  jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
+  jest.spyOn(setup, "createCLIConfig").mockReturnValueOnce();
   jest.spyOn(azdoClient, "getWebApi").mockResolvedValueOnce({
     getCoreApi: async () => {
       return {};
@@ -213,7 +213,7 @@ describe("test execute function", () => {
     jest
       .spyOn(promptInstance, "prompt")
       .mockResolvedValueOnce(mockRequestContext);
-    jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
+    jest.spyOn(setup, "createCLIConfig").mockReturnValueOnce();
     jest.spyOn(azdoClient, "getWebApi").mockResolvedValueOnce({
       getCoreApi: () => {
         throw {
@@ -242,7 +242,7 @@ describe("test execute function", () => {
     jest
       .spyOn(promptInstance, "prompt")
       .mockResolvedValueOnce(mockRequestContext);
-    jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
+    jest.spyOn(setup, "createCLIConfig").mockReturnValueOnce();
     jest.spyOn(azdoClient, "getWebApi").mockResolvedValueOnce({
       getCoreApi: () => {
         throw {
@@ -270,7 +270,7 @@ describe("test execute function", () => {
     jest
       .spyOn(promptInstance, "prompt")
       .mockResolvedValueOnce(mockRequestContext);
-    jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
+    jest.spyOn(setup, "createCLIConfig").mockReturnValueOnce();
     jest.spyOn(azdoClient, "getWebApi").mockResolvedValueOnce({
       getCoreApi: () => {
         throw {
@@ -298,7 +298,7 @@ describe("test execute function", () => {
     jest
       .spyOn(promptInstance, "prompt")
       .mockResolvedValueOnce(mockRequestContext);
-    jest.spyOn(setup, "createSPKConfig").mockReturnValueOnce();
+    jest.spyOn(setup, "createCLIConfig").mockReturnValueOnce();
     jest.spyOn(azdoClient, "getWebApi").mockResolvedValueOnce({
       getCoreApi: () => {
         throw {

@@ -6,7 +6,7 @@ import {
   generateGitIgnoreFile,
   generateHldAzurePipelinesYaml,
 } from "../../lib/fileutils";
-import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
+import { checkoutCommitPushCreatePRLink } from "../../lib/gitpr";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import decorator from "./init.decorator.json";
@@ -39,12 +39,12 @@ export const initialize = async (
     componentName,
     componentPath
   );
-  // Create .gitignore file in directory ignoring spk.log, if one doesn't already exist.
+  // Create .gitignore file in directory ignoring bedrock.log, if one doesn't already exist.
   generateGitIgnoreFile(hldRepoPath, [CLI_LOG_FILENAME]);
 
   // If requested, create new git branch, commit, and push
   if (gitPush) {
-    const newBranchName = "spk-hld-init";
+    const newBranchName = "bedrock-hld-init";
     const directory = ".";
     await checkoutCommitPushCreatePRLink(newBranchName, directory);
   }

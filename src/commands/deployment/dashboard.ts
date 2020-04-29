@@ -40,9 +40,9 @@ export interface DashboardConfig {
 }
 
 /**
- * Validates port and spk configuration
+ * Validates port and bedrock configuration
  *
- * @param config SPK Configuration
+ * @param config Bedrock configuration
  * @param opts Command Line option values
  */
 export const validateValues = (
@@ -93,7 +93,7 @@ export const validateValues = (
 };
 
 /**
- * Cleans previously launched spk dashboard docker containers
+ * Cleans previously launched bedrock dashboard docker containers
  */
 export const cleanDashboardContainers = async (
   config: DashboardConfig
@@ -225,7 +225,7 @@ export const getEnvVars = (config: DashboardConfig): string[] => {
 };
 
 /**
- * Launches an instance of the spk dashboard
+ * Launches an instance of the bedrock dashboard
  *
  * @param port the port number to launch the dashboard
  * @param removeAll true to remove all previously launched instances of the dashboard
