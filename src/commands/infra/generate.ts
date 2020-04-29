@@ -23,6 +23,7 @@ import { copyTfTemplate } from "./scaffold";
 import { build as buildError, log as logError } from "../../lib/errorBuilder";
 import { errorStatusCode } from "../../lib/errorStatusCode";
 import { exec } from "../../lib/shell";
+import { TriggerUpdateParameters } from "@azure/arm-containerregistry/esm/models/mappers";
 
 interface CommandOptions {
   project: string | undefined;
@@ -536,19 +537,16 @@ export const moduleSourceModify = async (
     for (let line of tfData.split(/\r?\n/)) {
       // Match line to expected module source format
       if (line.match(regexSource) !== null) {
-        // Split the line into segments, the third element is the source value
-        const splitLine = line.split(/\s+/);
-        // Filter on module source value
-        const moduleSource = new RegExp(
-          splitLine[3].replace(/['"]+/g, ""),
-          "g"
-        );
+        // Split the line into segments, the last element is the source value
+        const splitLine = line.split("=");
+        const cleanPath = splitLine[1].trim();
+        const moduleSource = new RegExp(cleanPath.replace(/['"]+/g, ""), "g");
         // Get relative path of terraform module local to the repo
         const repoModulePath = await revparse(
           path.join(
             sourcePath,
             fileSource.template,
-            splitLine[3].replace(/["']/g, "")
+            cleanPath.replace(/["']/g, "")
           )
         );
         // Concatenate the Git URL with munged data using a generic git repository format
