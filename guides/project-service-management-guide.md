@@ -519,7 +519,8 @@ update your existing pipelines.
    your `build-update-hld.yaml.backup` to restore customizations (if any). It
    should skip generation of Dockerfile if an existing one is found.
 8. Make sure your variable group(s) are added correctly in these newly generated
-   files.
+   files. You can also run `bedrock project append-variable-group` to add a
+   variable group.
 9. View all the changes, stage, and commit them to remote repository.
 10. Navigate to your pipelines on the browser and make sure pipelines execute
     successfully.
