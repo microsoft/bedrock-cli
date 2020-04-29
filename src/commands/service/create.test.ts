@@ -6,7 +6,7 @@ import { Bedrock } from "../../config";
 import * as config from "../../config";
 import * as bedrockYaml from "../../lib/bedrockYaml";
 import { SERVICE_PIPELINE_FILENAME } from "../../lib/constants";
-import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
+import { checkoutCommitPushCreatePRLink } from "../../lib/gitpr";
 import { createTempDir, removeDir } from "../../lib/ioUtil";
 import * as dns from "../../lib/net/dns";
 import { deepClone } from "../../lib/util";
@@ -30,6 +30,7 @@ import {
 } from "./create";
 import { BedrockServiceConfig } from "../../types";
 
+jest.mock("../../lib/gitpr");
 jest.mock("../../lib/gitutils");
 
 beforeAll(() => {

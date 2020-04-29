@@ -584,6 +584,7 @@ describe("test github urls", () => {
   it("positive test", async () => {
     expect(isGitHubUrl("https://github.com/microsoft/bedrock")).toBe(true);
   });
+
   it("negative test", async () => {
     expect(
       isGitHubUrl("https://dev.azure.com/test/fabrikam/_git/fabrikam")
@@ -608,6 +609,7 @@ describe("Returns an azure devops git repo url if it is defined", () => {
       "https://dev.azure.com/myOrg/myProject/_git/myRepo"
     );
   });
+
   it("another positive test", async () => {
     const mockValues: ConfigValues = {
       buildScriptUrl: "buildScriptUrl",

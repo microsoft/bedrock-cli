@@ -6,7 +6,7 @@ import {
   generateGitIgnoreFile,
   generateHldAzurePipelinesYaml,
 } from "../../lib/fileutils";
-import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
+import { checkoutCommitPushCreatePRLink } from "../../lib/gitpr";
 import { hasValue } from "../../lib/validator";
 import { logger } from "../../logger";
 import decorator from "./init.decorator.json";
