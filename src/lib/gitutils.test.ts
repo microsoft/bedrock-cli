@@ -14,6 +14,7 @@ import {
   safeGitUrlForLogging,
   tryGetGitOrigin,
   validateRepoUrl,
+  isEmptyRepository,
 } from "../lib/gitutils";
 import { disableVerboseLogging, enableVerboseLogging } from "../logger";
 import { exec } from "./shell";
@@ -47,6 +48,26 @@ describe("safeGitUrlForLogging", () => {
     const expected = "https://github.com/microsoft/bedrock.git";
 
     expect(safeGitUrlForLogging(testUrl)).toEqual(expected);
+  });
+});
+
+describe("isEmptyRepository", () => {
+  it("should call exec with proper arguments", async () => {
+    (exec as jest.Mock).mockReturnValue("a commit");
+
+    expect(await isEmptyRepository()).toEqual(false);
+    expect(exec).toHaveBeenCalledTimes(1);
+    expect(exec).toHaveBeenCalledWith("git", ["rev-parse", "HEAD"]);
+  });
+
+  it("should return true if repository is empty", async () => {
+    (exec as jest.Mock).mockRejectedValue(new Error());
+    expect(await isEmptyRepository()).toEqual(true);
+  });
+
+  it("should return false if repository has commits", async () => {
+    (exec as jest.Mock).mockReturnValue("yay");
+    expect(await isEmptyRepository()).toEqual(false);
   });
 });
 
@@ -563,6 +584,7 @@ describe("test github urls", () => {
   it("positive test", async () => {
     expect(isGitHubUrl("https://github.com/microsoft/bedrock")).toBe(true);
   });
+
   it("negative test", async () => {
     expect(
       isGitHubUrl("https://dev.azure.com/test/fabrikam/_git/fabrikam")
@@ -587,6 +609,7 @@ describe("Returns an azure devops git repo url if it is defined", () => {
       "https://dev.azure.com/myOrg/myProject/_git/myRepo"
     );
   });
+
   it("another positive test", async () => {
     const mockValues: ConfigValues = {
       buildScriptUrl: "buildScriptUrl",
