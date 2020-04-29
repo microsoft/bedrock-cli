@@ -5,7 +5,7 @@ import {
   HLD_COMPONENT_FILENAME,
   RENDER_HLD_PIPELINE_FILENAME,
 } from "../../lib/constants";
-import { checkoutCommitPushCreatePRLink } from "../../lib/gitutils";
+import { checkoutCommitPushCreatePRLink } from "../../lib/gitpr";
 import { createTempDir } from "../../lib/ioUtil";
 import {
   disableVerboseLogging,
@@ -13,6 +13,8 @@ import {
   logger,
 } from "../../logger";
 import { execute, initialize } from "./init";
+
+jest.mock("../../lib/gitpr");
 jest.mock("../../lib/gitutils");
 
 beforeAll(() => {
