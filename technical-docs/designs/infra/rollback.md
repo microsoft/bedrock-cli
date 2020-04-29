@@ -25,12 +25,6 @@ difficult. Traditionally this is done by restoring from a backup, performed
 prior to the upgrade. In more modern approach is to integrate a database
 migration tool into your application's installation procedure.
 
-Components of this design are based on the learnings from:
-
-- [Microsoft Bedrock Kubernetes Workflow Project](github.com/microsoft/bedrock)
-- [Bedrock-CLI Infrastructure Generation Pipeline](https://github.com/microsoft/bedrock-cli/blob/master/guides/infra/spk-infra-generation-pipeline.md)
-- [Terraform Recommended Practices](https://www.terraform.io/docs/cloud/guides/recommended-practices/)
-
 ### User Stories Addressed:
 
 1. [Guidance on Rolling Back with SPK infra](https://github.com/microsoft/bedrock/issues/1036)
@@ -213,6 +207,12 @@ This design for a Rollback Terraform Deployments will leverage the following:
 
 ## 6. Documentation
 
-Yes, Documentation will need to be added to the guide docs fo.r rollback
+Yes, Documentation will need to be added to the guide docs for rollback.
 
 ## 7. Appendix
+
+Components of this design are based on the learnings from:
+
+- [Microsoft Bedrock Kubernetes Workflow Project](github.com/microsoft/bedrock)
+- [Bedrock-CLI Infrastructure Generation Pipeline](https://github.com/microsoft/bedrock-cli/blob/master/guides/infra/spk-infra-generation-pipeline.md)
+- [Terraform Recommended Practices](https://www.terraform.io/docs/cloud/guides/recommended-practices/)
