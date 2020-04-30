@@ -15,6 +15,10 @@ import decorator from "./create.decorator.json";
 import { build as buildError, log as logError } from "../../lib/errorBuilder";
 import { errorStatusCode } from "../../lib/errorStatusCode";
 
+export interface CommandOptions {
+  targetBranch: string;
+}
+
 /**
  * Check for bedrock.yaml
  *
@@ -52,6 +56,7 @@ export const checkDependencies = (
 export const execute = async (
   ringName: string,
   projectPath: string,
+  opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
   try {
@@ -65,23 +70,33 @@ export const execute = async (
     logger.info(`Project path: ${projectPath}`);
 
     dns.assertIsValid("<ring-name>", ringName);
+
+    // target-branch falls back to ringName
+    const targetBranch = opts.targetBranch || ringName;
+    // only do assertion on targetBranch if user provided
+    if (opts.targetBranch) {
+      dns.assertIsValid("<target-branch>", targetBranch);
+    }
+
     checkDependencies(projectPath, ringName);
 
     // Add ring to bedrock.yaml
-    addNewRing(projectPath, ringName);
+    addNewRing(projectPath, ringName, { targetBranch });
     // Add ring to all linked service build pipelines' branch triggers
     const bedrockFile: BedrockFile = loadBedrockFile(projectPath);
 
-    const newRings = Object.entries(bedrockFile.rings).map(([ring]) => ring);
-    logger.info(`Updated project rings: ${newRings}`);
+    const ringBranches = Object.entries(bedrockFile.rings).map(
+      ([ring, config]) => config.targetBranch || ring
+    );
+    logger.info(`Updated project rings: ${ringBranches}`);
 
     const servicePathDirectories = bedrockFile.services.map(
       (service) => service.path
     );
 
-    servicePathDirectories.forEach((s) => {
-      updateTriggerBranchesForServiceBuildAndUpdatePipeline(newRings, s);
-    });
+    for (const dir of servicePathDirectories) {
+      updateTriggerBranchesForServiceBuildAndUpdatePipeline(ringBranches, dir);
+    }
 
     logger.info(`Successfully created ring: ${ringName} for this project!`);
     await exitFn(0);
@@ -95,9 +110,11 @@ export const execute = async (
 };
 
 export const commandDecorator = (command: commander.Command): void => {
-  buildCmd(command, decorator).action(async (ringName: string) => {
-    await execute(ringName, process.cwd(), async (status: number) => {
-      await exitCmd(logger, process.exit, status);
-    });
-  });
+  buildCmd(command, decorator).action(
+    async (ringName: string, opts: CommandOptions) => {
+      await execute(ringName, process.cwd(), opts, async (status: number) => {
+        await exitCmd(logger, process.exit, status);
+      });
+    }
+  );
 };

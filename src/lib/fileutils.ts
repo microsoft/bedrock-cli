@@ -486,7 +486,7 @@ export const updateTriggerBranchesForServiceBuildAndUpdatePipeline = (
     SERVICE_PIPELINE_FILENAME
   );
 
-  if (buildPipelineYaml.trigger && buildPipelineYaml.trigger.branches) {
+  if (buildPipelineYaml.trigger?.branches) {
     buildPipelineYaml.trigger.branches.include = ringBranches;
   }
 

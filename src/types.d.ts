@@ -44,7 +44,8 @@ export interface Rings {
 }
 
 export interface RingConfig {
-  isDefault?: boolean; // indicates the branch is a default branch to PR against when creating a service revision
+  isDefault?: boolean; // indicates the branch is a default branch to PR against when creating a service revision,
+  targetBranch?: string; // the branch this ring maps to; if not present defaults to the key which maps to this RingConfig
 }
 
 /**

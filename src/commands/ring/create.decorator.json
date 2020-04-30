@@ -1,5 +1,12 @@
 {
   "command": "create <ring-name>",
   "alias": "c",
-  "description": "Create a new ring for the current working directory project repository. This will affect all services within the project repository."
+  "description": "Create a new ring for the current working directory project repository. This will affect all services within the project repository.",
+  "options": [
+    {
+      "arg": "--target-branch <branch-name>",
+      "description": "The target branch this ring will map to; defaults to <ring-name> if not provided.",
+      "defaultValue": ""
+    }
+  ]
 }
