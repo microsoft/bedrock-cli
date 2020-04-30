@@ -134,37 +134,39 @@ const getMockedDataForGitTests = async (
 describe("test checkRemoteGitExist function", () => {
   it("positive Test", async () => {
     (exec as jest.Mock).mockClear();
+    jest.spyOn(generate, "checkSrcPath").mockReturnValueOnce(Promise.resolve());
     const { safeLoggingUrl, source, sourcePath } = await getMockedDataForGitTests(
       true
     );
     (simpleGit as jest.Mock).mockImplementation(() => {
      return {listRemote:async ():Promise<string>=> "https://github.com/microsoft/bedrock"}
-    })
-    let gitError = undefined
+    });
+    let gitError = undefined;
     try {
       await checkRemoteGitExist(sourcePath, source, safeLoggingUrl);
     } catch(e) {
-      logger.info(e)
-      gitError=e
-    }
-    expect(gitError).not.toBeDefined()
+      logger.info(e);
+      gitError=e;
+    };
+    expect(gitError).not.toBeDefined();
   });
   it("negative Test", async () => {
     (exec as jest.Mock).mockClear();
+    jest.spyOn(generate, "checkSrcPath").mockReturnValueOnce(Promise.resolve());
     const { safeLoggingUrl, source, sourcePath } = await getMockedDataForGitTests(
       true
     );
     (simpleGit as jest.Mock).mockImplementation(() => {
      return {listRemote:async ():Promise<undefined>=> undefined}
-    })
-    let gitError = undefined
+    });
+    let gitError = undefined;
     try {
       await checkRemoteGitExist(sourcePath, source, safeLoggingUrl);
     } catch(e) {
-      logger.info(e)
-      gitError=e
-    }
-    expect(gitError).toBeDefined()
+      logger.info(e);
+      gitError=e;
+    };
+    expect(gitError).toBeDefined();
   });
 });
 
