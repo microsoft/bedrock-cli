@@ -1,5 +1,5 @@
-name: discovery-service-west
-source: "https://github.com/contoso/fabrikam"
+name: fabrikam-west
+source: "https://github.com/fabrikam/bedrock"
 template: cluster/environments/azure-single-keyvault
 version: v0.0.2
 backend:
