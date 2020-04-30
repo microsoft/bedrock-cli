@@ -64,14 +64,19 @@ interface APIClients {
 
 export const isAzCLIInstall = async (): Promise<void> => {
   try {
-    const result = await exec("az", ["version"]);
-    try {
-      logger.info(`az cli vesion ${JSON.parse(result)["azure-cli"]}`);
-    } catch (e) {
+    const result = await exec("az", ["--version"]);
+    const ver = result
+      .split("\n")
+      .find((s) => s.startsWith("azure-cli "))
+      ?.split(/\s+/);
+    const version = ver && ver.length === 2 ? ver[1] : null;
+
+    if (version) {
+      logger.info(`az cli vesion ${version}`);
+    } else {
       throw buildError(
         errorStatusCode.ENV_SETTING_ERR,
-        "setup-cmd-az-cli-get-version-err",
-        e
+        "setup-cmd-az-cli-parse-az-version-err"
       );
     }
   } catch (err) {
