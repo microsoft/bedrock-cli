@@ -3,6 +3,8 @@ import uuid from "uuid/v4";
 import { logger } from "../../logger";
 import { build as buildError } from "../errorBuilder";
 import { errorStatusCode } from "../errorStatusCode";
+import { OUTPUT_FORMAT } from "../../commands/deployment/get";
+import Table from "cli-table";
 
 /**
  * Deployment Table interface to hold necessary information about a table for deployments
@@ -31,6 +33,136 @@ export interface DeploymentEntry {
   manifestRepo?: string;
   pr?: string;
 }
+
+export interface DeploymentRow {
+  status?: string;
+  service?: string;
+  env?: string;
+  author?: string;
+  imageTag?: string;
+  srcToAcrPipelineId?: string;
+  srcToAcrResult?: string;
+  srctoAcrCommitId?: string;
+  AcrToHldPipelineId?: string;
+  AcrToHldResult?: string;
+  AcrToHldCommitId?: string;
+  HldToManifestPipelineId?: string;
+  HldToManifestResult?: string;
+  HldToManifestCommitId?: string;
+  pr?: string;
+  mergedBy?: string;
+  duration?: string;
+  endTime?: string;
+  syncStatus?: string;
+}
+
+export const printDeploymentTable = (
+  outputFormat: OUTPUT_FORMAT,
+  deployments: DeploymentRow[]
+) => {
+  let header = ["Status", "Service", "Ring"];
+
+  if (outputFormat === OUTPUT_FORMAT.WIDE) {
+    header = header.concat(["Author"]);
+  }
+
+  header = header.concat([
+    "Image Tag",
+    "|",
+    "Src to ACR",
+    "Commit",
+    "Result",
+    "|",
+    "ACR to HLD",
+    "Hld Commit",
+    "Result",
+    "|",
+  ]);
+
+  if (outputFormat === OUTPUT_FORMAT.WIDE) {
+    header = header.concat(["Approval PR", "Merged By"]);
+  }
+  header = header.concat([
+    "HLD to Manifest",
+    "Manifest Commit",
+    "Result",
+    "|",
+    "Duration",
+  ]);
+  if (outputFormat === OUTPUT_FORMAT.WIDE) {
+    header = header.concat(["End Time"]);
+  }
+  if (outputFormat === OUTPUT_FORMAT.WIDE) {
+    header = header.concat(["Cluster Sync"]);
+  }
+
+  const table = new Table({
+    head: header,
+    chars: {
+      top: "",
+      "top-mid": "",
+      "top-left": "",
+      "top-right": "",
+      bottom: "",
+      "bottom-mid": "",
+      "bottom-left": "",
+      "bottom-right": "",
+      left: "",
+      "left-mid": "",
+      mid: "",
+      "mid-mid": "",
+      right: "",
+      "right-mid": "",
+      middle: " ",
+    },
+    style: { "padding-left": 0, "padding-right": 0 },
+  });
+
+  deployments.forEach((deployment: DeploymentRow) => {
+    const row = [];
+    row.push(deployment.status ?? "-");
+    row.push(deployment.service ?? "-");
+    row.push(deployment.env ?? "-");
+    if (outputFormat === OUTPUT_FORMAT.WIDE) {
+      row.push(deployment.author ?? "-");
+    }
+    row.push(deployment.imageTag ?? "-");
+
+    row.push("|");
+    row.push(deployment.srcToAcrPipelineId ?? "-");
+    row.push(deployment.srctoAcrCommitId ?? "-");
+    row.push(deployment.srcToAcrResult ?? "");
+
+    row.push("|");
+    row.push(deployment.AcrToHldPipelineId ?? "-");
+    row.push(deployment.AcrToHldCommitId ?? "-");
+    row.push(deployment.AcrToHldResult ?? "");
+
+    row.push("|");
+    if (outputFormat === OUTPUT_FORMAT.WIDE) {
+      row.push(deployment.pr ?? "-");
+      row.push(deployment.mergedBy ?? "-");
+    }
+    row.push(deployment.HldToManifestPipelineId ?? "-");
+    row.push(deployment.HldToManifestCommitId ?? "-");
+    row.push(deployment.HldToManifestResult ?? "");
+
+    row.push("|");
+    row.push(deployment.duration ?? "-");
+
+    if (outputFormat === OUTPUT_FORMAT.WIDE) {
+      row.push(deployment.endTime ?? "-");
+    }
+
+    if (outputFormat === OUTPUT_FORMAT.WIDE) {
+      row.push(deployment.syncStatus ?? "-");
+    }
+
+    table.push(row);
+  });
+  console.log(table.toString());
+  return table;
+};
 
 /**
  * Generates a RowKey GUID 12 characters long

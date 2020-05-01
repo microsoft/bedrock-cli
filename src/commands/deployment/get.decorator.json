@@ -36,7 +36,7 @@
     {
       "arg": "-t, --top <top>",
       "description": "Return only top N most recent deployments",
-      "defaultValue": ""
+      "defaultValue": "50"
     },
     {
       "arg": "-o, --output <output-format>",

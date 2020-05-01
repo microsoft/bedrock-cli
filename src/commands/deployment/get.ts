@@ -6,6 +6,7 @@ import {
   IDeployment,
   status as getDeploymentStatus,
   fetchPR,
+  fetchAuthor,
   getRepositoryFromURL,
 } from "spektate/lib/IDeployment";
 import AzureDevOpsPipeline from "spektate/lib/pipeline/AzureDevOpsPipeline";
@@ -26,9 +27,15 @@ import { isIntegerString } from "../../lib/validator";
 import { logger } from "../../logger";
 import decorator from "./get.decorator.json";
 import { IPullRequest } from "spektate/lib/repository/IPullRequest";
+import { IAuthor } from "spektate/lib/repository/Author";
+import {
+  DeploymentRow,
+  printDeploymentTable,
+} from "../../lib/azure/deploymenttable";
 
 const promises: Promise<void>[] = [];
 const pullRequests: { [id: string]: IPullRequest } = {};
+const authors: { [id: string]: IAuthor } = {};
 /**
  * Output formats to display service details
  */
@@ -156,20 +163,17 @@ export const initialize = async (): Promise<InitObject> => {
     clusterPipeline: new AzureDevOpsPipeline(
       config.azure_devops.org,
       config.azure_devops.project,
-      false,
       config.azure_devops.access_token
     ),
     hldPipeline: new AzureDevOpsPipeline(
       config.azure_devops.org,
       config.azure_devops.project,
-      true,
       config.azure_devops.access_token
     ),
     key: config.introspection.azure.key,
     srcPipeline: new AzureDevOpsPipeline(
       config.azure_devops.org,
       config.azure_devops.project,
-      false,
       config.azure_devops.access_token
     ),
     accountName: config.introspection.azure.account_name,
@@ -223,6 +227,43 @@ export const getClusterSyncStatuses = async (
 };
 
 /**
+ * Fetches author data for deployments
+ *
+ * @param deployment deployment for which author has to be fetched
+ * @param initObj initialization object
+ */
+export const fetchAuthorInformation = async (
+  deployment: IDeployment,
+  initObj: InitObject
+): Promise<void> => {
+  let commitId =
+    deployment.srcToDockerBuild?.sourceVersion ||
+    deployment.hldToManifestBuild?.sourceVersion;
+  let repo: IAzureDevOpsRepo | IGitHub | undefined =
+    deployment.srcToDockerBuild?.repository ||
+    deployment.hldToManifestBuild?.repository;
+  if (!repo && deployment.sourceRepo) {
+    repo = getRepositoryFromURL(deployment.sourceRepo);
+    commitId = deployment.srcToDockerBuild?.sourceVersion;
+  }
+  if (!repo && deployment.hldRepo) {
+    repo = getRepositoryFromURL(deployment.hldRepo);
+    commitId = deployment.hldToManifestBuild?.sourceVersion;
+  }
+  if (repo && commitId !== "") {
+    try {
+      const author = await fetchAuthor(repo, commitId!, initObj.accessToken);
+      if (author) {
+        authors[deployment.deploymentId] = author;
+      }
+    } catch (err) {
+      // verbose log, to make sure printed response from get command is scriptable
+      logger.verbose(`Could not get author for ${commitId}: ` + err);
+    }
+  }
+};
+
+/**
  * Fetches pull request data for deployments that complete merge into HLD
  * by merging a PR
  *
@@ -241,13 +282,29 @@ export const fetchPRInformation = async (
       try {
         const pr = await fetchPR(repo, strPr, initObj.accessToken);
         if (pr) {
-          pullRequests[strPr] = pr;
+          pullRequests[deployment.deploymentId] = pr;
         }
       } catch (err) {
-        logger.warn(`Could not get PR ${strPr} information: ` + err);
+        // verbose log, to make sure printed response from get command is scriptable
+        logger.verbose(`Could not get PR ${strPr} information: ` + err);
       }
     }
   }
+};
+
+/**
+ * Gets author information for all the deployments.
+ *
+ * @param deployments all deployments to be displayed
+ * @param initObj initialization object
+ */
+export const getAuthors = (
+  deployments: IDeployment[] | undefined,
+  initObj: InitObject
+): void => {
+  (deployments || []).forEach((d) => {
+    promises.push(fetchAuthorInformation(d, initObj));
+  });
 };
 
 /**
@@ -271,8 +328,10 @@ export const getPRs = (
  * @param status Status
  * @return a status indicator icon
  */
-export const getStatus = (status: string): string => {
-  if (status === "succeeded") {
+export const getStatus = (status?: string): string => {
+  if (!status) {
+    return "";
+  } else if (status === "succeeded") {
     return "\u2713";
   } else if (!status) {
     return "...";
@@ -303,169 +362,257 @@ export const printDeployments = (
   limit?: number,
   syncStatuses?: ITag[] | undefined
 ): Table | undefined => {
+  const deploymentsToDisplay: DeploymentRow[] = [];
   if (deployments && deployments.length > 0) {
-    let header = [
-      "Start Time",
-      "Service",
-      "Commit",
-      "Src to ACR",
-      "Image Tag",
-      "Result",
-      "ACR to HLD",
-      "Ring",
-      "Hld Commit",
-      "Result",
-    ];
-    let prsExist = false;
-    if (
-      Object.keys(pullRequests).length > 0 &&
-      outputFormat === OUTPUT_FORMAT.WIDE
-    ) {
-      header = header.concat(["Approval PR", "Merged By"]);
-      prsExist = true;
-    }
-    header = header.concat(["HLD to Manifest", "Result"]);
-    if (outputFormat === OUTPUT_FORMAT.WIDE) {
-      header = header.concat([
-        "Duration",
-        "Status",
-        "Manifest Commit",
-        "End Time",
-      ]);
-    }
-    if (syncStatuses && syncStatuses.length > 0) {
-      header = header.concat(["Cluster Sync"]);
-    }
-
-    const table = new Table({
-      head: header,
-      chars: {
-        top: "",
-        "top-mid": "",
-        "top-left": "",
-        "top-right": "",
-        bottom: "",
-        "bottom-mid": "",
-        "bottom-left": "",
-        "bottom-right": "",
-        left: "",
-        "left-mid": "",
-        mid: "",
-        "mid-mid": "",
-        right: "",
-        "right-mid": "",
-        middle: " ",
-      },
-      style: { "padding-left": 0, "padding-right": 0 },
-    });
-
     const toDisplay = limit ? deployments.slice(0, limit) : deployments;
 
     toDisplay.forEach((deployment) => {
       const row = [];
-      let deploymentStatus = getDeploymentStatus(deployment);
-      row.push(
-        deployment.srcToDockerBuild
-          ? deployment.srcToDockerBuild.startTime.toLocaleString()
-          : deployment.hldToManifestBuild
-          ? deployment.hldToManifestBuild.startTime.toLocaleString()
-          : "-"
-      );
-      row.push(deployment.service !== "" ? deployment.service : "-");
-      row.push(deployment.commitId !== "" ? deployment.commitId : "-");
-      row.push(
-        deployment.srcToDockerBuild ? deployment.srcToDockerBuild.id : "-"
-      );
-      row.push(deployment.imageTag !== "" ? deployment.imageTag : "-");
-      row.push(
-        deployment.srcToDockerBuild
-          ? getStatus(deployment.srcToDockerBuild.result)
-          : ""
-      );
-
-      let dockerToHldId = "-";
-      let dockerToHldStatus = "";
-
-      if (deployment.dockerToHldRelease) {
-        dockerToHldId = deployment.dockerToHldRelease.id;
-        dockerToHldStatus = getStatus(deployment.dockerToHldRelease.status);
-      } else if (
-        deployment.dockerToHldReleaseStage &&
-        deployment.srcToDockerBuild
-      ) {
-        dockerToHldId = deployment.dockerToHldReleaseStage.id;
-        dockerToHldStatus = getStatus(deployment.srcToDockerBuild.result);
-      }
-      row.push(dockerToHldId);
-
-      row.push(
-        deployment.environment !== ""
-          ? deployment.environment.toUpperCase()
-          : "-"
-      );
-      row.push(deployment.hldCommitId || "-");
-      row.push(dockerToHldStatus);
-
-      // Print PR if available
-      if (
-        prsExist &&
-        deployment.pr &&
-        deployment.pr.toString() in pullRequests
-      ) {
-        row.push(deployment.pr);
-        if (pullRequests[deployment.pr.toString()].mergedBy) {
-          row.push(pullRequests[deployment.pr.toString()].mergedBy?.name);
-        } else {
-          deploymentStatus = "Waiting";
-          row.push("-");
-        }
-      } else if (prsExist) {
-        row.push("-");
-        row.push("-");
-      }
-
-      row.push(
-        deployment.hldToManifestBuild ? deployment.hldToManifestBuild.id : "-"
-      );
-      row.push(
-        deployment.hldToManifestBuild
-          ? getStatus(deployment.hldToManifestBuild.result)
-          : ""
-      );
-      if (outputFormat === OUTPUT_FORMAT.WIDE) {
-        row.push(duration(deployment) + " mins");
-        row.push(deploymentStatus);
-        row.push(deployment.manifestCommitId || "-");
-        row.push(
-          deployment.hldToManifestBuild &&
-            deployment.hldToManifestBuild.finishTime &&
-            !isNaN(new Date(deployment.hldToManifestBuild.finishTime).getTime())
+      const deploymentToDisplay = {
+        status: getDeploymentStatus(deployment),
+        service: deployment.service,
+        env: deployment.environment,
+        author:
+          deployment.deploymentId in authors
+            ? authors[deployment.deploymentId].name
+            : undefined,
+        srctoAcrCommitId: deployment.commitId,
+        srcToAcrPipelineId: deployment.srcToDockerBuild?.id,
+        imageTag: deployment.imageTag,
+        srcToAcrResult: getStatus(deployment.srcToDockerBuild?.result),
+        AcrToHldPipelineId: deployment.dockerToHldRelease
+          ? deployment.dockerToHldRelease.id
+          : deployment.dockerToHldReleaseStage
+          ? deployment.dockerToHldReleaseStage.id
+          : undefined,
+        AcrToHldResult: getStatus(
+          deployment.dockerToHldRelease?.status ||
+            deployment.dockerToHldReleaseStage?.result
+        ),
+        AcrToHldCommitId: deployment.hldCommitId,
+        pr:
+          deployment.deploymentId in pullRequests
+            ? pullRequests[deployment.deploymentId].id.toString()
+            : undefined,
+        mergedBy:
+          deployment.deploymentId in pullRequests
+            ? pullRequests[deployment.deploymentId].mergedBy?.name
+            : undefined,
+        HldToManifestPipelineId: deployment.hldToManifestBuild?.id,
+        HldToManifestResult: getStatus(deployment.hldToManifestBuild?.result),
+        HldToManifestCommitId: deployment.manifestCommitId,
+        duration: duration(deployment) + " mins",
+        endTime:
+          deployment.hldToManifestBuild?.finishTime &&
+          !isNaN(new Date(deployment.hldToManifestBuild?.finishTime).getTime())
             ? deployment.hldToManifestBuild.finishTime.toLocaleString()
-            : deployment.srcToDockerBuild &&
-              deployment.srcToDockerBuild.finishTime &&
+            : deployment.srcToDockerBuild?.finishTime &&
               !isNaN(new Date(deployment.srcToDockerBuild.finishTime).getTime())
             ? deployment.srcToDockerBuild.finishTime.toLocaleString()
-            : "-"
-        );
+            : undefined,
+        syncStatus: syncStatuses
+          ? getClusterSyncStatusForDeployment(deployment, syncStatuses)?.name
+          : undefined,
+      };
+      if (deploymentToDisplay.pr && !deploymentToDisplay.mergedBy) {
+        deploymentToDisplay.status = "Waiting";
       }
-      if (syncStatuses && syncStatuses.length > 0) {
-        const tag = getClusterSyncStatusForDeployment(deployment, syncStatuses);
-        if (tag) {
-          row.push(tag.name);
-        } else {
-          row.push("-");
-        }
-      }
-      table.push(row);
+
+      deploymentsToDisplay.push(deploymentToDisplay);
     });
 
-    console.log(table.toString());
-    return table;
+    return printDeploymentTable(outputFormat, deploymentsToDisplay);
   } else {
     logger.info("No deployments found for specified filters.");
     return undefined;
   }
 };
+
+// /**
+//  * Prints deployments in a terminal table
+//  * @param deployments list of deployments to print in terminal
+//  * @param outputFormat output format: normal | wide | json
+//  */
+// export const printDeployments = (
+//   deployments: IDeployment[] | undefined,
+//   outputFormat: OUTPUT_FORMAT,
+//   limit?: number,
+//   syncStatuses?: ITag[] | undefined
+// ): Table | undefined => {
+//   if (deployments && deployments.length > 0) {
+//     let header = [
+//       "Status",
+//       "Service",
+//       "Ring",
+//     ];
+
+//     if (outputFormat === OUTPUT_FORMAT.WIDE) {
+//       header = header.concat(["Author"]);
+//     }
+
+//     header = header.concat(["Commit",
+//       "Src to ACR",
+//       "Image Tag",
+//       "Result",
+//       "ACR to HLD",
+//       "Hld Commit",
+//       "Result"]);
+
+//     let prsExist = false;
+//     if (
+//       Object.keys(pullRequests).length > 0 &&
+//       outputFormat === OUTPUT_FORMAT.WIDE
+//     ) {
+//       header = header.concat(["Approval PR", "Merged By"]);
+//       prsExist = true;
+//     }
+//     header = header.concat(["HLD to Manifest", "Result", "Duration"]);
+//     if (outputFormat === OUTPUT_FORMAT.WIDE) {
+//       header = header.concat([
+//         "Manifest Commit",
+//         "Start Time",
+//         "End Time",
+//       ]);
+//     }
+//     if (syncStatuses && syncStatuses.length > 0) {
+//       header = header.concat(["Cluster Sync"]);
+//     }
+
+//     const table = new Table({
+//       head: header,
+//       chars: {
+//         top: "",
+//         "top-mid": "",
+//         "top-left": "",
+//         "top-right": "",
+//         bottom: "",
+//         "bottom-mid": "",
+//         "bottom-left": "",
+//         "bottom-right": "",
+//         left: "",
+//         "left-mid": "",
+//         mid: "",
+//         "mid-mid": "",
+//         right: "",
+//         "right-mid": "",
+//         middle: " ",
+//       },
+//       style: { "padding-left": 0, "padding-right": 0 },
+//     });
+
+//     const toDisplay = limit ? deployments.slice(0, limit) : deployments;
+
+//     toDisplay.forEach((deployment) => {
+//       const row = [];
+//       let deploymentStatus = getDeploymentStatus(deployment);
+//       row.push(deploymentStatus);
+//       row.push(deployment.service !== "" ? deployment.service : "-");
+//       row.push(
+//         deployment.environment !== ""
+//           ? deployment.environment.toUpperCase()
+//           : "-"
+//       );
+//       if (outputFormat === OUTPUT_FORMAT.WIDE) {
+//         if (deployment.deploymentId in authors) {
+//           row.push(authors[deployment.deploymentId].name);
+//         } else {
+//           row.push("-");
+//         }
+//       }
+//       row.push(deployment.commitId !== "" ? deployment.commitId : "-");
+//       row.push(
+//         deployment.srcToDockerBuild ? deployment.srcToDockerBuild.id : "-"
+//       );
+//       row.push(deployment.imageTag !== "" ? deployment.imageTag : "-");
+//       row.push(
+//         deployment.srcToDockerBuild
+//           ? getStatus(deployment.srcToDockerBuild.result)
+//           : ""
+//       );
+
+//       let dockerToHldId = "-";
+//       let dockerToHldStatus = "";
+
+//       if (deployment.dockerToHldRelease) {
+//         dockerToHldId = deployment.dockerToHldRelease.id;
+//         dockerToHldStatus = getStatus(deployment.dockerToHldRelease.status);
+//       } else if (
+//         deployment.dockerToHldReleaseStage &&
+//         deployment.srcToDockerBuild
+//       ) {
+//         dockerToHldId = deployment.dockerToHldReleaseStage.id;
+//         dockerToHldStatus = getStatus(deployment.srcToDockerBuild.result);
+//       }
+//       row.push(dockerToHldId);
+
+//       row.push(deployment.hldCommitId || "-");
+//       row.push(dockerToHldStatus);
+
+//       // Print PR if available
+//       if (
+//         prsExist &&
+//         deployment.deploymentId in pullRequests
+//       ) {
+//         row.push(deployment.pr);
+//         if (pullRequests[deployment.deploymentId].mergedBy) {
+//           row.push(pullRequests[deployment.deploymentId].mergedBy?.name);
+//         } else {
+//           deploymentStatus = "Waiting";
+//           row.push("-");
+//         }
+//       } else if (prsExist) {
+//         row.push("-");
+//         row.push("-");
+//       }
+
+//       row.push(
+//         deployment.hldToManifestBuild ? deployment.hldToManifestBuild.id : "-"
+//       );
+//       row.push(
+//         deployment.hldToManifestBuild
+//           ? getStatus(deployment.hldToManifestBuild.result)
+//           : ""
+//       );
+//       row.push(duration(deployment) + " mins");
+//       if (outputFormat === OUTPUT_FORMAT.WIDE) {
+//         row.push(deployment.manifestCommitId || "-");
+//         row.push(
+//           deployment.srcToDockerBuild
+//             ? deployment.srcToDockerBuild.startTime.toLocaleString()
+//             : deployment.hldToManifestBuild
+//               ? deployment.hldToManifestBuild.startTime.toLocaleString()
+//               : "-"
+//         );
+//         row.push(
+//           deployment.hldToManifestBuild &&
+//             deployment.hldToManifestBuild.finishTime &&
+//             !isNaN(new Date(deployment.hldToManifestBuild.finishTime).getTime())
+//             ? deployment.hldToManifestBuild.finishTime.toLocaleString()
+//             : deployment.srcToDockerBuild &&
+//               deployment.srcToDockerBuild.finishTime &&
+//               !isNaN(new Date(deployment.srcToDockerBuild.finishTime).getTime())
+//               ? deployment.srcToDockerBuild.finishTime.toLocaleString()
+//               : "-"
+//         );
+//       }
+//       if (syncStatuses && syncStatuses.length > 0) {
+//         const tag = getClusterSyncStatusForDeployment(deployment, syncStatuses);
+//         if (tag) {
+//           row.push(tag.name);
+//         } else {
+//           row.push("-");
+//         }
+//       }
+//       table.push(row);
+//     });
+
+//     console.log(table.toString());
+//     return table;
+//   } else {
+//     logger.info("No deployments found for specified filters.");
+//     return undefined;
+//   }
+// };
 
 /**
  * Displays the deployments based on output format requested and top n
@@ -480,8 +627,10 @@ export const displayDeployments = async (
   syncStatuses: ITag[] | undefined,
   initObj: InitObject
 ): Promise<IDeployment[]> => {
+  // Show authors and PRs only in wide output, to keep default narrow output fast and quick
   if (values.outputFormat === OUTPUT_FORMAT.WIDE) {
     getPRs(deployments, initObj);
+    getAuthors(deployments, initObj);
   }
 
   if (values.outputFormat === OUTPUT_FORMAT.JSON) {
