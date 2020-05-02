@@ -70,6 +70,8 @@ const fakeDeployments = data;
 const fakeClusterSyncs = require("./mocks/cluster-sync.json");
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fakePR = require("./mocks/pr.json");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fakeAuthor = require("./mocks/author.json");
 const mockedDeps: IDeployment[] = fakeDeployments.data.map(
   (dep: IDeployment) => {
     return {
@@ -103,6 +105,9 @@ jest
   .spyOn(AzureDevOpsRepo, "getManifestSyncState")
   .mockReturnValue(Promise.resolve(mockedClusterSyncs));
 jest.spyOn(Deployment, "fetchPR").mockReturnValue(Promise.resolve(fakePR));
+jest
+  .spyOn(Deployment, "fetchAuthor")
+  .mockReturnValue(Promise.resolve(fakeAuthor));
 
 let initObject: InitObject;
 
@@ -130,7 +135,7 @@ describe("Test getStatus function", () => {
     expect(getStatus("succeeded")).toBe("\u2713");
   });
   it("with empty string as value", () => {
-    expect(getStatus("")).toBe("...");
+    expect(getStatus("")).toBe("");
   });
   it("with other string as value", () => {
     expect(getStatus("test")).toBe("\u0445");
