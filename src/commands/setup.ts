@@ -68,7 +68,12 @@ export const isAzCLIInstall = async (): Promise<void> => {
     const ver = result
       .split("\n")
       .find((s) => s.startsWith("azure-cli "))
-      ?.split(/\s+/);
+      ?.replace(/\*$/, "")
+      .trim()
+      .split(/\s+/);
+    // need to remove trailing *, i got
+    // azure-cli  2.5.0 *
+    // for the version of az cli that I have
     const version = ver && ver.length === 2 ? ver[1] : null;
 
     if (version) {
