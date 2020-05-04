@@ -334,8 +334,6 @@ export const getStatus = (status?: string): string => {
     return "";
   } else if (status === "succeeded") {
     return "\u2713";
-  } else if (!status) {
-    return "...";
   }
   return "\u0445";
 };

@@ -76,7 +76,7 @@ const fakePR = require("./mocks/pr.json");
 const fakeAuthor = require("./mocks/author.json");
 const mockedDeps: IDeployment[] = fakeDeployments.data.map(
   (dep: IDeployment) => {
-    return {
+    const newDep = {
       commitId: dep.commitId,
       deploymentId: dep.deploymentId,
       dockerToHldRelease: dep.dockerToHldRelease,
@@ -94,6 +94,21 @@ const mockedDeps: IDeployment[] = fakeDeployments.data.map(
       srcToDockerBuild: dep.srcToDockerBuild,
       timeStamp: dep.timeStamp,
     };
+    // Since json data has dates in string format, convert them to dates
+    const builds = [
+      newDep.srcToDockerBuild,
+      newDep.hldToManifestBuild,
+      newDep.dockerToHldRelease,
+      newDep.dockerToHldReleaseStage,
+    ];
+    builds.forEach((build) => {
+      if (build) {
+        build.startTime = new Date(build.startTime);
+        build.queueTime = new Date(build.queueTime);
+        build.finishTime = new Date(build.finishTime);
+      }
+    });
+    return newDep;
   }
 );
 
@@ -321,39 +336,40 @@ describe("Print deployments", () => {
       mockedDeps,
       processOutputFormat("normal"),
       undefined,
-      mockedClusterSyncs
+      mockedClusterSyncs,
+      true
     );
     expect(table).not.toBeUndefined();
     const deployment = [
-      // "7468ca0a24e1",
-      "2019-08-30T21:05:19.047Z",
+      "Complete",
       "hello-bedrock",
-      "c626394",
-      6046,
+      "dev",
       "hello-bedrock-master-6046",
+      6046,
+      "c626394",
       "✓",
       180,
-      "DEV",
       "706685f",
       "✓",
       6047,
+      "b3a3345",
       "✓",
-      "EUROPE",
+      "3.41 mins",
     ];
 
     expect(table).toBeDefined();
 
     if (table) {
-      //Use date (index 0) as matching filter
+      // Use image tag (index 3) as matching filter
       const matchItems = table.filter(
-        (field: any) => field[0] === deployment[0]
+        (field: any) => field[3] === deployment[3]
       );
       expect(matchItems).toHaveLength(1); // one matching row
 
       (matchItems[0] as IDeployment[]).forEach((field, i) => {
         expect(field).toEqual(deployment[i]);
       });
-      expect(matchItems[0]).toHaveLength(13);
+      expect(matchItems[0]).toHaveLength(14);
 
       table = printDeployments(
         mockedDeps,
@@ -395,16 +411,45 @@ describe("Cluster sync", () => {
 
 describe("Output formats", () => {
   test("verify wide output", () => {
-    const table = printDeployments(
+    let table = printDeployments(
       mockedDeps,
       processOutputFormat("wide"),
       undefined,
-      mockedClusterSyncs
+      mockedClusterSyncs,
+      false
+    );
+    expect(table).toBeDefined();
+
+    if (table) {
+      table.forEach((field) => expect(field).toHaveLength(23));
+    }
+
+    table = printDeployments(
+      mockedDeps,
+      processOutputFormat("wide"),
+      undefined,
+      mockedClusterSyncs,
+      true
     );
     expect(table).toBeDefined();
 
     if (table) {
       table.forEach((field) => expect(field).toHaveLength(19));
     }
+  });
+  test("verify json output", () => {
+    MOCKED_VALUES.outputFormat = OUTPUT_FORMAT.JSON;
+    const consoleSpy = jest.spyOn(console, "log");
+    const table = get.displayDeployments(
+      MOCKED_VALUES,
+      mockedDeps,
+      mockedClusterSyncs,
+      initObject
+    );
+    expect(table).toBeDefined();
+    expect(consoleSpy).toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith(
+      JSON.stringify(mockedDeps, null, 2)
+    );
   });
 });
