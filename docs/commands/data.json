@@ -166,7 +166,7 @@
         "defaultValue": false
       },
       {
-        "arg": "--no-separators",
+        "arg": "--remove-separators",
         "description": "Display the table without separators between columns",
         "defaultValue": false
       }

@@ -39,7 +39,7 @@ const MOCKED_INPUT_VALUES: CommandOptions = {
   service: "",
   top: "",
   watch: false,
-  noSeparators: false,
+  removeSeparators: false,
 };
 
 const MOCKED_VALUES: ValidatedOptions = {
@@ -54,7 +54,7 @@ const MOCKED_VALUES: ValidatedOptions = {
   service: "",
   top: "",
   watch: false,
-  noSeparators: false,
+  removeSeparators: false,
 };
 
 const getMockedInputValues = (): CommandOptions => {

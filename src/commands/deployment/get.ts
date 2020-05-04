@@ -75,7 +75,7 @@ export interface CommandOptions {
   service: string;
   deploymentId: string;
   top: string;
-  noSeparators: boolean;
+  removeSeparators: boolean;
 }
 
 /**
@@ -120,7 +120,6 @@ export const validateValues = (opts: CommandOptions): ValidatedOptions => {
       });
     }
   }
-  console.log(opts.noSeparators);
   return {
     buildId: opts.buildId,
     commitId: opts.commitId,
@@ -133,7 +132,7 @@ export const validateValues = (opts: CommandOptions): ValidatedOptions => {
     service: opts.service,
     top: opts.top,
     watch: opts.watch,
-    noSeparators: opts.noSeparators,
+    removeSeparators: opts.removeSeparators,
   };
 };
 
@@ -363,9 +362,8 @@ export const printDeployments = (
   outputFormat: OUTPUT_FORMAT,
   limit?: number,
   syncStatuses?: ITag[] | undefined,
-  noSeparators?: boolean
+  removeSeparators?: boolean
 ): Table | undefined => {
-  console.log(noSeparators);
   const deploymentsToDisplay: DeploymentRow[] = [];
   if (deployments && deployments.length > 0) {
     const toDisplay = limit ? deployments.slice(0, limit) : deployments;
@@ -432,7 +430,7 @@ export const printDeployments = (
     return printDeploymentTable(
       outputFormat,
       deploymentsToDisplay,
-      noSeparators
+      removeSeparators
     );
   } else {
     logger.info("No deployments found for specified filters.");
@@ -470,7 +468,7 @@ export const displayDeployments = async (
     values.outputFormat,
     values.nTop,
     syncStatuses,
-    values.noSeparators
+    values.removeSeparators
   );
   return deployments || [];
 };

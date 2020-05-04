@@ -59,25 +59,24 @@ export interface DeploymentRow {
 export const printDeploymentTable = (
   outputFormat: OUTPUT_FORMAT,
   deployments: DeploymentRow[],
-  noSeparators?: boolean
+  removeSeparators?: boolean
 ): Table => {
-  console.log(noSeparators);
   let header = ["Status", "Service", "Ring"];
 
   if (outputFormat === OUTPUT_FORMAT.WIDE) {
     header = header.concat(["Author"]);
   }
-  // noSeparators = true;
+  // removeSeparators = true;
   header = header.concat(["Image Tag"]);
-  if (!noSeparators) {
+  if (!removeSeparators) {
     header = header.concat(["│"]);
   }
   header = header.concat(["Src to ACR", "Commit", "OK"]);
-  if (!noSeparators) {
+  if (!removeSeparators) {
     header = header.concat(["│"]);
   }
   header = header.concat(["ACR to HLD", "Commit", "OK"]);
-  if (!noSeparators) {
+  if (!removeSeparators) {
     header = header.concat(["│"]);
   }
 
@@ -86,7 +85,7 @@ export const printDeploymentTable = (
   }
   header = header.concat(["HLD to Manifest", "Commit", "OK"]);
 
-  if (!noSeparators) {
+  if (!removeSeparators) {
     header = header.concat(["│"]);
   }
   header = header.concat(["Duration"]);
@@ -135,17 +134,17 @@ export const printDeploymentTable = (
     }
     row.push(deployment.imageTag ?? "-");
 
-    if (!noSeparators) row.push("│");
+    if (!removeSeparators) row.push("│");
     row.push(deployment.srcToAcrPipelineId ?? "-");
     row.push(deployment.srctoAcrCommitId ?? "-");
     row.push(deployment.srcToAcrResult ?? "");
 
-    if (!noSeparators) row.push("│");
+    if (!removeSeparators) row.push("│");
     row.push(deployment.AcrToHldPipelineId ?? "-");
     row.push(deployment.AcrToHldCommitId ?? "-");
     row.push(deployment.AcrToHldResult ?? "");
 
-    if (!noSeparators) row.push("│");
+    if (!removeSeparators) row.push("│");
     if (outputFormat === OUTPUT_FORMAT.WIDE) {
       row.push(deployment.pr ?? "-");
       row.push(deployment.mergedBy ?? "-");
@@ -154,7 +153,7 @@ export const printDeploymentTable = (
     row.push(deployment.HldToManifestCommitId ?? "-");
     row.push(deployment.HldToManifestResult ?? "");
 
-    if (!noSeparators) row.push("│");
+    if (!removeSeparators) row.push("│");
     row.push(deployment.duration ?? "-");
 
     if (outputFormat === OUTPUT_FORMAT.WIDE) {
