@@ -39,6 +39,7 @@ const MOCKED_INPUT_VALUES: CommandOptions = {
   service: "",
   top: "",
   watch: false,
+  noSeparators: false,
 };
 
 const MOCKED_VALUES: ValidatedOptions = {
@@ -53,6 +54,7 @@ const MOCKED_VALUES: ValidatedOptions = {
   service: "",
   top: "",
   watch: false,
+  noSeparators: false,
 };
 
 const getMockedInputValues = (): CommandOptions => {
@@ -323,6 +325,7 @@ describe("Print deployments", () => {
     );
     expect(table).not.toBeUndefined();
     const deployment = [
+      // "7468ca0a24e1",
       "2019-08-30T21:05:19.047Z",
       "hello-bedrock",
       "c626394",
@@ -342,7 +345,9 @@ describe("Print deployments", () => {
 
     if (table) {
       //Use date (index 0) as matching filter
-      const matchItems = table.filter((field) => field[0] === deployment[0]);
+      const matchItems = table.filter(
+        (field: any) => field[0] === deployment[0]
+      );
       expect(matchItems).toHaveLength(1); // one matching row
 
       (matchItems[0] as IDeployment[]).forEach((field, i) => {

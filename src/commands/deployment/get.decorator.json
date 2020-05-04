@@ -47,6 +47,11 @@
       "arg": "-w, --watch",
       "description": "Watch the deployments for a live view",
       "defaultValue": false
+    },
+    {
+      "arg": "--no-separators",
+      "description": "Display the table without separators between columns",
+      "defaultValue": false
     }
   ]
 }

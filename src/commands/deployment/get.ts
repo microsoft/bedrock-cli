@@ -75,6 +75,7 @@ export interface CommandOptions {
   service: string;
   deploymentId: string;
   top: string;
+  noSeparators: boolean;
 }
 
 /**
@@ -119,7 +120,7 @@ export const validateValues = (opts: CommandOptions): ValidatedOptions => {
       });
     }
   }
-
+  console.log(opts.noSeparators);
   return {
     buildId: opts.buildId,
     commitId: opts.commitId,
@@ -132,6 +133,7 @@ export const validateValues = (opts: CommandOptions): ValidatedOptions => {
     service: opts.service,
     top: opts.top,
     watch: opts.watch,
+    noSeparators: opts.noSeparators,
   };
 };
 
@@ -360,8 +362,10 @@ export const printDeployments = (
   deployments: IDeployment[] | undefined,
   outputFormat: OUTPUT_FORMAT,
   limit?: number,
-  syncStatuses?: ITag[] | undefined
+  syncStatuses?: ITag[] | undefined,
+  noSeparators?: boolean
 ): Table | undefined => {
+  console.log(noSeparators);
   const deploymentsToDisplay: DeploymentRow[] = [];
   if (deployments && deployments.length > 0) {
     const toDisplay = limit ? deployments.slice(0, limit) : deployments;
@@ -370,7 +374,11 @@ export const printDeployments = (
       const row = [];
       const deploymentToDisplay = {
         status: getDeploymentStatus(deployment),
-        service: deployment.service,
+        service: deployment.service
+          ? deployment.service
+          : !deployment.srcToDockerBuild && deployment.hldToManifestBuild
+          ? "(Manual HLD Edit)"
+          : undefined,
         env: deployment.environment,
         author:
           deployment.deploymentId in authors
@@ -421,7 +429,11 @@ export const printDeployments = (
       deploymentsToDisplay.push(deploymentToDisplay);
     });
 
-    return printDeploymentTable(outputFormat, deploymentsToDisplay);
+    return printDeploymentTable(
+      outputFormat,
+      deploymentsToDisplay,
+      noSeparators
+    );
   } else {
     logger.info("No deployments found for specified filters.");
     return undefined;
@@ -453,7 +465,13 @@ export const displayDeployments = async (
   }
 
   await Promise.all(promises);
-  printDeployments(deployments, values.outputFormat, values.nTop, syncStatuses);
+  printDeployments(
+    deployments,
+    values.outputFormat,
+    values.nTop,
+    syncStatuses,
+    values.noSeparators
+  );
   return deployments || [];
 };
 

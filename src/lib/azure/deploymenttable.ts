@@ -58,43 +58,49 @@ export interface DeploymentRow {
 
 export const printDeploymentTable = (
   outputFormat: OUTPUT_FORMAT,
-  deployments: DeploymentRow[]
-) => {
+  deployments: DeploymentRow[],
+  noSeparators?: boolean
+): Table => {
+  console.log(noSeparators);
   let header = ["Status", "Service", "Ring"];
 
   if (outputFormat === OUTPUT_FORMAT.WIDE) {
     header = header.concat(["Author"]);
   }
-
-  header = header.concat([
-    "Image Tag",
-    "|",
-    "Src to ACR",
-    "Commit",
-    "Result",
-    "|",
-    "ACR to HLD",
-    "Hld Commit",
-    "Result",
-    "|",
-  ]);
+  // noSeparators = true;
+  header = header.concat(["Image Tag"]);
+  if (!noSeparators) {
+    header = header.concat(["│"]);
+  }
+  header = header.concat(["Src to ACR", "Commit", "OK"]);
+  if (!noSeparators) {
+    header = header.concat(["│"]);
+  }
+  header = header.concat(["ACR to HLD", "Commit", "OK"]);
+  if (!noSeparators) {
+    header = header.concat(["│"]);
+  }
 
   if (outputFormat === OUTPUT_FORMAT.WIDE) {
     header = header.concat(["Approval PR", "Merged By"]);
   }
-  header = header.concat([
-    "HLD to Manifest",
-    "Manifest Commit",
-    "Result",
-    "|",
-    "Duration",
-  ]);
+  header = header.concat(["HLD to Manifest", "Commit", "OK"]);
+
+  if (!noSeparators) {
+    header = header.concat(["│"]);
+  }
+  header = header.concat(["Duration"]);
   if (outputFormat === OUTPUT_FORMAT.WIDE) {
     header = header.concat(["End Time"]);
   }
   if (outputFormat === OUTPUT_FORMAT.WIDE) {
     header = header.concat(["Cluster Sync"]);
   }
+
+  const columnAlignment: Array<"left" | "middle" | "right"> = [];
+  header.forEach((_) => {
+    columnAlignment.push("middle");
+  });
 
   const table = new Table({
     head: header,
@@ -116,6 +122,7 @@ export const printDeploymentTable = (
       middle: " ",
     },
     style: { "padding-left": 0, "padding-right": 0 },
+    colAligns: columnAlignment,
   });
 
   deployments.forEach((deployment: DeploymentRow) => {
@@ -128,17 +135,17 @@ export const printDeploymentTable = (
     }
     row.push(deployment.imageTag ?? "-");
 
-    row.push("|");
+    if (!noSeparators) row.push("│");
     row.push(deployment.srcToAcrPipelineId ?? "-");
     row.push(deployment.srctoAcrCommitId ?? "-");
     row.push(deployment.srcToAcrResult ?? "");
 
-    row.push("|");
+    if (!noSeparators) row.push("│");
     row.push(deployment.AcrToHldPipelineId ?? "-");
     row.push(deployment.AcrToHldCommitId ?? "-");
     row.push(deployment.AcrToHldResult ?? "");
 
-    row.push("|");
+    if (!noSeparators) row.push("│");
     if (outputFormat === OUTPUT_FORMAT.WIDE) {
       row.push(deployment.pr ?? "-");
       row.push(deployment.mergedBy ?? "-");
@@ -147,7 +154,7 @@ export const printDeploymentTable = (
     row.push(deployment.HldToManifestCommitId ?? "-");
     row.push(deployment.HldToManifestResult ?? "");
 
-    row.push("|");
+    if (!noSeparators) row.push("│");
     row.push(deployment.duration ?? "-");
 
     if (outputFormat === OUTPUT_FORMAT.WIDE) {
