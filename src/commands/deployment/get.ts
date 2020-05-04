@@ -449,6 +449,9 @@ export const displayDeployments = async (
   syncStatuses: ITag[] | undefined,
   initObj: InitObject
 ): Promise<IDeployment[]> => {
+  if (deployments && values.nTop) {
+    deployments = deployments.slice(0, values.nTop);
+  }
   // Show authors and PRs only in wide output, to keep default narrow output fast and quick
   if (values.outputFormat === OUTPUT_FORMAT.WIDE) {
     getPRs(deployments, initObj);
