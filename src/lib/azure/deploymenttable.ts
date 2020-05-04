@@ -56,6 +56,12 @@ export interface DeploymentRow {
   syncStatus?: string;
 }
 
+/**
+ * Prints deployment table
+ * @param outputFormat output format: json, wide, normal
+ * @param deployments list of deployments to print
+ * @param removeSeparators Whether to remove separators or not
+ */
 export const printDeploymentTable = (
   outputFormat: OUTPUT_FORMAT,
   deployments: DeploymentRow[],
