@@ -31,7 +31,7 @@ scaffolding and generation.
 
 ### Issues Addressed:
 
-1. As an SRE, I want to use module sources that are versioned and localalized to
+1. As an SRE, I want to use module sources that are versioned and localized to
    the terraform templates repo.
 2. As an Operator, I want automated CI pipelines that can handle internal
    references for incoming PR that modify my custom Bedrock modules.
