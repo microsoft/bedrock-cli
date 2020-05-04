@@ -389,6 +389,7 @@ git pull
 hld_repo_commit_id=$(git log --format="%H" -n 1)
 verify_pipeline_with_poll_and_source_version $AZDO_ORG_URL $AZDO_PROJECT $hld_to_manifest_pipeline_name 500 15 $hld_repo_commit_id
 ring_name=qa-ring
+branch_name="qa-target-branch"
 
 cd $TEST_WORKSPACE
 cd $mono_repo_dir
@@ -396,9 +397,9 @@ cd $mono_repo_dir
 echo "Create ring"
 git checkout master
 git pull origin master
-bedrock ring create $ring_name
+bedrock ring create $ring_name --target-branch $branch_name
 git add -A
-git commit -m "Adding test ring: $ring_name"
+git commit -m "Adding test ring '$ring_name' --target-branch '$branch_name'"
 git push -u origin --all
 
 # Wait for the lifecycle pipeline to finish and approve the pull request
@@ -438,13 +439,13 @@ echo "Successfully created ring: $ring_name."
 echo "Update ring."
 cd $TEST_WORKSPACE
 cd $mono_repo_dir
-git branch $ring_name
-git checkout $ring_name
+git branch $branch_name
+git checkout $branch_name
 cd services/$FrontEnd
 echo "Ring doc" >> ringDoc.md
 git add ringDoc.md
 git commit -m "Adding ring doc file"
-git push --set-upstream origin $ring_name
+git push --set-upstream origin $branch_name
 mono_repo_commit_id=$(git log --format="%H" -n 1)
 
 # Verify frontend service pipeline run was successful
@@ -523,6 +524,7 @@ if [ -d "$ring_dir" ]; then
 fi
 
 echo "Successfully deleted ring: $ring_name."
+
 
 
 echo "Successfully reached the end of the service validations scripts."

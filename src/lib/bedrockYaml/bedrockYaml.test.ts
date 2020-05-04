@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import uuid = require("uuid/v4");
 import { createTestBedrockYaml } from "../../test/mockFactory";
 import { BedrockFile, HelmConfig, RingConfig } from "../../types";
@@ -109,31 +110,65 @@ describe("Adding a new service to a Bedrock file", () => {
   });
 });
 
-describe("Adding a new ring to an existing bedrock.yaml", () => {
-  it("should update existing bedrock.yaml with a new service and its helm chart config", () => {
-    const defaultBedrockFileObject = createTestBedrockYaml(
-      false
-    ) as BedrockFile;
-
-    // "" means that bedrock.yaml is written to a random directory
-    const dir = create("", defaultBedrockFileObject);
-
-    const ringName = "new-ring";
-
-    addNewRing(dir, ringName);
-
-    const expected: BedrockFile = {
-      rings: {
-        ...(defaultBedrockFileObject as BedrockFile).rings,
-        [ringName]: {},
-      },
-      services: [...(defaultBedrockFileObject as BedrockFile).services],
-      variableGroups: [],
-      version: defaultBedrockFileObject.version,
-    };
-
-    expect(read(dir)).toEqual(expected);
+describe("addNewRing", () => {
+  const defaultBedrockFileObject = createTestBedrockYaml(false) as BedrockFile;
+  let bedrockDir: string;
+  beforeEach(() => {
+    bedrockDir = create("", defaultBedrockFileObject);
   });
+
+  const tests: {
+    name: string;
+    input: () => Parameters<typeof addNewRing>;
+    effects: () => void;
+  }[] = [
+    {
+      name:
+        "should update existing bedrock.yaml with a new service and its helm chart config",
+      input: () => [bedrockDir, "test-ring"],
+      effects: (): void => {
+        console.log(bedrockDir);
+        const bedrock = read(bedrockDir);
+        const expected: BedrockFile = {
+          ...bedrock,
+          rings: {
+            ...(defaultBedrockFileObject as BedrockFile).rings,
+            ["test-ring"]: { targetBranch: "test-ring" },
+          },
+        };
+        expect(bedrock).toStrictEqual(expected);
+      },
+    },
+
+    {
+      name: "should use --target-branch if provided",
+      input: () => [bedrockDir, "test-ring", { targetBranch: "foobar" }],
+      effects: (): void => {
+        const bedrock = read(bedrockDir);
+        const rings = getRings(bedrock);
+        const targetRing = rings.find((r) => r.name === "test-ring");
+        expect(targetRing?.targetBranch).toBe("foobar");
+      },
+    },
+
+    {
+      name: "should use ringName as targetBranch if targetBranch not provided",
+      input: () => [bedrockDir, "test-ring"],
+      effects: (): void => {
+        const bedrock = read(bedrockDir);
+        const rings = getRings(bedrock);
+        const targetRing = rings.find((r) => r.name === "test-ring");
+        expect(targetRing?.targetBranch).toBe("test-ring");
+      },
+    },
+  ];
+
+  for (const test of tests) {
+    it(test.name, () => {
+      addNewRing(...test.input());
+      test.effects();
+    });
+  }
 });
 
 describe("Bedrock file info", () => {

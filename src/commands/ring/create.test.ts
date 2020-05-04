@@ -59,14 +59,19 @@ describe("checkDependencies", () => {
 describe("test execute function and logic", () => {
   it("test execute function: missing ring input", async () => {
     const exitFn = jest.fn();
-    await execute("", "someprojectpath", exitFn);
+    await execute("", "someprojectpath", { targetBranch: "" }, exitFn);
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
   it("test execute function: invalid ring input", async () => {
     const exitFn = jest.fn();
     jest.spyOn(dns, "assertIsValid");
-    await execute("-not!dns@compliant%", "someprojectpath", exitFn);
+    await execute(
+      "-not!dns@compliant%",
+      "someprojectpath",
+      { targetBranch: "" },
+      exitFn
+    );
     expect(dns.assertIsValid).toHaveReturnedTimes(0); // should never return because it throws
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
@@ -74,7 +79,7 @@ describe("test execute function and logic", () => {
   it("test execute function: missing project path", async () => {
     const exitFn = jest.fn();
     jest.spyOn(dns, "assertIsValid");
-    await execute("ring", "", exitFn);
+    await execute("ring", "", { targetBranch: "" }, exitFn);
     expect(dns.assertIsValid).toHaveReturnedTimes(1);
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
@@ -117,7 +122,7 @@ describe("test execute function and logic", () => {
       Object.entries(oldBedrockFile.rings).map(([ring]) => ring)
     ).not.toContain(newRingName);
 
-    await execute(newRingName, tmpDir, exitFn);
+    await execute(newRingName, tmpDir, { targetBranch: "" }, exitFn);
 
     const updatedBedrockFile: BedrockFile = loadBedrockFile(tmpDir);
     expect(

@@ -162,19 +162,32 @@ export const setDefaultRing = (
 
   create(dir, bedrockFile);
 };
+
 /**
  * Update bedrock.yaml with new ring
  *
  * @param dir Directory where <code>bedrock.yaml</code> file resides.
  * @param ringName ring to be added.
  */
-export const addNewRing = (dir: string, ringName: string): void => {
+export const addNewRing = (
+  dir: string,
+  ringName: string,
+  opts: RingConfig = {}
+): void => {
   const absPath = path.resolve(dir);
-  const data: BedrockFile = read(absPath);
+  const currentBedrock: BedrockFile = read(absPath);
+  const newBedrock = {
+    ...currentBedrock,
+    rings: {
+      ...currentBedrock.rings,
+      [ringName]: {
+        targetBranch: ringName,
+        ...opts,
+      },
+    },
+  };
 
-  data.rings[ringName] = {}; // Alternatively, we can set isDefault = false or some passable value.
-
-  const asYaml = yaml.safeDump(data, {
+  const asYaml = yaml.safeDump(newBedrock, {
     lineWidth: Number.MAX_SAFE_INTEGER,
   });
   fs.writeFileSync(path.join(absPath, YAML_NAME), asYaml);

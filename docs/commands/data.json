@@ -531,6 +531,13 @@
     "command": "create <ring-name>",
     "alias": "c",
     "description": "Create a new ring for the current working directory project repository. This will affect all services within the project repository.",
+    "options": [
+      {
+        "arg": "--target-branch <branch-name>",
+        "description": "The target branch this ring will map to; defaults to <ring-name> if not provided.",
+        "defaultValue": ""
+      }
+    ],
     "markdown": "## Description\n\nBedrock command to create a ring into an initialized bedrock project.\n\n## Example\n\nFor a bedrock.yaml file that looks like this:\n\n```yaml\nrings:\n  dev:\n    isDefault: true\n  qa:\n  prod:\nservices:\n  - path: ./\n    displayName: \"fabrikam\"\n    helm:\n      chart:\n        branch: master\n        git: \"https://dev.azure.com/fabrikam/frontend/_git/charts\"\n        path: frontend\n    k8sBackend: \"fabrikam-k8s-svc\"\n    k8sBackendPort: 80\n    middlewares: []\n    pathPrefix: \"fabrikam-service\"\n    pathPrefixMajorVersion: \"v1\"\nvariableGroups:\n  - fabrikam-vg\n```\n\nrunning `bedrock ring create stage` will result in a few changes:\n\n1. `stage` will be added into `bedrock.yaml` rings component:\n   ```yaml\n   rings:\n   dev:\n     isDefault: true\n   qa:\n   prod:\n   stage:\n   services:\n     - path: ./\n       displayName: \"fabrikam\"\n       helm:\n       chart:\n         branch: master\n         git: \"https://dev.azure.com/fabrikam/frontend/_git/charts\"\n         path: frontend\n       k8sBackend: \"fabrikam-k8s-svc\"\n       k8sBackendPort: 80\n       middlewares: []\n       pathPrefix: \"fabrikam-service\"\n       pathPrefixMajorVersion: \"v1\"\n   variableGroups:\n     - fabrikam-vg\n   ```\n2. Each of the referenced services within `bedrock.yaml` will have their\n   `build-update-hld.yaml` updated to include the new ring, `stage` in their\n   branch triggers:\n\n   ```yaml\n    trigger:\n    branches:\n        include:\n        - dev\n        - qa\n        - prod\n        - stage <-- NEW -->\n    variables:\n    - group: fabrikam-vg\n    …\n   ```\n\n3. Commiting these changes will trigger the project's lifecycle pipeline, which\n   will then scaffold out the newly created ring, along with the appropriate\n   IngressRoutes in the linked HLD repository.\n"
   },
   "ring delete": {

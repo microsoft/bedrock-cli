@@ -187,7 +187,7 @@ export const configureChartForRing = async (
   serviceConfig: BedrockServiceConfig,
   normalizedServiceName: string
 ): Promise<ExecResult> => {
-  // Configue the k8s backend svc here along with master
+  // Configure the k8s backend svc here along with master
   // If no specific k8s backend name is provided, use the bedrock service name.
   const k8sBackendName = serviceConfig.k8sBackend || normalizedServiceName;
 
@@ -234,18 +234,18 @@ export const createServiceComponent = async (
 export const createRingComponent = async (
   execCmd: typeof execAndLog,
   svcPathInHld: string,
-  normalizedRingName: string
+  normalizedRingDirectory: string
 ): Promise<ExecResult> => {
   assertIsStringWithContent(svcPathInHld, "service-path");
-  assertIsStringWithContent(normalizedRingName, "ring-name");
-  const createRingInSvcCommand = `cd ${svcPathInHld} && mkdir -p ${normalizedRingName} config && fab add ${normalizedRingName} --path ./${normalizedRingName} --method local --type component && touch ./config/common.yaml`;
+  assertIsStringWithContent(normalizedRingDirectory, "branch-name");
+  const createRingInSvcCommand = `cd ${svcPathInHld} && mkdir -p ${normalizedRingDirectory} config && fab add ${normalizedRingDirectory} --path ./${normalizedRingDirectory} --method local --type component && touch ./config/common.yaml`;
 
   return execCmd(createRingInSvcCommand).catch((err) => {
     throw buildError(
       errorStatusCode.EXE_FLOW_ERR,
       {
         errorKey: "hld-reconcile-err-ring-create",
-        values: [normalizedRingName, svcPathInHld],
+        values: [normalizedRingDirectory, svcPathInHld],
       },
       err
     );
@@ -576,14 +576,16 @@ export const reconcileHld = async (
     );
 
     const ringsToCreate = Object.entries(managedRings).map(
-      ([ring, { isDefault }]) => {
+      ([ring, { isDefault, targetBranch }]) => {
         const normalizedRingName = normalizedName(ring);
+        const normalizedBranchName = normalizedName(targetBranch || ring);
         return {
           isDefault: !!isDefault,
           normalizedRingName,
+          normalizedBranchName,
           normalizedRingPathInHld: path.join(
             normalizedSvcPathInHld,
-            normalizedRingName
+            normalizedBranchName
           ),
         };
       }
@@ -596,7 +598,7 @@ export const reconcileHld = async (
       await dependencies.createRingComponent(
         dependencies.exec,
         normalizedSvcPathInHld,
-        normalizedRingName
+        ring.normalizedBranchName
       );
 
       // Add the helm chart to the ring.
