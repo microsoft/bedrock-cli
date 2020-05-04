@@ -72,28 +72,19 @@ export const printDeploymentTable = (
   if (outputFormat === OUTPUT_FORMAT.WIDE) {
     header = header.concat(["Author"]);
   }
-  // removeSeparators = true;
   header = header.concat(["Image Tag"]);
-  if (!removeSeparators) {
-    header = header.concat(["│"]);
-  }
+  if (!removeSeparators) header = header.concat(["│"]);
   header = header.concat(["Src to ACR", "Commit", "OK"]);
-  if (!removeSeparators) {
-    header = header.concat(["│"]);
-  }
+  if (!removeSeparators) header = header.concat(["│"]);
   header = header.concat(["ACR to HLD", "Commit", "OK"]);
-  if (!removeSeparators) {
-    header = header.concat(["│"]);
-  }
+  if (!removeSeparators) header = header.concat(["│"]);
 
   if (outputFormat === OUTPUT_FORMAT.WIDE) {
     header = header.concat(["Approval PR", "Merged By"]);
   }
   header = header.concat(["HLD to Manifest", "Commit", "OK"]);
 
-  if (!removeSeparators) {
-    header = header.concat(["│"]);
-  }
+  if (!removeSeparators) header = header.concat(["│"]);
   header = header.concat(["Duration"]);
   if (outputFormat === OUTPUT_FORMAT.WIDE) {
     header = header.concat(["End Time"]);
