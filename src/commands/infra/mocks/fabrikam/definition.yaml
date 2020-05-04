@@ -1,4 +1,7 @@
-name: discovery-service-central
+name: fabrikam
+source: "https://github.com/fabrikam/bedrock"
+template: cluster/environments/azure-single-keyvault
+version: v0.0.1
 backend:
   storage_account_name: storage-account-name
   access_key: storage-account-access-key
@@ -9,7 +12,7 @@ variables:
   address_space: <insert value>
   agent_vm_count: <insert value>
   agent_vm_size: <insert value>
-  cluster_name: "discovery-service-central"
+  cluster_name: <insert value>
   dns_prefix: <insert value>
   flux_recreate: <insert value>
   kubeconfig_recreate: <insert value>

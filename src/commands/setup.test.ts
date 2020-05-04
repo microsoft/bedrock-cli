@@ -428,10 +428,7 @@ describe("test getAPIClients function", () => {
 
 describe("test isAzCLIInstall function", () => {
   it("positive test", async () => {
-    const version = JSON.stringify({
-      "azure-cli": "2.0.79",
-    });
-    jest.spyOn(shell, "exec").mockResolvedValueOnce(version);
+    jest.spyOn(shell, "exec").mockResolvedValueOnce("azure-cli    2.5.0");
     await isAzCLIInstall();
   });
   it("negative test: version is not returned", async () => {

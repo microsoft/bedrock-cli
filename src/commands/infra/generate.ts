@@ -23,7 +23,6 @@ import { copyTfTemplate } from "./scaffold";
 import { build as buildError, log as logError } from "../../lib/errorBuilder";
 import { errorStatusCode } from "../../lib/errorStatusCode";
 import { exec } from "../../lib/shell";
-import { TriggerUpdateParameters } from "@azure/arm-containerregistry/esm/models/mappers";
 
 interface CommandOptions {
   project: string | undefined;
@@ -192,10 +191,13 @@ export const gitClone = async (
   logger.info(`Cloning source repo to .bedrock/templates was successful.`);
 };
 
-export const checkRemoteGitExist = async (
-  sourcePath: string,
-  source: string,
-  safeLoggingUrl: string
+/**
+ * Checks to see if a directory exists. If not, throw error.
+ *
+ * @param sourcePath location to clone repo to
+ */
+export const checkSrcPath = async (
+  sourcePath: string
 ): Promise<void> => {
   // Checking for git remote
   if (!fs.existsSync(sourcePath)) {
@@ -204,6 +206,21 @@ export const checkRemoteGitExist = async (
       values: [sourcePath],
     });
   }
+}
+
+/**
+ * Verifies that a remote git repo exists. If not, throw error.
+ *
+ * @param sourcePath location to clone repo to
+ * @param source git url of repo
+ * @safeLoggingUrl git Repo URL that may contain a PAT or auth token.
+ */
+export const checkRemoteGitExist = async (
+  sourcePath: string,
+  source: string,
+  safeLoggingUrl: string
+): Promise<void> => {
+  await checkSrcPath(sourcePath);
 
   const result = await simpleGit(sourcePath).listRemote([source]);
   if (!result) {

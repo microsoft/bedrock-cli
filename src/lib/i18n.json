@@ -23,6 +23,7 @@
 
     "setup-cmd-failed": "Setup command was not successfully executed.",
     "setup-cmd-az-cli-err": "az command line was not installed.",
+    "setup-cmd-az-cli-parse-az-version-err": "Could not determine az cli version, the installed azure cli might not be supported.",
     "setup-cmd-prompt-err-no-subscriptions": "No subscriptions found.",
     "setup-cmd-prompt-err-subscription-missing": "Subscription Identifier was missing.",
     "setup-cmd-prompt-err-input-file-missing": "{0} did not exist or not accessible. Make sure that it is accessible.",

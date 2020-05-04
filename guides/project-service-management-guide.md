@@ -493,3 +493,50 @@ TBD
 - HLD lifecycle (adds applications to HLD repo)
 - HLD to Manifests (generates manifests via fabrikate and places manifests into
   flux's source repo)
+
+## Upgrade your existing generated pipelines to get latest changes
+
+When there's a new bedrock-cli release that introduces changes to generated
+pipelines that you would like to take advantage of, follow the steps below to
+update your existing pipelines.
+
+### To update your service repository pipelines:
+
+1. Download the
+   [latest release](https://github.com/microsoft/bedrock-cli/releases) of
+   bedrock-cli.
+2. Navigate to the locally cloned service source code repository for the branch
+   you're working on
+3. Rename `hld-lifecycle.yaml` to `hld-lifecycle.yaml.backup`
+4. Run `bedrock project init`
+5. Compare the newly created `hld-lifecycle.yaml` to `hld-lifecycle.yaml.backup`
+   in case there are any custom changes you'd like to keep in the new pipeline.
+6. `cd` into your services and for each service, rename `build-update-hld.yaml`
+   to `build-update-hld.yaml.backup`
+7. Run `bedrock service create` for each of your services, for eg.
+   `bedrock service create fabrikam.acme.frontend fabrikam.acme.frontend -d services -p chart`.
+   It should create a new `build-update-hld.yaml` and you can compare it against
+   your `build-update-hld.yaml.backup` to restore customizations (if any). It
+   should skip generation of Dockerfile if an existing one is found.
+8. Make sure your variable group(s) are added correctly in these newly generated
+   files. You can also run `bedrock project append-variable-group` to add a
+   variable group.
+9. View all the changes, stage, and commit them to remote repository.
+10. Navigate to your pipelines on the browser and make sure pipelines execute
+    successfully.
+11. Run steps 7, 8, 9 and 10 for all your services
+
+### To update your HLD repository pipelines:
+
+1. Head over to the HLD repository to update the manifest-generation pipeline.
+2. Rename `manifest-generation.yaml` to `manifest-generation.yaml.backup`.
+3. Run `bedrock hld init`. It should create a new `manifest-generation.yaml` and
+   you can compare it against your `manifest-generation.yaml.backup` to restore
+   customizations (if any). It should skip generation of `component.yaml` if an
+   existing one is found.
+4. Make sure your variable group(s) are added correctly in this newly generated
+   yaml file. You can also run `bedrock hld append-variable-group` to add a
+   variable group to this pipeline yaml.
+5. View all the changes, stage, and commit them to remote repository.
+6. Navigate to your pipelines on the browser and make sure pipelines execute
+   successfully.
