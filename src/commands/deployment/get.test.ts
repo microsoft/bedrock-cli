@@ -416,15 +416,11 @@ describe("Fetch Author/PR", () => {
     jest.spyOn(Deployment, "fetchPR").mockClear();
     jest
       .spyOn(Deployment, "fetchPR")
-      .mockImplementationOnce((repo, commitId, token) => {
-        throw new Error("Server Error");
-      });
+      .mockRejectedValueOnce(Error("Server Error"));
     jest.spyOn(Deployment, "fetchAuthor").mockClear();
     jest
       .spyOn(Deployment, "fetchAuthor")
-      .mockImplementationOnce((repo, commitId, token) => {
-        throw new Error("Server Error");
-      });
+      .mockRejectedValueOnce(Error("Server Error"));
     MOCKED_VALUES.outputFormat = OUTPUT_FORMAT.WIDE;
     MOCKED_VALUES.nTop = 10;
     const table = get.displayDeployments(
