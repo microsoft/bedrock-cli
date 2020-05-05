@@ -40,7 +40,7 @@ const MOCKED_INPUT_VALUES: CommandOptions = {
   service: "",
   top: "",
   watch: false,
-  removeSeparators: false,
+  hideSeparators: false,
 };
 
 const MOCKED_VALUES: ValidatedOptions = {
@@ -55,7 +55,7 @@ const MOCKED_VALUES: ValidatedOptions = {
   service: "",
   top: "",
   watch: false,
-  removeSeparators: false,
+  hideSeparators: false,
 };
 
 const getMockedInputValues = (): CommandOptions => {
@@ -271,8 +271,8 @@ describe("Get deployments", () => {
     values.outputFormat = OUTPUT_FORMAT.WIDE;
     const deployments = await getDeployments(initObject, values);
     expect(deployments).not.toBeUndefined();
-    expect(deployments.length).not.toBeUndefined();
-    logger.info("Got " + deployments.length + " deployments");
+    expect(deployments!.length).not.toBeUndefined();
+    logger.info("Got " + deployments!.length + " deployments");
     expect(deployments).toHaveLength(10);
   });
   it("getDeploymentsBasedOnFilters throw error", async () => {
@@ -436,7 +436,7 @@ describe("Fetch Author/PR", () => {
     jest.spyOn(Deployment, "fetchPR").mockReturnValue(fakeUnmergedPR);
     MOCKED_VALUES.outputFormat = OUTPUT_FORMAT.WIDE;
     MOCKED_VALUES.nTop = 10;
-    const table = get.displayDeployments(
+    const table = await get.displayDeployments(
       MOCKED_VALUES,
       mockedDeps,
       mockedClusterSyncs,
@@ -489,6 +489,41 @@ describe("Output formats", () => {
     expect(consoleSpy).toHaveBeenCalledWith(
       JSON.stringify(mockedDeps, null, 2)
     );
+  });
+  test("verify separators output", async () => {
+    MOCKED_VALUES.outputFormat = OUTPUT_FORMAT.WIDE;
+    MOCKED_VALUES.nTop = 1;
+    MOCKED_VALUES.hideSeparators = true;
+    let table = await get.displayDeployments(
+      MOCKED_VALUES,
+      mockedDeps,
+      mockedClusterSyncs,
+      initObject
+    );
+    expect(table).toBeDefined();
+    expect(table).toHaveLength(1);
+    expect(JSON.stringify(table)).not.toContain("│");
+    MOCKED_VALUES.hideSeparators = false;
+    table = await get.displayDeployments(
+      MOCKED_VALUES,
+      mockedDeps,
+      mockedClusterSyncs,
+      initObject
+    );
+    expect(table).toBeDefined();
+    expect(table).toHaveLength(1);
+    expect(JSON.stringify(table)).toContain("│");
+  });
+  test("verify separators output", async () => {
+    MOCKED_VALUES.nTop = 3;
+    const table = await get.displayDeployments(
+      MOCKED_VALUES,
+      mockedDeps,
+      mockedClusterSyncs,
+      initObject
+    );
+    expect(table).toBeDefined();
+    expect(table).toHaveLength(3);
   });
 });
 

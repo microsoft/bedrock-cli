@@ -75,7 +75,7 @@ export interface CommandOptions {
   service: string;
   deploymentId: string;
   top: string;
-  removeSeparators: boolean;
+  hideSeparators: boolean;
 }
 
 /**
@@ -132,7 +132,7 @@ export const validateValues = (opts: CommandOptions): ValidatedOptions => {
     service: opts.service,
     top: opts.top,
     watch: opts.watch,
-    removeSeparators: opts.removeSeparators,
+    hideSeparators: opts.hideSeparators,
   };
 };
 
@@ -448,7 +448,7 @@ export const displayDeployments = async (
   deployments: IDeployment[] | undefined,
   syncStatuses: ITag[] | undefined,
   initObj: InitObject
-): Promise<IDeployment[]> => {
+): Promise<Table | undefined> => {
   if (deployments && values.nTop) {
     deployments = deployments.slice(0, values.nTop);
   }
@@ -464,14 +464,13 @@ export const displayDeployments = async (
   }
 
   await Promise.all(promises);
-  printDeployments(
+  return printDeployments(
     deployments,
     values.outputFormat,
     values.nTop,
     syncStatuses,
-    values.removeSeparators
+    values.hideSeparators
   );
-  return deployments || [];
 };
 
 /**
@@ -482,7 +481,7 @@ export const displayDeployments = async (
 export const getDeployments = async (
   initObj: InitObject,
   values: ValidatedOptions
-): Promise<IDeployment[]> => {
+): Promise<IDeployment[] | undefined> => {
   try {
     const syncStatusesPromise = getClusterSyncStatuses(initObj);
     const deploymentsPromise = getDeploymentsBasedOnFilters(
@@ -508,7 +507,8 @@ export const getDeployments = async (
     const deployments: IDeployment[] | undefined = tuple[0];
     const syncStatuses: ITag[] | undefined = tuple[1];
 
-    return await displayDeployments(values, deployments, syncStatuses, initObj);
+    await displayDeployments(values, deployments, syncStatuses, initObj);
+    return deployments;
   } catch (err) {
     throw buildError(
       errorStatusCode.EXE_FLOW_ERR,
