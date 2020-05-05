@@ -5,6 +5,7 @@ import * as AzureDevOpsRepo from "spektate/lib/repository/IAzureDevOpsRepo";
 import * as GitHub from "spektate/lib/repository/IGitHub";
 import { ITag } from "spektate/lib/repository/Tag";
 import { loadConfiguration } from "../../config";
+import * as config from "../../config";
 import { getErrorMessage } from "../../lib/errorBuilder";
 import { deepClone } from "../../lib/util";
 import {
@@ -74,6 +75,8 @@ const fakeClusterSyncs = require("./mocks/cluster-sync.json");
 const fakePR = require("./mocks/pr.json");
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fakeAuthor = require("./mocks/author.json");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fakeUnmergedPR = require("./mocks/unmerged-pr.json");
 const mockedDeps: IDeployment[] = fakeDeployments.data.map(
   (dep: IDeployment) => {
     const newDep = {
@@ -398,7 +401,6 @@ describe("Cluster sync", () => {
       expect(clusterSyncs[0].tagger).toBe("Weave Flux");
     }
   });
-
   test("Verify cluster syncs - empty", async () => {
     // test empty manifest scenario
     if (initObject.manifestRepo) {
@@ -406,6 +408,45 @@ describe("Cluster sync", () => {
     }
     const clusterSyncs = await getClusterSyncStatuses(initObject);
     expect(clusterSyncs).toBeUndefined();
+  });
+});
+
+describe("Fetch Author/PR", () => {
+  test("Throws exception", async () => {
+    jest.spyOn(Deployment, "fetchPR").mockClear();
+    jest
+      .spyOn(Deployment, "fetchPR")
+      .mockImplementationOnce((repo, commitId, token) => {
+        throw new Error("Server Error");
+      });
+    jest.spyOn(Deployment, "fetchAuthor").mockClear();
+    jest
+      .spyOn(Deployment, "fetchAuthor")
+      .mockImplementationOnce((repo, commitId, token) => {
+        throw new Error("Server Error");
+      });
+    MOCKED_VALUES.outputFormat = OUTPUT_FORMAT.WIDE;
+    MOCKED_VALUES.nTop = 10;
+    const table = get.displayDeployments(
+      MOCKED_VALUES,
+      mockedDeps,
+      mockedClusterSyncs,
+      initObject
+    );
+    expect(table).toBeDefined();
+  });
+  test("Unmerged PR", async () => {
+    jest.spyOn(Deployment, "fetchPR").mockClear();
+    jest.spyOn(Deployment, "fetchPR").mockReturnValue(fakeUnmergedPR);
+    MOCKED_VALUES.outputFormat = OUTPUT_FORMAT.WIDE;
+    MOCKED_VALUES.nTop = 10;
+    const table = get.displayDeployments(
+      MOCKED_VALUES,
+      mockedDeps,
+      mockedClusterSyncs,
+      initObject
+    );
+    expect(table).toBeDefined();
   });
 });
 
@@ -439,6 +480,7 @@ describe("Output formats", () => {
   });
   test("verify json output", () => {
     MOCKED_VALUES.outputFormat = OUTPUT_FORMAT.JSON;
+    MOCKED_VALUES.nTop = 10;
     const consoleSpy = jest.spyOn(console, "log");
     const table = get.displayDeployments(
       MOCKED_VALUES,
@@ -451,5 +493,14 @@ describe("Output formats", () => {
     expect(consoleSpy).toHaveBeenCalledWith(
       JSON.stringify(mockedDeps, null, 2)
     );
+  });
+});
+
+describe("Initialization", () => {
+  test("verify init error", async () => {
+    jest.spyOn(config, "Config").mockReturnValueOnce({});
+    await initialize().catch((e) => {
+      expect(e).toBeDefined();
+    });
   });
 });
