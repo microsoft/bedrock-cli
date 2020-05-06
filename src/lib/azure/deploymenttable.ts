@@ -52,8 +52,13 @@ export interface DeploymentRow {
   pr?: string;
   mergedBy?: string;
   duration?: string;
-  endTime?: string;
+  startTime?: string;
   syncStatus?: string;
+}
+
+export interface TableHeader {
+  title?: string;
+  alignment?: "left" | "middle" | "right";
 }
 
 /**
@@ -65,38 +70,47 @@ export interface DeploymentRow {
 export const printDeploymentTable = (
   outputFormat: OUTPUT_FORMAT,
   deployments: DeploymentRow[],
-  removeSeparators?: boolean
+  removeSeparators?: boolean,
+  clusterSyncAvailable?: boolean
 ): Table => {
-  let header = ["Status", "Service", "Ring"];
-
-  if (outputFormat === OUTPUT_FORMAT.WIDE) {
-    header.push("Author");
-  }
-  header.push("Image Tag");
-  if (!removeSeparators) header.push("│");
-  header = header.concat(["Src to ACR", "Commit", "OK"]);
-  if (!removeSeparators) header.push("│");
-  header = header.concat(["ACR to HLD", "Commit", "OK"]);
-  if (!removeSeparators) header.push("│");
-
-  if (outputFormat === OUTPUT_FORMAT.WIDE) {
-    header = header.concat(["Approval PR", "Merged By"]);
-  }
-  header = header.concat(["HLD to Manifest", "Commit", "OK"]);
-
-  if (!removeSeparators) header.push("│");
-  header.push("Duration");
-  if (outputFormat === OUTPUT_FORMAT.WIDE) {
-    header = header.concat(["End Time", "Cluster Sync"]);
-  }
+  const tableHeaders: Array<TableHeader> = [
+    outputFormat === OUTPUT_FORMAT.WIDE ? { title: "Start Time" } : {},
+    { title: "Status" },
+    { title: "Service" },
+    { title: "Ring" },
+    outputFormat === OUTPUT_FORMAT.WIDE ? { title: "Author" } : {},
+    { title: "Image Tag" },
+    !removeSeparators ? { title: "│" } : {},
+    { title: "Src to ACR", alignment: "right" },
+    { title: "Commit" },
+    { title: "OK" },
+    !removeSeparators ? { title: "│" } : {},
+    { title: "ACR to HLD", alignment: "right" },
+    { title: "Commit" },
+    { title: "OK" },
+    !removeSeparators ? { title: "│" } : {},
+    outputFormat === OUTPUT_FORMAT.WIDE ? { title: "Approval PR" } : {},
+    outputFormat === OUTPUT_FORMAT.WIDE ? { title: "Merged By" } : {},
+    { title: "HLD to Manifest", alignment: "right" },
+    { title: "Commit" },
+    { title: "OK" },
+    !removeSeparators ? { title: "│" } : {},
+    { title: "Duration" },
+    outputFormat === OUTPUT_FORMAT.WIDE && clusterSyncAvailable
+      ? { title: "Cluster Sync" }
+      : {},
+  ];
 
   const columnAlignment: Array<"left" | "middle" | "right"> = [];
-  header.forEach((_) => {
-    columnAlignment.push("middle");
+  const headers: string[] = [];
+  tableHeaders.forEach((header) => {
+    if (header.title) {
+      headers.push(header.title);
+      columnAlignment.push(header.alignment ? header.alignment : "left");
+    }
   });
-
   const table = new Table({
-    head: header,
+    head: headers,
     chars: {
       top: "",
       "top-mid": "",
@@ -120,42 +134,41 @@ export const printDeploymentTable = (
 
   deployments.forEach((deployment: DeploymentRow) => {
     const row = [];
-    row.push(deployment.status ?? "-");
-    row.push(deployment.service ?? "-");
-    row.push(deployment.env ?? "-");
     if (outputFormat === OUTPUT_FORMAT.WIDE) {
-      row.push(deployment.author ?? "-");
+      row.push(deployment.startTime ?? "");
     }
-    row.push(deployment.imageTag ?? "-");
+    row.push(deployment.status ?? "");
+    row.push(deployment.service ?? "");
+    row.push(deployment.env ?? "");
+    if (outputFormat === OUTPUT_FORMAT.WIDE) {
+      row.push(deployment.author ?? "");
+    }
+    row.push(deployment.imageTag ?? "");
 
     if (!removeSeparators) row.push("│");
-    row.push(deployment.srcToAcrPipelineId ?? "-");
-    row.push(deployment.srctoAcrCommitId ?? "-");
+    row.push(deployment.srcToAcrPipelineId ?? "");
+    row.push(deployment.srctoAcrCommitId ?? "");
     row.push(deployment.srcToAcrResult ?? "");
 
     if (!removeSeparators) row.push("│");
-    row.push(deployment.AcrToHldPipelineId ?? "-");
-    row.push(deployment.AcrToHldCommitId ?? "-");
+    row.push(deployment.AcrToHldPipelineId ?? "");
+    row.push(deployment.AcrToHldCommitId ?? "");
     row.push(deployment.AcrToHldResult ?? "");
 
     if (!removeSeparators) row.push("│");
     if (outputFormat === OUTPUT_FORMAT.WIDE) {
-      row.push(deployment.pr ?? "-");
-      row.push(deployment.mergedBy ?? "-");
+      row.push(deployment.pr ?? "");
+      row.push(deployment.mergedBy ?? "");
     }
-    row.push(deployment.HldToManifestPipelineId ?? "-");
-    row.push(deployment.HldToManifestCommitId ?? "-");
+    row.push(deployment.HldToManifestPipelineId ?? "");
+    row.push(deployment.HldToManifestCommitId ?? "");
     row.push(deployment.HldToManifestResult ?? "");
 
     if (!removeSeparators) row.push("│");
-    row.push(deployment.duration ?? "-");
+    row.push(deployment.duration ?? "");
 
-    if (outputFormat === OUTPUT_FORMAT.WIDE) {
-      row.push(deployment.endTime ?? "-");
-    }
-
-    if (outputFormat === OUTPUT_FORMAT.WIDE) {
-      row.push(deployment.syncStatus ?? "-");
+    if (outputFormat === OUTPUT_FORMAT.WIDE && clusterSyncAvailable) {
+      row.push(deployment.syncStatus ?? "");
     }
 
     table.push(row);

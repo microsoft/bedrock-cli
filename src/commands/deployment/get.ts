@@ -406,14 +406,9 @@ export const printDeployments = (
         HldToManifestResult: getStatus(deployment.hldToManifestBuild?.result),
         HldToManifestCommitId: deployment.manifestCommitId,
         duration: duration(deployment) + " mins",
-        endTime:
-          deployment.hldToManifestBuild?.finishTime &&
-          !isNaN(new Date(deployment.hldToManifestBuild?.finishTime).getTime())
-            ? deployment.hldToManifestBuild.finishTime.toLocaleString()
-            : deployment.srcToDockerBuild?.finishTime &&
-              !isNaN(new Date(deployment.srcToDockerBuild.finishTime).getTime())
-            ? deployment.srcToDockerBuild.finishTime.toLocaleString()
-            : undefined,
+        startTime:
+          deployment.srcToDockerBuild?.startTime?.toLocaleString() ||
+          deployment.hldToManifestBuild?.startTime?.toLocaleString(),
         syncStatus: syncStatuses
           ? getClusterSyncStatusForDeployment(deployment, syncStatuses)?.name
           : undefined,
@@ -428,7 +423,8 @@ export const printDeployments = (
     return printDeploymentTable(
       outputFormat,
       deploymentsToDisplay,
-      removeSeparators
+      removeSeparators,
+      deploymentsToDisplay.filter((d) => d.syncStatus).length > 0
     );
   } else {
     logger.info("No deployments found for specified filters.");
