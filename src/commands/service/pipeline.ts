@@ -200,6 +200,14 @@ export const execute = async (
         return;
       }
     });
+
+    if (servicePath === "") {
+      throw buildError(errorStatusCode.VALIDATION_ERR, {
+        errorKey: "project-pipeline-err-service-missing",
+        values: [serviceName],
+      });
+    }
+
     const accessOpts: AzureDevOpsOpts = {
       orgName: opts.orgName,
       personalAccessToken: opts.personalAccessToken,
@@ -209,7 +217,7 @@ export const execute = async (
     // if a packages dir is supplied, its a mono-repo
     const pipelinesYamlPath = opts.packagesDir
       ? // if a packages dir is supplied, concat <packages-dir>/<service-name>
-        path.join(opts.packagesDir, servicePath, SERVICE_PIPELINE_FILENAME)
+        path.join(opts.packagesDir, serviceName, SERVICE_PIPELINE_FILENAME)
       : // if no packages dir, then just concat with the service directory.
         path.join(servicePath, SERVICE_PIPELINE_FILENAME);
 
