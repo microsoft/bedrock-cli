@@ -219,11 +219,9 @@ export const getClusterSyncStatuses = async (
       return undefined;
     }
   } catch (err) {
-    throw buildError(
-      errorStatusCode.GIT_OPS_ERR,
-      "introspect-get-cmd-cluster-sync-stat-err",
-      err
-    );
+    // Certainly don't want to fail the get command if cluster sync failed
+    // log for debugging
+    logger.verbose(`Could not get cluster sync status ` + err);
   }
 };
 
