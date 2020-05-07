@@ -1,6 +1,6 @@
 import * as azdoGit from "../../lib/git/azure";
 import { disableVerboseLogging, enableVerboseLogging } from "../../logger";
-
+import { create as createBedrockYaml } from "../../lib/bedrockYaml";
 jest.mock("../../lib/pipelines/pipelines");
 
 import {
@@ -17,6 +17,7 @@ import {
   requiredPipelineVariables,
 } from "./pipeline";
 import * as pipeline from "./pipeline";
+import { createTempDir } from "../../lib/ioUtil";
 
 const MOCKED_VALUES: CommandOptions = {
   buildScriptUrl: "buildScriptUrl",
@@ -80,20 +81,44 @@ describe("test fetchValues function", () => {
 });
 
 describe("test execute function", () => {
+  const tmpDir = createTempDir();
+  createBedrockYaml(tmpDir, {
+    rings: {
+      master: {
+        isDefault: true,
+      },
+    },
+    services: [
+      {
+        displayName: "serviceName",
+        path: "./my-service",
+        helm: {
+          chart: {
+            branch: "master",
+            git: "https://github.com/microsoft/bedrock-cli-demo-repo.git",
+            path: "my-service",
+          },
+        },
+        k8sBackendPort: 80,
+      },
+    ],
+    variableGroups: ["testvg"],
+    version: "1.0",
+  });
   it("positive test: with all values set", async () => {
     const exitFn = jest.fn();
     jest
       .spyOn(pipeline, "installBuildUpdatePipeline")
       .mockReturnValueOnce(Promise.resolve());
 
-    await execute("serviceName", getMockedValues(), exitFn);
+    await execute("serviceName", tmpDir, getMockedValues(), exitFn);
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[0]]);
   });
   it("negative test: definitionForAzureRepoPipeline without return id", async () => {
     const exitFn = jest.fn();
     (createPipelineForDefinition as jest.Mock).mockReturnValueOnce({}); // without id
-    await execute("serviceName", getMockedValues(), exitFn);
+    await execute("serviceName", tmpDir, getMockedValues(), exitFn);
     expect(exitFn).toBeCalledTimes(1);
     expect(exitFn.mock.calls).toEqual([[1]]);
   });
@@ -101,14 +126,14 @@ describe("test execute function", () => {
     const exitFn = jest.fn();
     const mockedVals = getMockedValues();
     mockedVals.repoUrl = "";
-    await execute("serviceName", mockedVals, exitFn);
+    await execute("serviceName", tmpDir, mockedVals, exitFn);
     expect(exitFn).toBeCalledTimes(1);
   });
   it("negative test: github repo not supported", async () => {
     const exitFn = jest.fn();
     const mockedVals = getMockedValues();
     mockedVals.repoUrl = "https://github.com/microsoft/bedrock";
-    await execute("serviceName", mockedVals, exitFn);
+    await execute("serviceName", tmpDir, mockedVals, exitFn);
     expect(exitFn).toBeCalledTimes(1);
   });
 });
