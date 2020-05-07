@@ -89,7 +89,9 @@ export const printDeploymentTable = (
     { title: "Commit" },
     { title: "OK" },
     !removeSeparators ? { title: "│" } : {},
-    outputFormat === OUTPUT_FORMAT.WIDE ? { title: "Approval PR" } : {},
+    outputFormat === OUTPUT_FORMAT.WIDE
+      ? { title: "Approval PR", alignment: "right" }
+      : {},
     outputFormat === OUTPUT_FORMAT.WIDE ? { title: "Merged By" } : {},
     { title: "HLD to Manifest", alignment: "right" },
     { title: "Commit" },
