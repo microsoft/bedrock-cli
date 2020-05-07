@@ -18,6 +18,7 @@ import {
 } from "./pipeline";
 import * as pipeline from "./pipeline";
 import { createTempDir } from "../../lib/ioUtil";
+import { getErrorMessage } from "../../lib/errorBuilder";
 
 const MOCKED_VALUES: CommandOptions = {
   buildScriptUrl: "buildScriptUrl",
@@ -135,6 +136,16 @@ describe("test execute function", () => {
     mockedVals.repoUrl = "https://github.com/microsoft/bedrock";
     await execute("serviceName", tmpDir, mockedVals, exitFn);
     expect(exitFn).toBeCalledTimes(1);
+  });
+  it("negative test: service is not defined", async () => {
+    const exitFn = jest.fn();
+    jest
+      .spyOn(pipeline, "installBuildUpdatePipeline")
+      .mockReturnValueOnce(Promise.resolve());
+
+    await execute("myServiceName", tmpDir, getMockedValues(), exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
   });
 });
 
