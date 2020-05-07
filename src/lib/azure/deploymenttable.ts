@@ -157,7 +157,7 @@ export const updateEntryInTable = (
 };
 
 /**
- * Adds a new deployment in storage for SRC to ACR pipeline.
+ * Adds a new deployment in storage for SRC to ACR (Image Creation) pipeline.
  *
  * @param tableInfo table info interface containing information about the storage for deployments
  * @param pipelineId Identifier of the first pipeline

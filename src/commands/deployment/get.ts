@@ -308,10 +308,10 @@ export const printDeployments = (
       "Start Time",
       "Service",
       "Commit",
-      "Src to ACR",
+      "Image Creation",
       "Image Tag",
       "Result",
-      "ACR to HLD",
+      "Metadata Update",
       "Ring",
       "Hld Commit",
       "Result",
@@ -324,7 +324,7 @@ export const printDeployments = (
       header = header.concat(["Approval PR", "Merged By"]);
       prsExist = true;
     }
-    header = header.concat(["HLD to Manifest", "Result"]);
+    header = header.concat(["Ready to Deploy", "Result"]);
     if (outputFormat === OUTPUT_FORMAT.WIDE) {
       header = header.concat([
         "Duration",
