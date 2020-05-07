@@ -18,7 +18,6 @@ import {
 } from "./pipeline";
 import * as pipeline from "./pipeline";
 import { createTempDir } from "../../lib/ioUtil";
-import { getErrorMessage } from "../../lib/errorBuilder";
 
 const MOCKED_VALUES: CommandOptions = {
   buildScriptUrl: "buildScriptUrl",
