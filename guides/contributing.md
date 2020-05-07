@@ -68,12 +68,16 @@ yarn add ts-node
 
 To debug on [Visual Studio Code](https://code.visualstudio.com/):
 
-1. On the top menu select Debug > Start Debugging
+1. On the top menu select Run > Start Debugging
 2. It will prompt you to create a `launch.json` file for the go language,
    proceed to create it.
-3. Add the settings found below to the `launch.json` file. Change the `args`
-   with the command and options that you want to debug. In this case, it will
-   debug `deployment get`.
+3. Add the settings found below to the `launch.json` file. You can add a
+   relative path to from the root to target a subdirectory. I.e.:
+   > `"cwd": "${workspaceFolder}/tests/bedrock-env/fabrikam-infra-hld/fabrikam-base-env",`
+4. Change the `args` with the command and options that you want to debug. In
+   this case, it will debug `deployment get`.
+5. For more information on using the debuggin support in VS Code check out the
+   [Visual Studio Code documentation](https://code.visualstudio.com/docs/editor/debugging).
 
 Sample `launch.json`:
 

@@ -4,6 +4,7 @@ import {
   BuildDefinitionVariable,
 } from "azure-devops-node-api/interfaces/BuildInterfaces";
 import commander from "commander";
+import { read as loadBedrockFile } from "../../lib/bedrockYaml";
 import path from "path";
 import { Config } from "../../config";
 import { validateRepository } from "../../lib/git/azure";
@@ -39,6 +40,7 @@ import {
   validateOrgNameThrowable,
   validateProjectNameThrowable,
 } from "../../lib/validator";
+import { BedrockFile } from "../../types";
 
 export interface CommandOptions {
   orgName: string;
@@ -173,6 +175,7 @@ export const installBuildUpdatePipeline = async (
 
 export const execute = async (
   serviceName: string,
+  projectPath: string,
   opts: CommandOptions,
   exitFn: (status: number) => Promise<void>
 ): Promise<void> => {
@@ -189,6 +192,22 @@ export const execute = async (
     }
 
     await fetchValues(serviceName, opts);
+    const bedrockFile: BedrockFile = loadBedrockFile(projectPath);
+    let servicePath = "";
+    bedrockFile.services.forEach((service) => {
+      if (service.displayName === serviceName) {
+        servicePath = service.path;
+        return;
+      }
+    });
+
+    if (servicePath === "") {
+      throw buildError(errorStatusCode.VALIDATION_ERR, {
+        errorKey: "project-pipeline-err-service-missing",
+        values: [serviceName],
+      });
+    }
+
     const accessOpts: AzureDevOpsOpts = {
       orgName: opts.orgName,
       personalAccessToken: opts.personalAccessToken,
@@ -200,7 +219,7 @@ export const execute = async (
       ? // if a packages dir is supplied, concat <packages-dir>/<service-name>
         path.join(opts.packagesDir, serviceName, SERVICE_PIPELINE_FILENAME)
       : // if no packages dir, then just concat with the service directory.
-        path.join(serviceName, SERVICE_PIPELINE_FILENAME);
+        path.join(servicePath, SERVICE_PIPELINE_FILENAME);
 
     // By default the version descriptor is for the master branch
     await validateRepository(
@@ -228,9 +247,14 @@ export const execute = async (
 export const commandDecorator = (command: commander.Command): void => {
   buildCmd(command, decorator).action(
     async (serviceName: string, opts: CommandOptions) => {
-      await execute(serviceName, opts, async (status: number) => {
-        await exitCmd(logger, process.exit, status);
-      });
+      await execute(
+        serviceName,
+        process.cwd(),
+        opts,
+        async (status: number) => {
+          await exitCmd(logger, process.exit, status);
+        }
+      );
     }
   );
 };

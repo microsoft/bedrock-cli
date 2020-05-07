@@ -303,7 +303,7 @@ frontend_pipeline_name="$FrontEnd-pipeline"
 pipeline_exists $AZDO_ORG_URL $AZDO_PROJECT $frontend_pipeline_name
 
 # Create a pipeline since the code exists in remote repo
-bedrock service install-build-pipeline --org-name $AZDO_ORG -u $remote_repo_url -d $AZDO_PROJECT -l $services_dir --personal-access-token $ACCESS_TOKEN_SECRET -n $frontend_pipeline_name -v $FrontEnd  >> $TEST_WORKSPACE/log.txt
+bedrock service install-build-pipeline --org-name $AZDO_ORG -u $remote_repo_url -d $AZDO_PROJECT --personal-access-token $ACCESS_TOKEN_SECRET -n $frontend_pipeline_name -v $FrontEnd  >> $TEST_WORKSPACE/log.txt
 
 # Verify frontend service pipeline was created
 pipeline_created=$(az pipelines show --name $frontend_pipeline_name --org $AZDO_ORG_URL --p $AZDO_PROJECT)
