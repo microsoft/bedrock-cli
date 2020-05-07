@@ -138,9 +138,6 @@ describe("test execute function", () => {
   });
   it("negative test: service is not defined", async () => {
     const exitFn = jest.fn();
-    jest
-      .spyOn(pipeline, "installBuildUpdatePipeline")
-      .mockReturnValueOnce(Promise.resolve());
 
     await execute("myServiceName", tmpDir, getMockedValues(), exitFn);
     expect(exitFn).toBeCalledTimes(1);
