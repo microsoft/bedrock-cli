@@ -136,6 +136,13 @@ describe("test execute function", () => {
     await execute("serviceName", tmpDir, mockedVals, exitFn);
     expect(exitFn).toBeCalledTimes(1);
   });
+  it("negative test: service is not defined", async () => {
+    const exitFn = jest.fn();
+
+    await execute("myServiceName", tmpDir, getMockedValues(), exitFn);
+    expect(exitFn).toBeCalledTimes(1);
+    expect(exitFn.mock.calls).toEqual([[1]]);
+  });
 });
 
 describe("required pipeline variables", () => {
