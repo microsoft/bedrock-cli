@@ -368,11 +368,7 @@ export const printDeployments = (
       const row = [];
       const deploymentToDisplay = {
         status: getDeploymentStatus(deployment),
-        service: deployment.service
-          ? deployment.service
-          : !deployment.srcToDockerBuild && deployment.hldToManifestBuild
-          ? "(Manual HLD Edit)"
-          : undefined,
+        service: deployment.service,
         env: deployment.environment,
         author:
           deployment.deploymentId in authors

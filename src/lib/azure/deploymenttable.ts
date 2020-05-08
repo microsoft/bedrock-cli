@@ -97,7 +97,7 @@ export const printDeploymentTable = (
     { title: "Commit" },
     { title: "OK" },
     !removeSeparators ? { title: "│" } : {},
-    { title: "Duration" },
+    { title: "Duration", alignment: "right" },
     outputFormat === OUTPUT_FORMAT.WIDE && clusterSyncAvailable
       ? { title: "Cluster Sync" }
       : {},
