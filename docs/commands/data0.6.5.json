@@ -1,0 +1,750 @@
+{
+  "init": {
+    "command": "init",
+    "alias": "i",
+    "description": "Initialize the bedrock tool for the first time.",
+    "options": [
+      {
+        "arg": "-f, --file <config-file-path>",
+        "description": "Path to the config file."
+      },
+      {
+        "arg": "-i, --interactive",
+        "description": "Interactive mode. Creates a config file (config.yaml) in a folder .bedrock under your home directory",
+        "defaultValue": false
+      }
+    ],
+    "markdown": "This command creates a configuration file, `config.yaml` in a folder `.bedrock`\nunder your home directory. There are two options for creating this file\n\n1. an interactive mode where you have to answer a few questions; and\n2. you provide a `yaml` file and this `yaml` will be copied to the target\n   location.\n\n## Interactive mode\n\nThe command line tool attempts to read `config.yaml` in a folder `.bedrock`\nunder your home directory. Configuration values shall be read from it if it\nexists. And these values shall be default values for the questions. Otherwise,\nthere shall be no default values. These are the questions\n\n1. Organization Name of Azure dev-op account\n2. Project Name of Azure dev-op account\n3. Personal Access Token (guides)\n4. Would like to have introspection configuration setup? If yes\n   1. Storage Account Name\n   1. Storage Table Name\n   1. Storage Partition Key\n   1. Storage Access Key\n\nThis tool shall verify these values by making an API call to Azure dev-op. They\nshall be written to `config.yaml` regardless the verification is successful or\nnot.\n\n> Note: In the event that you do not have internet connection, this verification\n> shall not be possible\n\n## Example\n\n```\nbedrock init --interactive\n```\n\nor\n\n```\nbedrock init --file myConfig.yaml\n```\n"
+  },
+  "setup": {
+    "command": "setup",
+    "alias": "s",
+    "description": "An interactive command to setup resources in azure and azure dev-ops",
+    "options": [
+      {
+        "arg": "-f, --file <config-file-path>",
+        "description": "Path to the file that contains answers to the questions."
+      }
+    ],
+    "markdown": "## Description\n\nThis command assists in creating resources in Azure DevOps so that you can get\nstarted with using Bedrock. It creates\n\n1. An Azure DevOps project.\n\nBy Default, it runs in an interactive mode where you are prompted for answers\nfor a few questions\n\n1. Azure DevOps Organization Name\n2. Azure DevOps Project Name, the project to be created.\n3. Azure DevOps Personal Access Token. The token needs to have these permissions\n   1. Read and write projects.\n   2. Read and write codes.\n4. To create a sample application Repo\n   1. If Yes, a Azure Service Principal is needed. You have 2 options\n      1. have the command line tool to create it. Azure command line tool shall\n         be used. You will be prompted to select a subscription identifier.\n      2. Provide the Service Principal Id, Password, and Tenant Id. From this\n         information, the tool will retrieve the subscription identifier.\n\nIt can also run in a non interactive mode by providing a file that contains\nanswers to the above questions.\n\nAfter this command is successfully executed, you can launch the introspection\ndashboard to view the status of pipelines.\n\n```\nbedrock setup --file <file-name>\n```\n\nContent of this file is as follow\n\n```\nazdo_org_name=<Azure DevOps Organization Name>\nazdo_project_name=<Azure DevOps Project Name>\nazdo_pat=<Azure DevOps Personal Access Token>\naz_create_app=<true to create sample service app>\naz_create_sp=<true to have command line to create service principal>\naz_sp_id=<sevice principal Id need if az_create_app=true and az_create_sp=false>\naz_sp_password=<sevice principal password need if az_create_app=true and az_create_sp=false>\naz_sp_tenant=<sevice principal tenant Id need if az_create_app=true and az_create_sp=false>\naz_subscription_id=<subscription id>\naz_acr_name=<name of azure container registry>\n```\n\n`azdo_project_name` is optional and default value is `BedrockRocks`.\n\nThe followings shall be created\n\n1. A working directory, `quick-start-env`\n2. Project shall not be created if it already exists.\n3. A Git Repo, `quick-start-hld`, it shall be deleted and recreated if it\n   already exists.\n   1. And initial commit shall be made to this repo\n4. A Git Repo, `quick-start-manifest`, it shall be deleted and recreated if it\n   already exists.\n   1. And initial commit shall be made to this repo\n5. A High Level Definition (HLD) to Manifest pipeline.\n6. If user chose to create sample app repo\n   1. A Service Principal (if requested)\n   1. A resource group, `quick-start-rg` if it does not exist.\n   1. A storage account if it does not exist. Storage Account name has to be\n      unqiue acess Azure.\n   1. A storage table in the storage account.\n   1. A Azure Container Registry, `quickStartACR` in resource group,\n      `quick-start-rg` if it does not exist.\n   1. A Git Repo, `quick-start-helm`, it shall be deleted and recreated if is\n      already exists.\n   1. A Git Repo, `quick-start-app`, it shall be deleted and recreated if is\n      already exists.\n   1. A Lifecycle pipeline.\n   1. A Build pipeline.\n\n## Pre-requisite\n\n1. azure cli needs to be installed so that pull request can be automatically\n   approved. type `az version` to check if you have version 2.0.x installed.\n2. install `azure-devops` extension. To check if you have the extension, type\n   `az extension list`\n\n## Setup log\n\nA `setup.log` file is created after running this command. This file contains\ninformation about what are created and the execution status (completed or\nincomplete). This file will not be created if input validation failed.\n\n## Note\n\nTo remove the service principal that it is created by the tool, you can do the\nfollowings:\n\n1. Get the identifier from `setup.log` (look for `az_sp_id`)\n2. run on terminal `az ad sp delete --id <the sp id>`\n"
+  },
+  "deployment create": {
+    "command": "create",
+    "alias": "c",
+    "description": "Insert the deployment in storage from pipelines",
+    "options": [
+      {
+        "arg": "-k, --access-key <access-key>",
+        "description": "Access key of the storage account"
+      },
+      {
+        "arg": "-n, --name <account-name>",
+        "description": "Name of the storage account"
+      },
+      {
+        "arg": "-p, --partition-key <partition-key>",
+        "description": "Partition key for the storage account"
+      },
+      {
+        "arg": "-t, --table-name <table-name>",
+        "description": "Name of table in storage account"
+      },
+      {
+        "arg": "--p1 <p1>",
+        "description": "Identifier for the first pipeline"
+      },
+      {
+        "arg": "--image-tag <image-tag>",
+        "description": "Image tag"
+      },
+      {
+        "arg": "--commit-id <commit-id>",
+        "description": "Commit Id in source repository"
+      },
+      {
+        "arg": "--service <service>",
+        "description": "Service name"
+      },
+      {
+        "arg": "--p2 <p2>",
+        "description": "Identifier for the second pipeline"
+      },
+      {
+        "arg": "--hld-commit-id <hld-commit-id>",
+        "description": "Commit id in HLD repository"
+      },
+      {
+        "arg": "--env <env>",
+        "description": "Release environment name",
+        "defaultValue": ""
+      },
+      {
+        "arg": "--p3 <p3>",
+        "description": "Identifier for the third pipeline"
+      },
+      {
+        "arg": "--pr <pr-id>",
+        "description": "Pull request identifier for a PR opened/closed in the HLD"
+      },
+      {
+        "arg": "--manifest-commit-id <manifest-commit-id>",
+        "description": "Commit Id in the manifest repository"
+      },
+      {
+        "arg": "--repository <repository>",
+        "description": "URL of the repository (SRC, HLD, Manifest)"
+      }
+    ],
+    "markdown": "## Description\n\nThis command inserts data about pipeline runs into Azure Table storage.\n\n## Example\n\nThe following command has parameters for Azure Table storage credential and\nvarious pipelines run details. It's used by the source build pipeline, the\nrelease stage and the manifest generation pipeline, and each of them pass in\nparameters depending on the information for that pipeline. Here are three\nexamples:\n\n```\nbedrock deployment create  -n $AZURE_STORAGE_ACCOUNT_NAME \\\n    -k $AZURE_ACCOUNT_KEY \\\n    -t $AZURE_TABLE_NAME  \\\n    -p $AZURE_TABLE_PARTITION_KEY \\\n    --p1 $(Build.BuildId) \\\n    --image-tag $tag_name \\\n    --commit-id $commitId \\\n    --service $service \\\n    --repository $repourl\n```\n\n```\nbedrock deployment create  -n $AZURE_STORAGE_ACCOUNT_NAME \\\n    -k $AZURE_ACCOUNT_KEY \\\n    -t $AZURE_TABLE_NAME  \\\n    -p $AZURE_TABLE_PARTITION_KEY \\\n    --p2 $(Build.BuildId) \\\n    --hld-commit-id $latest_commit \\\n    --env $(Build.SourceBranchName) \\\n    --image-tag $tag_name \\\n    --pr $pr_id \\\n    --repository $repourl\n```\n\n```\nbedrock deployment create  -n $AZURE_STORAGE_ACCOUNT_NAME \\\n    -k $AZURE_ACCOUNT_KEY \\\n    -t $AZURE_TABLE_NAME  \\\n    -p $AZURE_TABLE_PARTITION_KEY \\\n    --p3 $(Build.BuildId) \\\n    --hld-commit-id $commitId \\\n    --pr $pr_id \\\n    --repository $repourl\n```\n"
+  },
+  "deployment dashboard": {
+    "command": "dashboard",
+    "alias": "d",
+    "description": "Launch the service introspection dashboard",
+    "options": [
+      {
+        "arg": "-p, --port <port>",
+        "description": "Port to launch the dashboard on",
+        "defaultValue": "4040"
+      },
+      {
+        "arg": "-r, --remove-all",
+        "description": "Removes previously launched instances of the dashboard",
+        "defaultValue": false
+      }
+    ],
+    "markdown": "## Description\n\nThis command launches the Service Introspection Dashboard for your current\nconfiguration. It requires `docker` to be installed on your machine in order to\nwork.\n"
+  },
+  "deployment get": {
+    "command": "get",
+    "alias": "g",
+    "description": "Get the list of deployments and filter with these options: service name, environment, build ID, commit ID, container image tag.",
+    "options": [
+      {
+        "arg": "-b, --build-id <build-id>",
+        "description": "Filter by the build ID of the source repository",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-c, --commit-id <commit-id>",
+        "description": "Filter by a commit ID from the source repository",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-d, --deployment-id <deployment-id>",
+        "description": "Filter by the deployment ID of the source repository",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-i, --image-tag <image-tag>",
+        "description": "Filter by a container image tag",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-r, --ring <ring>",
+        "description": "Filter by ring name",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-s, --service <service-name>",
+        "description": "Filter by service name",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-t, --top <top>",
+        "description": "Return only top N most recent deployments",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-o, --output <output-format>",
+        "description": "Output the information one of the following: normal, wide, JSON",
+        "defaultValue": "normal"
+      },
+      {
+        "arg": "-w, --watch",
+        "description": "Watch the deployments for a live view",
+        "defaultValue": false
+      }
+    ],
+    "markdown": "## Description\n\nThis commands retrieves the list of deployments by service name, release\nenvironment, build ID, commit ID, or container image tag.\n"
+  },
+  "deployment onboard": {
+    "command": "onboard",
+    "alias": "o",
+    "description": "Onboard to use the service introspection tool. This will create a storage account if it does not exist in your Azure subscription in the give resource group.",
+    "options": [
+      {
+        "arg": "-s, --storage-account-name <storage-account-name>",
+        "description": "Azure storage account name",
+        "inherit": "introspection.azure.account_name",
+        "required": true
+      },
+      {
+        "arg": "-t, --storage-table-name <storage-table-name>",
+        "description": "Azure storage table name",
+        "inherit": "introspection.azure.table_name",
+        "required": true
+      },
+      {
+        "arg": "-l, --storage-location <storage-location>",
+        "description": "Azure location to create new storage account when it does not exist"
+      },
+      {
+        "arg": "-r, --storage-resource-group-name <storage-resource-group-name>",
+        "description": "Name of the resource group to create new storage account when it does not exist",
+        "required": true
+      },
+      {
+        "arg": "--service-principal-id <service-principal-id>",
+        "description": "Azure service principal id with `contributor` role in Azure Resource Group",
+        "inherit": "introspection.azure.service_principal_id",
+        "required": true
+      },
+      {
+        "arg": "--service-principal-password <service-principal-password>",
+        "description": "The Azure service principal password",
+        "inherit": "introspection.azure.service_principal_secret",
+        "required": true
+      },
+      {
+        "arg": "--tenant-id <tenant-id>",
+        "description": "The Azure AD tenant id of service principal",
+        "inherit": "introspection.azure.tenant_id",
+        "required": true
+      },
+      {
+        "arg": "--subscription-id <subscription-id>",
+        "description": "The Azure subscription id",
+        "inherit": "introspection.azure.subscription_id",
+        "required": true
+      }
+    ],
+    "markdown": "## Description\n\nPrepare storage for the service introspection tool. This will create a storage\naccount if it does not already exist in your subscription in the given\n`resource-group`. The storage table will also be created in a newly created or\nin an existing storage account if it does not exist already. When the Azure Key\nVault argument is specified, a secret with Azure storage access key will be\ncreated. Otherwise, the storage access key will need to be specified in\nenvironment variables manually.\n\nSee\n[Prerequisites](https://github.com/microsoft/bedrock-cli/blob/master/guides/service-introspection.md#prerequisites)\n"
+  },
+  "deployment validate": {
+    "command": "validate",
+    "alias": "v",
+    "description": "Validate the configuration and storage account are correct.",
+    "options": [
+      {
+        "arg": "-s, --self-test",
+        "description": "Run a test for the configured storage account. This will write test data and delete the test data. For more information on the behavior, please check the online documentation.",
+        "defaultValue": false
+      }
+    ],
+    "markdown": "## Description\n\nThis command validates the\n[requirements](https://github.com/microsoft/bedrock-cli/blob/master/guides/service-introspection.md#requirements)\nand the onboard\n[prerequisites](https://github.com/microsoft/bedrock-cli/blob/master/guides/service-introspection.md#prerequisites)\n\n## Note\n\nThe purpose of `--self-test` option is to make sure that `bedrock` is able to\nwrite data to the provided storage account. Once the test ends, it will remove\nthe test data that was added.\n"
+  },
+  "hld append-variable-group": {
+    "command": "append-variable-group <variable-group-name>",
+    "alias": "avg",
+    "description": "Appends the name of an existing variable group to the current manifest-generation.yaml file.",
+    "markdown": "## Description\n\nAppend a variable group name to the current `manifest-generation.yaml` of an\ninitialized hld repository.\n\n## Example\n\nWhen an HLD repository is first initialized with `bedrock hld init`, the top\nportion of the `manifest-generation.yaml` looks like this:\n\n```yaml\ntrigger:\n  branches:\n    include:\n      - master\nvariables: []\npool:\n  vmImage: ubuntu-latest\nsteps:\n.\n.\n.\n```\n\nrunning `bedrock hld append-variable-group my-vg` with a variable group name, in\nthis case `my-vg`, will add it under the `variables` section if it does not\nalready exist:\n\n```yaml\ntrigger:\n  branches:\n    include:\n      - master\nvariables:\n  - group: my-variable-group\npool:\n  vmImage: ubuntu-latest\nsteps:\n.\n.\n.\n```\n"
+  },
+  "hld init": {
+    "command": "init",
+    "alias": "i",
+    "description": "Initialize High Level Definition repository. Add manifest-generation.yaml file to working directory/repository if it does not already exist.",
+    "options": [
+      {
+        "arg": "--git-push",
+        "description": "Bedrock will try to commit and push these changes to a new origin/branch.",
+        "required": false,
+        "defaultValue": false
+      },
+      {
+        "arg": "--default-component-git <component-repository-url>",
+        "description": "The default hld repository's component's git repository url.",
+        "required": false,
+        "defaultValue": "https://github.com/microsoft/fabrikate-definitions.git"
+      },
+      {
+        "arg": "--default-component-name <component-name>",
+        "description": "The default hld repository's component's name.",
+        "required": false,
+        "defaultValue": "traefik2"
+      },
+      {
+        "arg": "--default-component-path <component-path>",
+        "description": "The default hld repository's component's path.",
+        "required": false,
+        "defaultValue": "definitions/traefik2"
+      }
+    ],
+    "markdown": "## Description\n\nInitializes the HLD repository by creating the pipeline\n`manifest-generation.yaml` file, and the default `component.yaml` for\n[fabrikate](https://github.com/microsoft/fabrikate) to consume, if each does not\nalready exist.\n\nThe created `component.yaml` will be populated with a traefik2 definition by\ndefault:\n\n```\nname: default-component\nsubcomponents:\n  - name: traefik2\n    method: git\n    source: 'https://github.com/microsoft/fabrikate-definitions.git'\n    path: definitions/traefik2\n```\n\nHowever, you can set a another fabrikate definition to be added instead via the\n`--default-component-*` flags.\n"
+  },
+  "hld install-manifest-pipeline": {
+    "command": "install-manifest-pipeline",
+    "alias": "p",
+    "description": "Install the manifest generation pipeline to your Azure DevOps instance. Default values are set in bedrock-config.yaml and can be loaded via bedrock init or overriden via option flags.",
+    "options": [
+      {
+        "arg": "-n, --pipeline-name <pipeline-name>",
+        "description": "Name of the pipeline to be created",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-a, --personal-access-token <personal-access-token>",
+        "description": "Personal Access Token",
+        "defaultValue": "",
+        "inherit": "azure_devops.access_token",
+        "required": true
+      },
+      {
+        "arg": "-o, --org-name <organization-name>",
+        "description": "Organization Name for Azure DevOps",
+        "defaultValue": "",
+        "inherit": "azure_devops.org",
+        "required": true
+      },
+      {
+        "arg": "-u, --hld-url <hld-url>",
+        "description": "HLD Repository URL",
+        "defaultValue": "",
+        "inherit": "azure_devops.hld_repository",
+        "required": true
+      },
+      {
+        "arg": "-m, --manifest-url <manifest-url>",
+        "description": "Manifest Repository URL",
+        "defaultValue": "",
+        "inherit": "azure_devops.manifest_repository",
+        "required": true
+      },
+      {
+        "arg": "-d, --devops-project <devops-project>",
+        "description": "Azure DevOps Project",
+        "defaultValue": "",
+        "inherit": "azure_devops.project",
+        "required": true
+      },
+      {
+        "arg": "-b, --build-script-url <build-script-url>",
+        "description": "Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'.",
+        "defaultValue": "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh"
+      },
+      {
+        "arg": "--yaml-file-branch <yaml-file-branch>",
+        "description": "The git branch where the pipeline definition yaml file is located.",
+        "required": false,
+        "defaultValue": "master"
+      }
+    ],
+    "markdown": "## Description\n\nAfter merging the azure-pipelines yaml file generated by the init step above\ninto the `master` branch, run the following command to install the HLD to\nManifest pipeline. This pipeline will be triggered on commits to master and\ninvoke \"manifest generation\"\n[(via fabrikate)](https://github.com/microsoft/fabrikate), rendering helm charts\nand configuration into Kubernetes yaml.\n"
+  },
+  "hld reconcile": {
+    "command": "reconcile <repository-name> <hld-path> <bedrock-application-repo-path>",
+    "alias": "r",
+    "description": "Reconcile a HLD with the services tracked in bedrock.yaml.",
+    "options": [],
+    "markdown": "## Description\n\nThe reconcile feature scaffolds a HLD with the services in the `bedrock.yaml`\nfile at the root level of the application repository. Recall that in a\nmono-repo, `bedrock service create` will add an entry into the `bedrock.yaml`\ncorresponding to all tracked services. When the service has been merged into\n`master` of the application repository, a pipeline (see `hld-lifecycle.yaml`,\ncreated by `bedrock project init`) runs `bedrock hld reconcile` to add any _new_\nservices tracked in `bedrock.yaml` to the HLD.\n\nAs of version v0.6.0 and the addition of `bedrock ring` commands,\n`bedrock hld reconcile` will add rings to the corresponding application\nrepository directory in the HLD repository. Additionally, as of v0.6.1, the\nreconcile command will also remove rings from the corresponding application\nrepository directory in the HLD repository.\n\nThis command is _intended_ to be run in a pipeline (see the generated\n`hld-lifecycle.yaml` created from `bedrock project init`), but can be run by the\nuser in a CLI for verification.\n\nFor a `bedrock.yaml` file that contained within the\n`https://dev.azure.com/foo/bar/_git` repository, that has the following\nstructure:\n\n```yaml\nrings:\n  master:\n    isDefault: true\nservices:\n  - path: ./services/fabrikam\n    displayName: \"fabrikam\"\n    k8sBackendPort: 8001\n    k8sBackend: \"fabrikam-k8s-svc\"\n    pathPrefix: \"fabrikam-service\"\n    pathPrefixMajorVersion: \"v1\"\n    helm:\n      chart:\n        branch: master\n        git: \"https://dev.azure.com/foo/bar/_git\"\n        path: stable/fabrikam-application\n    middlewares:\n      - \"\"\nvariableGroups:\n  - fabrikam-vg\n```\n\nA HLD is produced that resembles the following:\n\n```\n├── component.yaml\n└── fabrikam\n    ├── access.yaml\n    ├── component.yaml\n    ├── config\n    │   └── common.yaml\n    └── fabrikam\n        ├── component.yaml\n        ├── config\n        │   └── common.yaml\n        └── master\n            ├── component.yaml\n            ├── config\n            │   └── common.yaml\n            └── static\n                ├── ingress-route.yaml\n                └── middlewares.yaml\n```\n\nWith the `ingress-route.yaml` representing a\n[Traefik2 Ingress Route](https://docs.traefik.io/routing/providers/kubernetes-crd/#kind-ingressroute)\nbacked by a Kubernetes Service, and the `middlewares.yaml` representing a\n[Traefik2 Middleware](https://docs.traefik.io/routing/providers/kubernetes-crd/#kind-middleware)\nthat strips path prefixes.\n\nFor the `bedrock.yaml` shown above, the `ingress-route.yaml` produced is:\n\n```yaml\napiVersion: traefik.containo.us/v1alpha1\nkind: IngressRoute\nmetadata:\n  name: fabrikam-master\nspec:\n  routes:\n    - kind: Rule\n      match: \"PathPrefix(`/v1/fabrikam-service`) && Headers(`Ring`, `master`)\"\n      middlewares:\n        - name: fabrikam-master\n      services:\n        - name: fabrikam-k8s-svc-master\n          port: 8001\n```\n\nAnd the `middlewares.yaml` produced is:\n\n```yaml\napiVersion: traefik.containo.us/v1alpha1\nkind: Middleware\nmetadata:\n  name: fabrikam-master\nspec:\n  stripPrefix:\n    forceSlash: false\n    prefixes:\n      - /v1/fabrikam-service\n```\n\nNote that there exists a third generated file, `access.yaml`. For the above\n`bedrock.yaml`, `access.yaml` contains a single line, which represents a\n[Fabrikate access.yaml definition](https://github.com/microsoft/fabrikate/blob/master/docs/auth.md#accessyaml),\nallowing Fabrikate to pull Helm Charts that are contained within the same\napplication repository:\n\n```yaml\n\"https://dev.azure.com/foo/bar/_git\": ACCESS_TOKEN_SECRET\n```\n\nWhen `fabrikate` is invoked in the HLD to Manifest pipeline, it will utilize the\n`ACCESS_TOKEN_SECRET` environment variable injected at pipeline run-time as a\nPersonal Access Token to pull any referenced helm charts from the application\nrepository.\n"
+  },
+  "infra generate": {
+    "command": "generate",
+    "alias": "g",
+    "description": "Generate scaffold for terraform cluster deployment.",
+    "options": [
+      {
+        "arg": "-p, --project <path to project folder to generate>",
+        "description": "Location of the definition.yaml file that will be generated",
+        "required": false
+      },
+      {
+        "arg": "-O, --output <path to create generated folder>",
+        "description": "Location of the generated directory that will be generated",
+        "required": false
+      }
+    ],
+    "markdown": "## Description\n\nCreates a \"generated\" deployment folder with the completed Terraform files based\non definitions provided from a scaffolded project.\n\nIt will do the following:\n\n- Check if a provided project folder contains a `definition.yaml`\n- Verify the configuration of parent and leaf definitions.\n- Check if the terraform template `source` provided has a valid remote\n  repository.\n- Clone and cache the master version of the provided `source` repository locally\n  in `~/.bedrock/templates`\n  > Cached repositories will be converted through regex for bedrock to hash.\n  > (i.e. a `source` template of `https://github.com/microsoft/bedrock` will be\n  > cached into a folder called `_microsoft_bedrock_git`)\n- Create a \"generated\" directory for Terrform deployments (alongside the\n  scaffolded project directory)\n- Copy the appropriate Terraform templates to the \"generated\" directory\n- Check the Terraform module source values and convert them into a generic git\n  url based on the `definition.yaml`'s `source`, `version` and `template` path.\n- Create a `bedrock.tfvars` in the generated directory based on the variables\n  provided in `definition.yaml` files of the parent and leaf directories.\n\n## Example\n\nAssuming you have the following setup:\n\n```\nfabrikam\n    |- definition.yaml\n    |- east/\n        |- definition.yaml\n    |- central/\n        |- definition.yaml\n```\n\nWhen executing the following command **in the `fabrikam` directory**:\n\n```\nbedrock infra generate --project east\n```\n\nThe following hiearchy of directories will be generated _alongside_ the targeted\ndirectory. In addition, the appropriate versioned Terraform templates will be\ncopied over to the leaf directory with a `bedrock.tfvars`, which contains the\nvariables accumulated from parent **and** leaf definition.yaml files, where if a\nvariable exists in both parent and leaf definition, the **leaf definitions will\ntake precedence**.\n\n```\nfabrikam\n    |- definition.yaml\n    |- east/\n        |- definition.yaml\n    |- central/\n        |- definition.yaml\nfabrikam-generated\n    |- east\n        |- main.tf\n        |- variables.tf\n        |- bedrock.tfvars (concatenation of variables from fabrikam/definition.yaml (parent) and fabrikam/east/definition.yaml (leaf))\n```\n\nYou can also have a \"single-tree\" generation by executing\n`bedrock infra generate` inside a directory without specifying a project folder.\nFor example, if you had the following tree structure:\n\n```\nfabrikam\n    |- definition.yaml\n```\n\nand executed `bedrock infra generate` inside the `fabrikam` directory, this will\ngenerate the following:\n\n```\nfabrikam-generated\n    |- main.tf\n    |- variables.tf\n    |- bedrock.tfvars\n```\n"
+  },
+  "infra scaffold": {
+    "command": "scaffold",
+    "alias": "s",
+    "description": "Create initial scaffolding for cluster deployment.",
+    "options": [
+      {
+        "arg": "-n, --name <name>",
+        "description": "Cluster name for scaffolding",
+        "required": true,
+        "defaultValue": ""
+      },
+      {
+        "arg": "-s, --source <cluster definition github repo>",
+        "description": "Source URL for the repository containing the terraform deployment",
+        "required": false,
+        "defaultValue": ""
+      },
+      {
+        "arg": "-r --version <repository version>",
+        "description": "Version or tag for the repository so a fixed version is referenced",
+        "required": true,
+        "defaultValue": ""
+      },
+      {
+        "arg": "-t, --template <path to variables.tf> ",
+        "description": "Location of the variables.tf for the terraform deployment",
+        "required": true,
+        "defaultValue": ""
+      }
+    ],
+    "markdown": "## Description\n\nBuilds a scaffold of an infrastructure deployment project containing a\n`definition.yaml` that enables a user to version, modify and organize terraform\ndeployments.\n\nIn detail, it will do the following:\n\n- Create a new folder with the `<name>` you provided.\n- Clone and cache the source repo to `~.bedrock/templates`.\n- Provide an infrastructure deployment scaffold based on a `<source>` git url\n  for a repo that holds terraform template, a `<version>` respective to the\n  repository tag or branch to pull from, and a `<template>` path to a terraform\n  environment template from the root of the git repo.\n\n## Example\n\n```\nbedrock infra scaffold --name fabrikam --source https://github.com/microsoft/bedrock --version master --template /cluster/environments/azure-single-keyvault\n```\n\ndefinition.yaml output:\n\n```yaml\nname: fabrikam\nsource: \"https://github.com/microsoft/bedrock.git\"\ntemplate: cluster/environments/azure-single-keyvault\nversion: master\nbackend:\n  storage_account_name: storage-account-name\n  access_key: storage-account-access-key\n  container_name: storage-account-container\n  key: tfstate-key\nvariables:\n  address_space: <insert value>\n  agent_vm_count: <insert value>\n  agent_vm_size: <insert value>\n  cluster_name: <insert value>\n  dns_prefix: <insert value>\n  flux_recreate: <insert value>\n  kubeconfig_recreate: <insert value>\n  gitops_ssh_url: <insert value>\n  gitops_ssh_key: <insert value>\n  gitops_path: <insert value>\n  keyvault_name: <insert value>\n  keyvault_resource_group: <insert value>\n  resource_group_name: <insert value>\n  ssh_public_key: <insert value>\n  service_principal_id: <insert value>\n  service_principal_secret: <insert value>\n  subnet_prefixes: <insert value>\n  vnet_name: <insert value>\n  subnet_name: <insert value>\n  acr_name: <insert value>\n```\n\n**Note:** Definitions will only include variables that do not have a default\nvalue. To override default values, add the variable name to the variables\ndefinition and provide a new value.\n"
+  },
+  "project append-variable-group": {
+    "command": "append-variable-group <variable-group-name>",
+    "alias": "avg",
+    "description": "Appends the name of an existing variable group to the current bedrock.yaml file and the associated service build pipelines.",
+    "options": [
+      {
+        "arg": "-o, --org-name <organization-name>",
+        "description": "Organization Name for Azure DevOps",
+        "required": true,
+        "inherit": "azure_devops.org"
+      },
+      {
+        "arg": "-d, --devops-project <devops-project>",
+        "description": "Azure DevOps Project name",
+        "required": true,
+        "inherit": "azure_devops.project"
+      },
+      {
+        "arg": "-a, --personal-access-token <personal-access-token>",
+        "description": "Personal Access Token",
+        "required": true,
+        "inherit": "azure_devops.access_token"
+      }
+    ],
+    "markdown": "## Description\n\nAppend an existing variable group in Azure DevOps project and its services.\n\n## Command Prerequisites\n\nThis command requires to have an existing bedrock project that was initialized\nwith `bedrock project init`. It also requires that the variable group to be\nadded exists in the Azure DevOps project.\n\n## Example\n\nWhen an bedrock project repository is first initialized with\n`bedrock project init`, it will create a `bedrock.yaml` file that looks similar\nto this:\n\n```yaml\nrings:\n  master:\n    isDefault: true\nvariableGroups: []\nservices: []\n.\n.\n.\n```\n\nrunning `bedrock project append-variable-group my-vg` with a variable group\nname, in this case `my-vg`, will add it under the `variables` section if it does\nnot already exist:\n\n```yaml\nrings:\n  master:\n    isDefault: true\nvariableGroups:\n    - my-vg\nservices: []\n.\n.\n.\n```\n\nIf there are any `services` specified, it will add the variable group to its\ncorresponding `build-update-hld.yaml` file under the `variables` section:\n\n```yaml\nvariables:\n  - group: my-vg\n```\n"
+  },
+  "project create-variable-group": {
+    "command": "create-variable-group <variable-group-name>",
+    "alias": "cvg",
+    "description": "Create a new variable group in Azure DevOps project with specific variables (ACR name, HLD Repo name, Personal Access Token, Service Principal id, Service Principal password, and Azure AD tenant id)",
+    "options": [
+      {
+        "arg": "-r, --registry-name <registry-name>",
+        "description": "The name of the existing Azure Container Registry.",
+        "required": true
+      },
+      {
+        "arg": "-U, --hld-repo-url <hld-repo-url>",
+        "description": "The high level definition (HLD) git repo url; falls back to azure_devops.hld_repository in bedrock config.",
+        "required": true,
+        "inherit": "azure_devops.hld_repository"
+      },
+      {
+        "arg": "-u, --service-principal-id <service-principal-id>",
+        "description": "Azure service principal id with `contributor` role in Azure Container Registry.",
+        "required": true
+      },
+      {
+        "arg": "-p, --service-principal-password <service-principal-password>",
+        "description": "The Azure service principal password.",
+        "required": true
+      },
+      {
+        "arg": "-t, --tenant <tenant>",
+        "description": "The Azure AD tenant id of service principal.",
+        "required": true
+      },
+      {
+        "arg": "-o, --org-name <organization-name>",
+        "description": "Azure DevOps organization name; falls back to azure_devops.org in bedrock config.",
+        "required": true,
+        "inherit": "azure_devops.org"
+      },
+      {
+        "arg": "-d, --devops-project <project>",
+        "description": "Azure DevOps project name; falls back to azure_devops.project in bedrock config.",
+        "required": true,
+        "inherit": "azure_devops.project"
+      },
+      {
+        "arg": "-a, --personal-access-token <personal-access-token>",
+        "description": "Azure DevOps Personal access token; falls back to azure_devops.access_token in bedrock config.",
+        "required": true,
+        "inherit": "azure_devops.access_token"
+      }
+    ],
+    "markdown": "## Description\n\nCreate new variable group in Azure DevOps project\n\n## Command Prerequisites\n\nIn addition to an existing\n[Azure DevOps project](https://azure.microsoft.com/en-us/services/devops/), to\nlink secrets from an Azure key vault as variables in Variable Group, you will\nneed an existing key vault containing your secrets and the Service Principal for\nauthorization with Azure Key Vault.\n\n1. Use existng or\n   [create a service principal either in Azure Portal](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal)\n   or\n   [with Azure CLI](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli?view=azure-cli-latest).\n2. Use existing or\n   [create a Azure Container Registry in Azure Portal](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-portal)\n   or\n   [with Azure CLI](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli).\n"
+  },
+  "project init": {
+    "command": "init",
+    "alias": "i",
+    "description": "Initialize your bedrock repository. Add starter bedrock.yaml, maintainers.yaml, hld-lifecycle.yaml, and .gitignore files to your project.",
+    "options": [
+      {
+        "arg": "-r, --default-ring <branch-name>",
+        "description": "Specify a default ring; this corresponds to a default branch which you wish to push initial revisions to",
+        "required": false,
+        "defaultValue": "master"
+      }
+    ],
+    "markdown": "## Description\n\nInitialize the current working directory as a Bedrock project repository. This\nadds the baseline files required for a bedrock project:\n\n- bedrock.yaml\n- maintainers.yaml\n- hld-lifecycle.yaml\n- .gitignore\n\nNone of these file will be modified if they already exist.\n"
+  },
+  "project install-lifecycle-pipeline": {
+    "command": "install-lifecycle-pipeline",
+    "alias": "p",
+    "description": "Install the hld lifecycle pipeline to your Azure DevOps instance",
+    "options": [
+      {
+        "arg": "-n, --pipeline-name <pipeline-name>",
+        "description": "Name of the pipeline to be created",
+        "required": true
+      },
+      {
+        "arg": "-a, --personal-access-token <personal-access-token>",
+        "description": "Personal Access Token",
+        "required": true,
+        "inherit": "azure_devops.access_token"
+      },
+      {
+        "arg": "-o, --org-name <organization-name>",
+        "description": "Organization Name for Azure DevOps",
+        "required": true,
+        "inherit": "azure_devops.org"
+      },
+      {
+        "arg": "-u, --repo-url <repo-url>",
+        "description": "Repository URL in Azure DevOps for application/service source code",
+        "required": true
+      },
+      {
+        "arg": "-d, --devops-project <devops-project>",
+        "description": "Azure DevOps Project name",
+        "required": true,
+        "inherit": "azure_devops.project"
+      },
+      {
+        "arg": "-b, --build-script-url <build-script-url>",
+        "description": "Build Script URL. By default it is https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh.",
+        "required": true
+      },
+      {
+        "arg": "--yaml-file-branch <yaml-file-branch>",
+        "description": "The git branch where the pipeline definition yaml file is located.",
+        "required": false,
+        "defaultValue": "master"
+      }
+    ],
+    "markdown": "## Description\n\nDeploy the HLD Lifecycle pipeline for the bedrock project. This should be run\nafter merging the `hld-lifecycle.yaml` generated by `bedrock project init` to\nthe project repository to master. The command will add the required pipeline\nvariables.\n"
+  },
+  "ring create": {
+    "command": "create <ring-name>",
+    "alias": "c",
+    "description": "Create a new ring for the current working directory project repository. This will affect all services within the project repository.",
+    "markdown": "## Description\n\nBedrock command to create a ring into an initialized bedrock project.\n\n## Example\n\nFor a bedrock.yaml file that looks like this:\n\n```yaml\nrings:\n  dev:\n    isDefault: true\n  qa:\n  prod:\nservices:\n  - path: ./\n    displayName: \"fabrikam\"\n    helm:\n      chart:\n        branch: master\n        git: \"https://dev.azure.com/fabrikam/frontend/_git/charts\"\n        path: frontend\n    k8sBackend: \"fabrikam-k8s-svc\"\n    k8sBackendPort: 80\n    middlewares: []\n    pathPrefix: \"fabrikam-service\"\n    pathPrefixMajorVersion: \"v1\"\nvariableGroups:\n  - fabrikam-vg\n```\n\nrunning `bedrock ring create stage` will result in a few changes:\n\n1. `stage` will be added into `bedrock.yaml` rings component:\n   ```yaml\n   rings:\n   dev:\n     isDefault: true\n   qa:\n   prod:\n   stage:\n   services:\n     - path: ./\n       displayName: \"fabrikam\"\n       helm:\n       chart:\n         branch: master\n         git: \"https://dev.azure.com/fabrikam/frontend/_git/charts\"\n         path: frontend\n       k8sBackend: \"fabrikam-k8s-svc\"\n       k8sBackendPort: 80\n       middlewares: []\n       pathPrefix: \"fabrikam-service\"\n       pathPrefixMajorVersion: \"v1\"\n   variableGroups:\n     - fabrikam-vg\n   ```\n2. Each of the referenced services within `bedrock.yaml` will have their\n   `build-update-hld.yaml` updated to include the new ring, `stage` in their\n   branch triggers:\n\n   ```yaml\n    trigger:\n    branches:\n        include:\n        - dev\n        - qa\n        - prod\n        - stage <-- NEW -->\n    variables:\n    - group: fabrikam-vg\n    …\n   ```\n\n3. Commiting these changes will trigger the project's lifecycle pipeline, which\n   will then scaffold out the newly created ring, along with the appropriate\n   IngressRoutes in the linked HLD repository.\n"
+  },
+  "ring delete": {
+    "command": "delete <ring-name>",
+    "alias": "d",
+    "description": "Delete a ring from the current working directory project repository. This will affect all services within the project repository. The default ring cannot be deleted.",
+    "markdown": "## Description\n\nBedrock command to remove a ring from an initialized bedrock project.\n\n_Note:_ A default ring cannot be removed. First set another ring as the default\nvia `bedrock ring set-default` before deleting.\n\n## Example\n\nFor a bedrock.yaml file that looks like this:\n\n```yaml\nrings:\n  dev:\n    isDefault: true\n  qa:\n  prod:\nservices:\n  - path: ./\n    displayName: \"fabrikam\"\n    helm:\n      chart:\n        branch: master\n        git: \"https://dev.azure.com/fabrikam/frontend/_git/charts\"\n        path: frontend\n    k8sBackend: \"fabrikam-k8s-svc\"\n    k8sBackendPort: 80\n    middlewares: []\n    pathPrefix: \"fabrikam-service\"\n    pathPrefixMajorVersion: \"v1\"\nvariableGroups:\n  - fabrikam-vg\n```\n\nrunning `bedrock ring delete prod` will result in a few changes:\n\n1. `prod` will be removed from `bedrock.yaml`:\n   ```yaml\n   rings:\n   dev:\n     isDefault: true\n   qa:\n   services:\n     - path: ./\n       displayName: \"fabrikam\"\n       helm:\n       chart:\n         branch: master\n         git: \"https://dev.azure.com/fabrikam/frontend/_git/charts\"\n         path: frontend\n       k8sBackend: \"fabrikam-k8s-svc\"\n       k8sBackendPort: 80\n       middlewares: []\n       pathPrefix: \"fabrikam-service\"\n       pathPrefixMajorVersion: \"v1\"\n   variableGroups:\n     - fabrikam-vg\n   ```\n2. Each of the referenced services within `bedrock.yaml` will have their\n   `build-update-hld.yaml` updated to remove the ring, `prod` in their branch\n   triggers:\n\n   ```yaml\n    trigger:\n    branches:\n        include:\n        - dev\n        - qa\n        # - prod <-- THIS WILL BE DELETED! -->\n    variables:\n    - group: fabrikam-vg\n    …\n   ```\n\n3. Commiting these changes will trigger the project's lifecycle pipeline, which\n   will then remove the ring from linked services in this project,\n   [pending this epic](https://github.com/microsoft/bedrock/issues/858).\n"
+  },
+  "ring set-default": {
+    "command": "set-default <ring-name>",
+    "alias": "s",
+    "description": "Set a ring as the default for the current working directory project repository. This will affect all services within the project repository.",
+    "markdown": "## Description\n\nBedrock command to set a ring as the default for an initialized bedrock project.\n\n## Example\n\nFor a bedrock.yaml file that looks like this:\n\n```yaml\nrings:\n  dev:\n    isDefault: true\n  qa:\n  prod:\nservices:\n  - path: ./\n    displayName: \"fabrikam\"\n    helm:\n      chart:\n        branch: master\n        git: \"https://dev.azure.com/fabrikam/frontend/_git/charts\"\n        path: frontend\n    k8sBackend: \"fabrikam-k8s-svc\"\n    k8sBackendPort: 80\n    middlewares: []\n    pathPrefix: \"fabrikam-service\"\n    pathPrefixMajorVersion: \"v1\"\nvariableGroups:\n  - fabrikam-vg\n```\n\nrunning `bedrock ring set-default prod` will result in:\n\n1. `prod` will be set as the default in `bedrock.yaml`:\n\n   ```yaml\n   rings:\n   dev:\n   qa:\n   prod:\n     isDefault: true\n   services:\n     - path: ./\n       displayName: \"fabrikam\"\n       helm:\n       chart:\n         branch: master\n         git: \"https://dev.azure.com/fabrikam/frontend/_git/charts\"\n         path: frontend\n       k8sBackend: \"fabrikam-k8s-svc\"\n       k8sBackendPort: 80\n       middlewares: []\n       pathPrefix: \"fabrikam-service\"\n       pathPrefixMajorVersion: \"v1\"\n   variableGroups:\n     - fabrikam-vg\n   ```\n\n2. Commiting these changes will trigger the project's lifecycle pipeline, which\n   may update the default \"no-ring\" IngressRoutes to route to the `prod` service\n   in the linked HLD repository,\n   [pending the work in this issue](https://github.com/microsoft/bedrock/issues/1084).\n"
+  },
+  "service create-revision": {
+    "command": "create-revision",
+    "alias": "cr",
+    "description": "Create pull requests against the branches marked as `isDefault` in your bedrock config",
+    "options": [
+      {
+        "arg": "-s, --source-branch <source>",
+        "description": "Source branch to create the pull request from; defaults to the current branch",
+        "required": true
+      },
+      {
+        "arg": "-t, --title <title>",
+        "description": "Title of the pull request; not required"
+      },
+      {
+        "arg": "-d, --description <description>",
+        "description": "Description of the pull request; not required"
+      },
+      {
+        "arg": "--remote-url <remote-url>",
+        "description": "The remote host to create the pull request in; defaults to the URL for 'origin'",
+        "required": true
+      },
+      {
+        "arg": "-a, --personal-access-token <personal-access-token>",
+        "description": "Personal access token associated with your Azure DevOps token; falls back to azure_devops.access_token in your bedrock config",
+        "required": true,
+        "inherit": "azure_devops.access_token"
+      },
+      {
+        "arg": "-o, --org-name <organization-name>",
+        "description": "Your Azure DevOps organization name; falls back to azure_devops.org in your bedrock config",
+        "required": true,
+        "inherit": "azure_devops.org"
+      },
+      {
+        "arg": "--target-branch",
+        "description": "Target branch/ring to create a PR against; overwrites the default rings specified in bedrock.yaml"
+      }
+    ],
+    "markdown": "## Description\n\nGenerate a PR in Azure DevOps against default ring branches\n"
+  },
+  "service create": {
+    "command": "create <service-name> <service-path>",
+    "alias": "c",
+    "description": "Add a new service into this initialized bedrock project repository",
+    "options": [
+      {
+        "arg": "-c, --helm-chart-chart <helm-chart>",
+        "description": "bedrock helm chart name. --helm-chart-* and --helm-config-* are exclusive; you may only use one.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-r, --helm-chart-repository <helm-repository>",
+        "description": "bedrock helm chart repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-g, --helm-config-git <helm-git>",
+        "description": "bedrock helm chart configuration git repository. --helm-chart-* and --helm-config-* are exclusive; you may only use one.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-b, --helm-config-branch <helm-branch>",
+        "description": "bedrock custom helm chart configuration branch. --helm-chart-* and --helm-config-* are exclusive; you may only use one.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-p, --helm-config-path <helm-path>",
+        "description": "bedrock custom helm chart configuration path. --helm-chart-* and --helm-config-* are exclusive; you may only use one.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "--helm-config-access-token-variable <env-variable>",
+        "description": "An environment variable which will contain the value of PAT to access the git repository specified in --helm-config-git",
+        "defaultValue": "ACCESS_TOKEN_SECRET"
+      },
+      {
+        "arg": "-d, --packages-dir <dir>",
+        "description": "The directory containing the mono-repo packages.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-m, --maintainer-name <maintainer-name>",
+        "description": "The name of the primary maintainer for this service.",
+        "defaultValue": "maintainer name"
+      },
+      {
+        "arg": "-e, --maintainer-email <maintainer-email>",
+        "description": "The email of the primary maintainer for this service.",
+        "defaultValue": "maintainer email"
+      },
+      {
+        "arg": "--git-push",
+        "description": "Bedrock will try to commit and push these changes to a new origin/branch named after the service.",
+        "defaultValue": false
+      },
+      {
+        "arg": "--middlewares <comma-delimitated-list-of-middleware-names>",
+        "description": "Traefik2 middlewares you wish to to be injected into your Traefik2 IngressRoutes",
+        "defaultValue": ""
+      },
+      {
+        "arg": "--k8s-backend-port <port>",
+        "description": "Kubernetes service port which this service is exposed with; will be used to configure Traefik2 IngressRoutes",
+        "defaultValue": "80"
+      },
+      {
+        "arg": "--k8s-backend <backend>",
+        "description": "Kubernetes backend service name; will be used to configure Traefik2 IngressRoutes",
+        "defaultValue": ""
+      },
+      {
+        "arg": "--path-prefix <path-prefix>",
+        "description": "The path prefix for ingress route; will be used to configure Traefik2 IngressRoutes. If omitted, then the service name will used.",
+        "defaultValue": ""
+      },
+      {
+        "arg": "--path-prefix-major-version <path-prefix-major-version>",
+        "description": "Version to be used in the path prefix; will be used to configure Traefik2 IngressRoutes. ie. 'v1' will result in a path prefix of '/v1/servicename",
+        "defaultValue": ""
+      },
+      {
+        "arg": "--service-build-vg <comma-delimitated-list-of-variable-group-names>",
+        "description": "List of variable groups to be linked to service pipeline. i.e. bedrock-vg,fabrikam-vg",
+        "defaultValue": ""
+      },
+      {
+        "arg": "--service-build-variables <comma-delimitated-list-of-variable-names>",
+        "description": "List of variables from existing variable groups; will be used as build arguments in Docker build process. i.e. FOO,BAR",
+        "defaultValue": ""
+      }
+    ],
+    "markdown": "## Description\n\nAdd a new service into this initialized bedrock project repository.\n\n## Example\n\n```bash\nbedrock service create my-service . \\\n  --display-name $app_name \\\n  --helm-config-path $path_to_chart_in_repo \\\n  --helm-config-git $helm_repo_url \\ # Needs to start with https and not contain user name\n  --helm-config-branch master \\\n  --helm-chart-access-token-variable $ENV_VAR_NAME \\\n  --service-build-vg $service_build_variable_group \\\n  --service-build-variables $service_build_variables\n```\n\n## Note\n\n- `--helm-chart-*` and `--helm-config-*` settings are mutually-exclusive. **You\n  may only use one.**\n  - If the git repository referenced in `--helm-config-git` is a private\n    repository, you can specify an environment variable in your\n    HLD-to-Materialized pipeline containing your a PAT to authenticate with via\n    the `--helm-chart-access-token-variable` option.\n- `--middlewares`, `--k8s-backend-port`, `--path-prefix`,\n  `--path-prefix-major-version`, and `--k8s-backend` are all used to configure\n  the generated Traefik2 IngressRoutes. i.e.\n\n  ```sh\n  bedrock service create my-example-documents-service path/to/my/service \\\n    --middlewares middleware \\\n    --k8s-backend-port 3001 \\\n    --k8s-backend docs-service \\\n    --path-prefix documents \\\n    --path-prefix-major-version v2\n  ```\n\n  will result in an IngressRoute that looks like:\n\n  ```yaml\n  apiVersion: traefik.containo.us/v1alpha1\n  kind: IngressRoute\n  metadata:\n    name: my-example-documents-service-master\n  spec:\n    routes:\n      - kind: Rule\n        match: \"PathPrefix(`/v2/documents`) && Headers(`Ring`, `master`)\"\n        middlewares:\n          - name: my-example-documents-service-master\n          - name: middlewareA\n        services:\n          - name: docs-service\n            port: 3001\n  ```\n\n- `--service-build-vg` and `--service-build-variables` are optional arguments\n  often used together to pass existing variables from an existing variable group\n  as build arguments into a Dockerfile build process.\n"
+  },
+  "service get-display-name": {
+    "command": "get-display-name",
+    "alias": "gdn",
+    "description": "Gets display name for a service",
+    "options": [
+      {
+        "arg": "-p, --path <path>",
+        "description": "Path to the service folder for which display name is to be extracted",
+        "required": true
+      }
+    ],
+    "markdown": "## Description\n\nGets display name of a service based on the provided path by extracting this\ninformation from bedrock.yaml. This command tries to locate bedrock.yaml in the\ncurrent directory.\n\nIf bedrock.yaml is not found in current directory, the command will fail to\nextract display name.\n\nIf the specified path is not found in any services listed in bedrock.yaml, the\ndisplay name will not be extracted. Make sure that specified path matches the\npath in bedrock.yaml exactly.\n"
+  },
+  "service install-build-pipeline": {
+    "command": "install-build-pipeline <service-name>",
+    "alias": "p",
+    "description": "Install the build and push to acr pipeline for a service to your Azure DevOps instance",
+    "options": [
+      {
+        "arg": "-n, --pipeline-name <pipeline-name>",
+        "description": "Name of the pipeline to be created",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-a, --personal-access-token <personal-access-token>",
+        "description": "Personal Access Token",
+        "defaultValue": "",
+        "inherit": "azure_devops.access_token",
+        "required": true
+      },
+      {
+        "arg": "-o, --org-name <organization-name>",
+        "description": "Organization Name for Azure DevOps",
+        "defaultValue": "",
+        "inherit": "azure_devops.org",
+        "required": true
+      },
+      {
+        "arg": "-u, --repo-url <repo-url>",
+        "description": "Repository URL",
+        "defaultValue": ""
+      },
+      {
+        "arg": "-d, --devops-project <devops-project>",
+        "description": "Azure DevOps Project",
+        "defaultValue": "",
+        "inherit": "azure_devops.project",
+        "required": true
+      },
+      {
+        "arg": "-b, --build-script-url <build-script-url>",
+        "description": "Build Script URL. By default it is 'https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh'.",
+        "defaultValue": "https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh"
+      },
+      {
+        "arg": "-l, --packages-dir <packages-dir>",
+        "description": "The mono-repository directory containing this service definition. ie. '--packages-dir packages' if my-service is located under ./packages/my-service. Omitting this option implies this is a not a mono-repository."
+      },
+      {
+        "arg": "--yaml-file-branch <yaml-file-branch>",
+        "description": "The git branch where the pipeline definition yaml file is located.",
+        "required": false,
+        "defaultValue": "master"
+      }
+    ],
+    "markdown": "## Description\n\nInstall the build and push to acr pipeline for a service to your Azure DevOps\ninstance. The default pipeline generated by `bedrock service create` is a\nmultistage pipeline, which is in public preview and must be enabled to use.\nhttps://docs.microsoft.com/en-us/azure/devops/pipelines/process/stages?view=azure-devops&tabs=yaml\n"
+  }
+}
