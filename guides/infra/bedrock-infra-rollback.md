@@ -140,7 +140,7 @@ readiness of my aks pods over an aggregated time.
 
 You're able to define a variety of alerts that target services or databases
 using
-[Azure Alerts](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/alerts-overview_).
+[Azure Alerts](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/alerts-overview).
 In the pre-deployment gate we add the previously configured alert as a
 condition.
 
@@ -201,10 +201,10 @@ environment.
 
 This design for a Rollback Terraform Deployments will leverage the following:
 
-- [Bedrock Infra Deployment Pipeline](/home/naterose/Desktop/Microsoft/fy20/bedrock/bedrock-cli/guides/infra/bedrock-infra-generation-pipeline.md)
+- [Bedrock Infra Deployment Pipeline](../../guides/infra/bedrock-infra-generation-pipeline.md)
 - [Bedrock Pre-Reqs: az cli | terraform | golang | fabrikate ](https://github.com/microsoft/bedrock/tree/master/tools/prereqs)
 - [Azure DevOps Environments](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments?view=azure-devops)
-- [Terraform](https://github.com/haishicorp/terraform)
+- [Terraform](https://github.com/hashicorp/terraform)
 - [Release Gates](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=azure-devops)
 
 **Risks & Limitations:**
@@ -216,6 +216,6 @@ This design for a Rollback Terraform Deployments will leverage the following:
 
 Components of this design are based on the learnings from:
 
-- [Microsoft Bedrock Kubernetes Workflow Project](github.com/microsoft/bedrock)
+- [Microsoft Bedrock Kubernetes Workflow Project](https://github.com/microsoft/bedrock)
 - [Bedrock-CLI Infrastructure Generation Pipeline](https://github.com/microsoft/bedrock-cli/blob/master/guides/infra/spk-infra-generation-pipeline.md)
 - [Terraform Recommended Practices](https://www.terraform.io/docs/cloud/guides/recommended-practices/)
