@@ -217,5 +217,5 @@ This design for a Rollback Terraform Deployments will leverage the following:
 Components of this design are based on the learnings from:
 
 - [Microsoft Bedrock Kubernetes Workflow Project](https://github.com/microsoft/bedrock)
-- [Bedrock-CLI Infrastructure Generation Pipeline](https://github.com/microsoft/bedrock-cli/blob/master/guides/infra/spk-infra-generation-pipeline.md)
+- [Bedrock-CLI Infrastructure Generation Pipeline](https://github.com/microsoft/bedrock-cli/blob/master/guides/infra/bedrock-infra-generation-pipeline.md)
 - [Terraform Recommended Practices](https://www.terraform.io/docs/cloud/guides/recommended-practices/)
