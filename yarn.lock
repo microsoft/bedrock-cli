@@ -6729,13 +6729,14 @@ spdx-license-ids@^3.0.0:
   resolved "https://registry.yarnpkg.com/spdx-license-ids/-/spdx-license-ids-3.0.5.tgz#3694b5804567a458d3c8045842a6358632f62654"
   integrity sha512-J+FWzZoynJEXGphVIS+XEh3kFSjZX/1i9gFBaWQcB+/tmpe2qUsSBABpcxqxnAxFdiUFEgAX1bjYGQvIZmoz9Q==
 
-spektate@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/spektate/-/spektate-1.0.6.tgz#b855654d7ec57442b11e30a901e6ebdc0d0cd36d"
-  integrity sha512-P+TOQPdJjmYPwAucwIju818QaeaOrpCVfWj1RVMN6wj5iGszTk39FB9yCckHQ6o12TIo6UkZM+3I3OM1ZczN5g==
+spektate@^1.0.11:
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/spektate/-/spektate-1.0.11.tgz#1997db56149f0521df3159fea7e4876317200b53"
+  integrity sha512-ZTSQjb+IqApmIAVFptzBCtovp5frn4W9bA28ephNuu24ddRLQzqkI1yQ8/KSVExhRza+DpcTAkR++WUiAdIX2w==
   dependencies:
     axios "^0.19.0"
     azure-storage "^2.10.3"
+    tslint-config-prettier "^1.18.0"
 
 split-string@^3.0.1, split-string@^3.0.2:
   version "3.1.0"

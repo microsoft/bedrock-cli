@@ -1,0 +1,8 @@
+{
+  "description": "Updating samiya.frontend to master-20200318.1.\nPR created by: samiya2019 with buildId: 14751 and buildNumber: 20200318.1",
+  "id": 1372,
+  "sourceBranch": "DEPLOY/samiya2019-samiya.frontend-master-20200318.1",
+  "targetBranch": "master",
+  "title": "Updating samiya.frontend image tag to master-20200318.1.",
+  "url": "https://dev.azure.com/epicstuff/hellobedrockprivate/_git/samiya-hld/pullrequest/1371"
+}
