@@ -7,17 +7,16 @@
 
 ## 1. Overview
 
-It is highly desireable to have a fully-automated Continuous Delivery pipeline
-in place to assist with testing and validation of source code changes made to
-the application services and supporting infrastructure. Without such a system,
-it is difficult to have any degree of confidence that a new deployment will
-succeed without introducing new regressions. However, high velocity of changes
-with distributed teams may eventually lead to the scenario in which a production
-environment transitions into a failed state due to an improperly tested feature
-added.
+A fully-automated Continuous Delivery pipeline in place is suggested to assist
+with testing and validation of code changes made to deployed infrastructure.
+Without such a system, it is difficult to have any degree of confidence that a
+new deployment will succeed without introducing new regressions. However, high
+velocity of changes with distributed teams may eventually lead to the scenario
+in which a production environment transitions into a failed state due to an
+improperly tested feature added.
 
-This document outlines multiple solutions and approaches that seeks to provide a
-rollback mechanisms to ensure the successful deployment of terraform
+This document outlines suggested solutions and guidance that seek to provide a
+rollback mechanism to ensure the successful deployment of terraform
 infrastructure, automated reverted features in a release pipeline, and system
 alerting to notify key stakeholders and operations of system activity.
 
@@ -41,10 +40,10 @@ address the following:
 
 ## 3. Design Details
 
-Rollback can be triggered in a separate AzDO Pipeline upon failure to build an
-Environment stage. Using automation and the release history of a pipeline, an
-environment can be reverted to a previous state pending operator approval. This
-implementation can be separated into 3 components
+Rollback can be triggered in a separate Azure DevOps Pipeline upon failure to
+build an Environment stage. Using automation and the release history of a
+pipeline, an environment can be reverted to a previous state pending operator
+approval. This implementation can be separated into 3 components
 
 ![](../images/bedrock-infra-rollbackRelease.png)
 
