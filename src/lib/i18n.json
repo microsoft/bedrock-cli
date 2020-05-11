@@ -23,6 +23,7 @@
 
     "setup-cmd-failed": "Setup command was not successfully executed.",
     "setup-cmd-az-cli-err": "az command line was not installed.",
+    "setup-cmd-az-cli-parse-az-version-err": "Could not determine az cli version, the installed azure cli might not be supported.",
     "setup-cmd-prompt-err-no-subscriptions": "No subscriptions found.",
     "setup-cmd-prompt-err-subscription-missing": "Subscription Identifier was missing.",
     "setup-cmd-prompt-err-input-file-missing": "{0} did not exist or not accessible. Make sure that it is accessible.",
@@ -92,6 +93,7 @@
     "project-pipeline-err-bedrock-config-missing": "Bedrock Config was missing",
     "project-pipeline-err-pipeline-create": "Error occurred during pipeline creation for {0}",
     "project-pipeline-err-invalid-build-definition": "Invalid BuildDefinition created, parameter 'id' was missing from {0}",
+    "project-pipeline-err-service-missing": "Service definition for service '{0}' was not found. Check that the service is definied in the bedrock.yaml file.",
 
     "git-err-show-current-branch": "Could not get the current branch of git. Ensure 'git branch --show-current' returns a proper response.",
     "git-err-checkout": "Could not checkout git branch, {0}.",
