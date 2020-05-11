@@ -9,7 +9,7 @@ resources:
   repositories:
   - repository: BedrockHomebrewCore # The name used to reference this repository in the checkout step
     type: github
-    endpoint: "homebrew-bedrock"
+    endpoint: "bedrock-cli"
     name: microsoft/homebrew-bedrock
 
 stages:
