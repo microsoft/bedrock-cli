@@ -5,6 +5,7 @@ import * as AzureDevOpsRepo from "spektate/lib/repository/IAzureDevOpsRepo";
 import * as GitHub from "spektate/lib/repository/IGitHub";
 import { ITag } from "spektate/lib/repository/Tag";
 import { loadConfiguration } from "../../config";
+import * as config from "../../config";
 import { getErrorMessage } from "../../lib/errorBuilder";
 import { deepClone } from "../../lib/util";
 import {
@@ -39,6 +40,7 @@ const MOCKED_INPUT_VALUES: CommandOptions = {
   service: "",
   top: "",
   watch: false,
+  hideSeparators: false,
 };
 
 const MOCKED_VALUES: ValidatedOptions = {
@@ -53,6 +55,7 @@ const MOCKED_VALUES: ValidatedOptions = {
   service: "",
   top: "",
   watch: false,
+  hideSeparators: false,
 };
 
 const getMockedInputValues = (): CommandOptions => {
@@ -70,9 +73,13 @@ const fakeDeployments = data;
 const fakeClusterSyncs = require("./mocks/cluster-sync.json");
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fakePR = require("./mocks/pr.json");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fakeAuthor = require("./mocks/author.json");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fakeUnmergedPR = require("./mocks/unmerged-pr.json");
 const mockedDeps: IDeployment[] = fakeDeployments.data.map(
   (dep: IDeployment) => {
-    return {
+    const newDep = {
       commitId: dep.commitId,
       deploymentId: dep.deploymentId,
       dockerToHldRelease: dep.dockerToHldRelease,
@@ -90,6 +97,21 @@ const mockedDeps: IDeployment[] = fakeDeployments.data.map(
       srcToDockerBuild: dep.srcToDockerBuild,
       timeStamp: dep.timeStamp,
     };
+    // Since json data has dates in string format, convert them to dates
+    const builds = [
+      newDep.srcToDockerBuild,
+      newDep.hldToManifestBuild,
+      newDep.dockerToHldRelease,
+      newDep.dockerToHldReleaseStage,
+    ];
+    builds.forEach((build) => {
+      if (build) {
+        build.startTime = new Date(build.startTime);
+        build.queueTime = new Date(build.queueTime);
+        build.finishTime = new Date(build.finishTime);
+      }
+    });
+    return newDep;
   }
 );
 
@@ -103,6 +125,9 @@ jest
   .spyOn(AzureDevOpsRepo, "getManifestSyncState")
   .mockReturnValue(Promise.resolve(mockedClusterSyncs));
 jest.spyOn(Deployment, "fetchPR").mockReturnValue(Promise.resolve(fakePR));
+jest
+  .spyOn(Deployment, "fetchAuthor")
+  .mockReturnValue(Promise.resolve(fakeAuthor));
 
 let initObject: InitObject;
 
@@ -130,7 +155,7 @@ describe("Test getStatus function", () => {
     expect(getStatus("succeeded")).toBe("\u2713");
   });
   it("with empty string as value", () => {
-    expect(getStatus("")).toBe("...");
+    expect(getStatus("")).toBe("");
   });
   it("with other string as value", () => {
     expect(getStatus("test")).toBe("\u0445");
@@ -246,8 +271,8 @@ describe("Get deployments", () => {
     values.outputFormat = OUTPUT_FORMAT.WIDE;
     const deployments = await getDeployments(initObject, values);
     expect(deployments).not.toBeUndefined();
-    expect(deployments.length).not.toBeUndefined();
-    logger.info("Got " + deployments.length + " deployments");
+    expect(deployments!.length).not.toBeUndefined();
+    logger.info("Got " + deployments!.length + " deployments");
     expect(deployments).toHaveLength(10);
   });
   it("getDeploymentsBasedOnFilters throw error", async () => {
@@ -314,36 +339,40 @@ describe("Print deployments", () => {
       mockedDeps,
       processOutputFormat("normal"),
       undefined,
-      mockedClusterSyncs
+      mockedClusterSyncs,
+      true
     );
     expect(table).not.toBeUndefined();
     const deployment = [
-      "2019-08-30T21:05:19.047Z",
+      "Complete",
       "hello-bedrock",
-      "c626394",
-      6046,
+      "dev",
       "hello-bedrock-master-6046",
+      6046,
+      "c626394",
       "✓",
       180,
-      "DEV",
       "706685f",
       "✓",
       6047,
+      "b3a3345",
       "✓",
-      "EUROPE",
+      "3.41 mins",
     ];
 
     expect(table).toBeDefined();
 
     if (table) {
-      //Use date (index 0) as matching filter
-      const matchItems = table.filter((field) => field[0] === deployment[0]);
+      // Use image tag (index 3) as matching filter
+      const matchItems = table.filter(
+        (field: any) => field[3] === deployment[3]
+      );
       expect(matchItems).toHaveLength(1); // one matching row
 
       (matchItems[0] as IDeployment[]).forEach((field, i) => {
         expect(field).toEqual(deployment[i]);
       });
-      expect(matchItems[0]).toHaveLength(13);
+      expect(matchItems[0]).toHaveLength(14);
 
       table = printDeployments(
         mockedDeps,
@@ -372,7 +401,6 @@ describe("Cluster sync", () => {
       expect(clusterSyncs[0].tagger).toBe("Weave Flux");
     }
   });
-
   test("Verify cluster syncs - empty", async () => {
     // test empty manifest scenario
     if (initObject.manifestRepo) {
@@ -383,18 +411,127 @@ describe("Cluster sync", () => {
   });
 });
 
+describe("Fetch Author/PR", () => {
+  test("Throws exception", async () => {
+    jest.spyOn(Deployment, "fetchPR").mockClear();
+    jest
+      .spyOn(Deployment, "fetchPR")
+      .mockRejectedValueOnce(Error("Server Error"));
+    jest.spyOn(Deployment, "fetchAuthor").mockClear();
+    jest
+      .spyOn(Deployment, "fetchAuthor")
+      .mockRejectedValueOnce(Error("Server Error"));
+    MOCKED_VALUES.outputFormat = OUTPUT_FORMAT.WIDE;
+    MOCKED_VALUES.nTop = 10;
+    const table = get.displayDeployments(
+      MOCKED_VALUES,
+      mockedDeps,
+      mockedClusterSyncs,
+      initObject
+    );
+    expect(table).toBeDefined();
+  });
+  test("Unmerged PR", async () => {
+    jest.spyOn(Deployment, "fetchPR").mockClear();
+    jest.spyOn(Deployment, "fetchPR").mockReturnValue(fakeUnmergedPR);
+    MOCKED_VALUES.outputFormat = OUTPUT_FORMAT.WIDE;
+    MOCKED_VALUES.nTop = 10;
+    const table = await get.displayDeployments(
+      MOCKED_VALUES,
+      mockedDeps,
+      mockedClusterSyncs,
+      initObject
+    );
+    expect(table).toBeDefined();
+  });
+});
+
 describe("Output formats", () => {
   test("verify wide output", () => {
-    const table = printDeployments(
+    let table = printDeployments(
       mockedDeps,
       processOutputFormat("wide"),
       undefined,
-      mockedClusterSyncs
+      mockedClusterSyncs,
+      false
+    );
+    expect(table).toBeDefined();
+
+    if (table) {
+      table.forEach((field) => expect(field).toHaveLength(23));
+    }
+
+    table = printDeployments(
+      mockedDeps,
+      processOutputFormat("wide"),
+      undefined,
+      mockedClusterSyncs,
+      true
     );
     expect(table).toBeDefined();
 
     if (table) {
       table.forEach((field) => expect(field).toHaveLength(19));
     }
+  });
+  test("verify json output", () => {
+    MOCKED_VALUES.outputFormat = OUTPUT_FORMAT.JSON;
+    MOCKED_VALUES.nTop = 10;
+    const consoleSpy = jest.spyOn(console, "log");
+    const table = get.displayDeployments(
+      MOCKED_VALUES,
+      mockedDeps,
+      mockedClusterSyncs,
+      initObject
+    );
+    expect(table).toBeDefined();
+    expect(consoleSpy).toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith(
+      JSON.stringify(mockedDeps, null, 2)
+    );
+  });
+  test("verify separators output", async () => {
+    MOCKED_VALUES.outputFormat = OUTPUT_FORMAT.WIDE;
+    MOCKED_VALUES.nTop = 1;
+    MOCKED_VALUES.hideSeparators = true;
+    let table = await get.displayDeployments(
+      MOCKED_VALUES,
+      mockedDeps,
+      mockedClusterSyncs,
+      initObject
+    );
+    expect(table).toBeDefined();
+    expect(table).toHaveLength(1);
+    expect(JSON.stringify(table)).not.toContain("│");
+    MOCKED_VALUES.hideSeparators = false;
+    table = await get.displayDeployments(
+      MOCKED_VALUES,
+      mockedDeps,
+      mockedClusterSyncs,
+      initObject
+    );
+    expect(table).toBeDefined();
+    expect(table).toHaveLength(1);
+    expect(JSON.stringify(table)).toContain("│");
+  });
+  test("verify separators output", async () => {
+    MOCKED_VALUES.nTop = 3;
+    const table = await get.displayDeployments(
+      MOCKED_VALUES,
+      mockedDeps,
+      mockedClusterSyncs,
+      initObject
+    );
+    expect(table).toBeDefined();
+    expect(table).toHaveLength(3);
+  });
+});
+
+describe("Initialization", () => {
+  test("verify init error", async () => {
+    jest.spyOn(config, "Config").mockReturnValueOnce({});
+    await initialize().catch((e) => {
+      expect(e).toBeDefined();
+    });
   });
 });

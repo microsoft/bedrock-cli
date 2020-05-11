@@ -3,6 +3,8 @@ import uuid from "uuid/v4";
 import { logger } from "../../logger";
 import { build as buildError } from "../errorBuilder";
 import { errorStatusCode } from "../errorStatusCode";
+import { OUTPUT_FORMAT } from "../../commands/deployment/get";
+import Table from "cli-table";
 
 /**
  * Deployment Table interface to hold necessary information about a table for deployments
@@ -31,6 +33,151 @@ export interface DeploymentEntry {
   manifestRepo?: string;
   pr?: string;
 }
+
+export interface DeploymentRow {
+  status?: string;
+  service?: string;
+  env?: string;
+  author?: string;
+  imageTag?: string;
+  srcToAcrPipelineId?: string;
+  srcToAcrResult?: string;
+  srctoAcrCommitId?: string;
+  AcrToHldPipelineId?: string;
+  AcrToHldResult?: string;
+  AcrToHldCommitId?: string;
+  HldToManifestPipelineId?: string;
+  HldToManifestResult?: string;
+  HldToManifestCommitId?: string;
+  pr?: string;
+  mergedBy?: string;
+  duration?: string;
+  startTime?: string;
+  syncStatus?: string;
+}
+
+export interface TableHeader {
+  title?: string;
+  alignment?: "left" | "middle" | "right";
+}
+
+/**
+ * Prints deployment table
+ * @param outputFormat output format: json, wide, normal
+ * @param deployments list of deployments to print
+ * @param removeSeparators Whether to remove separators or not
+ */
+export const printDeploymentTable = (
+  outputFormat: OUTPUT_FORMAT,
+  deployments: DeploymentRow[],
+  removeSeparators?: boolean,
+  clusterSyncAvailable?: boolean
+): Table => {
+  const tableHeaders: Array<TableHeader> = [
+    outputFormat === OUTPUT_FORMAT.WIDE ? { title: "Start Time" } : {},
+    { title: "Status" },
+    { title: "Service" },
+    { title: "Ring" },
+    outputFormat === OUTPUT_FORMAT.WIDE ? { title: "Author" } : {},
+    { title: "Image Tag" },
+    !removeSeparators ? { title: "│" } : {},
+    { title: "Image Creation", alignment: "right" },
+    { title: "Commit" },
+    { title: "OK" },
+    !removeSeparators ? { title: "│" } : {},
+    { title: "Metadata Update", alignment: "right" },
+    { title: "Commit" },
+    { title: "OK" },
+    !removeSeparators ? { title: "│" } : {},
+    outputFormat === OUTPUT_FORMAT.WIDE
+      ? { title: "Approval PR", alignment: "right" }
+      : {},
+    outputFormat === OUTPUT_FORMAT.WIDE ? { title: "Merged By" } : {},
+    { title: "Ready to Deploy", alignment: "right" },
+    { title: "Commit" },
+    { title: "OK" },
+    !removeSeparators ? { title: "│" } : {},
+    { title: "Duration", alignment: "right" },
+    outputFormat === OUTPUT_FORMAT.WIDE && clusterSyncAvailable
+      ? { title: "Cluster Sync" }
+      : {},
+  ];
+
+  const columnAlignment: Array<"left" | "middle" | "right"> = [];
+  const headers: string[] = [];
+  tableHeaders.forEach((header) => {
+    if (header.title) {
+      headers.push(header.title);
+      columnAlignment.push(header.alignment ? header.alignment : "left");
+    }
+  });
+  const table = new Table({
+    head: headers,
+    chars: {
+      top: "",
+      "top-mid": "",
+      "top-left": "",
+      "top-right": "",
+      bottom: "",
+      "bottom-mid": "",
+      "bottom-left": "",
+      "bottom-right": "",
+      left: "",
+      "left-mid": "",
+      mid: "",
+      "mid-mid": "",
+      right: "",
+      "right-mid": "",
+      middle: " ",
+    },
+    style: { "padding-left": 0, "padding-right": 0 },
+    colAligns: columnAlignment,
+  });
+
+  deployments.forEach((deployment: DeploymentRow) => {
+    const row = [];
+    if (outputFormat === OUTPUT_FORMAT.WIDE) {
+      row.push(deployment.startTime ?? "");
+    }
+    row.push(deployment.status ?? "");
+    row.push(deployment.service ?? "");
+    row.push(deployment.env ?? "");
+    if (outputFormat === OUTPUT_FORMAT.WIDE) {
+      row.push(deployment.author ?? "");
+    }
+    row.push(deployment.imageTag ?? "");
+
+    if (!removeSeparators) row.push("│");
+    row.push(deployment.srcToAcrPipelineId ?? "");
+    row.push(deployment.srctoAcrCommitId ?? "");
+    row.push(deployment.srcToAcrResult ?? "");
+
+    if (!removeSeparators) row.push("│");
+    row.push(deployment.AcrToHldPipelineId ?? "");
+    row.push(deployment.AcrToHldCommitId ?? "");
+    row.push(deployment.AcrToHldResult ?? "");
+
+    if (!removeSeparators) row.push("│");
+    if (outputFormat === OUTPUT_FORMAT.WIDE) {
+      row.push(deployment.pr ?? "");
+      row.push(deployment.mergedBy ?? "");
+    }
+    row.push(deployment.HldToManifestPipelineId ?? "");
+    row.push(deployment.HldToManifestCommitId ?? "");
+    row.push(deployment.HldToManifestResult ?? "");
+
+    if (!removeSeparators) row.push("│");
+    row.push(deployment.duration ?? "");
+
+    if (outputFormat === OUTPUT_FORMAT.WIDE && clusterSyncAvailable) {
+      row.push(deployment.syncStatus ?? "");
+    }
+
+    table.push(row);
+  });
+  console.log(table.toString());
+  return table;
+};
 
 /**
  * Generates a RowKey GUID 12 characters long

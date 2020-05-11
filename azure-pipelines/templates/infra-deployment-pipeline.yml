@@ -1,0 +1,111 @@
+trigger:
+  branches:
+    include:
+    - master
+
+stages:
+- stage: Deploy_Prod
+  displayName: Deploy cluster
+  jobs:
+  - deployment: Deploy_aks
+    displayName: Deploy aks voting app
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: 'prod-aks-live'
+    variables:
+      - group: 'bedrock-infra-hld-vg'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+            persistCredentials: true
+            clean: true
+
+          - bash: |
+              curl $BEDROCK_BUILD_SCRIPT > build.sh
+              chmod +x ./build.sh
+            displayName: Download Bedrock orchestration script
+            env:
+              BEDROCK_BUILD_SCRIPT: https://raw.githubusercontent.com/Microsoft/bedrock/master/gitops/azure-devops/build.sh
+
+          - script: |
+              dpkg --configure -a
+              curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+              az extension add --name azure-devops
+              az --version
+              wget https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip -q
+              unzip -q terraform_$(tf_version)_linux_amd64.zip
+              sudo mv terraform /usr/local/bin
+              terraform -version
+            displayName: 'Install az-cli, az devops extension, and Terraform'
+
+          - script: |
+              . build.sh --source-only
+              init
+              cd $PROJECT_DIRECTORY-generated/$CLUSTER
+              terraform init -backend-config=./backend.tfvars
+            displayName: 'Terraform init'
+
+          - script: |
+              . build.sh --source-only
+              init
+              cd $PROJECT_DIRECTORY-generated/$CLUSTER
+              mkdir deploy_output
+              terraform plan -var-file=./bedrock.tfvars -out=deploy_output/prod-tfplan
+              terraform show -json deploy_output/prod-tfplan >> deploy_output/prod-tfplan.json
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              storage_account_name: $(storage_account_name)
+              ssh_public_key: $(ssh_public_key)
+              access_key: $(access_key)
+            displayName: 'Terraform plan and build artifact'
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              path: /home/vsts/$PROJECT_DIRECTORY-generated/$CLUSTER/deploy_output
+              artifact: Publish Terraform Plan
+            condition: always()
+
+          # Download secure file
+          # Download a secure file to the agent machine
+          - task: DownloadSecureFile@1
+            name: 'access_key' # The name with which to reference the secure file's path on the agent, like $(mySecureFile.secureFilePath)
+            inputs:
+              secureFile: 'id_rsa' # The file name or GUID of the secure file
+
+          - bash: |
+              # Install the extension
+              export AZURE_DEVOPS_EXT_PAT=$(AZDO_PAT)
+              az extension add --name azure-devops
+              # Login to Azure
+              echo "az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)"
+              az login --service-principal --username "$(ARM_CLIENT_ID)" --password "$(ARM_CLIENT_SECRET)" --tenant "$(ARM_TENANT_ID)"
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+            displayName: 'AZ login'
+
+          - script: |
+              . build.sh --source-only
+              init
+              cd $PROJECT_DIRECTORY-generated/$CLUSTER
+              terraform apply "deploy_output/prod-tfplan" 
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+            displayName: 'Terraform apply'
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              path: /home/vsts/$PROJECT_DIRECTORY-generated/$CLUSTER/output
+              artifact: Publish Kube_config
+            condition: always()
+
