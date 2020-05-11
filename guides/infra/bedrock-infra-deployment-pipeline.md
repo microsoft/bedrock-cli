@@ -16,7 +16,7 @@ infrastructure when already using `bedrock` to manage infrastructure.
 With the ability to manage and execute `bedrock infra` commands locally, it is
 often more secure to be running `terraform apply` to create or update production
 infrastructure manually. This means that you can still rely on `bedrock infra`
-to scaffold and generate your terrafom projects, but any terraform operations
+to scaffold and generate your terraform projects, but any terraform operations
 will be handled manually.
 
 If you make changes to any `definition.yaml` files in your project hierarchy,
@@ -38,3 +38,48 @@ prerequisite actions to occur beforehand:
    - Triggered from commits made to the master branch of a Generated repo
    - Download and install Terraform
    - Run `terraform apply` on terraform scripts
+
+## Sample Infrastructure Deployment Pipeline
+
+A template for the deployment of terraform managed infrastructure for Azure
+DevOps using the `bedrock CLI` has been provided in the
+[`infra-deployment-pipeline.yml`](../../azure-pipelines/templates/infra-deployment-pipeline.yml).
+This is a modest base approach to get you started with maintaining persisted
+terraform infrastructure using gitops in Azure DevOps. Use the provided template
+to deploy stateful resources to using gitops and promote the terraform changes
+through your pipeline environments.
+
+### Manage Secure Files
+
+Azure Pipelines Secure Files store files such as signing certificates, binaries,
+executables, and SSH keys on the server without having to commit them to your
+source repository. Store important files required for accessing your AKS cluster
+or services deployed. In the `infra-deployment-pipeline.yml`, it accesses the
+private SSH key for node access to an AKS cluster.
+
+![](../images/bedrock-infra-securefiles.png)
+
+### Azure DevOps Environments
+
+Resources are deployed into pipeline environments allowing traceability of
+commits and work items. Run details or deployments and application desired state
+are captured in environments. At this time resource monitoring is only supported
+for AKS and Virtual Machines.
+
+![](../images/bedrock-infra-environments.png)
+
+> From YAML, you can target the environment or a specific resource. When you
+> create an environment from YAML dynamically, since there are no resources you
+> can only refer to environment. If the resources are added to the environment
+> then you can target the the specific resource from YAML deployment job with
+> environment: `<environment name>`,`<resource name>`.
+
+### Publishing Pipeline Artifacts
+
+Pipeline artifacts are published to associate a terraform plan output with a
+commit hash that has modified the deployed environments. Use the artifacts to
+revert back to previous versions of the environment once the state has failed.
+In the deployment template, the pipeline publishes the `KUBECONFIG` and
+terraform plan output.
+
+![](../images/bedrock-infra-artifacts.png)
