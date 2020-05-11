@@ -16,6 +16,24 @@ jobs:
     steps:
       - download: current
 
+      - task: ArchiveFiles@2
+        inputs: 
+          rootFolderOrFile: $(Agent.BuildDirectory)/dist
+          includeRootFolder: true
+          archiveFile: $(Agent.BuildDirectory)/dist.tar.gz
+          replaceExistingArchive: true 
+      
+      - script: |
+          echo "Get sha256 number for dist.tar.gz"
+          file_sha=$(openssl dgst  -sha256 $(Agent.BuildDirectory)/dist.tar.gz)
+          sha_number=$(echo $file_sha|  sed -e 's/SHA256(.*)= //g')
+          version_tag=$(sed -n '1p' < $(Agent.BuildDirectory)/BedrockVersion/version.txt)
+          echo -e $version_tag >> $(Agent.BuildDirectory)/package-info.txt
+          echo -e $sha_number >> $(Agent.BuildDirectory)/package-info.txt
+      
+      - publish: $(Agent.BuildDirectory)/package-info.txt
+        artifact: BedrockPackage
+
       - task: GitHubRelease@1
         displayName: "GitHub release ${{ parameters.action }}"
         inputs:
@@ -28,6 +46,7 @@ jobs:
             $(Agent.BuildDirectory)/dist/bedrock-linux
             $(Agent.BuildDirectory)/dist/bedrock-macos
             $(Agent.BuildDirectory)/dist/bedrock-win.exe
+            $(Agent.BuildDirectory)/dist.tar.gz
           tagSource: ${{ parameters.tagSource }}
           isDraft: ${{ parameters.isDraft }}
           isPreRelease: ${{ parameters.isPrelease }}
