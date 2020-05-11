@@ -6,6 +6,7 @@ import {
   IDeployment,
   status as getDeploymentStatus,
   fetchPR,
+  fetchAuthor,
   getRepositoryFromURL,
 } from "spektate/lib/IDeployment";
 import AzureDevOpsPipeline from "spektate/lib/pipeline/AzureDevOpsPipeline";
@@ -26,9 +27,15 @@ import { isIntegerString } from "../../lib/validator";
 import { logger } from "../../logger";
 import decorator from "./get.decorator.json";
 import { IPullRequest } from "spektate/lib/repository/IPullRequest";
+import { IAuthor } from "spektate/lib/repository/Author";
+import {
+  DeploymentRow,
+  printDeploymentTable,
+} from "../../lib/azure/deploymenttable";
 
 const promises: Promise<void>[] = [];
 const pullRequests: { [id: string]: IPullRequest } = {};
+const authors: { [id: string]: IAuthor } = {};
 /**
  * Output formats to display service details
  */
@@ -68,6 +75,7 @@ export interface CommandOptions {
   service: string;
   deploymentId: string;
   top: string;
+  hideSeparators: boolean;
 }
 
 /**
@@ -112,7 +120,6 @@ export const validateValues = (opts: CommandOptions): ValidatedOptions => {
       });
     }
   }
-
   return {
     buildId: opts.buildId,
     commitId: opts.commitId,
@@ -125,6 +132,7 @@ export const validateValues = (opts: CommandOptions): ValidatedOptions => {
     service: opts.service,
     top: opts.top,
     watch: opts.watch,
+    hideSeparators: opts.hideSeparators,
   };
 };
 
@@ -156,20 +164,17 @@ export const initialize = async (): Promise<InitObject> => {
     clusterPipeline: new AzureDevOpsPipeline(
       config.azure_devops.org,
       config.azure_devops.project,
-      false,
       config.azure_devops.access_token
     ),
     hldPipeline: new AzureDevOpsPipeline(
       config.azure_devops.org,
       config.azure_devops.project,
-      true,
       config.azure_devops.access_token
     ),
     key: config.introspection.azure.key,
     srcPipeline: new AzureDevOpsPipeline(
       config.azure_devops.org,
       config.azure_devops.project,
-      false,
       config.azure_devops.access_token
     ),
     accountName: config.introspection.azure.account_name,
@@ -214,11 +219,46 @@ export const getClusterSyncStatuses = async (
       return undefined;
     }
   } catch (err) {
-    throw buildError(
-      errorStatusCode.GIT_OPS_ERR,
-      "introspect-get-cmd-cluster-sync-stat-err",
-      err
-    );
+    // Certainly don't want to fail the get command if cluster sync failed
+    // log for debugging
+    logger.verbose(`Could not get cluster sync status ` + err);
+  }
+};
+
+/**
+ * Fetches author data for deployments
+ *
+ * @param deployment deployment for which author has to be fetched
+ * @param initObj initialization object
+ */
+export const fetchAuthorInformation = async (
+  deployment: IDeployment,
+  initObj: InitObject
+): Promise<void> => {
+  let commitId =
+    deployment.srcToDockerBuild?.sourceVersion ||
+    deployment.hldToManifestBuild?.sourceVersion;
+  let repo: IAzureDevOpsRepo | IGitHub | undefined =
+    deployment.srcToDockerBuild?.repository ||
+    deployment.hldToManifestBuild?.repository;
+  if (!repo && deployment.sourceRepo) {
+    repo = getRepositoryFromURL(deployment.sourceRepo);
+    commitId = deployment.srcToDockerBuild?.sourceVersion;
+  }
+  if (!repo && deployment.hldRepo) {
+    repo = getRepositoryFromURL(deployment.hldRepo);
+    commitId = deployment.hldToManifestBuild?.sourceVersion;
+  }
+  if (repo && commitId !== "") {
+    try {
+      const author = await fetchAuthor(repo, commitId!, initObj.accessToken);
+      if (author) {
+        authors[deployment.deploymentId] = author;
+      }
+    } catch (err) {
+      // verbose log, to make sure printed response from get command is scriptable
+      logger.verbose(`Could not get author for ${commitId}: ` + err);
+    }
   }
 };
 
@@ -241,13 +281,29 @@ export const fetchPRInformation = async (
       try {
         const pr = await fetchPR(repo, strPr, initObj.accessToken);
         if (pr) {
-          pullRequests[strPr] = pr;
+          pullRequests[deployment.deploymentId] = pr;
         }
       } catch (err) {
-        logger.warn(`Could not get PR ${strPr} information: ` + err);
+        // verbose log, to make sure printed response from get command is scriptable
+        logger.verbose(`Could not get PR ${strPr} information: ` + err);
       }
     }
   }
+};
+
+/**
+ * Gets author information for all the deployments.
+ *
+ * @param deployments all deployments to be displayed
+ * @param initObj initialization object
+ */
+export const getAuthors = (
+  deployments: IDeployment[] | undefined,
+  initObj: InitObject
+): void => {
+  (deployments || []).forEach((d) => {
+    promises.push(fetchAuthorInformation(d, initObj));
+  });
 };
 
 /**
@@ -271,11 +327,11 @@ export const getPRs = (
  * @param status Status
  * @return a status indicator icon
  */
-export const getStatus = (status: string): string => {
-  if (status === "succeeded") {
+export const getStatus = (status?: string): string => {
+  if (!status) {
+    return "";
+  } else if (status === "succeeded") {
     return "\u2713";
-  } else if (!status) {
-    return "...";
   }
   return "\u0445";
 };
@@ -301,166 +357,69 @@ export const printDeployments = (
   deployments: IDeployment[] | undefined,
   outputFormat: OUTPUT_FORMAT,
   limit?: number,
-  syncStatuses?: ITag[] | undefined
+  syncStatuses?: ITag[] | undefined,
+  removeSeparators?: boolean
 ): Table | undefined => {
+  const deploymentsToDisplay: DeploymentRow[] = [];
   if (deployments && deployments.length > 0) {
-    let header = [
-      "Start Time",
-      "Service",
-      "Commit",
-      "Image Creation",
-      "Image Tag",
-      "Result",
-      "Metadata Update",
-      "Ring",
-      "Hld Commit",
-      "Result",
-    ];
-    let prsExist = false;
-    if (
-      Object.keys(pullRequests).length > 0 &&
-      outputFormat === OUTPUT_FORMAT.WIDE
-    ) {
-      header = header.concat(["Approval PR", "Merged By"]);
-      prsExist = true;
-    }
-    header = header.concat(["Ready to Deploy", "Result"]);
-    if (outputFormat === OUTPUT_FORMAT.WIDE) {
-      header = header.concat([
-        "Duration",
-        "Status",
-        "Manifest Commit",
-        "End Time",
-      ]);
-    }
-    if (syncStatuses && syncStatuses.length > 0) {
-      header = header.concat(["Cluster Sync"]);
-    }
-
-    const table = new Table({
-      head: header,
-      chars: {
-        top: "",
-        "top-mid": "",
-        "top-left": "",
-        "top-right": "",
-        bottom: "",
-        "bottom-mid": "",
-        "bottom-left": "",
-        "bottom-right": "",
-        left: "",
-        "left-mid": "",
-        mid: "",
-        "mid-mid": "",
-        right: "",
-        "right-mid": "",
-        middle: " ",
-      },
-      style: { "padding-left": 0, "padding-right": 0 },
-    });
-
     const toDisplay = limit ? deployments.slice(0, limit) : deployments;
 
     toDisplay.forEach((deployment) => {
       const row = [];
-      let deploymentStatus = getDeploymentStatus(deployment);
-      row.push(
-        deployment.srcToDockerBuild
-          ? deployment.srcToDockerBuild.startTime.toLocaleString()
-          : deployment.hldToManifestBuild
-          ? deployment.hldToManifestBuild.startTime.toLocaleString()
-          : "-"
-      );
-      row.push(deployment.service !== "" ? deployment.service : "-");
-      row.push(deployment.commitId !== "" ? deployment.commitId : "-");
-      row.push(
-        deployment.srcToDockerBuild ? deployment.srcToDockerBuild.id : "-"
-      );
-      row.push(deployment.imageTag !== "" ? deployment.imageTag : "-");
-      row.push(
-        deployment.srcToDockerBuild
-          ? getStatus(deployment.srcToDockerBuild.result)
-          : ""
-      );
-
-      let dockerToHldId = "-";
-      let dockerToHldStatus = "";
-
-      if (deployment.dockerToHldRelease) {
-        dockerToHldId = deployment.dockerToHldRelease.id;
-        dockerToHldStatus = getStatus(deployment.dockerToHldRelease.status);
-      } else if (
-        deployment.dockerToHldReleaseStage &&
-        deployment.srcToDockerBuild
-      ) {
-        dockerToHldId = deployment.dockerToHldReleaseStage.id;
-        dockerToHldStatus = getStatus(deployment.srcToDockerBuild.result);
-      }
-      row.push(dockerToHldId);
-
-      row.push(
-        deployment.environment !== ""
-          ? deployment.environment.toUpperCase()
-          : "-"
-      );
-      row.push(deployment.hldCommitId || "-");
-      row.push(dockerToHldStatus);
-
-      // Print PR if available
-      if (
-        prsExist &&
-        deployment.pr &&
-        deployment.pr.toString() in pullRequests
-      ) {
-        row.push(deployment.pr);
-        if (pullRequests[deployment.pr.toString()].mergedBy) {
-          row.push(pullRequests[deployment.pr.toString()].mergedBy?.name);
-        } else {
-          deploymentStatus = "Waiting";
-          row.push("-");
-        }
-      } else if (prsExist) {
-        row.push("-");
-        row.push("-");
+      const deploymentToDisplay = {
+        status: getDeploymentStatus(deployment),
+        service: deployment.service,
+        env: deployment.environment,
+        author:
+          deployment.deploymentId in authors
+            ? authors[deployment.deploymentId].name
+            : undefined,
+        srctoAcrCommitId: deployment.commitId,
+        srcToAcrPipelineId: deployment.srcToDockerBuild?.id,
+        imageTag: deployment.imageTag,
+        srcToAcrResult: getStatus(deployment.srcToDockerBuild?.result),
+        AcrToHldPipelineId: deployment.dockerToHldRelease
+          ? deployment.dockerToHldRelease.id
+          : deployment.dockerToHldReleaseStage
+          ? deployment.dockerToHldReleaseStage.id
+          : undefined,
+        AcrToHldResult: getStatus(
+          deployment.dockerToHldRelease?.status ||
+            deployment.dockerToHldReleaseStage?.result
+        ),
+        AcrToHldCommitId: deployment.hldCommitId,
+        pr:
+          deployment.deploymentId in pullRequests
+            ? pullRequests[deployment.deploymentId].id.toString()
+            : undefined,
+        mergedBy:
+          deployment.deploymentId in pullRequests
+            ? pullRequests[deployment.deploymentId].mergedBy?.name
+            : undefined,
+        HldToManifestPipelineId: deployment.hldToManifestBuild?.id,
+        HldToManifestResult: getStatus(deployment.hldToManifestBuild?.result),
+        HldToManifestCommitId: deployment.manifestCommitId,
+        duration: duration(deployment) + " mins",
+        startTime:
+          deployment.srcToDockerBuild?.startTime?.toLocaleString() ||
+          deployment.hldToManifestBuild?.startTime?.toLocaleString(),
+        syncStatus: syncStatuses
+          ? getClusterSyncStatusForDeployment(deployment, syncStatuses)?.name
+          : undefined,
+      };
+      if (deploymentToDisplay.pr && !deploymentToDisplay.mergedBy) {
+        deploymentToDisplay.status = "Waiting";
       }
 
-      row.push(
-        deployment.hldToManifestBuild ? deployment.hldToManifestBuild.id : "-"
-      );
-      row.push(
-        deployment.hldToManifestBuild
-          ? getStatus(deployment.hldToManifestBuild.result)
-          : ""
-      );
-      if (outputFormat === OUTPUT_FORMAT.WIDE) {
-        row.push(duration(deployment) + " mins");
-        row.push(deploymentStatus);
-        row.push(deployment.manifestCommitId || "-");
-        row.push(
-          deployment.hldToManifestBuild &&
-            deployment.hldToManifestBuild.finishTime &&
-            !isNaN(new Date(deployment.hldToManifestBuild.finishTime).getTime())
-            ? deployment.hldToManifestBuild.finishTime.toLocaleString()
-            : deployment.srcToDockerBuild &&
-              deployment.srcToDockerBuild.finishTime &&
-              !isNaN(new Date(deployment.srcToDockerBuild.finishTime).getTime())
-            ? deployment.srcToDockerBuild.finishTime.toLocaleString()
-            : "-"
-        );
-      }
-      if (syncStatuses && syncStatuses.length > 0) {
-        const tag = getClusterSyncStatusForDeployment(deployment, syncStatuses);
-        if (tag) {
-          row.push(tag.name);
-        } else {
-          row.push("-");
-        }
-      }
-      table.push(row);
+      deploymentsToDisplay.push(deploymentToDisplay);
     });
 
-    console.log(table.toString());
-    return table;
+    return printDeploymentTable(
+      outputFormat,
+      deploymentsToDisplay,
+      removeSeparators,
+      deploymentsToDisplay.filter((d) => d.syncStatus).length > 0
+    );
   } else {
     logger.info("No deployments found for specified filters.");
     return undefined;
@@ -479,9 +438,14 @@ export const displayDeployments = async (
   deployments: IDeployment[] | undefined,
   syncStatuses: ITag[] | undefined,
   initObj: InitObject
-): Promise<IDeployment[]> => {
+): Promise<Table | undefined> => {
+  if (deployments && values.nTop) {
+    deployments = deployments.slice(0, values.nTop);
+  }
+  // Show authors and PRs only in wide output, to keep default narrow output fast and quick
   if (values.outputFormat === OUTPUT_FORMAT.WIDE) {
     getPRs(deployments, initObj);
+    getAuthors(deployments, initObj);
   }
 
   if (values.outputFormat === OUTPUT_FORMAT.JSON) {
@@ -490,8 +454,13 @@ export const displayDeployments = async (
   }
 
   await Promise.all(promises);
-  printDeployments(deployments, values.outputFormat, values.nTop, syncStatuses);
-  return deployments || [];
+  return printDeployments(
+    deployments,
+    values.outputFormat,
+    values.nTop,
+    syncStatuses,
+    values.hideSeparators
+  );
 };
 
 /**
@@ -502,7 +471,7 @@ export const displayDeployments = async (
 export const getDeployments = async (
   initObj: InitObject,
   values: ValidatedOptions
-): Promise<IDeployment[]> => {
+): Promise<IDeployment[] | undefined> => {
   try {
     const syncStatusesPromise = getClusterSyncStatuses(initObj);
     const deploymentsPromise = getDeploymentsBasedOnFilters(
@@ -528,7 +497,8 @@ export const getDeployments = async (
     const deployments: IDeployment[] | undefined = tuple[0];
     const syncStatuses: ITag[] | undefined = tuple[1];
 
-    return await displayDeployments(values, deployments, syncStatuses, initObj);
+    await displayDeployments(values, deployments, syncStatuses, initObj);
+    return deployments;
   } catch (err) {
     throw buildError(
       errorStatusCode.EXE_FLOW_ERR,

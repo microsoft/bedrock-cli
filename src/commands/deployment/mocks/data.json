@@ -13,11 +13,7 @@
         "sourceVersion": "c6263942a6b760bcd1e6984108f95ebac78d5dc2",
         "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6053/sources",
         "startTime": "2019-08-30T21:47:37.500Z",
-        "status": "completed",
-        "repository": {
-          "reponame": "hello-bedrock",
-          "username": "samiyaakhtar"
-        }
+        "status": "completed"
       },
       "hldToManifestBuild": {
         "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6054",
@@ -31,11 +27,7 @@
         "sourceVersion": "a3dc9a7d47aca5135ca403fc3d8f5812c92d94de",
         "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6054/sources",
         "startTime": "2019-08-30T21:49:26.207Z",
-        "status": "completed",
-        "repository": {
-          "reponame": "hello-bedrock-hld",
-          "username": "samiyaakhtar"
-        }
+        "status": "completed"
       },
       "deploymentId": "12054c192b5d",
       "dockerToHldRelease": {
@@ -53,7 +45,6 @@
       "pr": "1123",
       "hldRepo": "https://github.com/samiyaakhtar/hello-bedrock-hld",
       "manifestRepo": "https://github.com/samiyaakhtar/hello-bedrock-manifest",
-      "sourceRepo": "https://github.com/samiyaakhtar/hello-bedrock",
       "commitId": "c626394",
       "hldCommitId": "a3dc9a7",
       "imageTag": "hello-bedrock-master-6053",
@@ -447,11 +438,7 @@
         "sourceVersion": "a0bca78b1abb64611dcebebd2446c6a716232269",
         "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6042/sources",
         "startTime": "2019-08-30T20:34:01.178Z",
-        "status": "completed",
-        "repository": {
-          "reponame": "hello-spektate",
-          "username": "samiyaakhtar"
-        }
+        "status": "completed"
       },
       "hldToManifestBuild": {
         "URL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_build/results?buildId=6043",
@@ -465,11 +452,7 @@
         "sourceVersion": "316abbc3ee0cc5c3284cc93a95fca6ce2514fe4e",
         "sourceVersionURL": "https://dev.azure.com/epicstuff/f8a98d9c-8f11-46ef-89e4-07b4a56d1ad5/_apis/build/builds/6043/sources",
         "startTime": "2019-08-30T20:35:53.160Z",
-        "status": "completed",
-        "repository": {
-          "reponame": "hello-spektate-hld",
-          "username": "samiyaakhtar"
-        }
+        "status": "completed"
       },
       "deploymentId": "ae28bf6b2731",
       "dockerToHldRelease": {
