@@ -36,7 +36,7 @@
     {
       "arg": "-t, --top <top>",
       "description": "Return only top N most recent deployments",
-      "defaultValue": ""
+      "defaultValue": "50"
     },
     {
       "arg": "-o, --output <output-format>",
@@ -46,6 +46,11 @@
     {
       "arg": "-w, --watch",
       "description": "Watch the deployments for a live view",
+      "defaultValue": false
+    },
+    {
+      "arg": "-h, --hide-separators",
+      "description": "Display the table without separators between columns",
       "defaultValue": false
     }
   ]
