@@ -17,7 +17,7 @@ improperly tested feature added.
 
 This document outlines suggested solutions and guidance that seek to provide a
 rollback mechanism to ensure the successful deployment of terraform
-infrastructure, automated reverted features in a release pipeline, and system
+infrastructure, automate reverting features in a release pipeline, and system
 alerting to notify key stakeholders and operations of system activity.
 
 Rolling back services which includes a relational database can be very
@@ -173,18 +173,18 @@ group to pass the values for the `Resource group`, `storage account` and
 `Container`. The `terraform plan output` will be the previous terraform state
 binary from the prior build artifact. Below is an example of a task YAML:
 
-```
+```yml
 - script: |
-              . build.sh --source-only
-              init
-              cd $PROJECT_DIRECTORY-generated/$CLUSTER
-              terraform apply "$artifactsBuild/prod-tfplan"
-            env:
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-            displayName: 'Terraform apply'
+    . build.sh --source-only
+    init
+    cd $PROJECT_DIRECTORY-generated/$CLUSTER
+    terraform apply "$artifactsBuild/prod-tfplan"
+  env:
+    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+    ARM_TENANT_ID: $(ARM_TENANT_ID)
+    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+  displayName: "Terraform apply"
 ```
 
 #### Configure a Post-deployment Condition Approval
