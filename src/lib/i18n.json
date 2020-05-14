@@ -13,7 +13,7 @@
     "storageTableName": "Enter storage table name",
     "storagePartitionKey": "Enter storage partition key",
     "storageAccessKey": "Enter storage access key",
-    "storageKeVaultName": "Enter key vault name (have the value as empty and hit enter key to skip)"
+    "storageKeyVaultName": "Enter key vault name (have the value as empty and hit enter key to skip)"
   },
   "errors": {
     "init_cmd_failed": "Init command was not successfully executed.",

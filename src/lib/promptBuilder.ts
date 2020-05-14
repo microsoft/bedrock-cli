@@ -160,7 +160,7 @@ export const azureKeyVaultName = (
 ): QuestionCollection => {
   return {
     default: defaultValue,
-    message: `${i18n.prompt.storageKeVaultName}\n`,
+    message: `${i18n.prompt.storageKeyVaultName}\n`,
     name: "azdo_storage_key_vault_name",
     type: "input",
     validate: validator.validateStorageKeyVaultName,
