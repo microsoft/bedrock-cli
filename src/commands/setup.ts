@@ -48,7 +48,7 @@ import { build as buildError, log as logError } from "../lib/errorBuilder";
 import { errorStatusCode } from "../lib/errorStatusCode";
 import { exec } from "../lib/shell";
 import { ConfigYaml } from "../types";
-import { transports } from "winston";
+import { turnOnConsoleLogging, turnOffConsoleLogging } from "../lib/util";
 const Spinner = cli.Spinner;
 interface CommandOptions {
   file: string | undefined;
@@ -316,25 +316,6 @@ export const getAPIClients = async (): Promise<APIClients> => {
   };
 };
 
-export const turnOffConsoleLogging = (): void => {
-  //If logging level is not verbose
-  if (logger.level != "silly") {
-    logger.transports.forEach((t) => {
-      if (t instanceof transports.Console) {
-        t.silent = true;
-      }
-    });
-  }
-};
-
-export const turnOnConsoleLogging = (): void => {
-  logger.transports.forEach((t) => {
-    if (t instanceof transports.Console) {
-      t.silent = false;
-    }
-  });
-};
-
 /**
  * Executes the command, can all exit function with 0 or 1
  * when command completed successfully or failed respectively.
@@ -358,7 +339,7 @@ export const execute = async (
     const { coreAPI, gitAPI, buildAPI } = await getAPIClients();
 
     if (logger.level == "info") {
-      turnOffConsoleLogging();
+      turnOffConsoleLogging(logger);
     }
     await createProjectIfNotExist(coreAPI, rc);
     await logStatusSpinner(
@@ -387,7 +368,7 @@ export const execute = async (
     createSetupLog(rc);
     await exitFn(0);
   } catch (err) {
-    turnOnConsoleLogging();
+    turnOnConsoleLogging(logger);
     logError(buildError(errorStatusCode.CMD_EXE_ERR, "setup-cmd-failed", err));
 
     const msg = getErrorMessage(requestContext, err);
