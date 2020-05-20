@@ -110,7 +110,7 @@ export const isAzCLIInstall = async (): Promise<void> => {
     const version = ver && ver.length === 2 ? ver[1] : null;
 
     if (version) {
-      logger.info(`az cli vesion ${version}`);
+      logger.info(`az cli version ${version}`);
     } else {
       throw buildError(
         errorStatusCode.ENV_SETTING_ERR,
