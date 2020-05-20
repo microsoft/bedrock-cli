@@ -343,7 +343,7 @@ export const execute = async (
     }
     await createProjectIfNotExist(coreAPI, rc);
     await logStatusSpinner(
-      "Creating vaiable group",
+      "Creating variable group",
       "Variable group created",
       setupVariableGroup(rc)
     );
