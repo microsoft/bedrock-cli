@@ -35,11 +35,14 @@ jobs:
           git config user.name "Automated Account"
 
           cd Formula
+          # Parse homebrew formula file to update the version, commit and push
+          echo "Updating bedrock-cli.rb formula file on bedrock homebrew repository."
           sed -i "s/\/v.*\//\/$version_tag\//g" bedrock-cli.rb
           cat bedrock-cli.rb
           sed -i "s/sha256 \".*\"/sha256 \"$sha_number\"/g" bedrock-cli.rb
           cat bedrock-cli.rb
 
+          echo "Add and push new version changes."
           git add -f bedrock-cli.rb
           git commit -m "Update formula with new release."
           
