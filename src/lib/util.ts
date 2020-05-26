@@ -1,3 +1,4 @@
+import { transports, Logger } from "winston";
 /**
  * Deep clone an object.
  *
@@ -17,5 +18,24 @@ export const sleep = (timeInMs: number): Promise<unknown> => {
     setTimeout(() => {
       resolve();
     }, timeInMs);
+  });
+};
+
+export const turnOffConsoleLogging = (logger: Logger): void => {
+  //If logging level is not verbose
+  if (logger.level !== "silly") {
+    logger.transports.forEach((t) => {
+      if (t instanceof transports.Console) {
+        t.silent = true;
+      }
+    });
+  }
+};
+
+export const turnOnConsoleLogging = (logger: Logger): void => {
+  logger.transports.forEach((t) => {
+    if (t instanceof transports.Console) {
+      t.silent = false;
+    }
   });
 };

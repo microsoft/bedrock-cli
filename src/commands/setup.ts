@@ -3,6 +3,8 @@ import { ICoreApi } from "azure-devops-node-api/CoreApi";
 import { IGitApi } from "azure-devops-node-api/GitApi";
 import commander from "commander";
 import fs from "fs";
+import cli from "clui";
+import chalk from "chalk";
 import yaml from "js-yaml";
 import { defaultConfigFile } from "../config";
 import { getBuildApi, getWebApi } from "../lib/azdoClient";
@@ -46,7 +48,8 @@ import { build as buildError, log as logError } from "../lib/errorBuilder";
 import { errorStatusCode } from "../lib/errorStatusCode";
 import { exec } from "../lib/shell";
 import { ConfigYaml } from "../types";
-
+import { turnOnConsoleLogging, turnOffConsoleLogging } from "../lib/util";
+const Spinner = cli.Spinner;
 interface CommandOptions {
   file: string | undefined;
 }
@@ -61,6 +64,36 @@ interface APIClients {
   gitAPI: IGitApi;
   buildAPI: IBuildApi;
 }
+
+const installPromiseHelper = (
+  delegate: Promise<void>,
+  onSuccess: { (): void; (): void },
+  spinner: cli.Spinner
+): Promise<void> => {
+  return new Promise((resolve) => {
+    spinner.start();
+    delegate.then(() => {
+      spinner.stop();
+      onSuccess();
+      resolve();
+    });
+  });
+};
+
+const logStatusSpinner = async (
+  pendingMessage: string,
+  completionMessage: string,
+  delegate: Promise<void>
+): Promise<void> => {
+  const spinner = new Spinner(pendingMessage);
+  return Promise.resolve(
+    installPromiseHelper(
+      delegate,
+      () => console.log(chalk.green(`✅ ${completionMessage}`)),
+      spinner
+    )
+  );
+};
 
 export const isAzCLIInstall = async (): Promise<void> => {
   try {
@@ -77,7 +110,7 @@ export const isAzCLIInstall = async (): Promise<void> => {
     const version = ver && ver.length === 2 ? ver[1] : null;
 
     if (version) {
-      logger.info(`az cli vesion ${version}`);
+      logger.info(`az cli version ${version}`);
     } else {
       throw buildError(
         errorStatusCode.ENV_SETTING_ERR,
@@ -199,13 +232,41 @@ export const createAppRepoTasks = async (
       rc.acrName,
       RESOURCE_GROUP_LOCATION
     );
-    await setupVariableGroup(rc);
-    await helmRepo(gitAPI, rc);
-    await appRepo(gitAPI, rc);
-    await createLifecyclePipeline(buildAPI, rc);
-    await completePullRequest(gitAPI, rc, HLD_REPO);
-    await createBuildPipeline(buildAPI, rc);
-    await completePullRequest(gitAPI, rc, HLD_REPO);
+    await logStatusSpinner(
+      "Updating variable group",
+      "Variable group updated",
+      setupVariableGroup(rc)
+    );
+    await logStatusSpinner(
+      "Creating Helm repo",
+      "Helm repo created",
+      helmRepo(gitAPI, rc)
+    );
+    await logStatusSpinner(
+      "Creating App repo",
+      "App repo created",
+      appRepo(gitAPI, rc)
+    );
+    await logStatusSpinner(
+      "Creating Lifecycle pipeline",
+      "Lifecycle pipeline build success",
+      createLifecyclePipeline(buildAPI, rc)
+    );
+    await logStatusSpinner(
+      "Approving HLD pull request",
+      "HLD pull request completed",
+      completePullRequest(gitAPI, rc, HLD_REPO)
+    );
+    await logStatusSpinner(
+      "Creating Build-Update pipeline",
+      "Build-Update pipeline build success",
+      createBuildPipeline(buildAPI, rc)
+    );
+    await logStatusSpinner(
+      "Approving HLD pull request",
+      "HLD pull request completed",
+      completePullRequest(gitAPI, rc, HLD_REPO)
+    );
     return true;
   } else {
     return false;
@@ -277,17 +338,37 @@ export const execute = async (
 
     const { coreAPI, gitAPI, buildAPI } = await getAPIClients();
 
+    if (logger.level == "info") {
+      turnOffConsoleLogging(logger);
+    }
     await createProjectIfNotExist(coreAPI, rc);
-    await setupVariableGroup(rc);
-    await hldRepo(gitAPI, rc);
-    await manifestRepo(gitAPI, rc);
-    await createHLDtoManifestPipeline(buildAPI, rc);
+    await logStatusSpinner(
+      "Creating vaiable group",
+      "Variable group created",
+      setupVariableGroup(rc)
+    );
+    await logStatusSpinner(
+      "Creating HLD repo",
+      "HLD repo created",
+      hldRepo(gitAPI, rc)
+    );
+    await logStatusSpinner(
+      "Creating Manifest repo",
+      "Manifest repo created",
+      manifestRepo(gitAPI, rc)
+    );
+    await logStatusSpinner(
+      "Creating HLD to Manifest pipeline",
+      "HLD to Manifest pipeline build success",
+      createHLDtoManifestPipeline(buildAPI, rc)
+    );
     await createAppRepoTasks(gitAPI, buildAPI, rc);
 
     createCLIConfig(rc); // to write storage account information.
     createSetupLog(rc);
     await exitFn(0);
   } catch (err) {
+    turnOnConsoleLogging(logger);
     logError(buildError(errorStatusCode.CMD_EXE_ERR, "setup-cmd-failed", err));
 
     const msg = getErrorMessage(requestContext, err);
