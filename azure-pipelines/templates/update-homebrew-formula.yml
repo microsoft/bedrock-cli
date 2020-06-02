@@ -1,0 +1,50 @@
+  
+jobs:
+  - job: Update_Homebrew_Formula
+    timeoutInMinutes: 30 # timeout on job if deploy is not completed in 30 minutes
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+      - download: current
+
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          artifact: 'BedrockPackage'
+          path: $(Agent.BuildDirectory)
+
+      - checkout: BedrockHomebrewCore
+        persistCredentials: true
+        clean: true
+        
+      - script: |
+          # Read version and sha256 number
+          sha_number=$(sed -n '2p' < $(Agent.BuildDirectory)/BedrockPackage/package-info.txt)
+          version_tag=$(sed -n '1p' < $(Agent.BuildDirectory)/BedrockPackage/package-info.txt)
+          echo "version tag"
+          echo $version_tag
+
+          dir $(Build.SourcesDirectory)
+          cd $(Build.SourcesDirectory)
+
+          # Add changes to the homebrew formula repository
+          git pull origin master
+          git checkout -b master
+
+          # Set git identity
+          git config user.email "admin@azuredevops.com"
+          git config user.name "Automated Account"
+
+          cd Formula
+          # Parse homebrew formula file to update the version, commit and push
+          echo "Updating bedrock-cli.rb formula file on bedrock homebrew repository."
+          sed -i "s/\/v.*\//\/$version_tag\//g" bedrock-cli.rb
+          cat bedrock-cli.rb
+          sed -i "s/sha256 \".*\"/sha256 \"$sha_number\"/g" bedrock-cli.rb
+          cat bedrock-cli.rb
+
+          echo "Add and push new version changes."
+          git add -f bedrock-cli.rb
+          git commit -m "Update formula with new release."
+          
+          git push origin master
+      

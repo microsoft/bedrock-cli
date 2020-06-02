@@ -18,3 +18,11 @@ jobs:
 
       - publish: $(System.DefaultWorkingDirectory)/dist
         artifact: dist
+
+      - script: |
+          package_version=$(cat $(System.DefaultWorkingDirectory)/package.json | grep "version" | sed -e 's/"version": "//g')
+          new_version=v${package_version%??}
+          echo $new_version| sed -e 's/ //g' > version.txt
+      
+      - publish: $(System.DefaultWorkingDirectory)/version.txt
+        artifact: BedrockVersion

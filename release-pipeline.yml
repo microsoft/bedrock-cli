@@ -5,6 +5,13 @@ trigger:
 
 pr: none # disable CI build for PR
 
+resources:
+  repositories:
+  - repository: BedrockHomebrewCore # The name used to reference this repository in the checkout step
+    type: github
+    endpoint: "bedrock-cli"
+    name: microsoft/homebrew-bedrock
+
 stages:
   - stage: package_build
     jobs:
@@ -24,3 +31,8 @@ stages:
           tagSource: "gitTag" # or "userSpecifiedTag"
           addChangeLog: true
           isDraft: true
+  
+  - stage: update_homebrew_package
+    dependsOn: github_release
+    jobs:
+      - template: azure-pipelines/templates/update-homebrew-formula.yml
