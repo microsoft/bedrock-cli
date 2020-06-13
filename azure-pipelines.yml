@@ -36,9 +36,10 @@ steps:
       yarn lint
     displayName: "YARN LINT"
 
-  - script: |
-      yarn md-lint
-    displayName: "YARN MARKDOWN LINT"
+# Temporarily disabling. See https://github.com/microsoft/bedrock-cli/issues/62
+#   - script: |
+#       yarn md-lint
+#     displayName: "YARN MARKDOWN LINT"
 
   - script: |
       yarn build
