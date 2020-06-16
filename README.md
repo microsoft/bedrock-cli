@@ -66,7 +66,7 @@ bedrock init -i
 ```
 
 This will guide you through the process of creating a configuration.
-Alternatively if you already have a [configuration file](./guide/config-file.md)
+Alternatively if you already have a [configuration file](./guides/config-file.md)
 you can run the command:
 
 ```bash
