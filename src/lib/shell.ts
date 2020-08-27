@@ -22,6 +22,9 @@ export const exec = async (
   opts: child_process.SpawnOptions = {}
 ): Promise<string> => {
   return new Promise<string>((resolve, reject) => {
+    if (process.platform === "win32") {
+      opts = { ...opts, shell: true };
+    }
     const child = child_process.spawn(cmd, args, opts);
     const cmdString = `${cmd} ${args.join(" ")}`;
     let stdout = "";
