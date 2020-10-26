@@ -1,5 +1,12 @@
 # RELEASE NOTES
 
+## [0.6.6] - 2020-10-13
+
+- Add support for homebrew installation
+
+- See operational changes
+  [here](https://microsoft.github.io/bedrock-cli/commands/#change_rel_0_6_6).
+
 ## [0.6.5] - 2020-05-08
 
 - Fixed bugs
