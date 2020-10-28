@@ -20,7 +20,7 @@ Key features:
 
 ## Install
 
-You can install `bedrock` via `homebrew` or with the pre-compiled binaries
+You can install `bedrock` via `homebrew` or with the pre-compiled binaries.
 
 ### Homebrew
 
