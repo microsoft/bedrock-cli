@@ -20,7 +20,33 @@ Key features:
 
 ## Install
 
-Download pre-compiled binaries of Bedrock CLI on the
+You can install `bedrock` via `homebrew` or with the pre-compiled binaries.
+
+### Homebrew
+
+Version `v0.6.6` and newer are available via homebrew.
+
+Tap to the formulae repository:
+
+```
+$ brew tap microsoft/bedrock
+```
+
+Install `bedrock`:
+
+```
+$ brew install microsoft/bedrock/bedrock-cli
+```
+
+Run `bedrock`
+
+```
+$ bedrock
+```
+
+### Pre-compile binaries
+
+Download pre-compiled binaries of `bedrock` on the
 [releases](https://github.com/microsoft/bedrock-cli/releases) page.
 
 ## CLI
@@ -66,8 +92,8 @@ bedrock init -i
 ```
 
 This will guide you through the process of creating a configuration.
-Alternatively if you already have a [configuration file](./guides/config-file.md)
-you can run the command:
+Alternatively if you already have a
+[configuration file](./guides/config-file.md) you can run the command:
 
 ```bash
 bedrock init -f bedrock-config.yaml
