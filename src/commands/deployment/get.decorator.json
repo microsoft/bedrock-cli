@@ -49,7 +49,7 @@
       "defaultValue": false
     },
     {
-      "arg": "-h, --hide-separators",
+      "arg": "-e, --hide-separators",
       "description": "Display the table without separators between columns",
       "defaultValue": false
     }
