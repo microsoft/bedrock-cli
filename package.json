@@ -98,7 +98,7 @@
     "node-emoji": "^1.10.0",
     "open": "^6.4.0",
     "shelljs": "^0.8.3",
-    "simple-git": "^1.126.0",
+    "simple-git": "^3.3.0",
     "spektate": "^1.0.11",
     "ssh-url": "^0.1.5",
     "uuid": "^3.3.3",
