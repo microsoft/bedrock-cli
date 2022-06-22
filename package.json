@@ -77,7 +77,7 @@
     "@azure/arm-subscriptions": "^2.0.0",
     "@azure/identity": "^1.0.0",
     "@azure/keyvault-secrets": "^4.0.0",
-    "@azure/ms-rest-nodeauth": "^3.0.0",
+    "@azure/ms-rest-nodeauth": "^3.0.8",
     "@types/clui": "^0.3.0",
     "@types/fs-extra": "^8.0.0",
     "@types/git-url-parse": "^9.0.0",

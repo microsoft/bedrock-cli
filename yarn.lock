@@ -197,10 +197,10 @@
     uuid "^3.3.2"
     xml2js "^0.4.19"
 
-"@azure/ms-rest-nodeauth@^3.0.0":
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/@azure/ms-rest-nodeauth/-/ms-rest-nodeauth-3.0.3.tgz#e485b9c960da718d0476115e9f0ec550ccbba561"
-  integrity sha512-/KAgVV68vkOdrx6O3T6qO7thCep4nPbWzkpNIPFN3P6uzEzDIk6BCGgkzabnmkb2kXaf4+IGHs0UMoXSfN/IgQ==
+"@azure/ms-rest-nodeauth@^3.0.8":
+  version "3.0.8"
+  resolved "https://registry.yarnpkg.com/@azure/ms-rest-nodeauth/-/ms-rest-nodeauth-3.0.8.tgz#381938aca692e19daa6c9febb2cbb95a8e689243"
+  integrity sha512-HmEkzAUGWxWHrwHysX9vE00cuK2WjxCYvBWV6cbsvm+eSm3VXpkGHPSoCHXyqUQOGqu58LXI4XFVJxFT/s40pA==
   dependencies:
     "@azure/ms-rest-azure-env" "^2.0.0"
     "@azure/ms-rest-js" "^2.0.4"
